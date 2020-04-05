@@ -211,26 +211,26 @@ func getNewTorrents(user, pass string) error {
 			//Get the time on which the torrent was created
 			torrentTime := cleanupHtmlText(s.Find("td").Last().Text())
 			//Get the author
-			authorNode := s.Find("td").Eq(5).Find("a").First()
+			authorNode := s.Find("td").Eq(4).Find("a").First()
 			author := authorNode.Text()
 			authorId, _ := authorNode.Attr("href")
 			authorId = extractAttr(authorId, "pid")
 			//Get the category
-			categoryNode := s.Find("td").Eq(3).Find("a").First()
+			categoryNode := s.Find("td").Eq(2).Find("a").First()
 			category := categoryNode.Text()
 			categoryId, _ := categoryNode.Attr("href")
 			categoryId = extractAttr(categoryId, "f")
 			//Get the size
-			sizeNode := s.Find("td").Eq(3).Find("a").First()
+			sizeNode := s.Find("td").Eq(5)
 			size := sizeStrToBytes(sizeNode.Text())
 			//Get the downloads
-			downloadsNode := s.Find("td").Eq(3).Find("a").First()
-			downloads, _ := strconv.Atoi(downloadsNode.Text())
+			downloadsNode := s.Find("td").Eq(8)
+			downloads, _ := strconv.Atoi(stripToNumber(downloadsNode.Text()))
 			//Get the leachers
-			leachersNode := s.Find("td").Eq(3).Find("a").First()
+			leachersNode := s.Find("td").Eq(7).Find("a").First()
 			leachers, _ := strconv.Atoi(leachersNode.Text())
 			//Get the seeders
-			seedersNode := s.Find("td").Eq(3).Find("a").First()
+			seedersNode := s.Find("td").Eq(6).Find("a").First()
 			seeders, _ := strconv.Atoi(seedersNode.Text())
 
 			existingTorrent := client.torrentStorage.FindByTorrentId(torrentId)

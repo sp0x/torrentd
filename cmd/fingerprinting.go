@@ -46,11 +46,11 @@ func getTorrentFingerprint(t *db.Torrent) string {
 	name = categoriesRx.ReplaceAllString(name, "")
 	name = arrowsRx.ReplaceAllString(name, "$1")
 	name = cyrilicRx.ReplaceAllString(name, "$1")
+	name = strings.Replace(name, ".", " ", -1)
 	//Drop punctuation and other non-alphabet chars
 	chars := "abcdefghijklmnopqrstuvwxyzабвгдеёжзийклмнопрстуфхцчшщьъыэюя 123456789+-_.:!,"
-	name = strings.Replace(name, ".", " ", -1)
 	var validatedNameChars []rune
-	for _, c := range name {
+	for _, c := range []rune(name) {
 		if strings.ContainsRune(chars, c) {
 			validatedNameChars = append(validatedNameChars, c)
 		}

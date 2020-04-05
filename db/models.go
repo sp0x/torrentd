@@ -13,7 +13,7 @@ type Torrent struct {
 	AuthorId     string
 	CategoryName string
 	CategoryId   string
-	Size         int
+	Size         uint64
 	Seeders      int
 	Leachers     int
 	Downloaded   int
