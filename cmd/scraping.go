@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func cleanupHtmlText(raw string) string {
+func clearSpaces(raw string) string {
 	txt := strings.Replace(raw, "\n", "", -1)
 	txt = strings.Replace(txt, "\t", "  ", -1)
 	txt = strings.Replace(txt, "  ", " ", -1)
@@ -36,7 +36,7 @@ func stripToNumber(str string) string {
 
 func sizeStrToBytes(str string) uint64 {
 	str = strings.ToLower(str)
-	str = cleanupHtmlText(str)
+	str = clearSpaces(str)
 	multiplier := 1
 	if strings.Contains(str, "gb") {
 		multiplier = 1028 * 1028 * 1028

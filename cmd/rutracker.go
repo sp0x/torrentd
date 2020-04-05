@@ -209,7 +209,7 @@ func getNewTorrents(user, pass string) error {
 			idMatches := torrentIdRx.FindAllStringSubmatch(torrentId, -1)
 			torrentId = idMatches[0][1]
 			//Get the time on which the torrent was created
-			torrentTime := cleanupHtmlText(s.Find("td").Last().Text())
+			torrentTime := clearSpaces(s.Find("td").Last().Text())
 			//Get the author
 			authorNode := s.Find("td").Eq(4).Find("a").First()
 			author := authorNode.Text()
@@ -227,16 +227,16 @@ func getNewTorrents(user, pass string) error {
 			downloadsNode := s.Find("td").Eq(8)
 			downloads, _ := strconv.Atoi(stripToNumber(downloadsNode.Text()))
 			//Get the leachers
-			leachersNode := s.Find("td").Eq(7).Find("a").First()
-			leachers, _ := strconv.Atoi(leachersNode.Text())
+			leachersTxt := stripToNumber(clearSpaces(s.Find("td").Eq(7).Text()))
+			leachers, _ := strconv.Atoi(leachersTxt)
 			//Get the seeders
-			seedersNode := s.Find("td").Eq(6).Find("a").First()
-			seeders, _ := strconv.Atoi(seedersNode.Text())
+			seedersNode := stripToNumber(clearSpaces(s.Find("td").Eq(6).Text()))
+			seeders, _ := strconv.Atoi(seedersNode)
 
 			existingTorrent := client.torrentStorage.FindByTorrentId(torrentId)
 			isNew := existingTorrent == nil || existingTorrent.AddedOn != torrentTime
 			if isNew && torrentNumber >= totalTorrents/2 {
-				log.Errorf("Got a new torrent after a half of the search (%d of %d).\n"+
+				log.Warningf("Got a new torrent after a half of the search (%d of %d). "+
 					"Consider to increase the search page number.\n", torrentNumber, totalTorrents)
 			}
 			if isNew || (existingTorrent != nil && existingTorrent.Name != nameData) {
