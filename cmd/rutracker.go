@@ -204,22 +204,55 @@ func getNewTorrents(user, pass string) error {
 			if nameData == "" {
 				return
 			}
+			//Get the id of the rorrent
 			torrentId, _ := s.Find("a.tLink").First().Attr("href")
 			idMatches := torrentIdRx.FindAllStringSubmatch(torrentId, -1)
 			torrentId = idMatches[0][1]
+			//Get the time on which the torrent was created
+			torrentTime := cleanupHtmlText(s.Find("td").Last().Text())
+			//Get the author
+			authorNode := s.Find("td").Eq(5).Find("a").First()
+			author := authorNode.Text()
+			authorId, _ := authorNode.Attr("href")
+			authorId = extractAttr(authorId, "pid")
+			//Get the category
+			categoryNode := s.Find("td").Eq(3).Find("a").First()
+			category := categoryNode.Text()
+			categoryId, _ := categoryNode.Attr("href")
+			categoryId = extractAttr(categoryId, "f")
+			//Get the size
+			sizeNode := s.Find("td").Eq(3).Find("a").First()
+			size := sizeStrToBytes(sizeNode.Text())
+			//Get the downloads
+			downloadsNode := s.Find("td").Eq(3).Find("a").First()
+			downloads, _ := strconv.Atoi(downloadsNode.Text())
+			//Get the leachers
+			leachersNode := s.Find("td").Eq(3).Find("a").First()
+			leachers, _ := strconv.Atoi(leachersNode.Text())
+			//Get the seeders
+			seedersNode := s.Find("td").Eq(3).Find("a").First()
+			seeders, _ := strconv.Atoi(seedersNode.Text())
 
-			timeSelection := s.Find("td").Last()
-			torrentTime := strings.Replace(timeSelection.Text(), "\n", "", -1)
-			torrentTime = strings.Replace(torrentTime, "\t", "  ", -1)
-			torrentTime = strings.Replace(torrentTime, "  ", "", -1)
 			existingTorrent := client.torrentStorage.FindByTorrentId(torrentId)
 			isNew := existingTorrent == nil || existingTorrent.AddedOn != torrentTime
 			if isNew && torrentNumber >= totalTorrents/2 {
-				log.Errorf("Got a new torrent after a half of the search (%s of %s).\n"+
+				log.Errorf("Got a new torrent after a half of the search (%d of %d).\n"+
 					"Consider to increase the search page number.\n", torrentNumber, totalTorrents)
 			}
 			if isNew || (existingTorrent != nil && existingTorrent.Name != nameData) {
-				newTorrent := db.Torrent{Name: nameData, TorrentId: torrentId, AddedOn: torrentTime}
+				newTorrent := db.Torrent{
+					Name:         nameData,
+					TorrentId:    torrentId,
+					AddedOn:      torrentTime,
+					AuthorName:   author,
+					AuthorId:     authorId,
+					CategoryName: category,
+					CategoryId:   categoryId,
+					Size:         size,
+					Seeders:      seeders,
+					Leachers:     leachers,
+					Downloaded:   downloads,
+				}
 				newTorrent.Fingerprint = getTorrentFingerprint(&newTorrent)
 				newTorrent.Link = getTorrentLink(&newTorrent)
 				_, _ = fmt.Fprintf(tabWr, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",

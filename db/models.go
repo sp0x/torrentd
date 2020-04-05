@@ -4,9 +4,17 @@ import "github.com/jinzhu/gorm"
 
 type Torrent struct {
 	gorm.Model
-	Name        string
-	TorrentId   string
-	AddedOn     string
-	Link        string
-	Fingerprint string
+	Name         string
+	TorrentId    string
+	AddedOn      string
+	Link         string
+	Fingerprint  string
+	AuthorName   string
+	AuthorId     string
+	CategoryName string
+	CategoryId   string
+	Size         int
+	Seeders      int
+	Leachers     int
+	Downloaded   int
 }
