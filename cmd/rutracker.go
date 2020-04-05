@@ -175,17 +175,17 @@ func getNewTorrents(user, pass string) error {
 		log.Error("Could not log in.")
 		return err
 	}
-	pagesToScan := 1
+	pagesToScan := 10
 	torrentsPerPage := 50
 	totalTorrents := pagesToScan * torrentsPerPage
 	page := 0
 	log.Print(totalTorrents)
 
-	tabWriter := new(tabwriter.Writer)
-	tabWriter.Init(os.Stdout, 0, 8, 0, '\t', 0)
+	tabWr := new(tabwriter.Writer)
+	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 
 	for page = 0; page < pagesToScan; page++ {
-		log.Infof("Getting page %d", page)
+		log.Infof("Getting page %d\n", page)
 		pageDoc, err := client.search(page)
 		if err != nil {
 			log.Warning("Could not fetch page %d", page)
@@ -197,39 +197,44 @@ func getNewTorrents(user, pass string) error {
 		*/
 		counter := 0
 		pageTorrentId := 0
+		torrentIdRx, _ := regexp.Compile("\\?t=(\\d+)")
 		pageDoc.Find("tr.tCenter.hl-tr").Each(func(i int, s *goquery.Selection) {
 			torrentNumber := page*client.pageSize + pageTorrentId + 1
-			nameData := s.Find("a.tLink").Nodes[0].Data
+			nameData := s.Find("a.tLink").Nodes[0].FirstChild.Data
 			if nameData == "" {
 				return
 			}
-			torrentId := s.Find("a.tLink")
-			torrentTime := s.Last().Text()
-			existingTorrent := client.torrentStorage.FindByTorrentId(torrentId.Text())
+			torrentId, _ := s.Find("a.tLink").First().Attr("href")
+			idMatches := torrentIdRx.FindAllStringSubmatch(torrentId, -1)
+			torrentId = idMatches[0][1]
+
+			timeSelection := s.Find("td").Last()
+			torrentTime := strings.Replace(timeSelection.Text(), "\n", "", -1)
+			torrentTime = strings.Replace(torrentTime, "\t", "  ", -1)
+			torrentTime = strings.Replace(torrentTime, "  ", "", -1)
+			existingTorrent := client.torrentStorage.FindByTorrentId(torrentId)
 			isNew := existingTorrent == nil || existingTorrent.AddedOn != torrentTime
 			if isNew && torrentNumber >= totalTorrents/2 {
 				log.Errorf("Got a new torrent after a half of the search (%s of %s).\n"+
-					"Consider to increase the search page number.", torrentNumber, totalTorrents)
+					"Consider to increase the search page number.\n", torrentNumber, totalTorrents)
 			}
 			if isNew || (existingTorrent != nil && existingTorrent.Name != nameData) {
-				newTorrent := db.Torrent{Name: nameData, TorrentId: torrentId.Text(), AddedOn: torrentTime}
+				newTorrent := db.Torrent{Name: nameData, TorrentId: torrentId, AddedOn: torrentTime}
 				newTorrent.Fingerprint = getTorrentFingerprint(&newTorrent)
 				newTorrent.Link = getTorrentLink(&newTorrent)
-				_, _ = fmt.Fprintf(tabWriter, "Found new torrent #%s:\t%s\t[%s]:\t%s",
-					torrentId.Text(), newTorrent.AddedOn, newTorrent.Fingerprint, newTorrent.Name)
+				_, _ = fmt.Fprintf(tabWr, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
+					torrentId, newTorrent.AddedOn, newTorrent.Fingerprint, newTorrent.Name)
 				client.torrentStorage.Create(&newTorrent)
 			} else {
-				_, _ = fmt.Fprintf(tabWriter, "Torrent #%s:\t%s\t[%s]:\t%s",
-					torrentId.Text(), torrentTime, "#", nameData)
-			}
-			counter++
+				_, _ = fmt.Fprintf(tabWr, "Torrent #%s:\t%s\t[%s]:\t%s\n",
+					torrentId, torrentTime, "#", nameData)
 
-			log.Print(nameData)
-			log.Print(torrentNumber)
-			log.Print(torrentTime)
+			}
+			_ = tabWr.Flush()
+			counter++
 		})
 		if counter != client.pageSize {
-			log.Errorf("Error while parsing page %s: got %s torrents instead of %s", page, counter, client.torrentStorage)
+			log.Errorf("Error while parsing page %s: got %s torrents instead of %s\n", page, counter, client.torrentStorage)
 		}
 		//matches := torrentRegex.FindAllString(pageContent, -1)
 		//log.Print(matches)

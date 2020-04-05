@@ -37,17 +37,17 @@ func getTorrentFingerprint(t *db.Torrent) string {
 		oldTorrentName = name
 		for _, rx := range []*regexp.Regexp{squareBracesRx, precedingSquareBracesRx, roundBracesRx, angleBracesRx, dateRx,
 			date2Rx, releaseCounterRx} {
-			name = rx.ReplaceAllString(strings.Trim(name, " .,"), "\\1\\2")
+			name = rx.ReplaceAllString(strings.Trim(name, " .,"), "$1$2")
 		}
 	}
 	name = spacesRx.ReplaceAllString(name, "")
 	name = strings.ToLower(name)
 	//Shorten it if we can
 	name = categoriesRx.ReplaceAllString(name, "")
-	name = arrowsRx.ReplaceAllString(name, "\\1")
-	name = cyrilicRx.ReplaceAllString(name, "\\1")
+	name = arrowsRx.ReplaceAllString(name, "$1")
+	name = cyrilicRx.ReplaceAllString(name, "$1")
 	//Drop punctuation and other non-alphabet chars
-	chars := "abcdefghijklmnopqrstuvwxyzабвгдеёжзийклмнопрстуфхцчшщьъыэюя 123456789+-_.:!"
+	chars := "abcdefghijklmnopqrstuvwxyzабвгдеёжзийклмнопрстуфхцчшщьъыэюя 123456789+-_.:!,"
 	name = strings.Replace(name, ".", " ", -1)
 	var validatedNameChars []rune
 	for _, c := range name {
@@ -82,6 +82,6 @@ func getTorrentFingerprint(t *db.Torrent) string {
 		name = monthRx.ReplaceAllString(name, "")
 	}
 
-	name = spaces2Rx.ReplaceAllString(name, "")
+	name = spaces2Rx.ReplaceAllString(name, " ")
 	return name
 }
