@@ -95,7 +95,7 @@ func (r *Rutracker) search(page int) (*goquery.Document, error) {
 	if page == 0 {
 		return searchDoc, nil // r.searchPage
 	}
-	furl := fmt.Sprintf("https://rutracker.org/forum/tracker.php?search_id=%s&start=%s", r.currentSearchPageId, page*r.pageSize)
+	furl := fmt.Sprintf("https://rutracker.org/forum/tracker.php?search_id=%s&start=%d", r.currentSearchPageId, page*r.pageSize)
 	data, err := r.request(furl, nil, nil)
 	if err != nil {
 		return nil, err
