@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/sp0x/rutracker-rss/db"
+	"github.com/sp0x/rutracker-rss/torrent"
 	"os"
 )
 
@@ -12,5 +13,5 @@ func init() {
 }
 
 func main() {
-	getNewTorrents(os.Getenv("RSS_USER"), os.Getenv("RSS_PASS"))
+	torrent.GetNewTorrents(os.Getenv("RSS_USER"), os.Getenv("RSS_PASS"))
 }

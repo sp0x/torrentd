@@ -1,4 +1,4 @@
-package main
+package torrent
 
 import (
 	"bytes"
@@ -160,7 +160,7 @@ func (r *Rutracker) startSearch() (*goquery.Document, error) {
 	return doc, nil
 }
 
-func getNewTorrents(user, pass string) error {
+func GetNewTorrents(user, pass string) error {
 	log.Info("Searching for new torrents")
 
 	//tr1 := tagRegex("a", "tLink", "href", `viewtopic\.php\?t=(\d+)`)

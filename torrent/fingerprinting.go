@@ -1,4 +1,4 @@
-package main
+package torrent
 
 import (
 	"github.com/sp0x/rutracker-rss/db"
