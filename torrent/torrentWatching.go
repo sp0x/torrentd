@@ -6,39 +6,48 @@ import (
 	"github.com/sp0x/rutracker-rss/db"
 	"os"
 	"text/tabwriter"
+	"time"
 )
 
-func GetNewTorrents(client *Rutracker, fetchOptions *FetchOptions) error {
-	log.Info("Searching for new torrents")
-	if fetchOptions == nil {
-		fetchOptions = client.getDefaultOptions()
-	}
-	totalTorrents := fetchOptions.PageCount * client.pageSize
+//Watch tracks a tracker for any new torrents and records them.
+func Watch(client *Rutracker, interval int) {
+	//Fetch pages untill we don't see any new torrents
+	keepupPagesCount := uint(10)
+	startingPage := uint(0)
+	maxPages := uint(10)
+	totalTorrents := keepupPagesCount * client.pageSize
+
 	page := uint(0)
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
-
-	for page = 0; page < fetchOptions.PageCount; page++ {
-		log.Infof("Getting page %d\n", page)
+	ops := client.getDefaultOptions()
+	ops.StopOnStaleTorrents = true
+	err := GetNewTorrents(client, ops)
+	if err != nil {
+		fmt.Println("Could not fetch initial torrents")
+		os.Exit(1)
+	}
+	for true {
+		log.Infof("Reloading tracker on page: %d\n", page)
 		pageDoc, err := client.search(page)
 		if err != nil {
-			log.Warningf("Could not fetch page %d\n", page)
+			time.Sleep(time.Second * time.Duration(interval))
 			continue
 		}
-		/*
-			Scan all pages every time. It's not safe to skip them by last torrent ID in the database,
-			because some of them might be hidden at the previous run.
-		*/
+		//Parse the page and see if there are any new torrents
+		//if there aren't any, sleep the interval
 		counter := uint(0)
 		finished := false
+		hasStaleTorrents := false
 		client.parseTorrents(pageDoc, func(i int, torrent *db.Torrent) {
-			if finished || torrent == nil {
+			if torrent == nil {
 				return
 			}
 			torrentNumber := page*client.pageSize + counter + 1
 			existingTorrent := client.torrentStorage.FindByTorrentId(torrent.TorrentId)
 			isNew := existingTorrent == nil || existingTorrent.AddedOn != torrent.AddedOn
-			if !isNew && fetchOptions.StopOnStaleTorrents {
+			if !isNew {
+				hasStaleTorrents = true
 				finished = true
 				return
 			}
@@ -60,9 +69,18 @@ func GetNewTorrents(client *Rutracker, fetchOptions *FetchOptions) error {
 			_ = tabWr.Flush()
 			counter++
 		})
-		if counter != client.pageSize {
-			log.Errorf("Error while parsing page %d: got %d torrents instead of %d\n", page, counter, client.pageSize)
+
+		if hasStaleTorrents {
+			time.Sleep(time.Second * time.Duration(interval))
+			page = startingPage
+			continue
+		}
+		//Otherwise we proceed to the next page if there's any
+		page += 1
+		//We've exceeded the pages, go to the start
+		if maxPages == page {
+			page = startingPage
 		}
 	}
-	return nil
+
 }

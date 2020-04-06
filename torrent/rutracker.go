@@ -219,3 +219,10 @@ func (r *Rutracker) parseTorrentRow(row *goquery.Selection) *db.Torrent {
 func (r *Rutracker) getTorrentLink(t *db.Torrent) string {
 	return fmt.Sprintf("http://rutracker.org/forum/viewtopic.php?t=%s", t.TorrentId)
 }
+
+func (r *Rutracker) parseTorrents(doc *goquery.Document, f func(i int, s *db.Torrent)) *goquery.Selection {
+	return doc.Find("tr.tCenter.hl-tr").Each(func(i int, s *goquery.Selection) {
+		torrent := r.parseTorrentRow(s)
+		f(i, torrent)
+	})
+}
