@@ -36,8 +36,8 @@ jobs:
           name: "build binaries"
           command: |
             make build \
-            upx/${UPXVER}/upx rutracker-rss.*
-            mv rutracker-rss.* artifacts
+            upx/${UPXVER}/upx tracker-rss.*
+            mv tracker-rss.* artifacts
       - run:
           name: "code coverage"
           command: bash <(curl -s https://codecov.io/bash)
