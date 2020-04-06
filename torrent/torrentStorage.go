@@ -50,3 +50,9 @@ func (ts *Storage) GetCategories() []db.TorrentCategory {
 	gdb.Model(&db.Torrent{}).Select("category_name, category_id").Group("category_id").Scan(&categories)
 	return categories
 }
+
+func (ts *Storage) UpdateTorrent(id uint, torrent *db.Torrent) {
+	gdb := db.GetOrmDb()
+	defer gdb.Close()
+	gdb.Model(&db.Torrent{}).Where(id).Update(torrent)
+}

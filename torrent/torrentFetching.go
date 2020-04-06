@@ -38,6 +38,8 @@ func GetNewTorrents(client *Rutracker, fetchOptions *FetchOptions) error {
 			torrentNumber := page*client.pageSize + counter + 1
 			existingTorrent := client.torrentStorage.FindByTorrentId(torrent.TorrentId)
 			isNew := existingTorrent == nil || existingTorrent.AddedOn != torrent.AddedOn
+			isUpdate := existingTorrent != nil && (existingTorrent.AddedOn != torrent.AddedOn)
+
 			if !isNew && fetchOptions.StopOnStaleTorrents {
 				finished = true
 				return
@@ -47,11 +49,19 @@ func GetNewTorrents(client *Rutracker, fetchOptions *FetchOptions) error {
 					"Consider to increase the search page number.\n", torrentNumber, totalTorrents)
 			}
 			if isNew || (existingTorrent != nil && existingTorrent.Name != torrent.Name) {
-				newTorrent := torrent
-				newTorrent.Fingerprint = getTorrentFingerprint(torrent)
-				_, _ = fmt.Fprintf(tabWr, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
-					newTorrent.TorrentId, newTorrent.AddedOn, newTorrent.Fingerprint, newTorrent.Name)
-				client.torrentStorage.Create(newTorrent)
+				if isUpdate {
+					torrent.Fingerprint = existingTorrent.Fingerprint
+					_, _ = fmt.Fprintf(tabWr, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
+						torrent.TorrentId, torrent.AddedOn, torrent.Fingerprint, torrent.Name)
+					client.torrentStorage.UpdateTorrent(existingTorrent.ID, torrent)
+					_, _ = fmt.Fprintf(tabWr, "Updated torrent #%s:\t%s\t[%s]:\t%s\n",
+						torrent.TorrentId, torrent.AddedOn, torrent.Fingerprint, torrent.Name)
+				} else {
+					torrent.Fingerprint = getTorrentFingerprint(torrent)
+					_, _ = fmt.Fprintf(tabWr, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
+						torrent.TorrentId, torrent.AddedOn, torrent.Fingerprint, torrent.Name)
+					client.torrentStorage.Create(torrent)
+				}
 			} else {
 				_, _ = fmt.Fprintf(tabWr, "Torrent #%s:\t%s\t[%s]:\t%s\n",
 					torrent.TorrentId, torrent.AddedOn, "#", torrent.Name)
