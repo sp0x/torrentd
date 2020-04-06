@@ -11,7 +11,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "rutracker",
 	Short: "Gathers torrents from rutracker and serves them through a RSS server.",
-	Run:   root}
+}
 
 var username, password string
 
@@ -26,10 +26,8 @@ func init() {
 	flags.StringVarP(&password, "password", "p", "", "The password to use")
 	_ = viper.BindPFlag("username", flags.Lookup("username"))
 	_ = viper.BindPFlag("password", flags.Lookup("password"))
-}
-
-func root(cmd *cobra.Command, args []string) {
-
+	_ = viper.BindEnv("username")
+	_ = viper.BindEnv("password")
 }
 
 func main() {
