@@ -77,6 +77,11 @@ func (r *Rutracker) request(urlx string, data []byte, headers map[string]string)
 	return resp, nil
 }
 
+func (r *Rutracker) clearSearch() {
+	r.currentSearchPageId = ""
+	r.currentSearchDoc = nil
+}
+
 //Open the search to a given page.
 func (r *Rutracker) search(page uint) (*goquery.Document, error) {
 	if !r.loggedIn {

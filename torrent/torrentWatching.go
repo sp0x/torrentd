@@ -27,10 +27,16 @@ func Watch(client *Rutracker, interval int) {
 		fmt.Println("Could not fetch initial torrents")
 		os.Exit(1)
 	}
+	client.clearSearch()
 	for true {
 		log.Infof("Reloading tracker on page: %d\n", page)
 		pageDoc, err := client.search(page)
 		if err != nil {
+			time.Sleep(time.Second * time.Duration(interval))
+			continue
+		}
+		if pageDoc == nil {
+			log.Warningf("Could not fetch torrent page: %d\n", page)
 			time.Sleep(time.Second * time.Duration(interval))
 			continue
 		}
@@ -40,7 +46,7 @@ func Watch(client *Rutracker, interval int) {
 		finished := false
 		hasStaleTorrents := false
 		client.parseTorrents(pageDoc, func(i int, torrent *db.Torrent) {
-			if torrent == nil {
+			if finished || torrent == nil {
 				return
 			}
 			torrentNumber := page*client.pageSize + counter + 1
@@ -69,9 +75,10 @@ func Watch(client *Rutracker, interval int) {
 			_ = tabWr.Flush()
 			counter++
 		})
-
+		//If we have stale torrents we wait some time and try again
 		if hasStaleTorrents {
 			time.Sleep(time.Second * time.Duration(interval))
+			client.clearSearch()
 			page = startingPage
 			continue
 		}
@@ -80,6 +87,7 @@ func Watch(client *Rutracker, interval int) {
 		//We've exceeded the pages, go to the start
 		if maxPages == page {
 			page = startingPage
+			client.clearSearch()
 		}
 	}
 
