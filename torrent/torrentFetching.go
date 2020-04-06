@@ -22,7 +22,7 @@ func GetNewTorrents(client *Rutracker, fetchOptions *FetchOptions) error {
 		log.Infof("Getting page %d\n", page)
 		pageDoc, err := client.search(page)
 		if err != nil {
-			log.Warning("Could not fetch page %d", page)
+			log.Warningf("Could not fetch page %d\n", page)
 			continue
 		}
 		/*

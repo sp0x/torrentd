@@ -26,3 +26,11 @@ func (ts *Storage) Truncate() {
 	defer gdb.Close()
 	gdb.Unscoped().Delete(&db.Torrent{})
 }
+
+func (ts *Storage) GetLatest(cnt int) []db.Torrent {
+	gdb := db.GetOrmDb()
+	defer gdb.Close()
+	var items []db.Torrent
+	gdb.Model(&db.Torrent{}).Find(&items).Limit(cnt)
+	return items
+}

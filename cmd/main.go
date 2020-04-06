@@ -13,8 +13,6 @@ var rootCmd = &cobra.Command{
 	Short: "Gathers torrents from rutracker and serves them through a RSS server.",
 }
 
-var username, password string
-
 func init() {
 	//Init our db
 	gormDb := db.GetOrmDb()
@@ -22,10 +20,12 @@ func init() {
 	gormDb.AutoMigrate(&db.Torrent{})
 	cobra.OnInitialize(initConfig)
 	flags := rootCmd.PersistentFlags()
+	var username, password string
 	flags.StringVarP(&username, "username", "u", "", "The username to use")
 	flags.StringVarP(&password, "password", "p", "", "The password to use")
 	_ = viper.BindPFlag("username", flags.Lookup("username"))
 	_ = viper.BindPFlag("password", flags.Lookup("password"))
+	viper.SetEnvPrefix("TRACKER")
 	_ = viper.BindEnv("username")
 	_ = viper.BindEnv("password")
 }
