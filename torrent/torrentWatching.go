@@ -29,7 +29,6 @@ func Watch(client *Rutracker, interval int) {
 	}
 	client.clearSearch()
 	for true {
-		log.Infof("Reloading tracker on page: %d\n", page)
 		pageDoc, err := client.search(page)
 		if err != nil {
 			time.Sleep(time.Second * time.Duration(interval))
@@ -65,8 +64,6 @@ func Watch(client *Rutracker, interval int) {
 			if isNew || (existingTorrent != nil && existingTorrent.Name != torrent.Name) {
 				if isUpdate {
 					torrent.Fingerprint = existingTorrent.Fingerprint
-					_, _ = fmt.Fprintf(tabWr, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
-						torrent.TorrentId, torrent.AddedOn, torrent.Fingerprint, torrent.Name)
 					client.torrentStorage.UpdateTorrent(existingTorrent.ID, torrent)
 					_, _ = fmt.Fprintf(tabWr, "Updated torrent #%s:\t%s\t[%s]:\t%s\n",
 						torrent.TorrentId, torrent.AddedOn, torrent.Fingerprint, torrent.Name)

@@ -51,8 +51,6 @@ func GetNewTorrents(client *Rutracker, fetchOptions *FetchOptions) error {
 			if isNew || (existingTorrent != nil && existingTorrent.Name != torrent.Name) {
 				if isUpdate {
 					torrent.Fingerprint = existingTorrent.Fingerprint
-					_, _ = fmt.Fprintf(tabWr, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
-						torrent.TorrentId, torrent.AddedOn, torrent.Fingerprint, torrent.Name)
 					client.torrentStorage.UpdateTorrent(existingTorrent.ID, torrent)
 					_, _ = fmt.Fprintf(tabWr, "Updated torrent #%s:\t%s\t[%s]:\t%s\n",
 						torrent.TorrentId, torrent.AddedOn, torrent.Fingerprint, torrent.Name)
