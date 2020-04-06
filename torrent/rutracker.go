@@ -181,7 +181,8 @@ func (r *Rutracker) parseTorrentRow(row *goquery.Selection) *db.Torrent {
 	torrentId, _ := row.Find("a.tLink").First().Attr("href")
 	torrentId = extractAttr(torrentId, "t")
 	//Get the time on which the torrent was created
-	torrentTime := clearSpaces(row.Find("td").Last().Text())
+	torrentTime := formatTime(clearSpaces(row.Find("td").Last().Text()))
+
 	//Get the author
 	authorNode := row.Find("td").Eq(4).Find("a").First()
 	author := authorNode.Text()
@@ -207,7 +208,7 @@ func (r *Rutracker) parseTorrentRow(row *goquery.Selection) *db.Torrent {
 	newTorrent := &db.Torrent{
 		Name:         nameData,
 		TorrentId:    torrentId,
-		AddedOn:      torrentTime,
+		AddedOn:      torrentTime.String(),
 		AuthorName:   author,
 		AuthorId:     authorId,
 		CategoryName: category,

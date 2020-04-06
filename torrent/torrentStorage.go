@@ -56,3 +56,11 @@ func (ts *Storage) UpdateTorrent(id uint, torrent *db.Torrent) {
 	defer gdb.Close()
 	gdb.Model(&db.Torrent{}).Where(id).Update(torrent)
 }
+
+func (ts *Storage) GetTorrentsInCategories(ids []int) []db.Torrent {
+	gdb := db.GetOrmDb()
+	defer gdb.Close()
+	var torrents []db.Torrent
+	gdb.Model(&db.Torrent{}).Where(" category_id IN (?)", ids).Find(&torrents)
+	return torrents
+}
