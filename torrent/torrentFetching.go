@@ -57,7 +57,7 @@ func GetNewTorrents(client *Rutracker, fetchOptions *FetchOptions) error {
 			counter++
 		})
 		if counter != client.pageSize {
-			log.Errorf("Error while parsing page %d: got %d torrents instead of %s\n", page, counter, client.pageSize)
+			log.Errorf("Error while parsing page %d: got %d torrents instead of %d\n", page, counter, client.pageSize)
 		}
 	}
 	return nil

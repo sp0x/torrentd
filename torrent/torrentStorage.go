@@ -34,3 +34,19 @@ func (ts *Storage) GetLatest(cnt int) []db.Torrent {
 	gdb.Model(&db.Torrent{}).Find(&items).Limit(cnt)
 	return items
 }
+
+func (ts *Storage) GetTorrentCount() int64 {
+	gdb := db.GetOrmDb()
+	defer gdb.Close()
+	var result int64
+	gdb.Model(&db.Torrent{}).Count(&result)
+	return result
+}
+
+func (ts *Storage) GetCategories() []db.TorrentCategory {
+	gdb := db.GetOrmDb()
+	defer gdb.Close()
+	var categories []db.TorrentCategory
+	gdb.Model(&db.Torrent{}).Select("category_name, category_id").Group("category_id").Scan(&categories)
+	return categories
+}

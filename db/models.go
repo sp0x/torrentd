@@ -18,3 +18,8 @@ type Torrent struct {
 	Leachers     int
 	Downloaded   int
 }
+
+type TorrentCategory struct {
+	CategoryId   string
+	CategoryName string
+}

@@ -158,7 +158,7 @@ func (r *Rutracker) startSearch() (*goquery.Document, error) {
 
 func (r *Rutracker) getDefaultOptions() *FetchOptions {
 	return &FetchOptions{
-		PageCount:            20,
+		PageCount:            10,
 		StartingPage:         0,
 		MaxRequestsPerSecond: 1,
 	}
