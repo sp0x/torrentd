@@ -44,6 +44,9 @@ func NewRutracker() *Rutracker {
 //Login with the tracker.
 func (r *Rutracker) Login(username, password string) error {
 	loginUrl := "https://rutracker.org/forum/login.php"
+	if username == "" || password == "" {
+		return errors.New("no auth credentials given")
+	}
 	data := []byte(fmt.Sprintf("login_username=%s&login_password=%s&login=%C2%F5%EE%E4", username, password))
 	page, err := requests.Post(r.client, loginUrl, data, map[string]string{
 		"Content-Type": "application/x-www-form-urlencoded",

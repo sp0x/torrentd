@@ -1,0 +1,51 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2
+orbs:
+  github-release: h-matsuo/github-release@0.1.1
+jobs:
+  build:
+    docker:
+      # specify the version
+      - image: circleci/golang:1.12
+    environment:
+      - UPXVER: "3.95"
+    working_directory: /go/src/github.com/sp0x/rutracker-rss
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ./artifacts
+      - run:
+          name: "Install dependencies"
+          command: |
+            go get github.com/mitchellh/gox; \
+            go get github.com/konsorten/go-windows-terminal-sequences; \
+            go get github.com/inconshreveable/mousetrap
+      # specify any bash command here prefixed with `run: `
+      - run: go get -v -t -d ./...
+      - run:
+          name: "Install upx"
+          command: |
+            { [ -f upx/${UPXVER}/upx ]; } || { curl -OL https://github.com/upx/upx/releases/download/v${UPXVER}/upx-${UPXVER}-amd64_linux.tar.xz;
+              tar xvf upx-${UPXVER}-amd64_linux.tar.xz; mkdir -p upx; mv upx-${UPXVER}-amd64_linux upx/${UPXVER}; };
+            export PATH="$(pwd)/upx/${UPXVER}/:${PATH}";
+            upx --version | grep -E '^upx'
+      - run: make test-coverage
+      - run:
+          name: "build binaries"
+          command: |
+            make build \
+            upx/${UPXVER}/upx rutracker-rss.*
+            mv rutracker-rss.* artifacts
+      - run:
+          name: "code coverage"
+          command: bash <(curl -s https://codecov.io/bash)
+      - run:
+          name: "Publish release on GitHub"
+          command: |
+            go get github.com/tcnksm/ghr
+            export VERSION=0.1.0
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
+      - store_artifacts:
+          path: ./artifacts
