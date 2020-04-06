@@ -2,10 +2,10 @@ package torrent
 
 import "github.com/sp0x/rutracker-rss/db"
 
-type TorrentStorage struct {
+type Storage struct {
 }
 
-func (ts *TorrentStorage) FindByTorrentId(id string) *db.Torrent {
+func (ts *Storage) FindByTorrentId(id string) *db.Torrent {
 	gdb := db.GetOrmDb()
 	defer gdb.Close()
 	var torrent db.Torrent
@@ -15,13 +15,13 @@ func (ts *TorrentStorage) FindByTorrentId(id string) *db.Torrent {
 	return &torrent
 }
 
-func (ts *TorrentStorage) Create(tr *db.Torrent) {
+func (ts *Storage) Create(tr *db.Torrent) {
 	gdb := db.GetOrmDb()
 	defer gdb.Close()
 	gdb.Create(tr)
 }
 
-func (ts *TorrentStorage) Truncate() {
+func (ts *Storage) Truncate() {
 	gdb := db.GetOrmDb()
 	defer gdb.Close()
 	gdb.Unscoped().Delete(&db.Torrent{})
