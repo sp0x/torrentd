@@ -41,12 +41,12 @@ func isTorrentBuff(buff string) bool {
 //Parse a torrent file content
 func decodeTorrentBuff(buff []byte) (*Definition, error) {
 	reader := bytes.NewReader(buff)
-	var data interface{}
+	var data Definition
 	err := bencode.Unmarshal(reader, &data)
 	if err != nil {
 		return nil, err
 	}
-	return nil, nil
+	return &data, nil
 }
 
 func parseMagnet(m string) (*Definition, error) {
@@ -54,5 +54,35 @@ func parseMagnet(m string) (*Definition, error) {
 }
 
 type Definition struct {
-	InfoHash string
+	Announce     string
+	AnnounceList [][]string "announce-list"
+	Comment      string
+	CreatedBy    string "created by"
+	CreationDate uint   "creation date"
+	Encoding     string
+	Info         DefinitionInfo
+	Publisher    string
+	PublisherUrl string "publisher-url"
+}
+
+type DefinitionInfo struct {
+	FileDuration []int "file-duration"
+	FileMedia    []int "file-media"
+	Files        []DefinitionFile
+	Name         string
+	PieceLength  uint "piece length"
+	Pieces       string
+	Profiles     []DefinitionProfile
+}
+
+type DefinitionFile struct {
+	Length uint64
+	Path   []string
+}
+
+type DefinitionProfile struct {
+	ACodec string "acodec"
+	Height uint   "height"
+	VCodec string "vcodec"
+	Width  uint   "width"
 }
