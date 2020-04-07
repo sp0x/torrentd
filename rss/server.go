@@ -28,7 +28,16 @@ func StartServer(port int) error {
 }
 
 func serveMusic(c *gin.Context) {
-	torrents := storage.GetTorrentsInCategories([]int{})
+	torrents := storage.GetTorrentsInCategories([]int{
+		409,  // Classical and modern academic music
+		1125, // Folklore, national and ethnical music
+		1849, //New age, relax, meditative and flamenco
+		408,  //Rap, hip-hop and rnb
+		1760, //Raggae, ska, dub
+		416,  // OST, karaoke and musicals
+		413,  //Other music
+		2497, //Popular foreign music
+	})
 	sendFeed("music", torrents, c)
 }
 
@@ -40,7 +49,11 @@ func serveAnime(c *gin.Context) {
 }
 
 func serveShows(c *gin.Context) {
-	torrents := storage.GetTorrentsInCategories([]int{})
+	torrents := storage.GetTorrentsInCategories([]int{
+		189,  //Foreign shows
+		2366, //Foreign shows in HD
+		2100, //Asian shows
+	})
 	sendFeed("shows", torrents, c)
 }
 
@@ -81,7 +94,7 @@ func sendFeed(name string, torrents []db.Torrent, c *gin.Context) {
 		}
 		feed.Items[i] = feedItem
 	}
-	rss, err := feed.ToRss()
+	rss, err := feed.ToAtom()
 	if err != nil {
 		log.Fatal(err)
 	}
