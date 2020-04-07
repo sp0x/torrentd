@@ -219,6 +219,8 @@ func (r *Rutracker) parseTorrentRow(row *goquery.Selection) *db.Torrent {
 		Downloaded:   downloads,
 	}
 	newTorrent.Link = r.getTorrentLink(newTorrent)
+	newTorrent.DownloadLink = r.getTorrentDownloadLink(newTorrent)
+	newTorrent.IsMagnet = false
 	return newTorrent
 }
 
@@ -231,4 +233,8 @@ func (r *Rutracker) parseTorrents(doc *goquery.Document, f func(i int, s *db.Tor
 		torrent := r.parseTorrentRow(s)
 		f(i, torrent)
 	})
+}
+
+func (r *Rutracker) getTorrentDownloadLink(t *db.Torrent) string {
+	return fmt.Sprintf("http://rutracker.org/forum/dl.php?t=%s", t.TorrentId)
 }

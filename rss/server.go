@@ -87,14 +87,14 @@ func sendFeed(name string, torrents []db.Torrent, c *gin.Context) {
 		timep, _ := time.Parse("2006-01-02 3:04PM", torr.AddedOn)
 		feedItem := &feeds.Item{
 			Title:       torr.Name,
-			Link:        &feeds.Link{Href: torr.Link},
-			Description: torr.CategoryName,
+			Link:        &feeds.Link{Href: torr.DownloadLink},
+			Description: torr.Link,
 			Author:      &feeds.Author{Name: torr.AuthorName},
 			Created:     timep,
 		}
 		feed.Items[i] = feedItem
 	}
-	rss, err := feed.ToAtom()
+	rss, err := feed.ToRss()
 	if err != nil {
 		log.Fatal(err)
 	}

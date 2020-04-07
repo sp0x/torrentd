@@ -3,8 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/sp0x/rutracker-rss/db"
+	"github.com/sp0x/rutracker-rss/torrent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"io/ioutil"
+	"log"
 	"os"
 )
 
@@ -28,6 +31,19 @@ func init() {
 	viper.SetEnvPrefix("TRACKER")
 	_ = viper.BindEnv("username")
 	_ = viper.BindEnv("password")
+
+	data, err := ioutil.ReadFile("./t.torrent")
+	if err != nil {
+		fmt.Print("Could not read torrent file")
+	} else {
+		t, err := torrent.ParseTorrent(string(data))
+		if err != nil {
+			fmt.Print(err)
+		} else {
+			log.Print(t)
+		}
+	}
+
 }
 
 func main() {

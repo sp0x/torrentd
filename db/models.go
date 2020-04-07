@@ -19,6 +19,8 @@ type Torrent struct {
 	Seeders      int
 	Leachers     int
 	Downloaded   int
+	DownloadLink string
+	IsMagnet     bool
 }
 
 type TorrentCategory struct {
