@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/db"
 	"github.com/sp0x/rutracker-rss/requests"
 	"net/http"
@@ -221,6 +222,11 @@ func (r *Rutracker) parseTorrentRow(row *goquery.Selection) *db.Torrent {
 	newTorrent.Link = r.getTorrentLink(newTorrent)
 	newTorrent.DownloadLink = r.getTorrentDownloadLink(newTorrent)
 	newTorrent.IsMagnet = false
+	def, err := ParseTorrentFromUrl(r, newTorrent.DownloadLink)
+	if err != nil {
+		log.Warning("Could not get torrent definition")
+	}
+	log.Print(def)
 	return newTorrent
 }
 

@@ -6,12 +6,30 @@ import (
 	"errors"
 	"fmt"
 	bencode "github.com/jackpal/bencode-go"
+	log "github.com/sirupsen/logrus"
+	"io/ioutil"
+	"net/http"
 	"regexp"
+	"strconv"
 )
 
 var rxMagnet, _ = regexp.Compile("^(stream-)?magnet:")
 var rxHex, _ = regexp.Compile("^[a-f0-9]{40}$")
 var rxBase32, _ = regexp.Compile("^[a-z2-7]{32}")
+
+func ParseTorrentFromUrl(tracker *Rutracker, torrentUrl string) (*Definition, error) {
+	req, _ := http.NewRequest("GET", torrentUrl, nil)
+	res, err := tracker.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if res.StatusCode >= 400 {
+		return nil, errors.New(strconv.Itoa(res.StatusCode))
+	}
+	return ParseTorrent(string(body))
+}
 
 func ParseTorrent(torrent string) (*Definition, error) {
 	if rxMagnet.MatchString(torrent) {
@@ -48,15 +66,17 @@ func decodeTorrentBuff(buff []byte) (*Definition, error) {
 	if err != nil {
 		return nil, err
 	}
-	dataBuff := []byte{}
-	buffWriter := bytes.NewBuffer(dataBuff)
-	err = bencode.Marshal(buffWriter, &data.Info)
+	buffWriter := &bytes.Buffer{}
+	err = bencode.Marshal(buffWriter, data.Info)
 	if err != nil {
+		log.Warningf("Could not encode torrent info: %v\n", err)
 		return nil, err
 	}
-	data.InfoBuffer = dataBuff
+
+	data.InfoBuffer = buffWriter.Bytes()
 	hash := sha1.New()
-	hash.Write(dataBuff)
+	hash.Write(data.InfoBuffer)
+
 	data.InfoHash = fmt.Sprintf("%x", hash.Sum(nil))
 	return &data, nil
 }
@@ -65,7 +85,7 @@ func parseMagnet(m string) (*Definition, error) {
 	return nil, nil
 }
 
-type Definition struct {
+type RawDefinition struct {
 	Announce     string
 	AnnounceList [][]string "announce-list"
 	Comment      string
@@ -75,23 +95,35 @@ type Definition struct {
 	Info         DefinitionInfo
 	Publisher    string
 	PublisherUrl string "publisher-url"
+}
+
+type Definition struct {
+	Announce     string     "announce"
+	AnnounceList [][]string "announce-list"
+	Comment      string     "comment"
+	CreatedBy    string     "created by"
+	CreationDate uint       "creation date"
+	Encoding     string     "encoding"
+	Info         DefinitionInfo
+	Publisher    string "publisher"
+	PublisherUrl string "publisher-url"
 	InfoBuffer   []byte
 	InfoHash     string
 }
 
 type DefinitionInfo struct {
-	FileDuration []int "file-duration"
-	FileMedia    []int "file-media"
-	Files        []DefinitionFile
-	Name         string
-	PieceLength  uint "piece length"
-	Pieces       string
-	Profiles     []DefinitionProfile
+	FileDuration []int               "file-duration"
+	FileMedia    []int               "file-media"
+	Files        []DefinitionFile    "files"
+	Name         string              "name"
+	PieceLength  uint                "piece length"
+	Pieces       string              "pieces"
+	Profiles     []DefinitionProfile "profiles"
 }
 
 type DefinitionFile struct {
-	Length uint64
-	Path   []string
+	Length uint64   "length"
+	Path   []string "path"
 }
 
 type DefinitionProfile struct {
