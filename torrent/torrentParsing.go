@@ -2,7 +2,9 @@ package torrent
 
 import (
 	"bytes"
+	"crypto/sha1"
 	"errors"
+	"fmt"
 	bencode "github.com/jackpal/bencode-go"
 	"regexp"
 )
@@ -38,7 +40,7 @@ func isTorrentBuff(buff string) bool {
 	return true
 }
 
-//Parse a torrent file content
+//Parse a torrent file's content to get more information about it
 func decodeTorrentBuff(buff []byte) (*Definition, error) {
 	reader := bytes.NewReader(buff)
 	var data Definition
@@ -46,6 +48,16 @@ func decodeTorrentBuff(buff []byte) (*Definition, error) {
 	if err != nil {
 		return nil, err
 	}
+	dataBuff := []byte{}
+	buffWriter := bytes.NewBuffer(dataBuff)
+	err = bencode.Marshal(buffWriter, &data.Info)
+	if err != nil {
+		return nil, err
+	}
+	data.InfoBuffer = dataBuff
+	hash := sha1.New()
+	hash.Write(dataBuff)
+	data.InfoHash = fmt.Sprintf("%x", hash.Sum(nil))
 	return &data, nil
 }
 
@@ -63,6 +75,8 @@ type Definition struct {
 	Info         DefinitionInfo
 	Publisher    string
 	PublisherUrl string "publisher-url"
+	InfoBuffer   []byte
+	InfoHash     string
 }
 
 type DefinitionInfo struct {
