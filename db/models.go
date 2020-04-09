@@ -24,6 +24,7 @@ type Torrent struct {
 	IsMagnet     bool
 	Announce     string
 	Publisher    string
+	AltName      string
 }
 
 func (t Torrent) AddedOnStr() interface{} {
