@@ -18,8 +18,8 @@ func init() {
 		Run:   watchTracker,
 	}
 	cmdWatch.Flags().IntVarP(&watchInterval, "interval", "i", 10, "Interval between checks.")
-	viper.SetDefault("rss_port", 5000)
-	_ = viper.BindEnv("rss_port")
+	viper.SetDefault("port", 5000)
+	_ = viper.BindEnv("port")
 	rootCmd.AddCommand(cmdWatch)
 }
 

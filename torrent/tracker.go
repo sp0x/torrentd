@@ -1,6 +1,7 @@
 package torrent
 
 import (
+	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/db"
 	"github.com/sp0x/rutracker-rss/requests"
 	"net/http"
@@ -32,6 +33,8 @@ func (r *BasicTracker) request(urlx string, data []byte, headers map[string]stri
 		time.Sleep(t)
 	}
 	r.lastRequest = time.Now()
+	log.Debugf("POST %s\n", urlx)
+	log.Debugf("DATA: %v\n", string(data))
 	resp, err := requests.Post(r.client, urlx, data, headers)
 	if err != nil {
 		return nil, err

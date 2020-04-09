@@ -21,4 +21,7 @@ func initConfig() {
 			log.Warningf("error while reading config file: %v\n", err)
 		}
 	}
+	if viper.GetBool("verbose") {
+		log.SetLevel(log.DebugLevel)
+	}
 }

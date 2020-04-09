@@ -21,13 +21,18 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	flags := rootCmd.PersistentFlags()
 	var username, password string
+	var verbose bool
 	flags.StringVarP(&username, "username", "u", "", "The username to use")
 	flags.StringVarP(&password, "password", "p", "", "The password to use")
+	flags.BoolVarP(&verbose, "verbose", "v", false, "Show more logs")
 	_ = viper.BindPFlag("username", flags.Lookup("username"))
 	_ = viper.BindPFlag("password", flags.Lookup("password"))
+	_ = viper.BindPFlag("verbose", flags.Lookup("verbose"))
+	_ = viper.BindEnv("verbose")
 	viper.SetEnvPrefix("TRACKER")
 	_ = viper.BindEnv("username")
 	_ = viper.BindEnv("password")
+
 }
 
 func main() {
