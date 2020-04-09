@@ -8,12 +8,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/db"
 	"github.com/sp0x/rutracker-rss/requests"
-	"net/http"
-	"net/http/cookiejar"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type Rutracker struct {
@@ -27,15 +24,7 @@ type Rutracker struct {
 func NewRutracker() *Rutracker {
 	rt := Rutracker{}
 	rt.pageSize = 50
-	jar, _ := cookiejar.New(nil)
-	transport := &http.Transport{
-		DisableCompression: false,
-	}
-	rt.client = &http.Client{
-		Timeout:   time.Second * 10,
-		Transport: transport,
-		Jar:       jar,
-	}
+	rt.client = newWebClient()
 	return &rt
 }
 

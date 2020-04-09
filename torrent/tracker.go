@@ -4,6 +4,7 @@ import (
 	"github.com/sp0x/rutracker-rss/db"
 	"github.com/sp0x/rutracker-rss/requests"
 	"net/http"
+	"net/http/cookiejar"
 	"time"
 )
 
@@ -37,4 +38,17 @@ func (r *BasicTracker) request(urlx string, data []byte, headers map[string]stri
 	}
 	resp = DecodeWindows1251(resp)
 	return resp, nil
+}
+
+func newWebClient() *http.Client {
+	jar, _ := cookiejar.New(nil)
+	transport := &http.Transport{
+		DisableCompression: false,
+	}
+	client := &http.Client{
+		Timeout:   time.Second * 10,
+		Transport: transport,
+		Jar:       jar,
+	}
+	return client
 }
