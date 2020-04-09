@@ -61,9 +61,6 @@ func Watch(client *Rutracker, interval int) {
 					_, _ = fmt.Fprintf(tabWr, "Updated torrent #%s:\t%s\t[%s]:\t%s\n",
 						torrent.TorrentId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Name)
 				}
-			} else {
-				_, _ = fmt.Fprintf(tabWr, "Torrent #%s:\t%s\t[%s]:\t%s\n",
-					torrent.TorrentId, torrent.AddedOnStr(), "#", torrent.Name)
 			}
 			_ = tabWr.Flush()
 			if !isNew {
