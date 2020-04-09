@@ -11,13 +11,13 @@ import (
 var resolutionHours int
 
 func init() {
-	cmdWatch := &cobra.Command{
+	cmdResolve := &cobra.Command{
 		Use:   "resolve",
 		Short: "Goes through the torrent database resolving each torrent for name, size and trackers.",
 		Run:   resolveTorrents,
 	}
-	cmdWatch.Flags().IntVarP(&resolutionHours, "hours", "h", 10, "Resolve only torrents that have been created at least a given amount of hours ago.")
-	rootCmd.AddCommand(cmdWatch)
+	cmdResolve.Flags().IntVarP(&resolutionHours, "hours", "t", 10, "Resolve only torrents that have been created at least a given amount of hours ago.")
+	rootCmd.AddCommand(cmdResolve)
 }
 
 func resolveTorrents(cmd *cobra.Command, args []string) {

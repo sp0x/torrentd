@@ -1,6 +1,10 @@
 package torrent
 
-import "github.com/sp0x/rutracker-rss/db"
+import (
+	"fmt"
+	"github.com/sp0x/rutracker-rss/db"
+	"time"
+)
 
 type Storage struct {
 }
@@ -69,6 +73,7 @@ func (ts *Storage) GetOlderThanHours(h int) []db.Torrent {
 	gdb := db.GetOrmDb()
 	defer gdb.Close()
 	var torrents []db.Torrent
-	gdb.Model(&db.Torrent{}).Where("added_on").Find(&torrents)
+	tm := time.Now().Unix() - int64(60)*int64(60)*int64(h)
+	gdb.Model(&db.Torrent{}).Where(fmt.Sprintf("added_on < %d", tm)).Find(&torrents)
 	return torrents
 }
