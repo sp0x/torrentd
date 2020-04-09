@@ -111,6 +111,19 @@ type Definition struct {
 	InfoHash     string
 }
 
+func (d *Definition) ToMagnetUrl() string {
+	return fmt.Sprintf("magnet:?xt=urn:btih:%s", d.InfoHash)
+}
+
+func (d *Definition) GetTotalFileSize() uint64 {
+	files := d.Info.Files
+	total := uint64(0)
+	for _, f := range files {
+		total += f.Length
+	}
+	return total
+}
+
 type DefinitionInfo struct {
 	FileDuration []int               "file-duration"
 	FileMedia    []int               "file-media"

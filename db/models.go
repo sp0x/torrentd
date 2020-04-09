@@ -21,6 +21,8 @@ type Torrent struct {
 	Downloaded   int
 	DownloadLink string
 	IsMagnet     bool
+	Announce     string
+	Publisher    string
 }
 
 type TorrentCategory struct {

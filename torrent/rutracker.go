@@ -24,6 +24,7 @@ type Rutracker struct {
 	currentSearchDoc    *goquery.Document
 	pageSize            uint
 	torrentStorage      *Storage
+	fetchDefinition     bool
 }
 
 func NewRutracker() *Rutracker {
@@ -39,6 +40,7 @@ func NewRutracker() *Rutracker {
 		Transport: transport,
 		Jar:       jar,
 	}
+	rt.fetchDefinition = true
 	return &rt
 }
 
@@ -222,11 +224,17 @@ func (r *Rutracker) parseTorrentRow(row *goquery.Selection) *db.Torrent {
 	newTorrent.Link = r.getTorrentLink(newTorrent)
 	newTorrent.DownloadLink = r.getTorrentDownloadLink(newTorrent)
 	newTorrent.IsMagnet = false
-	def, err := ParseTorrentFromUrl(r, newTorrent.DownloadLink)
-	if err != nil {
-		log.Warning("Could not get torrent definition")
+	if r.fetchDefinition {
+		def, err := ParseTorrentFromUrl(r, newTorrent.DownloadLink)
+		if err != nil {
+			log.Warningf("Could not get torrent definition: %v", err)
+		} else {
+			newTorrent.Announce = def.Announce
+			newTorrent.Publisher = def.Publisher
+			newTorrent.Name = def.Info.Name
+			newTorrent.Size = def.GetTotalFileSize()
+		}
 	}
-	log.Print(def)
 	return newTorrent
 }
 
