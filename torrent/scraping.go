@@ -19,7 +19,7 @@ func fixMonths(str string) string {
 	months := map[string]string{
 		"Янв": "Jan",
 		"Фев": "Feb",
-		"Mar": "Mar",
+		"Мар": "Mar",
 		"Апр": "Apr",
 		"Май": "May",
 		"Июн": "Jun",
@@ -42,7 +42,14 @@ func formatTime(str string) time.Time {
 	str = strings.Replace(str, "  ", " ", -1)
 	str = strings.Replace(str, "  ", " ", -1)
 	str = fixMonths(str)
-	t, err := time.Parse("2-Jan-06 15:04", str)
+	parts := strings.Split(str, " ")
+	var t time.Time
+	var err error
+	if len(parts) >= 2 {
+		t, err = time.Parse("2-Jan-06 15:04", str)
+	} else {
+		t, err = time.Parse("2-Jan-06", str)
+	}
 	//t, err := time.Parse("2-Jan-20 17:35:00", str)
 	if err != nil {
 		log.Errorf("Error while parsing time string: %s\t %v\n", str, err)

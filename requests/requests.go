@@ -85,12 +85,15 @@ func Patch(client *http.Client, route string, objData interface{}) ([]byte, erro
 	return body, err
 }
 
-func Get(client *http.Client, route string) ([]byte, error) {
+func Get(client *http.Client, route string, headers map[string]string) ([]byte, error) {
 	if client == nil {
 		return []byte{}, errors.New("null transport client")
 	}
 	req, _ := http.NewRequest("GET", route, nil)
 	setupHeaders(req)
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
 	res, err := client.Do(req)
 	if err != nil {
 		return nil, err

@@ -43,7 +43,7 @@ func GetNewTorrents(client *Rutracker, fetchOptions *FetchOptions) error {
 			}
 			isNew, isUpdate := HandleTorrentDiscovery(client, torrent)
 			if isNew || isUpdate {
-				if isNew {
+				if isNew && !isUpdate {
 					_, _ = fmt.Fprintf(tabWr, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
 						torrent.TorrentId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Name)
 				} else {

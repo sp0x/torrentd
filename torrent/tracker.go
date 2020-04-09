@@ -33,9 +33,9 @@ func (r *BasicTracker) request(urlx string, data []byte, headers map[string]stri
 		time.Sleep(t)
 	}
 	r.lastRequest = time.Now()
-	log.Debugf("POST %s\n", urlx)
+	log.Debugf("GET %s\n", urlx)
 	log.Debugf("DATA: %v\n", string(data))
-	resp, err := requests.Post(r.client, urlx, data, headers)
+	resp, err := requests.Get(r.client, urlx, headers)
 	if err != nil {
 		return nil, err
 	}

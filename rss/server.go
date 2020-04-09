@@ -85,7 +85,7 @@ func (s *Server) searchAndServe(c *gin.Context) {
 		s.tracker.ParseTorrents(search.GetDocument(), func(i int, tr *db.Torrent) {
 			isNew, isUpdate := torrent.HandleTorrentDiscovery(s.tracker, tr)
 			if isNew || isUpdate {
-				if isNew {
+				if isNew && !isUpdate {
 					_, _ = fmt.Fprintf(s.tabWriter, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
 						tr.TorrentId, tr.AddedOnStr(), tr.Fingerprint, tr.Name)
 				} else {
@@ -97,7 +97,10 @@ func (s *Server) searchAndServe(c *gin.Context) {
 					tr.TorrentId, tr.AddedOnStr(), "#", tr.Name)
 			}
 			items = append(items, *tr)
+			s.tabWriter.Flush()
 		})
+
+		currentPage++
 	}
 	sendFeed(name, items, c)
 }

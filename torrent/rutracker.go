@@ -58,17 +58,17 @@ func (r *Rutracker) Search(searchContext *Search, query string, page uint) (*Sea
 	if !r.loggedIn {
 		return nil, errors.New("not logged in")
 	}
-	var searchDoc *Search
+
 	var err error
 	//Get the page ids.
 	if searchContext == nil {
-		searchDoc, err = r.startSearch()
+		searchContext, err = r.startSearch(query)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if page == 0 || searchContext == nil {
-		return searchDoc, nil // r.searchPage
+		return searchContext, nil // r.searchPage
 	}
 	furl := fmt.Sprintf("https://rutracker.org/forum/tracker.php?nm=%s&search_id=%s&start=%d", query, searchContext.id, page*r.pageSize)
 	data, err := r.request(furl, nil, nil)
@@ -86,14 +86,16 @@ func (r *Rutracker) Search(searchContext *Search, query string, page uint) (*Sea
 }
 
 //Start the search, getting the page ids
-func (r *Rutracker) startSearch() (*Search, error) {
-	data := "prev_my=0&prev_new=0&prev_oop=0&o=1&s=2&tm=-1&pn=&nm=&submit=%CF%EE%E8%F1%EA"
+func (r *Rutracker) startSearch(query string) (*Search, error) {
+	data := "prev_my=0&prev_new=0&prev_oop=0&o=1&s=2&tm=-1&pn=&submit=%CF%EE%E8%F1%EA"
 	for _, forumId := range []int{
-		46, 56, 98, 103, 249, 314, 500, 552, 709, 1260, 2076, 2123, 2139,
+		//46, 56, 98, 103, 249, 314, 500, 552, 709, 1260, 2076, 2123, 2139,
 	} {
 		data += "&f%5B%5D=" + strconv.Itoa(forumId)
 	}
-	page, err := r.request("https://rutracker.org/forum/tracker.php", []byte(data), nil)
+	data += "&nm=" + query
+	furl := fmt.Sprintf("https://rutracker.org/forum/tracker.php?%s", data)
+	page, err := r.request(furl, nil, nil)
 	if err != nil {
 		return nil, err
 	}
