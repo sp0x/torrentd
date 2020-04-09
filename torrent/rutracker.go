@@ -36,7 +36,6 @@ func NewRutracker() *Rutracker {
 		Transport: transport,
 		Jar:       jar,
 	}
-	rt.FetchDefinition = true
 	return &rt
 }
 
