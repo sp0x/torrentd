@@ -14,20 +14,26 @@ import (
 var storage *torrent.Storage
 var hostname string
 
-func StartServer(port int) error {
+type Server struct {
+	tracker *torrent.Rutracker
+}
+
+func (s *Server) StartServer(tracker *torrent.Rutracker, port int) error {
+	s.tracker = tracker
 	r := gin.Default()
-	r.GET("/all", serveAllTorrents)
-	r.GET("/movies", serveMovies)
-	r.GET("/shows", serveShows)
-	r.GET("/music", serveMusic)
-	r.GET("/anime", serveAnime)
+	r.GET("/all", s.serveAllTorrents)
+	r.GET("/movies", s.serveMovies)
+	r.GET("/shows", s.serveShows)
+	r.GET("/music", s.serveMusic)
+	r.GET("/anime", s.serveAnime)
+	r.GET("/search/:name", s.searchAndServe)
 	err := r.Run(fmt.Sprintf(":%d", port))
 	storage = &torrent.Storage{}
 	hostname = "localhost"
 	return err
 }
 
-func serveMusic(c *gin.Context) {
+func (s *Server) serveMusic(c *gin.Context) {
 	torrents := storage.GetTorrentsInCategories([]int{
 		409,  // Classical and modern academic music
 		1125, // Folklore, national and ethnical music
@@ -41,14 +47,37 @@ func serveMusic(c *gin.Context) {
 	sendFeed("music", torrents, c)
 }
 
-func serveAnime(c *gin.Context) {
+func (s *Server) serveAnime(c *gin.Context) {
 	torrents := storage.GetTorrentsInCategories([]int{
 		33, // Anime
 	})
 	sendFeed("anime", torrents, c)
 }
 
-func serveShows(c *gin.Context) {
+func (s *Server) searchAndServe(c *gin.Context) {
+	var search *torrent.Search
+	ops := s.tracker.GetDefaultOptions()
+	currentPage := uint(0)
+	name := c.Param("name")
+	for true {
+		var err error
+		if search == nil {
+			search, err = s.tracker.Search(nil, 0)
+		} else {
+			search, err = s.tracker.Search(search, currentPage)
+		}
+		if err != nil {
+			log.Warningf("Error while searching for torrent: %s . %s", name, err)
+		}
+		if currentPage >= ops.PageCount {
+			break
+		}
+
+	}
+
+}
+
+func (s *Server) serveShows(c *gin.Context) {
 	torrents := storage.GetTorrentsInCategories([]int{
 		189,  //Foreign shows
 		2366, //Foreign shows in HD
@@ -57,7 +86,7 @@ func serveShows(c *gin.Context) {
 	sendFeed("shows", torrents, c)
 }
 
-func serveMovies(c *gin.Context) {
+func (s *Server) serveMovies(c *gin.Context) {
 	torrents := storage.GetTorrentsInCategories([]int{
 		7,    //foreign films
 		124,  //art-house and author movies
@@ -69,7 +98,7 @@ func serveMovies(c *gin.Context) {
 	sendFeed("movies", torrents, c)
 }
 
-func serveAllTorrents(c *gin.Context) {
+func (s *Server) serveAllTorrents(c *gin.Context) {
 	torrents := storage.GetTorrentsInCategories([]int{})
 	sendFeed("torrents", torrents, c)
 }

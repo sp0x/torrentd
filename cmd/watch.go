@@ -31,7 +31,8 @@ func watchTracker(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 	go func() {
-		err = rss.StartServer(viper.GetInt("port"))
+		rserver := rss.Server{}
+		err = rserver.StartServer(client, viper.GetInt("port"))
 		if err != nil {
 			fmt.Print(err)
 		}

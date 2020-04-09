@@ -18,9 +18,16 @@ func GetNewTorrents(client *Rutracker, fetchOptions *FetchOptions) error {
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 
+	var currentSearch *Search
 	for page = 0; page < fetchOptions.PageCount; page++ {
 		log.Infof("Getting page %d\n", page)
-		pageDoc, err := client.search(page)
+		var err error
+		if currentSearch == nil {
+			currentSearch, err = client.Search(nil, page)
+		} else {
+			currentSearch, err = client.Search(currentSearch, page)
+		}
+
 		if err != nil {
 			log.Warningf("Could not fetch page %d\n", page)
 			continue
@@ -31,7 +38,7 @@ func GetNewTorrents(client *Rutracker, fetchOptions *FetchOptions) error {
 		*/
 		counter := uint(0)
 		finished := false
-		client.parseTorrents(pageDoc, func(i int, torrent *db.Torrent) {
+		client.parseTorrents(currentSearch.doc, func(i int, torrent *db.Torrent) {
 			if finished || torrent == nil {
 				return
 			}
