@@ -1,0 +1,6 @@
+.idea
+.git
+db/main.db
+.circleci
+travis.yml
+.travis.yml

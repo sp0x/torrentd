@@ -9,6 +9,7 @@ GOTEST = $(GOCMD) test -v
 COVERAGE_REPORT = coverage.txt
 COVERAGE_MODE = atomic
 NAME=torrent-rss
+AUTHOR=sp0x
 ARCH=amd64
 OS=linux darwin windows
 
@@ -30,3 +31,7 @@ test-coverage:
 	@cd $(WORKDIR); \
 	echo "" > $(COVERAGE_REPORT); \
 	$(GOTEST) -coverprofile=$(COVERAGE_REPORT) -coverpkg=./... -covermode=$(COVERAGE_MODE) ./...
+
+build-image:
+	docker build -t ${AUTHOR}/${NAME} .
+	docker push -t ${AUTHOR}/${NAME}
