@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 var rxMagnet, _ = regexp.Compile("^(stream-)?magnet:")
@@ -25,6 +26,7 @@ func ParseTorrentFromUrl(tracker *Rutracker, torrentUrl string) (*Definition, er
 	}
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
+
 	if res.StatusCode >= 400 {
 		return nil, errors.New(strconv.Itoa(res.StatusCode))
 	}
@@ -64,6 +66,10 @@ func decodeTorrentBuff(buff []byte) (*Definition, error) {
 	var data Definition
 	err := bencode.Unmarshal(reader, &data)
 	if err != nil {
+		buff = DecodeWindows1251(buff)
+		if strings.Contains(string(buff), "<b>премодерация</b>") {
+			return nil, errors.New("torrent is still now allowed to be downloaded")
+		}
 		return nil, err
 	}
 	buffWriter := &bytes.Buffer{}

@@ -17,20 +17,16 @@ import (
 )
 
 type Rutracker struct {
-	client              *http.Client
+	BasicTracker
 	loggedIn            bool
-	lastRequest         time.Time
 	currentSearchPageId string
 	currentSearchDoc    *goquery.Document
 	pageSize            uint
-	torrentStorage      *Storage
-	fetchDefinition     bool
 }
 
 func NewRutracker() *Rutracker {
 	rt := Rutracker{}
 	rt.pageSize = 50
-	rt.torrentStorage = &Storage{}
 	jar, _ := cookiejar.New(nil)
 	transport := &http.Transport{
 		DisableCompression: false,
@@ -40,7 +36,7 @@ func NewRutracker() *Rutracker {
 		Transport: transport,
 		Jar:       jar,
 	}
-	rt.fetchDefinition = true
+	rt.FetchDefinition = true
 	return &rt
 }
 
@@ -60,24 +56,6 @@ func (r *Rutracker) Login(username, password string) error {
 	page = DecodeWindows1251(page)
 	r.loggedIn = true
 	return nil
-}
-
-//Send a request to the tracker
-func (r *Rutracker) request(urlx string, data []byte, headers map[string]string) ([]byte, error) {
-	maxPerSecond := 1
-	minDiff := 1.0 / maxPerSecond
-	timeElapsed := time.Now().Sub(r.lastRequest)
-	if int(timeElapsed.Seconds()) < int(minDiff) {
-		t := r.lastRequest.Add(time.Second * time.Duration(minDiff)).Sub(time.Now())
-		time.Sleep(t)
-	}
-	r.lastRequest = time.Now()
-	resp, err := requests.Post(r.client, urlx, data, headers)
-	if err != nil {
-		return nil, err
-	}
-	resp = DecodeWindows1251(resp)
-	return resp, nil
 }
 
 func (r *Rutracker) clearSearch() {
@@ -167,7 +145,7 @@ func (r *Rutracker) startSearch() (*goquery.Document, error) {
 	return doc, nil
 }
 
-func (r *Rutracker) getDefaultOptions() *FetchOptions {
+func (r *Rutracker) GetDefaultOptions() *FetchOptions {
 	return &FetchOptions{
 		PageCount:            10,
 		StartingPage:         0,
@@ -221,10 +199,10 @@ func (r *Rutracker) parseTorrentRow(row *goquery.Selection) *db.Torrent {
 		Leachers:     leachers,
 		Downloaded:   downloads,
 	}
-	newTorrent.Link = r.getTorrentLink(newTorrent)
-	newTorrent.DownloadLink = r.getTorrentDownloadLink(newTorrent)
+	newTorrent.Link = r.GetTorrentLink(newTorrent)
+	newTorrent.DownloadLink = r.GetTorrentDownloadLink(newTorrent)
 	newTorrent.IsMagnet = false
-	if r.fetchDefinition {
+	if r.FetchDefinition {
 		def, err := ParseTorrentFromUrl(r, newTorrent.DownloadLink)
 		if err != nil {
 			log.Warningf("Could not get torrent definition: %v", err)
@@ -238,8 +216,12 @@ func (r *Rutracker) parseTorrentRow(row *goquery.Selection) *db.Torrent {
 	return newTorrent
 }
 
-func (r *Rutracker) getTorrentLink(t *db.Torrent) string {
+func (r *Rutracker) GetTorrentLink(t *db.Torrent) string {
 	return fmt.Sprintf("http://rutracker.org/forum/viewtopic.php?t=%s", t.TorrentId)
+}
+
+func (r *Rutracker) GetTorrentDownloadLink(t *db.Torrent) string {
+	return fmt.Sprintf("http://rutracker.org/forum/dl.php?t=%s", t.TorrentId)
 }
 
 func (r *Rutracker) parseTorrents(doc *goquery.Document, f func(i int, s *db.Torrent)) *goquery.Selection {
@@ -247,8 +229,4 @@ func (r *Rutracker) parseTorrents(doc *goquery.Document, f func(i int, s *db.Tor
 		torrent := r.parseTorrentRow(s)
 		f(i, torrent)
 	})
-}
-
-func (r *Rutracker) getTorrentDownloadLink(t *db.Torrent) string {
-	return fmt.Sprintf("http://rutracker.org/forum/dl.php?t=%s", t.TorrentId)
 }
