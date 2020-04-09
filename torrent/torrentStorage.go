@@ -64,3 +64,11 @@ func (ts *Storage) GetTorrentsInCategories(ids []int) []db.Torrent {
 	gdb.Model(&db.Torrent{}).Where(" category_id IN (?)", ids).Order("added_on desc").Find(&torrents)
 	return torrents
 }
+
+func (ts *Storage) GetOlderThanHours(h int) []db.Torrent {
+	gdb := db.GetOrmDb()
+	defer gdb.Close()
+	var torrents []db.Torrent
+	gdb.Model(&db.Torrent{}).Where("added_on").Find(&torrents)
+	return torrents
+}

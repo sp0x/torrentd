@@ -177,7 +177,7 @@ func (r *Rutracker) parseTorrentRow(row *goquery.Selection) *db.Torrent {
 	newTorrent := &db.Torrent{
 		Name:         nameData,
 		TorrentId:    torrentId,
-		AddedOn:      torrentTime.String(),
+		AddedOn:      torrentTime.Unix(),
 		AuthorName:   author,
 		AuthorId:     authorId,
 		CategoryName: category,

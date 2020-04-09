@@ -84,7 +84,7 @@ func sendFeed(name string, torrents []db.Torrent, c *gin.Context) {
 	}
 	feed.Items = make([]*feeds.Item, len(torrents), len(torrents))
 	for i, torr := range torrents {
-		timep, _ := time.Parse("2006-01-02 3:04PM", torr.AddedOn)
+		timep := time.Unix(torr.AddedOn, 0)
 		feedItem := &feeds.Item{
 			Title:       torr.Name,
 			Link:        &feeds.Link{Href: torr.DownloadLink},

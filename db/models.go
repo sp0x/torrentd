@@ -2,13 +2,14 @@ package db
 
 import (
 	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type Torrent struct {
 	gorm.Model
 	Name         string
 	TorrentId    string
-	AddedOn      string // *time.Time
+	AddedOn      int64 // *time.Time
 	Link         string
 	Fingerprint  string
 	AuthorName   string
@@ -23,6 +24,11 @@ type Torrent struct {
 	IsMagnet     bool
 	Announce     string
 	Publisher    string
+}
+
+func (t Torrent) AddedOnStr() interface{} {
+	tm := time.Unix(t.AddedOn, 0)
+	return tm.String()
 }
 
 type TorrentCategory struct {

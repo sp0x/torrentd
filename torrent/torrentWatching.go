@@ -70,7 +70,7 @@ func Watch(client *Rutracker, interval int) {
 				} else {
 					torrent.Fingerprint = getTorrentFingerprint(torrent)
 					_, _ = fmt.Fprintf(tabWr, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
-						torrent.TorrentId, torrent.AddedOn, torrent.Fingerprint, torrent.Name)
+						torrent.TorrentId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Name)
 					client.storage.Create(torrent)
 				}
 			} else {

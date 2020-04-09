@@ -78,11 +78,9 @@ func decodeTorrentBuff(buff []byte) (*Definition, error) {
 		log.Warningf("Could not encode torrent info: %v\n", err)
 		return nil, err
 	}
-
 	data.InfoBuffer = buffWriter.Bytes()
 	hash := sha1.New()
 	hash.Write(data.InfoBuffer)
-
 	data.InfoHash = fmt.Sprintf("%x", hash.Sum(nil))
 	return &data, nil
 }
