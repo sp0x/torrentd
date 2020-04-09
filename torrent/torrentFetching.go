@@ -13,7 +13,7 @@ func GetNewTorrents(client *Rutracker, fetchOptions *FetchOptions) error {
 	if fetchOptions == nil {
 		fetchOptions = client.GetDefaultOptions()
 	}
-	totalTorrents := fetchOptions.PageCount * client.pageSize
+
 	page := uint(0)
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
@@ -23,11 +23,10 @@ func GetNewTorrents(client *Rutracker, fetchOptions *FetchOptions) error {
 		log.Infof("Getting page %d\n", page)
 		var err error
 		if currentSearch == nil {
-			currentSearch, err = client.Search(nil, page)
+			currentSearch, err = client.Search(nil, "", page)
 		} else {
-			currentSearch, err = client.Search(currentSearch, page)
+			currentSearch, err = client.Search(currentSearch, "", page)
 		}
-
 		if err != nil {
 			log.Warningf("Could not fetch page %d\n", page)
 			continue
@@ -38,41 +37,27 @@ func GetNewTorrents(client *Rutracker, fetchOptions *FetchOptions) error {
 		*/
 		counter := uint(0)
 		finished := false
-		client.parseTorrents(currentSearch.doc, func(i int, torrent *db.Torrent) {
+		client.ParseTorrents(currentSearch.doc, func(i int, torrent *db.Torrent) {
 			if finished || torrent == nil {
 				return
 			}
-			torrentNumber := page*client.pageSize + counter + 1
-			existingTorrent := client.storage.FindByTorrentId(torrent.TorrentId)
-			isNew := existingTorrent == nil || existingTorrent.AddedOn != torrent.AddedOn
-			isUpdate := existingTorrent != nil && (existingTorrent.AddedOn != torrent.AddedOn)
-
+			isNew, isUpdate := HandleTorrentDiscovery(client, torrent)
+			if isNew || isUpdate {
+				if isNew {
+					_, _ = fmt.Fprintf(tabWr, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
+						torrent.TorrentId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Name)
+				} else {
+					_, _ = fmt.Fprintf(tabWr, "Updated torrent #%s:\t%s\t[%s]:\t%s\n",
+						torrent.TorrentId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Name)
+				}
+			} else {
+				_, _ = fmt.Fprintf(tabWr, "Torrent #%s:\t%s\t[%s]:\t%s\n",
+					torrent.TorrentId, torrent.AddedOnStr(), "#", torrent.Name)
+			}
 			if !isNew && fetchOptions.StopOnStaleTorrents {
 				finished = true
 				return
 			}
-			if isNew && torrentNumber >= totalTorrents/2 {
-				log.Warningf("Got a new torrent after a half of the search (%d of %d). "+
-					"Consider to increase the search page number.\n", torrentNumber, totalTorrents)
-			}
-			if isNew || (existingTorrent != nil && existingTorrent.Name != torrent.Name) {
-				if isUpdate {
-					torrent.Fingerprint = existingTorrent.Fingerprint
-					client.storage.UpdateTorrent(existingTorrent.ID, torrent)
-					_, _ = fmt.Fprintf(tabWr, "Updated torrent #%s:\t%s\t[%s]:\t%s\n",
-						torrent.TorrentId, torrent.AddedOn, torrent.Fingerprint, torrent.Name)
-				} else {
-					torrent.Fingerprint = getTorrentFingerprint(torrent)
-					_, _ = fmt.Fprintf(tabWr, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
-						torrent.TorrentId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Name)
-					client.storage.Create(torrent)
-				}
-			} else {
-				_, _ = fmt.Fprintf(tabWr, "Torrent #%s:\t%s\t[%s]:\t%s\n",
-					torrent.TorrentId, torrent.AddedOn, "#", torrent.Name)
-
-			}
-			_ = tabWr.Flush()
 			counter++
 		})
 		if finished {
@@ -83,4 +68,21 @@ func GetNewTorrents(client *Rutracker, fetchOptions *FetchOptions) error {
 		}
 	}
 	return nil
+}
+
+func HandleTorrentDiscovery(client *Rutracker, torrent *db.Torrent) (bool, bool) {
+	existingTorrent := client.storage.FindByTorrentId(torrent.TorrentId)
+	isNew := existingTorrent == nil || existingTorrent.AddedOn != torrent.AddedOn
+	isUpdate := existingTorrent != nil && (existingTorrent.AddedOn != torrent.AddedOn)
+	if isNew {
+		if isUpdate && existingTorrent != nil {
+			torrent.Fingerprint = existingTorrent.Fingerprint
+			client.storage.UpdateTorrent(existingTorrent.ID, torrent)
+		} else {
+			torrent.Fingerprint = getTorrentFingerprint(torrent)
+			client.storage.Create(torrent)
+		}
+	}
+
+	return isNew, isUpdate
 }

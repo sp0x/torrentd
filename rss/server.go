@@ -8,6 +8,9 @@ import (
 	"github.com/sp0x/rutracker-rss/db"
 	"github.com/sp0x/rutracker-rss/torrent"
 	"net/http"
+	"net/url"
+	"os"
+	"text/tabwriter"
 	"time"
 )
 
@@ -15,11 +18,16 @@ var storage *torrent.Storage
 var hostname string
 
 type Server struct {
-	tracker *torrent.Rutracker
+	tracker   *torrent.Rutracker
+	tabWriter *tabwriter.Writer
 }
 
 func (s *Server) StartServer(tracker *torrent.Rutracker, port int) error {
+	tabWr := new(tabwriter.Writer)
+	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
+
 	s.tracker = tracker
+	s.tabWriter = tabWr
 	r := gin.Default()
 	r.GET("/all", s.serveAllTorrents)
 	r.GET("/movies", s.serveMovies)
@@ -59,12 +67,14 @@ func (s *Server) searchAndServe(c *gin.Context) {
 	ops := s.tracker.GetDefaultOptions()
 	currentPage := uint(0)
 	name := c.Param("name")
+	name = url.QueryEscape(name)
+	var items []db.Torrent
 	for true {
 		var err error
 		if search == nil {
-			search, err = s.tracker.Search(nil, 0)
+			search, err = s.tracker.Search(nil, name, 0)
 		} else {
-			search, err = s.tracker.Search(search, currentPage)
+			search, err = s.tracker.Search(search, name, currentPage)
 		}
 		if err != nil {
 			log.Warningf("Error while searching for torrent: %s . %s", name, err)
@@ -72,9 +82,24 @@ func (s *Server) searchAndServe(c *gin.Context) {
 		if currentPage >= ops.PageCount {
 			break
 		}
-
+		s.tracker.ParseTorrents(search.GetDocument(), func(i int, tr *db.Torrent) {
+			isNew, isUpdate := torrent.HandleTorrentDiscovery(s.tracker, tr)
+			if isNew || isUpdate {
+				if isNew {
+					_, _ = fmt.Fprintf(s.tabWriter, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
+						tr.TorrentId, tr.AddedOnStr(), tr.Fingerprint, tr.Name)
+				} else {
+					_, _ = fmt.Fprintf(s.tabWriter, "Updated torrent #%s:\t%s\t[%s]:\t%s\n",
+						tr.TorrentId, tr.AddedOnStr(), tr.Fingerprint, tr.Name)
+				}
+			} else {
+				_, _ = fmt.Fprintf(s.tabWriter, "Torrent #%s:\t%s\t[%s]:\t%s\n",
+					tr.TorrentId, tr.AddedOnStr(), "#", tr.Name)
+			}
+			items = append(items, *tr)
+		})
 	}
-
+	sendFeed(name, items, c)
 }
 
 func (s *Server) serveShows(c *gin.Context) {

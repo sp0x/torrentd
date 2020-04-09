@@ -54,7 +54,7 @@ func (r *Rutracker) Login(username, password string) error {
 //}
 
 //Open the search to a given page.
-func (r *Rutracker) Search(searchContext *Search, page uint) (*Search, error) {
+func (r *Rutracker) Search(searchContext *Search, query string, page uint) (*Search, error) {
 	if !r.loggedIn {
 		return nil, errors.New("not logged in")
 	}
@@ -70,7 +70,7 @@ func (r *Rutracker) Search(searchContext *Search, page uint) (*Search, error) {
 	if page == 0 || searchContext == nil {
 		return searchDoc, nil // r.searchPage
 	}
-	furl := fmt.Sprintf("https://rutracker.org/forum/tracker.php?search_id=%s&start=%d", searchContext.id, page*r.pageSize)
+	furl := fmt.Sprintf("https://rutracker.org/forum/tracker.php?nm=%s&search_id=%s&start=%d", query, searchContext.id, page*r.pageSize)
 	data, err := r.request(furl, nil, nil)
 	if err != nil {
 		return nil, err
@@ -219,7 +219,7 @@ func (r *Rutracker) GetTorrentDownloadLink(t *db.Torrent) string {
 	return fmt.Sprintf("http://rutracker.org/forum/dl.php?t=%s", t.TorrentId)
 }
 
-func (r *Rutracker) parseTorrents(doc *goquery.Document, f func(i int, s *db.Torrent)) *goquery.Selection {
+func (r *Rutracker) ParseTorrents(doc *goquery.Document, f func(i int, s *db.Torrent)) *goquery.Selection {
 	return doc.Find("tr.tCenter.hl-tr").Each(func(i int, s *goquery.Selection) {
 		torrent := r.parseTorrentRow(s)
 		f(i, torrent)
