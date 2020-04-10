@@ -15,6 +15,7 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	//Init our db
+	_ = os.MkdirAll("./db", os.ModePerm)
 	gormDb := db.GetOrmDb()
 	defer gormDb.Close()
 	gormDb.AutoMigrate(&db.Torrent{})

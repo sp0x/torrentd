@@ -4,3 +4,4 @@ db/main.db
 .circleci
 travis.yml
 .travis.yml
+Dockerfile

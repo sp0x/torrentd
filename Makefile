@@ -34,4 +34,4 @@ test-coverage:
 
 build-image:
 	docker build -t ${AUTHOR}/${NAME} .
-	docker push -t ${AUTHOR}/${NAME}
+	docker push ${AUTHOR}/${NAME}
