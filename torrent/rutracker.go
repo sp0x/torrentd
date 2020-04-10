@@ -36,6 +36,7 @@ func (r *Rutracker) Login(username, password string) error {
 		return errors.New("no auth credentials given")
 	}
 	data := []byte(fmt.Sprintf("login_username=%s&login_password=%s%s", username, password, "&login=%C2%F5%EE%E4"))
+	log.Debugf("Trying to login to: %s with user %s", loginUrl, username)
 	page, err := requests.Post(r.client, loginUrl, data, map[string]string{
 		"Content-Type": "application/x-www-form-urlencoded",
 	})

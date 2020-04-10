@@ -21,8 +21,15 @@ RUN ldd ./torrent-rss | tr -s '[:blank:]' '\n' | grep '^/' | \
 #RUN mkdir -p lib64 && cp /lib64/ld-linux-x86-64.so.2 lib64/
 
 
+#Include certificates
+FROM alpine:latest as certs
+RUN apk --update add ca-certificates
+
+
 #Finish the build
 FROM scratch
+ENV PATH=/bin
+COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /dist /
 EXPOSE 5000
 ENTRYPOINT ["/torrent-rss"]

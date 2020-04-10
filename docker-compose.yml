@@ -1,0 +1,16 @@
+version: "2"
+volumes:
+  db:
+
+services:
+
+  rss:
+    image: sp0x/rutracker-rss:latest
+    build: .
+    command: watch -v
+    env_file:
+      - .env
+    volumes:
+      - db:/db
+    ports:
+      - 4000:5000

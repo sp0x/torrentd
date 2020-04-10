@@ -27,7 +27,7 @@ func watchTracker(cmd *cobra.Command, args []string) {
 	client := torrent.NewRutracker()
 	err := client.Login(viper.GetString("username"), viper.GetString("password"))
 	if err != nil {
-		fmt.Println("Could not login to tracker.")
+		fmt.Printf("Could not login to tracker: %v\n", err)
 		os.Exit(1)
 	}
 	go func() {
