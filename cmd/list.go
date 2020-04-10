@@ -28,7 +28,7 @@ func listLatestTorrents(cmd *cobra.Command, args []string) {
 
 	torrents := storage.GetLatest(torrentCount)
 	for _, tr := range torrents {
-		_, _ = fmt.Fprintf(tabWr, "%s\t%s\t%s", tr.CategoryId, tr.Name, tr.AddedOn)
+		_, _ = fmt.Fprintf(tabWr, "%s\t%s\t%s", tr.CategoryId, tr.Name, tr.AddedOnStr())
 		_ = tabWr.Flush()
 	}
 }
