@@ -1,10 +1,12 @@
 package server
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/rutracker-rss/torznab"
 	"net/http"
 	"net/url"
@@ -17,48 +19,48 @@ func (s *Server) torznabHandler(c *gin.Context) {
 
 	apiKey := c.Query("apikey")
 	if !s.checkAPIKey(apiKey) {
-		torznab.Error(w, "Invalid apikey parameter", torznab.ErrInsufficientPrivs)
+		torznab.Error(c, "Invalid apikey parameter", torznab.ErrInsufficientPrivs)
 		return
 	}
 
 	indexer, err := s.lookupIndexer(indexerID)
 	if err != nil {
-		torznab.Error(w, err.Error(), torznab.ErrIncorrectParameter)
+		torznab.Error(c, err.Error(), torznab.ErrIncorrectParameter)
 		return
 	}
 
 	t := c.Query("t")
 
 	if t == "" {
-		http.Redirect(w, r, r.URL.Path+"?t=caps", http.StatusTemporaryRedirect)
+		http.Redirect(c.Writer, c.Request, c.Request.URL.Path+"?t=caps", http.StatusTemporaryRedirect)
 		return
 	}
 
 	switch t {
 	case "caps":
-		indexer.Capabilities().ServeHTTP(w, r)
+		indexer.Capabilities().ServeHTTP(c.Writer, c.Request)
 
 	case "search", "tvsearch", "tv-search", "movie", "movie-search", "moviesearch":
-		feed, err := s.torznabSearch(r, indexer, indexerID)
+		feed, err := s.torznabSearch(c.Request, indexer, indexerID)
 		if err != nil {
-			torznab.Error(w, err.Error(), torznab.ErrUnknownError)
+			torznab.Error(c, err.Error(), torznab.ErrUnknownError)
 			return
 		}
 		switch c.Query("format") {
 		case "", "xml":
 			x, err := xml.MarshalIndent(feed, "", "  ")
 			if err != nil {
-				torznab.Error(w, err.Error(), torznab.ErrUnknownError)
+				torznab.Error(c, err.Error(), torznab.ErrUnknownError)
 				return
 			}
-			w.Header().Set("Content-Type", "application/rss+xml")
-			w.Write(x)
+			c.Header("Content-Type", "application/rss+xml")
+			_, _ = c.Writer.Write(x)
 		case "json":
-			jsonOutput(w, feed)
+			jsonOutput(c.Writer, feed)
 		}
 
 	default:
-		torznab.Error(w, "Unknown type parameter", torznab.ErrIncorrectParameter)
+		torznab.Error(c, "Unknown type parameter", torznab.ErrIncorrectParameter)
 	}
 }
 
@@ -153,4 +155,15 @@ func (s *Server) rewriteLinks(r *http.Request, items []torznab.ResultItem) ([]to
 	}
 
 	return items, nil
+}
+
+func jsonOutput(w http.ResponseWriter, v interface{}) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	b, err := json.MarshalIndent(v, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+
+	_, _ = w.Write(append(b, '\n'))
 }

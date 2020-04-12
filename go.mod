@@ -4,8 +4,7 @@ go 1.12
 
 require (
 	github.com/PuerkitoBio/goquery v1.5.1
-	github.com/cardigann/cardigann v1.10.2
-	github.com/casimir/xdg-go v0.0.0-20160329195404-372ccc2180da // indirect
+	github.com/bcampbell/fuzzytime v0.0.0-20191010161914-05ea0010feac
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gin-gonic/gin v1.6.2
@@ -24,6 +23,7 @@ require (
 	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/stretchr/testify v1.5.1 // indirect
 	github.com/yosssi/gohtml v0.0.0-20190915184251-7ff6f235ecaf
+	golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4
 	golang.org/x/text v0.3.2
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v2 v2.2.8

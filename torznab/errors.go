@@ -2,6 +2,7 @@ package torznab
 
 import (
 	"encoding/xml"
+	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
@@ -33,7 +34,7 @@ var (
 	ErrAPIDisabled            = err{910, "API Disabled"}
 )
 
-func Error(w http.ResponseWriter, description string, err err) {
+func Error(c *gin.Context, description string, err err) {
 	var resp = struct {
 		XMLName     struct{} `xml:"error"`
 		Code        int      `xml:"code"`
@@ -44,10 +45,10 @@ func Error(w http.ResponseWriter, description string, err err) {
 	}
 	x, mErr := xml.MarshalIndent(resp, "", "  ")
 	if mErr != nil {
-		http.Error(w, mErr.Error(), http.StatusInternalServerError)
+		http.Error(c.Writer, mErr.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "application/xml")
-	w.WriteHeader(http.StatusBadGateway)
-	w.Write(x)
+	c.Header("Content-Type", "application/xml")
+	c.Writer.WriteHeader(http.StatusBadGateway)
+	c.Writer.Write(x)
 }

@@ -4,13 +4,13 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
+	"github.com/sp0x/rutracker-rss/torznab"
 	"io/ioutil"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	
 
 	"gopkg.in/yaml.v2"
 )

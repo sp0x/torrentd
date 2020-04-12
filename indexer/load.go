@@ -10,8 +10,6 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-
-	"github.com/cardigann/cardigann/config"
 )
 
 var (
@@ -178,7 +176,7 @@ type escLoader struct {
 func (el escLoader) List() ([]string, error) {
 	results := []string{}
 
-	for filename := range _escData {
+	for _, filename := range []string{} {
 		if matches := escFilenameRegex.FindStringSubmatch(filename); matches != nil {
 			results = append(results, matches[1])
 		}

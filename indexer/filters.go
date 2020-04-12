@@ -13,7 +13,6 @@ import (
 	"unicode"
 
 	"github.com/bcampbell/fuzzytime"
-	"github.com/cardigann/cardigann/logger"
 )
 
 const (
@@ -21,7 +20,7 @@ const (
 )
 
 var (
-	filterLogger = logger.Logger
+	filterLogger = log.Logger{}
 )
 
 func invokeFilter(name string, args interface{}, value string) (string, error) {
