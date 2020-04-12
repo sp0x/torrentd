@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/sp0x/rutracker-rss/server/rss"
+	"github.com/sp0x/rutracker-rss/server"
 	"github.com/sp0x/rutracker-rss/torrent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -31,7 +31,7 @@ func watchTracker(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 	go func() {
-		rserver := rss.Server{}
+		rserver := server.NewServer()
 		err = rserver.StartServer(client, viper.GetInt("port"))
 		if err != nil {
 			fmt.Print(err)

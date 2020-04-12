@@ -7,8 +7,11 @@ import (
 	"github.com/sp0x/rutracker-rss/db"
 	"github.com/sp0x/rutracker-rss/server/rss"
 	"github.com/sp0x/rutracker-rss/torrent"
+	"github.com/sp0x/rutracker-rss/torznab"
+	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"text/tabwriter"
 )
 
@@ -16,9 +19,26 @@ import (
 //subrouter.HandleFunc("/torznab/{indexer}", h.torznabHandler).Methods("GET")
 //subrouter.HandleFunc("/torznab/{indexer}/api", h.torznabHandler).Methods("GET")
 
+//
 type Server struct {
 	tracker   *torrent.Rutracker
 	tabWriter *tabwriter.Writer
+	Params    Params
+	indexers  map[string]torznab.Indexer
+}
+
+type Params struct {
+	BaseURL    string
+	PathPrefix string
+	APIKey     []byte
+	Passphrase string
+	Version    string
+}
+
+func NewServer() *Server {
+	s := &Server{}
+	s.indexers = map[string]torznab.Indexer{}
+	return s
 }
 
 func (s *Server) StartServer(tracker *torrent.Rutracker, port int) error {
@@ -49,92 +69,36 @@ func (s *Server) StartServer(tracker *torrent.Rutracker, port int) error {
 var storage *torrent.Storage
 var hostname string
 
-func (s *Server) serveMusic(c *gin.Context) {
-	torrents := storage.GetTorrentsInCategories([]int{
-		409,  // Classical and modern academic music
-		1125, // Folklore, national and ethnical music
-		1849, //New age, relax, meditative and flamenco
-		408,  //Rap, hip-hop and rnb
-		1760, //Raggae, ska, dub
-		416,  // OST, karaoke and musicals
-		413,  //Other music
-		2497, //Popular foreign music
-	})
-	rss.SendRssFeed(hostname, "music", torrents, c)
-}
-
-func (s *Server) serveAnime(c *gin.Context) {
-	torrents := storage.GetTorrentsInCategories([]int{
-		33, // Anime
-	})
-	rss.SendRssFeed(hostname, "anime", torrents, c)
-}
-
-func (s *Server) searchAndServe(c *gin.Context) {
-	var search *torrent.Search
-	ops := s.tracker.GetDefaultOptions()
-	currentPage := uint(0)
-	name := c.Param("name")
-	name = url.QueryEscape(name)
-	var items []db.Torrent
-	for true {
-		var err error
-		if search == nil {
-			search, err = s.tracker.Search(nil, name, 0)
-		} else {
-			search, err = s.tracker.Search(search, name, currentPage)
-		}
-		if err != nil {
-			log.Warningf("Error while searching for torrent: %s . %s", name, err)
-		}
-		if currentPage >= ops.PageCount {
-			break
-		}
-		s.tracker.ParseTorrents(search.GetDocument(), func(i int, tr *db.Torrent) {
-			isNew, isUpdate := torrent.HandleTorrentDiscovery(s.tracker, tr)
-			if isNew || isUpdate {
-				if isNew && !isUpdate {
-					_, _ = fmt.Fprintf(s.tabWriter, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
-						tr.TorrentId, tr.AddedOnStr(), tr.Fingerprint, tr.Name)
-				} else {
-					_, _ = fmt.Fprintf(s.tabWriter, "Updated torrent #%s:\t%s\t[%s]:\t%s\n",
-						tr.TorrentId, tr.AddedOnStr(), tr.Fingerprint, tr.Name)
-				}
-			} else {
-				_, _ = fmt.Fprintf(s.tabWriter, "Torrent #%s:\t%s\t[%s]:\t%s\n",
-					tr.TorrentId, tr.AddedOnStr(), "#", tr.Name)
-			}
-			items = append(items, *tr)
-			s.tabWriter.Flush()
-		})
-
-		currentPage++
-	}
-	rss.SendRssFeed(hostname, name, items, c)
-}
-
-func (s *Server) serveShows(c *gin.Context) {
-	torrents := storage.GetTorrentsInCategories([]int{
-		189,  //Foreign shows
-		2366, //Foreign shows in HD
-		2100, //Asian shows
-	})
-	rss.SendRssFeed(hostname, "shows", torrents, c)
-}
-
-func (s *Server) serveMovies(c *gin.Context) {
-	torrents := storage.GetTorrentsInCategories([]int{
-		7,    //foreign films
-		124,  //art-house and author movies
-		93,   //DVD
-		2198, //HD Video
-		4,    //Multifilms
-		352,  //3d/stereo movies, video, tv and sports
-	})
-	rss.SendRssFeed(hostname, "movies", torrents, c)
-}
-
 func (s *Server) serveAllTorrents(c *gin.Context) {
 	torrents := storage.GetTorrentsInCategories([]int{})
 	rss.SendRssFeed(hostname, "torrents", torrents, c)
+}
+
+func (s *Server) createAggregate() (torznab.Indexer, error) {
+	keys, err := indexer.DefaultDefinitionLoader.List()
+	if err != nil {
+		return nil, err
+	}
+
+	agg := indexer.Aggregate{}
+	for _, key := range keys {
+		if config.IsSectionEnabled(key, s.Params) {
+			indexer, err := s.lookupIndexer(key)
+			if err != nil {
+				return nil, err
+			}
+			agg = append(agg, indexer)
+		}
+	}
+
+	return agg, nil
+}
+
+func (s *Server) baseURL(r *http.Request, appendPath string) (*url.URL, error) {
+	proto := "http"
+	if r.TLS != nil {
+		proto = "https"
+	}
+	return url.Parse(fmt.Sprintf("%s://%s%s", proto, r.Host,
+		path.Join(s.Params.PathPrefix, appendPath)))
 }

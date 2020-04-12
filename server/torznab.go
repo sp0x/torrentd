@@ -15,19 +15,19 @@ func (s *Server) torznabHandler(c *gin.Context) {
 	_ = c.Params
 	indexerID := c.Param("indexer")
 
-	apiKey := r.URL.Query().Get("apikey")
+	apiKey := c.Query("apikey")
 	if !s.checkAPIKey(apiKey) {
 		torznab.Error(w, "Invalid apikey parameter", torznab.ErrInsufficientPrivs)
 		return
 	}
 
-	indexer, err := h.lookupIndexer(indexerID)
+	indexer, err := s.lookupIndexer(indexerID)
 	if err != nil {
 		torznab.Error(w, err.Error(), torznab.ErrIncorrectParameter)
 		return
 	}
 
-	t := r.URL.Query().Get("t")
+	t := c.Query("t")
 
 	if t == "" {
 		http.Redirect(w, r, r.URL.Path+"?t=caps", http.StatusTemporaryRedirect)
@@ -44,7 +44,7 @@ func (s *Server) torznabHandler(c *gin.Context) {
 			torznab.Error(w, err.Error(), torznab.ErrUnknownError)
 			return
 		}
-		switch r.URL.Query().Get("format") {
+		switch c.Query("format") {
 		case "", "xml":
 			x, err := xml.MarshalIndent(feed, "", "  ")
 			if err != nil {
@@ -69,7 +69,7 @@ func (s *Server) createIndexer(key string) (torznab.Indexer, error) {
 		return nil, err
 	}
 
-	log.WithFields(logrus.Fields{"indexer": key}).Debugf("Loaded indexer")
+	log.WithFields(log.Fields{"indexer": key}).Debugf("Loaded indexer")
 	indexer, err := indexer.NewRunner(def, indexer.RunnerOpts{
 		Config: s.Params.Config,
 	}), nil
