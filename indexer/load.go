@@ -3,6 +3,7 @@ package indexer
 import (
 	"errors"
 	"fmt"
+	"github.com/spf13/viper"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -18,24 +19,32 @@ var (
 )
 
 func ListBuiltins() ([]string, error) {
-	l := escLoader{Dir(false, "")}
+	l := escLoader{http.Dir("")}
 	return l.List()
 }
 
-func LoadEnabledDefinitions(conf config.Config) ([]*IndexerDefinition, error) {
+func LoadEnabledDefinitions(conf interface{}) ([]*IndexerDefinition, error) {
 	keys, err := DefaultDefinitionLoader.List()
 	if err != nil {
 		return nil, err
 	}
 	defs := []*IndexerDefinition{}
 	for _, key := range keys {
-		if config.IsSectionEnabled(key, conf) {
+		section := viper.Get(key)
+		if section!=nil{
 			def, err := DefaultDefinitionLoader.Load(key)
 			if err != nil {
 				return nil, err
 			}
 			defs = append(defs, def)
 		}
+		//if config.IsSectionEnabled(key, conf) {
+		//	def, err := DefaultDefinitionLoader.Load(key)
+		//	if err != nil {
+		//		return nil, err
+		//	}
+		//	defs = append(defs, def)
+		//}
 	}
 	return defs, nil
 }
@@ -48,7 +57,7 @@ type DefinitionLoader interface {
 func init() {
 	DefaultDefinitionLoader = &multiLoader{
 		newFsLoader(),
-		escLoader{Dir(false, "")},
+		escLoader{http.Dir("")},
 	}
 }
 
@@ -57,7 +66,13 @@ type fsLoader struct {
 }
 
 func newFsLoader() DefinitionLoader {
-	return &fsLoader{config.GetDefinitionDirs()}
+	section := viper.Get("definition.dirs")
+	if section!=nil{
+		d:=&fsLoader{[]string{}}
+		return d
+	}
+	return nil
+	//return &fsLoader{config.GetDefinitionDirs()}
 }
 
 func (fs *fsLoader) walkDirectories() (map[string]string, error) {

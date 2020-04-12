@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
+	"github.com/headzoo/surf/browser"
 	"github.com/sp0x/rutracker-rss/torznab"
 	"io/ioutil"
 	"os"

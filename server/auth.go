@@ -26,7 +26,7 @@ func (s *Server) sharedKey() ([]byte, error) {
 	return b, nil
 }
 
-func (s *Server) checkAPIKey(sx string) (result bool) {
+func (s *Server) checkAPIKey(sx string) bool {
 	k, err := s.sharedKey()
 	if err != nil {
 		return false

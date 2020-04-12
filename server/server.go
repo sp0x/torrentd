@@ -7,6 +7,7 @@ import (
 	"github.com/sp0x/rutracker-rss/server/rss"
 	"github.com/sp0x/rutracker-rss/torrent"
 	"github.com/sp0x/rutracker-rss/torznab"
+	"github.com/spf13/viper"
 	"net/http"
 	"net/url"
 	"os"
@@ -81,13 +82,22 @@ func (s *Server) createAggregate() (torznab.Indexer, error) {
 
 	agg := indexer.Aggregate{}
 	for _, key := range keys {
-		if config.IsSectionEnabled(key, s.Params) {
+		ifaceConfig := viper.Get("indexer." + key)
+		if ifaceConfig != nil {
+
 			indexer, err := s.lookupIndexer(key)
 			if err != nil {
 				return nil, err
 			}
 			agg = append(agg, indexer)
 		}
+		//if config.IsSectionEnabled(key, s.Params) {
+		//	indexer, err := s.lookupIndexer(key)
+		//	if err != nil {
+		//		return nil, err
+		//	}
+		//	agg = append(agg, indexer)
+		//}
 	}
 
 	return agg, nil
