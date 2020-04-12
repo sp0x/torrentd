@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/sp0x/rutracker-rss/rss"
+	"github.com/sp0x/rutracker-rss/server/rss"
 	"github.com/sp0x/rutracker-rss/torrent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

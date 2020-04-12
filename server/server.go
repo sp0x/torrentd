@@ -1,21 +1,20 @@
-package rss
+package server
 
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/feeds"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/db"
+	"github.com/sp0x/rutracker-rss/server/rss"
 	"github.com/sp0x/rutracker-rss/torrent"
-	"net/http"
 	"net/url"
 	"os"
 	"text/tabwriter"
-	"time"
 )
 
-var storage *torrent.Storage
-var hostname string
+//// torznab routes
+//subrouter.HandleFunc("/torznab/{indexer}", h.torznabHandler).Methods("GET")
+//subrouter.HandleFunc("/torznab/{indexer}/api", h.torznabHandler).Methods("GET")
 
 type Server struct {
 	tracker   *torrent.Rutracker
@@ -29,17 +28,26 @@ func (s *Server) StartServer(tracker *torrent.Rutracker, port int) error {
 	s.tracker = tracker
 	s.tabWriter = tabWr
 	r := gin.Default()
+	//Rss
 	r.GET("/all", s.serveAllTorrents)
 	r.GET("/movies", s.serveMovies)
 	r.GET("/shows", s.serveShows)
 	r.GET("/music", s.serveMusic)
 	r.GET("/anime", s.serveAnime)
 	r.GET("/search/:name", s.searchAndServe)
+
+	//Torznab
+	r.GET("torznab/:indexer", s.torznabHandler)
+	r.GET("torznab/:indexer/api", s.torznabHandler)
+
 	err := r.Run(fmt.Sprintf(":%d", port))
 	storage = &torrent.Storage{}
 	hostname = "localhost"
 	return err
 }
+
+var storage *torrent.Storage
+var hostname string
 
 func (s *Server) serveMusic(c *gin.Context) {
 	torrents := storage.GetTorrentsInCategories([]int{
@@ -52,14 +60,14 @@ func (s *Server) serveMusic(c *gin.Context) {
 		413,  //Other music
 		2497, //Popular foreign music
 	})
-	sendFeed("music", torrents, c)
+	rss.SendRssFeed(hostname, "music", torrents, c)
 }
 
 func (s *Server) serveAnime(c *gin.Context) {
 	torrents := storage.GetTorrentsInCategories([]int{
 		33, // Anime
 	})
-	sendFeed("anime", torrents, c)
+	rss.SendRssFeed(hostname, "anime", torrents, c)
 }
 
 func (s *Server) searchAndServe(c *gin.Context) {
@@ -102,7 +110,7 @@ func (s *Server) searchAndServe(c *gin.Context) {
 
 		currentPage++
 	}
-	sendFeed(name, items, c)
+	rss.SendRssFeed(hostname, name, items, c)
 }
 
 func (s *Server) serveShows(c *gin.Context) {
@@ -111,7 +119,7 @@ func (s *Server) serveShows(c *gin.Context) {
 		2366, //Foreign shows in HD
 		2100, //Asian shows
 	})
-	sendFeed("shows", torrents, c)
+	rss.SendRssFeed(hostname, "shows", torrents, c)
 }
 
 func (s *Server) serveMovies(c *gin.Context) {
@@ -123,38 +131,10 @@ func (s *Server) serveMovies(c *gin.Context) {
 		4,    //Multifilms
 		352,  //3d/stereo movies, video, tv and sports
 	})
-	sendFeed("movies", torrents, c)
+	rss.SendRssFeed(hostname, "movies", torrents, c)
 }
 
 func (s *Server) serveAllTorrents(c *gin.Context) {
 	torrents := storage.GetTorrentsInCategories([]int{})
-	sendFeed("torrents", torrents, c)
-}
-
-func sendFeed(name string, torrents []db.Torrent, c *gin.Context) {
-	feed := &feeds.Feed{
-		Title:       fmt.Sprintf("%s from Rutracker", name),
-		Link:        &feeds.Link{Href: fmt.Sprintf("http://%s/%s", hostname, name)},
-		Description: name,
-		//Author:      &feeds.Author{},
-		Created: time.Now(),
-	}
-	feed.Items = make([]*feeds.Item, len(torrents), len(torrents))
-	for i, torr := range torrents {
-		timep := time.Unix(torr.AddedOn, 0)
-		feedItem := &feeds.Item{
-			Title:       torr.Name,
-			Link:        &feeds.Link{Href: torr.DownloadLink},
-			Description: torr.Link,
-			Author:      &feeds.Author{Name: torr.AuthorName},
-			Created:     timep,
-		}
-		feed.Items[i] = feedItem
-	}
-	rss, err := feed.ToRss()
-	if err != nil {
-		log.Fatal(err)
-	}
-	c.Header("Content-Type", "application/xml;")
-	c.String(http.StatusOK, rss)
+	rss.SendRssFeed(hostname, "torrents", torrents, c)
 }
