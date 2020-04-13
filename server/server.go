@@ -24,8 +24,15 @@ import (
 type Server struct {
 	tracker   *torrent.Rutracker
 	tabWriter *tabwriter.Writer
-	Params    Params
-	indexers  map[string]torznab.Indexer
+	//Params    Params
+	indexers   map[string]torznab.Indexer
+	config     config.Config
+	Port       int
+	Hostname   string
+	Params     Params
+	PathPrefix string
+	Password   string
+	version    string
 }
 
 type Params struct {
@@ -37,19 +44,37 @@ type Params struct {
 	Config     config.Config
 }
 
-func NewServer() *Server {
+func NewServer(conf config.Config) *Server {
 	s := &Server{}
 	s.indexers = map[string]torznab.Indexer{}
+	s.config = conf
+	s.Port = conf.GetInt("port")
+	s.Hostname = conf.GetString("hostname")
 	return s
 }
 
-func (s *Server) StartServer(tracker *torrent.Rutracker, port int) error {
+func (s *Server) Listen(tracker *torrent.Rutracker) error {
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 
 	s.tracker = tracker
 	s.tabWriter = tabWr
+	s.Params = Params{
+		BaseURL:    fmt.Sprintf("http://%s:%d%s", s.Hostname, s.Port, s.PathPrefix),
+		Passphrase: s.Password,
+		PathPrefix: s.PathPrefix,
+		Config:     s.config,
+		Version:    s.version,
+	}
 	r := gin.Default()
+	s.setupRoutes(r)
+
+	storage = &torrent.Storage{}
+	err := r.Run(fmt.Sprintf(":%d", s.Port))
+	return err
+}
+
+func (s *Server) setupRoutes(r *gin.Engine) {
 	//Rss
 	r.GET("/all", s.serveAllTorrents)
 	r.GET("/movies", s.serveMovies)
@@ -61,11 +86,6 @@ func (s *Server) StartServer(tracker *torrent.Rutracker, port int) error {
 	//Torznab
 	r.GET("torznab/:indexer", s.torznabHandler)
 	r.GET("torznab/:indexer/api", s.torznabHandler)
-
-	err := r.Run(fmt.Sprintf(":%d", port))
-	storage = &torrent.Storage{}
-	hostname = "localhost"
-	return err
 }
 
 var storage *torrent.Storage

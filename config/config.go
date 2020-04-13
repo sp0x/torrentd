@@ -11,6 +11,8 @@ var appname = "tracker-rss"
 type Config interface {
 	GetSiteOption(name, key string) (string, bool, error)
 	GetSite(section string) (map[string]string, error)
+	GetInt(param string) int
+	GetString(s string) string
 }
 
 func GetCachePath(subdir string) string {

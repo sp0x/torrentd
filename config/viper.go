@@ -17,3 +17,11 @@ func (v *ViperConfig) GetSite(name string) (map[string]string, error) {
 	indexerMap := viper.GetStringMapString(fmt.Sprintf("indexer.%s", name))
 	return indexerMap, nil
 }
+
+func (v *ViperConfig) GetInt(param string) int {
+	return viper.GetInt(param)
+}
+
+func (v *ViperConfig) GetString(param string) string {
+	return viper.GetString(param)
+}
