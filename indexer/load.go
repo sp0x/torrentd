@@ -3,6 +3,7 @@ package indexer
 import (
 	"errors"
 	"fmt"
+	"github.com/sp0x/rutracker-rss/config"
 	"github.com/spf13/viper"
 	"io/ioutil"
 	"net/http"
@@ -31,7 +32,7 @@ func LoadEnabledDefinitions(conf interface{}) ([]*IndexerDefinition, error) {
 	defs := []*IndexerDefinition{}
 	for _, key := range keys {
 		section := viper.Get(key)
-		if section!=nil{
+		if section != nil {
 			def, err := DefaultDefinitionLoader.Load(key)
 			if err != nil {
 				return nil, err
@@ -66,13 +67,13 @@ type fsLoader struct {
 }
 
 func newFsLoader() DefinitionLoader {
-	section := viper.Get("definition.dirs")
-	if section!=nil{
-		d:=&fsLoader{[]string{}}
-		return d
-	}
-	return nil
-	//return &fsLoader{config.GetDefinitionDirs()}
+	//section := viper.Get("definition.dirs")
+	//if section!=nil{
+	//	d:=&fsLoader{[]string{}}
+	//	return d
+	//}
+	//return nil
+	return &fsLoader{config.GetDefinitionDirs()}
 }
 
 func (fs *fsLoader) walkDirectories() (map[string]string, error) {
@@ -166,6 +167,9 @@ func (ml multiLoader) Load(key string) (*IndexerDefinition, error) {
 	var def *IndexerDefinition
 
 	for _, loader := range ml {
+		if loader == nil {
+			continue
+		}
 		loaded, err := loader.Load(key)
 		if err != nil {
 			continue

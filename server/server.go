@@ -50,6 +50,14 @@ func NewServer(conf config.Config) *Server {
 	s.config = conf
 	s.Port = conf.GetInt("port")
 	s.Hostname = conf.GetString("hostname")
+	s.Params = Params{
+		BaseURL:    fmt.Sprintf("http://%s:%d%s", s.Hostname, s.Port, s.PathPrefix),
+		Passphrase: s.Password,
+		PathPrefix: s.PathPrefix,
+		Config:     s.config,
+		Version:    s.version,
+		APIKey:     conf.GetBytes("api_key"),
+	}
 	return s
 }
 
@@ -59,13 +67,6 @@ func (s *Server) Listen(tracker *torrent.Rutracker) error {
 
 	s.tracker = tracker
 	s.tabWriter = tabWr
-	s.Params = Params{
-		BaseURL:    fmt.Sprintf("http://%s:%d%s", s.Hostname, s.Port, s.PathPrefix),
-		Passphrase: s.Password,
-		PathPrefix: s.PathPrefix,
-		Config:     s.config,
-		Version:    s.version,
-	}
 	r := gin.Default()
 	s.setupRoutes(r)
 

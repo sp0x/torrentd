@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/sp0x/rutracker-rss/config"
 	"github.com/sp0x/rutracker-rss/server"
 	"github.com/sp0x/rutracker-rss/torrent"
 	"github.com/spf13/cobra"
@@ -21,6 +20,7 @@ func init() {
 	cmdWatch.Flags().IntVarP(&watchInterval, "interval", "i", 10, "Interval between checks.")
 	viper.SetDefault("port", 5000)
 	_ = viper.BindEnv("port")
+	_ = viper.BindEnv("api_key")
 	rootCmd.AddCommand(cmdWatch)
 }
 
@@ -32,7 +32,7 @@ func watchTracker(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 	go func() {
-		rserver := server.NewServer(&config.ViperConfig{})
+		rserver := server.NewServer(&appConfig)
 		err = rserver.Listen(client)
 		if err != nil {
 			fmt.Print(err)

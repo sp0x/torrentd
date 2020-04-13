@@ -13,11 +13,18 @@ type Config interface {
 	GetSite(section string) (map[string]string, error)
 	GetInt(param string) int
 	GetString(s string) string
+	GetBytes(s string) []byte
+	SetSiteOption(section, key, value string) error
+	Set(key, value interface{}) error
 }
 
 func GetCachePath(subdir string) string {
 	dir := homeDirectory(".cache", appname, subdir)
 	return dir
+}
+
+func SetDefaults(cfg Config) {
+	_ = cfg.Set("definition.dirs", GetDefinitionDirs())
 }
 
 func GetDefinitionDirs() []string {

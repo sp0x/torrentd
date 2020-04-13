@@ -2,8 +2,11 @@ package main
 
 import (
 	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/rutracker-rss/config"
 	"github.com/spf13/viper"
 )
+
+var appConfig config.ViperConfig
 
 func initConfig() {
 	//We load the default config file
@@ -24,4 +27,5 @@ func initConfig() {
 	if viper.GetBool("verbose") {
 		log.SetLevel(log.DebugLevel)
 	}
+	config.SetDefaults(&appConfig)
 }
