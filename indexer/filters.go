@@ -19,9 +19,7 @@ const (
 	filterTimeFormat = time.RFC1123Z
 )
 
-var (
-	filterLogger = log.Logger{}
-)
+var filterLogger log.FieldLogger
 
 func invokeFilter(name string, args interface{}, value string) (string, error) {
 	switch name {

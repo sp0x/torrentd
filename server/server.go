@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/sp0x/rutracker-rss/config"
 	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/rutracker-rss/server/rss"
 	"github.com/sp0x/rutracker-rss/torrent"
@@ -33,6 +34,7 @@ type Params struct {
 	APIKey     []byte
 	Passphrase string
 	Version    string
+	Config     config.Config
 }
 
 func NewServer() *Server {
