@@ -25,7 +25,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	imdbscraper "github.com/cardigann/go-imdb-scraper"
 	"github.com/cardigann/releaseinfo"
-	"github.com/dustin/go-humanize"
 	"github.com/f2prateek/train"
 	trainlog "github.com/f2prateek/train/log"
 	"github.com/headzoo/surf"
@@ -33,9 +32,13 @@ import (
 	"github.com/headzoo/surf/browser"
 	"github.com/headzoo/surf/jar"
 	"github.com/sirupsen/logrus"
-	"github.com/tehjojo/go-tvmaze/tvmaze"
+
+	"github.com/dustin/go-humanize"
+	"github.com/mrobinsn/go-tvmaze/tvmaze"
 	"github.com/yosssi/gohtml"
 )
+
+//"github.com/tehjojo/go-tvmaze/tvmaze"
 
 var (
 	_ torznab.Indexer = &Runner{}
@@ -58,10 +61,12 @@ type Runner struct {
 }
 
 func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
+	logger := logrus.New()
+	logger.Level = logrus.InfoLevel
 	return &Runner{
 		opts:       opts,
 		definition: def,
-		logger:     logger.Logger.WithFields(logrus.Fields{"site": def.Site}),
+		logger:     logger.WithFields(logrus.Fields{"site": def.Site}),
 	}
 }
 
@@ -112,7 +117,7 @@ func (r *Runner) createBrowser() {
 	bow.SetAttribute(browser.SendReferer, true)
 	bow.SetAttribute(browser.MetaRefreshHandling, true)
 	bow.SetCookieJar(r.cookies)
-	bow.SetTimeout(time.Second * 10)
+	//bow.SetTimeout(time.Second * 10)
 
 	transport, err := r.createTransport()
 	if err != nil {
@@ -145,7 +150,7 @@ func (r *Runner) releaseBrowser() {
 // checks that the runner has the config values it needs
 func (r *Runner) checkHasConfig() error {
 	for _, setting := range r.definition.Settings {
-		_, ok, err := r.opts.Config.Get(r.definition.Site, setting.Name)
+		_, ok, err := r.opts.Config.GetSiteOption(r.definition.Site, setting.Name)
 		if err != nil {
 			return fmt.Errorf("Error reading config for %s: %v", setting.Name, err)
 		}
@@ -182,7 +187,7 @@ func (r *Runner) currentURL() (*url.URL, error) {
 		return u, nil
 	}
 
-	configURL, ok, _ := r.opts.Config.Get(r.definition.Site, "url")
+	configURL, ok, _ := r.opts.Config.GetSiteOption(r.definition.Site, "url")
 	if ok && r.testURLWorks(configURL) {
 		return url.Parse(configURL)
 	}
@@ -408,7 +413,7 @@ func (r *Runner) loginViaCookie(loginURL string, cookie string) error {
 func (r *Runner) extractInputLogins() (map[string]string, error) {
 	result := map[string]string{}
 
-	cfg, err := r.opts.Config.Section(r.definition.Site)
+	cfg, err := r.opts.Config.GetSite(r.definition.Site)
 	if err != nil {
 		return nil, err
 	}
