@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/mitchellh/go-homedir"
 	"os"
 	"path"
 	"path/filepath"
@@ -27,12 +28,19 @@ func SetDefaults(cfg Config) {
 	_ = cfg.Set("definition.dirs", GetDefinitionDirs())
 }
 
+func init() {
+	home, _ := homedir.Dir()
+	homeDefsDir := path.Join(home, "."+appname, "definitions")
+	_ = os.MkdirAll(homeDefsDir, os.ModePerm)
+}
+
 func GetDefinitionDirs() []string {
 	dirs := []string{}
 	if cwd, err := os.Getwd(); err == nil {
 		dirs = append(dirs, filepath.Join(cwd, "definitions"))
 	}
-	dirs = append(dirs, homeDirectory("."+appname, "definitions"))
+	homeDefsDir := homeDirectory("."+appname, "definitions")
+	dirs = append(dirs, homeDefsDir)
 	if configDir := os.Getenv("CONFIG_DIR"); configDir != "" {
 		dirs = append(dirs, filepath.Join(configDir, "definitions"))
 	}
