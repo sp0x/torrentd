@@ -20,8 +20,10 @@ type Config interface {
 }
 
 func GetCachePath(subdir string) string {
-	dir := homeDirectory(".cache", appname, subdir)
-	return dir
+	home, _ := homedir.Dir()
+	homeDefsDir := path.Join(home, "."+appname, "cache", subdir)
+	_ = os.MkdirAll(homeDefsDir, os.ModePerm)
+	return homeDefsDir
 }
 
 func SetDefaults(cfg Config) {
@@ -39,18 +41,14 @@ func GetDefinitionDirs() []string {
 	if cwd, err := os.Getwd(); err == nil {
 		dirs = append(dirs, filepath.Join(cwd, "definitions"))
 	}
-	homeDefsDir := homeDirectory("."+appname, "definitions")
+
+	home, _ := homedir.Dir()
+	homeDefsDir := path.Join(home, "."+appname, "definitions")
+
 	dirs = append(dirs, homeDefsDir)
 	if configDir := os.Getenv("CONFIG_DIR"); configDir != "" {
 		dirs = append(dirs, filepath.Join(configDir, "definitions"))
 	}
 
 	return dirs
-}
-
-func homeDirectory(subdir ...string) string {
-	dirs := []string{"~"}
-	dirs = append(dirs, subdir...)
-	dir := path.Join(dirs...)
-	return dir
 }

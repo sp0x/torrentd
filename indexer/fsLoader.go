@@ -28,8 +28,11 @@ func (fs *fsLoader) walkDirectories() (map[string]string, error) {
 			continue
 		}
 		for _, basename := range files {
-			if strings.HasSuffix(basename, ".yml") {
-				defs[strings.TrimSuffix(basename, ".yml")] = path.Join(dir.Name(), basename)
+			if strings.HasSuffix(basename, ".yml") || strings.HasSuffix(basename, ".yaml") {
+				index := strings.TrimSuffix(basename, ".yml")
+				index = strings.TrimSuffix(index, ".yaml")
+				indexFile := path.Join(dir.Name(), basename)
+				defs[index] = path.Join(indexFile)
 			}
 		}
 	}
