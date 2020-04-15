@@ -26,12 +26,12 @@ func (s *Server) sharedKey() ([]byte, error) {
 	return b, nil
 }
 
-func (s *Server) checkAPIKey(sx string) bool {
+func (s *Server) checkAPIKey(inputKey string) bool {
 	k, err := s.sharedKey()
 	if err != nil {
 		return false
 	}
-	if sx == fmt.Sprintf("%x", k) {
+	if inputKey == fmt.Sprintf("%s", k) {
 		return true
 	}
 	log.Printf("Incorrect api key %q, expected %x", s, k)

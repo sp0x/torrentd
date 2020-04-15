@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/config"
 	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/rutracker-rss/server/rss"
@@ -71,6 +72,9 @@ func (s *Server) Listen(tracker *torrent.Rutracker) error {
 	s.setupRoutes(r)
 
 	storage = &torrent.Storage{}
+	log.Info("Starting server...")
+	key, _ := s.sharedKey()
+	log.Infof("API Key: %s", key)
 	err := r.Run(fmt.Sprintf(":%d", s.Port))
 	return err
 }
