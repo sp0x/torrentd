@@ -10,7 +10,7 @@ var appConfig config.ViperConfig
 
 func initConfig() {
 	//We load the default config file
-	viper.AddConfigPath(".")
+	viper.AddConfigPath("~/.config/tracker-rss")
 	viper.SetConfigType("yaml")
 	viper.SetConfigName(".tracker-rss")
 	viper.AutomaticEnv()
