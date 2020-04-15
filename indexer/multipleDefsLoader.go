@@ -50,7 +50,7 @@ func (ml multiLoader) Load(key string) (*IndexerDefinition, error) {
 		if err != nil {
 			continue
 		}
-		if def == nil || loaded.Stats().ModTime.After(def.Stats().ModTime) {
+		if def == nil || loaded.Stats().ModTime.After(def.Stats().ModTime) { // If no definition is loaded so far, or the new one is newer
 			def = loaded
 		}
 	}

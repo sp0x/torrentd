@@ -47,6 +47,7 @@ type settingsField struct {
 	Label string `yaml:"label"`
 }
 
+//ParseDefinitionFile loads an indexer's definition from a file
 func ParseDefinitionFile(f *os.File) (*IndexerDefinition, error) {
 	b, err := ioutil.ReadFile(f.Name())
 	if err != nil {

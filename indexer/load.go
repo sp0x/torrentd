@@ -44,6 +44,7 @@ func LoadEnabledDefinitions(conf interface{}) ([]*IndexerDefinition, error) {
 
 type DefinitionLoader interface {
 	List() ([]string, error)
+	//Load - Load a definition of an indexer from it's name
 	Load(key string) (*IndexerDefinition, error)
 }
 

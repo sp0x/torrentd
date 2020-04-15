@@ -61,6 +61,7 @@ func (fs *fsLoader) String() string {
 	return buff
 }
 
+//Load - Load a definition of an indexer from it's name
 func (fs *fsLoader) Load(key string) (*IndexerDefinition, error) {
 	defs, err := fs.walkDirectories()
 	if err != nil {

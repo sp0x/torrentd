@@ -28,7 +28,7 @@ func (s *Server) torznabHandler(c *gin.Context) {
 		torznab.Error(c, err.Error(), torznab.ErrIncorrectParameter)
 		return
 	}
-
+	//Type of operation
 	t := c.Query("t")
 
 	if t == "" {
