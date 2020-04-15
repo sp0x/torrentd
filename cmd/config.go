@@ -1,16 +1,22 @@
 package main
 
 import (
+	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/config"
 	"github.com/spf13/viper"
+	"os"
+	"path"
 )
 
 var appConfig config.ViperConfig
 
 func initConfig() {
 	//We load the default config file
-	viper.AddConfigPath("~/.config/tracker-rss")
+	homeDir, _ := homedir.Dir()
+	defaultConfigPath := path.Join(homeDir, ".tracker-rss")
+	_ = os.MkdirAll(defaultConfigPath, os.ModePerm)
+	viper.AddConfigPath(defaultConfigPath)
 	viper.SetConfigType("yaml")
 	viper.SetConfigName(".tracker-rss")
 	viper.AutomaticEnv()

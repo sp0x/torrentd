@@ -32,7 +32,7 @@ func GetDefinitionDirs() []string {
 	if cwd, err := os.Getwd(); err == nil {
 		dirs = append(dirs, filepath.Join(cwd, "definitions"))
 	}
-	dirs = append(dirs, homeDirectory(".config", appname, "definitions"))
+	dirs = append(dirs, homeDirectory("."+appname, "definitions"))
 	if configDir := os.Getenv("CONFIG_DIR"); configDir != "" {
 		dirs = append(dirs, filepath.Join(configDir, "definitions"))
 	}
