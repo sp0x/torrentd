@@ -22,6 +22,7 @@ func initConfig() {
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			config.SetDefaults(&appConfig)
 			err = viper.SafeWriteConfig()
 			if err != nil {
 				log.Warningf("error while writing default config file: %v\n", err)
@@ -33,5 +34,5 @@ func initConfig() {
 	if viper.GetBool("verbose") {
 		log.SetLevel(log.DebugLevel)
 	}
-	config.SetDefaults(&appConfig)
+
 }

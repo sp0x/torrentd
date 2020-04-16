@@ -171,7 +171,7 @@ func (r *Runner) applyTemplate(name, tpl string, ctx interface{}) (string, error
 		return "", err
 	}
 	b := &bytes.Buffer{}
-	err = tmpl.Execute(b, ctx)
+	err = tmpl.Execute(b, ctx) //Evaluate the template
 	if err != nil {
 		return "", err
 	}
@@ -306,6 +306,7 @@ func (r *Runner) postToPage(u string, vals url.Values) error {
 	return nil
 }
 
+//If caching is enabled, we cache the page's contents in our pagecache
 func (r *Runner) cachePage() error {
 	if !r.opts.CachePages {
 		return nil
@@ -413,9 +414,10 @@ func (r *Runner) loginViaCookie(loginURL string, cookie string) error {
 	return nil
 }
 
+//extractInputLogins gets the configured input fields and vals for the login.
 func (r *Runner) extractInputLogins() (map[string]string, error) {
 	result := map[string]string{}
-
+	//Get configuration for the indexer so we can login
 	cfg, err := r.opts.Config.GetSite(r.definition.Site)
 	if err != nil {
 		return nil, err
@@ -691,27 +693,30 @@ func (r *Runner) Search(query torznab.Query) ([]torznab.ResultItem, error) {
 			return nil, err
 		}
 	}
-
+	//Get the categories for this query
 	localCats := r.localCategories(query)
 
-	r.logger.Debugf("Query is %v", query)
-	r.logger.Debugf("Keywords are %q", query.Keywords())
-
+	r.logger.Debugf("Query is %v\n", query)
+	r.logger.Debugf("Keywords are %q\n", query.Keywords())
+	//Context about the search
+	context := make(map[string]string)
 	templateCtx := struct {
 		Query      torznab.Query
 		Keywords   string
 		Categories []string
+		Context    map[string]string
 	}{
 		query,
 		query.Keywords(),
 		localCats,
+		context,
 	}
-
+	//Apply our context to the search path
 	searchURL, err := r.applyTemplate("search_path", r.definition.Search.Path, templateCtx)
 	if err != nil {
 		return nil, err
 	}
-
+	//Resolve the search url
 	searchURL, err = r.resolvePath(searchURL)
 	if err != nil {
 		return nil, err
@@ -722,7 +727,7 @@ func (r *Runner) Search(query torznab.Query) ([]torznab.ResultItem, error) {
 		Infof("Searching indexer")
 
 	vals := url.Values{}
-
+	//Parse the values that will be used in the url for the search
 	for name, val := range r.definition.Search.Inputs {
 		resolved, err := r.applyTemplate("search_inputs", val, templateCtx)
 		if err != nil {
