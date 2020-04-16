@@ -20,7 +20,12 @@ func (v *ViperConfig) Set(key, value interface{}) error {
 func (v *ViperConfig) GetSiteOption(name, key string) (string, bool, error) {
 	indexerMap := viper.GetStringMap(fmt.Sprintf("indexer.%s", name))
 	a, b := indexerMap[key]
-	return a.(string), b, nil
+	if !b {
+		return "", b, nil
+	} else {
+		return a.(string), b, nil
+	}
+
 }
 
 func (v *ViperConfig) GetSite(name string) (map[string]string, error) {

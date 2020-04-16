@@ -50,6 +50,7 @@ type RunnerOpts struct {
 	Transport  http.RoundTripper
 }
 
+//Runenr works with indexers and their definitions
 type Runner struct {
 	definition  *IndexerDefinition
 	browser     browser.Browsable
@@ -182,6 +183,7 @@ func (r *Runner) applyTemplate(name, tpl string, ctx interface{}) (string, error
 	return b.String(), nil
 }
 
+//Get a working url for the indexer
 func (r *Runner) currentURL() (*url.URL, error) {
 	if u := r.browser.Url(); u != nil {
 		return u, nil
@@ -216,11 +218,12 @@ func (r *Runner) testURLWorks(u string) bool {
 	return true
 }
 
+//resolvePath resolve a relative url based on the working indexer base url
 func (r *Runner) resolvePath(urlPath string) (string, error) {
 	if strings.HasPrefix(urlPath, "magnet:") {
 		return urlPath, nil
 	}
-
+	//Get the base url of the indexer
 	base, err := r.currentURL()
 	if err != nil {
 		return "", err
@@ -230,7 +233,7 @@ func (r *Runner) resolvePath(urlPath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
+	//Resolve the url
 	resolved := base.ResolveReference(u)
 	r.logger.
 		WithFields(logrus.Fields{"base": base.String(), "u": resolved.String()}).
@@ -484,6 +487,7 @@ func (r *Runner) matchPageTestBlock(p pageTestBlock) (bool, error) {
 	return true, nil
 }
 
+//isLoginRequired Checks if login is required for the given indexer
 func (r *Runner) isLoginRequired() (bool, error) {
 	if r.definition.Login.IsEmpty() {
 		return false, nil
@@ -492,7 +496,7 @@ func (r *Runner) isLoginRequired() (bool, error) {
 	}
 
 	r.logger.Debug("Testing if login is needed")
-
+	//Check if the login page is valid
 	match, err := r.matchPageTestBlock(r.definition.Login.Test)
 	if err != nil {
 		return true, err
