@@ -1,4 +1,4 @@
-package torrent
+package indexer
 
 import (
 	"golang.org/x/text/encoding/charmap"

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/sp0x/rutracker-rss/torrent"
+	storage2 "github.com/sp0x/rutracker-rss/torrent/storage"
 	"github.com/spf13/cobra"
 	"os"
 	"text/tabwriter"
@@ -19,7 +19,7 @@ func init() {
 }
 
 func getInfo(cmd *cobra.Command, args []string) {
-	storage := torrent.Storage{}
+	storage := storage2.Storage{}
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 

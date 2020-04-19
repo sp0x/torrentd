@@ -4,6 +4,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/db"
+	"github.com/sp0x/rutracker-rss/indexer/search"
 	"os"
 	"text/tabwriter"
 	"time"
@@ -25,7 +26,7 @@ func Watch(client *Rutracker, interval int) {
 		os.Exit(1)
 	}
 	//client.clearSearch()
-	var currentSearch *Search
+	var currentSearch *search.Search
 	for true {
 		var err error
 		if currentSearch == nil {
@@ -47,7 +48,7 @@ func Watch(client *Rutracker, interval int) {
 		counter := uint(0)
 		finished := false
 		hasStaleTorrents := false
-		client.ParseTorrents(currentSearch.doc, func(i int, torrent *db.Torrent) {
+		client.ParseTorrents(currentSearch.DOM, func(i int, torrent *db.Torrent) {
 			if finished || torrent == nil {
 				return
 			}

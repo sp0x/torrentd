@@ -8,6 +8,7 @@ import (
 	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/rutracker-rss/server/rss"
 	"github.com/sp0x/rutracker-rss/torrent"
+	storage2 "github.com/sp0x/rutracker-rss/torrent/storage"
 	"github.com/sp0x/rutracker-rss/torznab"
 	"github.com/spf13/viper"
 	"net/http"
@@ -71,7 +72,7 @@ func (s *Server) Listen(tracker *torrent.Rutracker) error {
 	r := gin.Default()
 	s.setupRoutes(r)
 
-	storage = &torrent.Storage{}
+	storage = &storage2.Storage{}
 	log.Info("Starting server...")
 	key, _ := s.sharedKey()
 	log.Infof("API Key: %s", key)
@@ -93,7 +94,7 @@ func (s *Server) setupRoutes(r *gin.Engine) {
 	r.GET("torznab/:indexer/api", s.torznabHandler)
 }
 
-var storage *torrent.Storage
+var storage *storage2.Storage
 var hostname string
 
 func (s *Server) serveAllTorrents(c *gin.Context) {

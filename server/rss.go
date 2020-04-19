@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/db"
+	search2 "github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/sp0x/rutracker-rss/server/rss"
 	"github.com/sp0x/rutracker-rss/torrent"
 	"net/url"
@@ -32,7 +33,7 @@ func (s *Server) serveAnime(c *gin.Context) {
 }
 
 func (s *Server) searchAndServe(c *gin.Context) {
-	var search *torrent.Search
+	var search *search2.Search
 	ops := s.tracker.GetDefaultOptions()
 	currentPage := uint(0)
 	name := c.Param("name")

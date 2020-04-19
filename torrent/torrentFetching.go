@@ -4,6 +4,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/db"
+	"github.com/sp0x/rutracker-rss/indexer/search"
 	"os"
 	"text/tabwriter"
 )
@@ -18,7 +19,7 @@ func GetNewTorrents(client *Rutracker, fetchOptions *FetchOptions) error {
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 
-	var currentSearch *Search
+	var currentSearch *search.Search
 	for page = 0; page < fetchOptions.PageCount; page++ {
 		log.Infof("Getting page %d\n", page)
 		var err error
@@ -37,7 +38,7 @@ func GetNewTorrents(client *Rutracker, fetchOptions *FetchOptions) error {
 		*/
 		counter := uint(0)
 		finished := false
-		client.ParseTorrents(currentSearch.doc, func(i int, torrent *db.Torrent) {
+		client.ParseTorrents(currentSearch.DOM, func(i int, torrent *db.Torrent) {
 			if finished || torrent == nil {
 				return
 			}

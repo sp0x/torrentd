@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/sp0x/rutracker-rss/torrent"
+	storage2 "github.com/sp0x/rutracker-rss/torrent/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -16,6 +16,6 @@ func init() {
 }
 
 func truncateTorrentDb(cmd *cobra.Command, args []string) {
-	storage := torrent.Storage{}
+	storage := storage2.Storage{}
 	storage.Truncate()
 }

@@ -3,7 +3,9 @@ package torrent
 import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/db"
+	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/rutracker-rss/requests"
+	storage2 "github.com/sp0x/rutracker-rss/torrent/storage"
 	"net/http"
 	"net/http/cookiejar"
 	"time"
@@ -19,7 +21,7 @@ type Tracker interface {
 type BasicTracker struct {
 	lastRequest     time.Time
 	client          *http.Client
-	storage         Storage
+	storage         storage2.Storage
 	FetchDefinition bool
 }
 
@@ -39,7 +41,7 @@ func (r *BasicTracker) request(urlx string, data []byte, headers map[string]stri
 	if err != nil {
 		return nil, err
 	}
-	resp = DecodeWindows1251(resp)
+	resp = indexer.DecodeWindows1251(resp)
 	return resp, nil
 }
 

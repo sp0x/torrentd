@@ -699,6 +699,7 @@ func (r *Runner) Search(query torznab.Query) ([]torznab.ResultItem, error) {
 	r.logger.Debugf("Query is %v\n", query)
 	r.logger.Debugf("Keywords are %q\n", query.Keywords())
 	//Context about the search
+	//TODO: add pagination and search ids
 	context := make(map[string]string)
 	templateCtx := struct {
 		Query      torznab.Query
@@ -712,6 +713,7 @@ func (r *Runner) Search(query torznab.Query) ([]torznab.ResultItem, error) {
 		context,
 	}
 	//Apply our context to the search path
+
 	searchURL, err := r.applyTemplate("search_path", r.definition.Search.Path, templateCtx)
 	if err != nil {
 		return nil, err

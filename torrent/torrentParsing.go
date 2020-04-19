@@ -7,6 +7,7 @@ import (
 	"fmt"
 	bencode "github.com/jackpal/bencode-go"
 	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/rutracker-rss/indexer"
 	"io/ioutil"
 	"net/http"
 	"regexp"
@@ -66,7 +67,7 @@ func decodeTorrentBuff(buff []byte) (*Definition, error) {
 	var data Definition
 	err := bencode.Unmarshal(reader, &data)
 	if err != nil {
-		buff = DecodeWindows1251(buff)
+		buff = indexer.DecodeWindows1251(buff)
 		if strings.Contains(string(buff), "<b>премодерация</b>") {
 			return nil, errors.New("torrent is still now allowed to be downloaded")
 		}

@@ -7,6 +7,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/db"
+	"github.com/sp0x/rutracker-rss/indexer"
+	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/sp0x/rutracker-rss/requests"
 	"regexp"
 	"strconv"
@@ -17,7 +19,7 @@ type Rutracker struct {
 	BasicTracker
 	loggedIn bool
 	//id string
-	//doc    *goquery.Document
+	//doc    *goquery.DOM
 	//currentSearch *Search
 	pageSize uint
 }
@@ -43,7 +45,7 @@ func (r *Rutracker) Login(username, password string) error {
 	if err != nil {
 		return err
 	}
-	page = DecodeWindows1251(page)
+	page = indexer.DecodeWindows1251(page)
 	r.loggedIn = true
 	return nil
 }
@@ -55,7 +57,7 @@ func (r *Rutracker) Login(username, password string) error {
 //}
 
 //Open the search to a given page.
-func (r *Rutracker) Search(searchContext *Search, query string, page uint) (*Search, error) {
+func (r *Rutracker) Search(searchContext *search.Search, query string, page uint) (*search.Search, error) {
 	if !r.loggedIn {
 		return nil, errors.New("not logged in")
 	}
@@ -71,7 +73,7 @@ func (r *Rutracker) Search(searchContext *Search, query string, page uint) (*Sea
 	if page == 0 || searchContext == nil {
 		return searchContext, nil // r.searchPage
 	}
-	furl := fmt.Sprintf("https://rutracker.org/forum/tracker.php?nm=%s&search_id=%s&start=%d", query, searchContext.id, page*r.pageSize)
+	furl := fmt.Sprintf("https://rutracker.org/forum/tracker.php?nm=%s&search_id=%s&start=%d", query, searchContext.Id, page*r.pageSize)
 	data, err := r.request(furl, nil, nil)
 	if err != nil {
 		return nil, err
@@ -81,13 +83,13 @@ func (r *Rutracker) Search(searchContext *Search, query string, page uint) (*Sea
 	if err != nil {
 		return nil, err
 	}
-	searchContext.doc = doc
+	searchContext.DOM = doc
 	//r.currentSearch.doc = doc
 	return searchContext, nil
 }
 
 //Start the search, getting the page ids
-func (r *Rutracker) startSearch(query string) (*Search, error) {
+func (r *Rutracker) startSearch(query string) (*search.Search, error) {
 	data := "prev_my=0&prev_new=0&prev_oop=0&o=1&s=2&tm=-1&pn=&submit=%CF%EE%E8%F1%EA"
 	for _, forumId := range []int{
 		//46, 56, 98, 103, 249, 314, 500, 552, 709, 1260, 2076, 2123, 2139,
@@ -135,12 +137,12 @@ func (r *Rutracker) startSearch(query string) (*Search, error) {
 		}
 		return nil, fmt.Errorf("no search pages found")
 	}
-	search := Search{
-		doc: doc,
-		id:  pageUrls[0],
+	srch := search.Search{
+		DOM: doc,
+		Id:  pageUrls[0],
 	}
 	//r.currentSearch = &search
-	return &search, nil
+	return &srch, nil
 }
 
 func (r *Rutracker) GetDefaultOptions() *FetchOptions {

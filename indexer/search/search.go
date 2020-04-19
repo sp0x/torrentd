@@ -1,12 +1,13 @@
-package torrent
+package search
 
 import "github.com/PuerkitoBio/goquery"
 
 type Search struct {
-	doc *goquery.Document
-	id  string
+	DOM         *goquery.Document
+	Id          string
+	CurrentPage int
 }
 
 func (s *Search) GetDocument() *goquery.Document {
-	return s.doc
+	return s.DOM
 }
