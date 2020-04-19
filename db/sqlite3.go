@@ -14,7 +14,6 @@ func GetOrmDb() *gorm.DB {
 		log.Error(err)
 		return nil
 	}
-	//todo: create the directory if needed.
 	dbPath := path.Join(cwd, "db", "main.db")
 	db, err := gorm.Open("sqlite3", dbPath)
 	if err != nil {

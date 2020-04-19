@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sp0x/rutracker-rss/config"
+	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/sp0x/rutracker-rss/torznab"
 	"io"
 	"io/ioutil"
@@ -50,7 +51,7 @@ type RunnerOpts struct {
 	Transport  http.RoundTripper
 }
 
-//Runenr works with indexers and their definitions
+//Runner works with indexers and their definitions
 type Runner struct {
 	definition  *IndexerDefinition
 	browser     browser.Browsable
@@ -59,6 +60,10 @@ type Runner struct {
 	logger      logrus.FieldLogger
 	caps        torznab.Capabilities
 	browserLock sync.Mutex
+}
+
+type RunContext struct {
+	Search search.Search
 }
 
 func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
@@ -700,12 +705,15 @@ func (r *Runner) Search(query torznab.Query) ([]torznab.ResultItem, error) {
 	r.logger.Debugf("Keywords are %q\n", query.Keywords())
 	//Context about the search
 	//TODO: add pagination and search ids
-	context := make(map[string]string)
+	context := RunContext{}
+	//Exposed fields to add:
+	//.Context.SearchId
+	//.Context.SearchStartIndex
 	templateCtx := struct {
 		Query      torznab.Query
 		Keywords   string
 		Categories []string
-		Context    map[string]string
+		Context    RunContext
 	}{
 		query,
 		query.Keywords(),
