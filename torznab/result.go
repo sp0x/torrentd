@@ -3,41 +3,20 @@ package torznab
 import (
 	"encoding/xml"
 	"fmt"
+	"github.com/sp0x/rutracker-rss/torrent/search"
 	"strconv"
-	"time"
 )
 
 const rfc822 = "Mon, 02 Jan 2006 15:04:05 -0700"
 
-type ResultItem struct {
-	Site        string
-	Title       string
-	Description string
-	GUID        string
-	Comments    string
-	Link        string
-	Category    int
-	Size        uint64
-	Files       int
-	Grabs       int
-	PublishDate time.Time
-
-	Seeders              int
-	Peers                int
-	MinimumRatio         float64
-	MinimumSeedTime      time.Duration
-	DownloadVolumeFactor float64
-	UploadVolumeFactor   float64
-}
-
-func (ri ResultItem) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+func MarshalXML(result search.ResultItem, e *xml.Encoder, start xml.StartElement) error {
 	var enclosure = struct {
 		URL    string `xml:"url,attr,omitempty"`
 		Length uint64 `xml:"length,attr,omitempty"`
 		Type   string `xml:"type,attr,omitempty"`
 	}{
-		URL:    ri.Link,
-		Length: ri.Size,
+		URL:    result.Link,
+		Length: result.Size,
 		Type:   "application/x-bittorrent",
 	}
 
@@ -59,25 +38,25 @@ func (ri ResultItem) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		// torznab elements
 		Attrs []torznabAttrView
 	}{
-		Title:       ri.Title,
-		Description: ri.Description,
-		GUID:        ri.GUID,
-		Comments:    ri.Comments,
-		Link:        ri.Link,
-		Category:    strconv.Itoa(ri.Category),
-		Files:       ri.Files,
-		Grabs:       ri.Grabs,
-		PublishDate: ri.PublishDate.Format(rfc822),
+		Title:       result.Title,
+		Description: result.Description,
+		GUID:        result.GUID,
+		Comments:    result.Comments,
+		Link:        result.Link,
+		Category:    strconv.Itoa(result.Category),
+		Files:       result.Files,
+		Grabs:       result.Grabs,
+		PublishDate: result.PublishDate.Format(rfc822),
 		Enclosure:   enclosure,
 		Attrs: []torznabAttrView{
-			{Name: "site", Value: ri.Site},
-			{Name: "seeders", Value: strconv.Itoa(ri.Seeders)},
-			{Name: "peers", Value: strconv.Itoa(ri.Peers)},
-			{Name: "minimumratio", Value: fmt.Sprintf("%.2f", ri.MinimumRatio)},
-			{Name: "minimumseedtime", Value: fmt.Sprintf("%.f", ri.MinimumSeedTime.Seconds())},
-			{Name: "size", Value: fmt.Sprintf("%d", ri.Size)},
-			{Name: "downloadvolumefactor", Value: fmt.Sprintf("%.2f", ri.DownloadVolumeFactor)},
-			{Name: "uploadvolumefactor", Value: fmt.Sprintf("%.2f", ri.UploadVolumeFactor)},
+			{Name: "site", Value: result.Site},
+			{Name: "seeders", Value: strconv.Itoa(result.Seeders)},
+			{Name: "peers", Value: strconv.Itoa(result.Peers)},
+			{Name: "minimumratio", Value: fmt.Sprintf("%.2f", result.MinimumRatio)},
+			{Name: "minimumseedtime", Value: fmt.Sprintf("%.f", result.MinimumSeedTime.Seconds())},
+			{Name: "size", Value: fmt.Sprintf("%d", result.Size)},
+			{Name: "downloadvolumefactor", Value: fmt.Sprintf("%.2f", result.DownloadVolumeFactor)},
+			{Name: "uploadvolumefactor", Value: fmt.Sprintf("%.2f", result.UploadVolumeFactor)},
 		},
 	}
 
@@ -93,7 +72,7 @@ type torznabAttrView struct {
 
 type ResultFeed struct {
 	Info  Info
-	Items []ResultItem
+	Items []search.ResultItem
 }
 
 func (rf ResultFeed) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -104,7 +83,7 @@ func (rf ResultFeed) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		Link        string   `xml:"link,omitempty"`
 		Language    string   `xml:"language,omitempty"`
 		Category    string   `xml:"category,omitempty"`
-		Items       []ResultItem
+		Items       []search.ResultItem
 	}{
 		Title:       rf.Info.Title,
 		Description: rf.Info.Description,

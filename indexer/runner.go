@@ -606,7 +606,7 @@ func (r *Runner) Capabilities() torznab.Capabilities {
 }
 
 type extractedItem struct {
-	torznab.ResultItem
+	search.ResultItem
 	LocalCategoryID string
 }
 
@@ -677,9 +677,12 @@ func (r *Runner) resolveQuery(query torznab.Query) (torznab.Query, error) {
 	return query, nil
 }
 
-func (r *Runner) Search(query torznab.Query) ([]torznab.ResultItem, error) {
+//Search for a given torrent
+func (r *Runner) Search(query torznab.Query) ([]search.ResultItem, error) {
 	r.createBrowser()
 	defer r.releaseBrowser()
+	//[]torznab.ResultItem
+	//Search
 
 	var err error
 	query, err = r.resolveQuery(query)
@@ -689,7 +692,7 @@ func (r *Runner) Search(query torznab.Query) ([]torznab.ResultItem, error) {
 
 	// TODO: make this concurrency safe
 	filterLogger = r.logger
-
+	//Login if it's required
 	if required, err := r.isLoginRequired(); err != nil {
 		return nil, err
 	} else if required {
@@ -704,11 +707,9 @@ func (r *Runner) Search(query torznab.Query) ([]torznab.ResultItem, error) {
 	r.logger.Debugf("Query is %v\n", query)
 	r.logger.Debugf("Keywords are %q\n", query.Keywords())
 	//Context about the search
-	//TODO: add pagination and search ids
 	context := RunContext{}
+
 	//Exposed fields to add:
-	//.Context.SearchId
-	//.Context.SearchStartIndex
 	templateCtx := struct {
 		Query      torznab.Query
 		Keywords   string
@@ -879,7 +880,7 @@ func (r *Runner) Search(query torznab.Query) ([]torznab.ResultItem, error) {
 		WithFields(logrus.Fields{"time": time.Now().Sub(timer)}).
 		Infof("Query returned %d results", len(extracted))
 
-	items := []torznab.ResultItem{}
+	var items []search.ResultItem
 	for _, item := range extracted {
 		items = append(items, item.ResultItem)
 	}
@@ -911,7 +912,7 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extracte
 	}
 
 	item := extractedItem{
-		ResultItem: torznab.ResultItem{
+		ResultItem: search.ResultItem{
 			Site: r.definition.Site,
 		},
 	}

@@ -7,6 +7,7 @@ type Search struct {
 	Id          string
 	CurrentPage int
 	StartIndex  int
+	Results     []ResultItem
 }
 
 func (s *Search) GetDocument() *goquery.Document {
