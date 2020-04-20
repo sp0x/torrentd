@@ -767,26 +767,13 @@ func (r *Runner) Search(query torznab.Query) ([]search.ResultItem, error) {
 	}
 
 	timer := time.Now()
-
-	switch r.definition.Search.Method {
-	case "", searchMethodGet:
-		if len(vals) > 0 {
-			searchURL = fmt.Sprintf("%s?%s", searchURL, vals.Encode())
-		}
-		if err = r.openPage(searchURL); err != nil {
-			return nil, err
-		}
-	case searchMethodPost:
-		if err = r.postToPage(searchURL, vals); err != nil {
-			return nil, err
-		}
-
-	default:
-		return nil, fmt.Errorf("Unknown search method %q", r.definition.Search.Method)
+	//Get the content
+	err = r.requireContent(vals, searchURL)
+	if err != nil {
+		return nil, err
 	}
-
 	dom := r.browser.Dom()
-
+	context.Search.DOM = dom
 	// merge following rows for After selector
 	if after := r.definition.Search.Rows.After; after > 0 {
 		rows := dom.Find(r.definition.Search.Rows.Selector)
@@ -886,6 +873,28 @@ func (r *Runner) Search(query torznab.Query) ([]search.ResultItem, error) {
 	}
 
 	return items, nil
+}
+
+//Gets the content from which we'll extract the search results
+func (r *Runner) requireContent(urlVals url.Values, searchURL string) error {
+	var err error
+	switch r.definition.Search.Method {
+	case "", searchMethodGet:
+		if len(urlVals) > 0 {
+			searchURL = fmt.Sprintf("%s?%s", searchURL, urlVals.Encode())
+		}
+		if err = r.openPage(searchURL); err != nil {
+			return err
+		}
+	case searchMethodPost:
+		if err = r.postToPage(searchURL, urlVals); err != nil {
+			return err
+		}
+
+	default:
+		return fmt.Errorf("Unknown search method %q", r.definition.Search.Method)
+	}
+	return nil
 }
 
 func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extractedItem, error) {

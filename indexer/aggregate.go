@@ -3,6 +3,7 @@ package indexer
 import (
 	"errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/sp0x/rutracker-rss/torznab"
 	"io"
 	"net/http"
@@ -12,9 +13,9 @@ import (
 
 type Aggregate []torznab.Indexer
 
-func (ag Aggregate) Search(query torznab.Query) ([]torznab.ResultItem, error) {
+func (ag Aggregate) Search(query torznab.Query) ([]search.ResultItem, error) {
 	g := errgroup.Group{}
-	allResults := make([][]torznab.ResultItem, len(ag))
+	allResults := make([][]search.ResultItem, len(ag))
 	maxLength := 0
 
 	// fetch all results
@@ -39,7 +40,7 @@ func (ag Aggregate) Search(query torznab.Query) ([]torznab.ResultItem, error) {
 		return nil, err
 	}
 
-	results := []torznab.ResultItem{}
+	var results []search.ResultItem
 
 	// interleave search results to preserve ordering
 	for i := 0; i <= maxLength; i++ {

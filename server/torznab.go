@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/indexer"
+	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/sp0x/rutracker-rss/torznab"
 	"net/http"
 	"net/url"
@@ -122,7 +123,7 @@ func (s *Server) torznabSearch(r *http.Request, indexer torznab.Indexer, siteKey
 	return feed, err
 }
 
-func (s *Server) rewriteLinks(r *http.Request, items []torznab.ResultItem) ([]torznab.ResultItem, error) {
+func (s *Server) rewriteLinks(r *http.Request, items []search.ResultItem) ([]search.ResultItem, error) {
 	baseURL, err := s.baseURL(r, "/download")
 	if err != nil {
 		return nil, err

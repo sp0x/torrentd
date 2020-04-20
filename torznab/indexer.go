@@ -5,6 +5,7 @@ This is part of https://github.com/cardigann/cardigann
 */
 
 import (
+	"github.com/sp0x/rutracker-rss/indexer/search"
 	"io"
 	"net/http"
 )
@@ -20,7 +21,7 @@ type Info struct {
 
 type Indexer interface {
 	Info() Info
-	Search(query Query) ([]ResultItem, error)
+	Search(query Query) ([]search.ResultItem, error)
 	Download(urlStr string) (io.ReadCloser, http.Header, error)
 	Capabilities() Capabilities
 }

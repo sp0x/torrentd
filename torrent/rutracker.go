@@ -83,7 +83,7 @@ func (r *Rutracker) Search(searchContext *search.Search, query string, page uint
 	if err != nil {
 		return nil, err
 	}
-	searchContext.DOM = doc
+	searchContext.DOM = doc.First()
 	//r.currentSearch.doc = doc
 	return searchContext, nil
 }
@@ -138,7 +138,7 @@ func (r *Rutracker) startSearch(query string) (*search.Search, error) {
 		return nil, fmt.Errorf("no search pages found")
 	}
 	srch := search.Search{
-		DOM: doc,
+		DOM: doc.First(),
 		Id:  pageUrls[0],
 	}
 	//r.currentSearch = &search
@@ -153,6 +153,7 @@ func (r *Rutracker) GetDefaultOptions() *FetchOptions {
 	}
 }
 
+//Parse the torrent row
 func (r *Rutracker) parseTorrentRow(row *goquery.Selection) *db.Torrent {
 	nameData := row.Find("a.tLink").Nodes[0].FirstChild.Data
 	if nameData == "" {
@@ -224,7 +225,7 @@ func (r *Rutracker) GetTorrentDownloadLink(t *db.Torrent) string {
 	return fmt.Sprintf("http://rutracker.org/forum/dl.php?t=%s", t.TorrentId)
 }
 
-func (r *Rutracker) ParseTorrents(doc *goquery.Document, f func(i int, s *db.Torrent)) *goquery.Selection {
+func (r *Rutracker) ParseTorrents(doc *goquery.Selection, f func(i int, s *db.Torrent)) *goquery.Selection {
 	return doc.Find("tr.tCenter.hl-tr").Each(func(i int, s *goquery.Selection) {
 		torrent := r.parseTorrentRow(s)
 		f(i, torrent)
