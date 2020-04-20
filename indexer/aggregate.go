@@ -13,6 +13,13 @@ import (
 
 type Aggregate []torznab.Indexer
 
+func (ag Aggregate) GetEncoding() string {
+	for _, indexer := range ag {
+		return indexer.GetEncoding()
+	}
+	return "utf-8"
+}
+
 func (ag Aggregate) Search(query torznab.Query) ([]search.ResultItem, error) {
 	g := errgroup.Group{}
 	allResults := make([][]search.ResultItem, len(ag))

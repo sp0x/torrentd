@@ -24,4 +24,5 @@ type Indexer interface {
 	Search(query Query) ([]search.ResultItem, error)
 	Download(urlStr string) (io.ReadCloser, http.Header, error)
 	Capabilities() Capabilities
+	GetEncoding() string
 }

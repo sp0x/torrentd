@@ -54,15 +54,26 @@ func (s *Server) torznabHandler(c *gin.Context) {
 				torznab.Error(c, err.Error(), torznab.ErrUnknownError)
 				return
 			}
-			c.Header("Content-Type", "application/rss+xml")
+			if indexer.GetEncoding() != "" {
+				c.Header("Content-Type", fmt.Sprintf("application/rss+xml; charset=%s", formatEncoding(indexer.GetEncoding())))
+			} else {
+				c.Header("Content-Type", "application/rss+xml")
+			}
+
 			_, _ = c.Writer.Write(x)
 		case "json":
-			jsonOutput(c.Writer, feed)
+			jsonOutput(c.Writer, feed, indexer.GetEncoding())
 		}
 
 	default:
 		torznab.Error(c, "Unknown type parameter", torznab.ErrIncorrectParameter)
 	}
+}
+
+func formatEncoding(nm string) string {
+	nm = strings.Replace(nm, "ows12", "ows-12", -1)
+	nm = strings.Title(nm)
+	return nm
 }
 
 func (s *Server) createIndexer(key string) (torznab.Indexer, error) {
@@ -158,9 +169,12 @@ func (s *Server) rewriteLinks(r *http.Request, items []search.ResultItem) ([]sea
 	return items, nil
 }
 
-func jsonOutput(w http.ResponseWriter, v interface{}) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
+func jsonOutput(w http.ResponseWriter, v interface{}, encoding string) {
+	if encoding != "" {
+		w.Header().Set("Content-Type", fmt.Sprintf("application/json; charset=%s", formatEncoding(encoding)))
+	} else {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	}
 	b, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		panic(err)

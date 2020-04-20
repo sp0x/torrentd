@@ -678,6 +678,10 @@ func (r *Runner) resolveQuery(query torznab.Query) (torznab.Query, error) {
 	return query, nil
 }
 
+func (r *Runner) GetEncoding() string {
+	return r.definition.Encoding
+}
+
 //Search for a given torrent
 func (r *Runner) Search(query torznab.Query) ([]search.ResultItem, error) {
 	r.createBrowser()
