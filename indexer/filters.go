@@ -21,6 +21,7 @@ const (
 
 var filterLogger log.FieldLogger
 
+//Filter out whatever's needed
 func invokeFilter(name string, args interface{}, value string) (string, error) {
 	switch name {
 	case "querystring":
@@ -134,7 +135,7 @@ func filterRegexp(pattern string, value string) (string, error) {
 	}
 
 	filterLogger.WithFields(log.Fields{"matches": matches}).Debug("Regex matched")
-
+	//If we have groups, use the first group
 	if len(matches) > 1 {
 		return matches[1], nil
 	}

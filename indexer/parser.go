@@ -351,6 +351,12 @@ func (s *stringorslice) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return errors.New("Failed to unmarshal stringorslice")
 }
 
+//
+//type contextBlock struct{
+//	fieldsListBlock
+//	Stub string
+//}
+
 type ratioBlock struct {
 	selectorBlock
 	Path string `yaml:"path"`
