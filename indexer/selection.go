@@ -17,6 +17,7 @@ type filterBlock struct {
 
 type selectorBlock struct {
 	Selector  string            `yaml:"selector"`
+	Pattern   string            `yaml:"pattern"`
 	TextVal   string            `yaml:"text"`
 	Attribute string            `yaml:"attribute,omitempty"`
 	Remove    string            `yaml:"remove,omitempty"`
@@ -39,9 +40,13 @@ func (s *selectorBlock) MatchText(from *goquery.Selection) (string, error) {
 		}
 		return s.Text(result)
 	}
+	if s.Pattern != "" {
+		return s.Pattern, nil
+	}
 	return s.Text(from)
 }
 
+//Text extracts text from the selection
 func (s *selectorBlock) Text(el *goquery.Selection) (string, error) {
 	if s.TextVal != "" {
 		return s.applyFilters(s.TextVal)
@@ -80,16 +85,36 @@ func (s *selectorBlock) Text(el *goquery.Selection) (string, error) {
 	return s.applyFilters(output)
 }
 
+//Filter the value through a list of filters
 func (s *selectorBlock) applyFilters(val string) (string, error) {
+	prevFilterFailed := false
+	var prevFilter *filterBlock
 	for _, f := range s.Filters {
+		shouldFilter := true
+		switch f.Name {
+		case "dateparseAlt":
+			//This is ran only if there has been a failure before.
+			shouldFilter = prevFilterFailed && prevFilter != nil && prevFilter.Name == "dateparse"
+			break
+		default:
+			shouldFilter = true
+		}
+		if !shouldFilter {
+			continue
+		}
+
 		filterLogger.WithFields(logrus.Fields{"args": f.Args, "before": val}).
 			Debugf("Applying filter %s", f.Name)
-
 		var err error
 		val, err = invokeFilter(f.Name, f.Args, val)
 		if err != nil {
-			return "", err
+			logrus.Warningf("Filter %s failed on value `%v`\n", f.Name, val)
+			prevFilterFailed = true
+			prevFilter = &f
+			continue
+			//return "", err
 		}
+		prevFilterFailed = false
 	}
 
 	return val, nil

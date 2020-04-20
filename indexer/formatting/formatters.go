@@ -1,4 +1,4 @@
-package torrent
+package formatting
 
 import (
 	log "github.com/sirupsen/logrus"
@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func clearSpaces(raw string) string {
+func ClearSpaces(raw string) string {
 	txt := strings.Replace(raw, "\n", "", -1)
 	txt = strings.Replace(txt, "\t", "  ", -1)
 	txt = strings.Replace(txt, "  ", " ", -1)
@@ -36,7 +36,7 @@ func fixMonths(str string) string {
 	return str
 }
 
-func formatTime(str string) time.Time {
+func FormatTime(str string) time.Time {
 	//7-Апр-20 00:06
 	str = strings.Trim(str, " \t\n\r")
 	str = strings.Replace(str, "  ", " ", -1)
@@ -58,7 +58,7 @@ func formatTime(str string) time.Time {
 	return t
 }
 
-func extractAttr(uri string, param string) string {
+func ExtractAttr(uri string, param string) string {
 	furl, err := url.Parse(uri)
 	if err != nil {
 		return ""
@@ -67,7 +67,7 @@ func extractAttr(uri string, param string) string {
 	return val
 }
 
-func stripToNumber(str string) string {
+func StripToNumber(str string) string {
 	chars := "0123456789.,"
 	var validChars []rune
 	for _, c := range []rune(str) {
@@ -79,9 +79,9 @@ func stripToNumber(str string) string {
 	return str
 }
 
-func sizeStrToBytes(str string) uint64 {
+func SizeStrToBytes(str string) uint64 {
 	str = strings.ToLower(str)
-	str = clearSpaces(str)
+	str = ClearSpaces(str)
 	multiplier := 1
 	if strings.Contains(str, "gb") {
 		multiplier = 1028 * 1028 * 1028

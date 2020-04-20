@@ -28,11 +28,11 @@ import (
 	"github.com/cardigann/releaseinfo"
 	"github.com/f2prateek/train"
 	trainlog "github.com/f2prateek/train/log"
-	"github.com/headzoo/surf"
-	"github.com/headzoo/surf/agent"
-	"github.com/headzoo/surf/browser"
-	"github.com/headzoo/surf/jar"
 	"github.com/sirupsen/logrus"
+	"github.com/sp0x/surf"
+	"github.com/sp0x/surf/agent"
+	"github.com/sp0x/surf/browser"
+	"github.com/sp0x/surf/jar"
 
 	"github.com/mrobinsn/go-tvmaze/tvmaze"
 )
@@ -118,6 +118,7 @@ func (r *Runner) createBrowser() {
 
 	bow := surf.NewBrowser()
 	bow.SetUserAgent(agent.Chrome())
+	bow.SetEncoding(r.definition.Encoding)
 	bow.SetAttribute(browser.SendReferer, true)
 	bow.SetAttribute(browser.MetaRefreshHandling, true)
 	bow.SetCookieJar(r.cookies)
@@ -165,6 +166,7 @@ func (r *Runner) checkHasConfig() error {
 	return nil
 }
 
+//Evaluate a template
 func (r *Runner) applyTemplate(name, tpl string, ctx interface{}) (string, error) {
 	funcMap := template.FuncMap{
 		"replace": strings.Replace,
@@ -605,7 +607,8 @@ func (r *Runner) Capabilities() torznab.Capabilities {
 
 type extractedItem struct {
 	search.ResultItem
-	LocalCategoryID string
+	LocalCategoryID   string
+	LocalCategoryName string
 }
 
 // localCategories returns a slice of local categories that should be searched
@@ -708,17 +711,7 @@ func (r *Runner) Search(query torznab.Query) ([]search.ResultItem, error) {
 	context := RunContext{}
 
 	//Exposed fields to add:
-	templateCtx := struct {
-		Query      torznab.Query
-		Keywords   string
-		Categories []string
-		Context    RunContext
-	}{
-		query,
-		query.Keywords(),
-		localCats,
-		context,
-	}
+	templateCtx := r.getRunnerContext(query, localCats, context)
 	//Apply our context to the search path
 
 	searchURL, err := r.applyTemplate("search_path", r.definition.Search.Path, templateCtx)
@@ -873,6 +866,23 @@ func (r *Runner) Search(query torznab.Query) ([]search.ResultItem, error) {
 	}
 
 	return items, nil
+}
+
+type RunnerPatternData struct {
+	Query      torznab.Query
+	Keywords   string
+	Categories []string
+	Context    RunContext
+}
+
+func (r *Runner) getRunnerContext(query torznab.Query, localCats []string, context RunContext) RunnerPatternData {
+	templateCtx := RunnerPatternData{
+		query,
+		query.Keywords(),
+		localCats,
+		context,
+	}
+	return templateCtx
 }
 
 //Gets the content from which we'll extract the search results

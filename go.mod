@@ -18,8 +18,7 @@ require (
 	github.com/gohttp/response v1.2.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/feeds v1.1.1
-	github.com/headzoo/surf v1.0.0
-	github.com/headzoo/ut v0.0.0-20181013193318-a13b5a7a02ca // indirect
+	github.com/headzoo/surf v1.0.0 // indirect
 	github.com/jackpal/bencode-go v0.0.0-20180813173944-227668e840fa
 	github.com/jinzhu/gorm v1.9.12
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
@@ -28,13 +27,14 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/sirupsen/logrus v1.5.0
 	github.com/smartystreets/assertions v1.0.1 // indirect
+	github.com/sp0x/surf v1.0.1
 	github.com/spf13/cobra v0.0.7
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1 // indirect
 	github.com/yosssi/gohtml v0.0.0-20190915184251-7ff6f235ecaf
-	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
-	golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4
+	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b
+	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/text v0.3.2
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v2 v2.2.8

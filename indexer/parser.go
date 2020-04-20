@@ -4,8 +4,8 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
-	"github.com/headzoo/surf/browser"
 	"github.com/sp0x/rutracker-rss/torznab"
+	"github.com/sp0x/surf/browser"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -28,6 +28,7 @@ type IndexerDefinition struct {
 	Ratio        ratioBlock             `yaml:"ratio"`
 	Search       searchBlock            `yaml:"search"`
 	stats        IndexerDefinitionStats `yaml:"-"`
+	Encoding     string                 `yaml:"encoding"`
 }
 
 type IndexerDefinitionStats struct {
@@ -71,6 +72,7 @@ func ParseDefinitionFile(f *os.File) (*IndexerDefinition, error) {
 func ParseDefinition(src []byte) (*IndexerDefinition, error) {
 	def := IndexerDefinition{
 		Language:     "en-us",
+		Encoding:     "utf-8",
 		Capabilities: capabilitiesBlock{},
 		Login: loginBlock{
 			FormSelector: "form",

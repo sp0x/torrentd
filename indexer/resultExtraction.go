@@ -22,7 +22,6 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extracte
 		r.logger.
 			WithFields(logrus.Fields{"row": rowIdx, "block": item.Block.String()}).
 			Debugf("Processing field %q", item.Field)
-
 		val, err := item.Block.MatchText(selection)
 		if err != nil {
 			return extractedItem{}, err
@@ -32,6 +31,21 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extracte
 			WithFields(logrus.Fields{"row": rowIdx, "output": val}).
 			Debugf("Finished processing field %q", item.Field)
 
+		row[item.Field] = val
+	}
+
+	//Evaluate pattern items
+	for _, item := range r.definition.Search.Fields {
+		if item.Block.Pattern == "" {
+			continue
+		}
+		val := row[item.Field]
+		templateData := row
+		updated, err := r.applyTemplate("result_template", val, templateData)
+		if err != nil {
+			return extractedItem{}, err
+		}
+		val = updated
 		row[item.Field] = val
 	}
 
@@ -54,6 +68,13 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extracte
 				continue
 			}
 			item.Link = u
+		case "link":
+			u, err := r.resolvePath(val)
+			if err != nil {
+				r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
+				continue
+			}
+			item.SourceLink = u
 		case "details":
 			u, err := r.resolvePath(val)
 			if err != nil {
@@ -79,6 +100,8 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extracte
 			item.Description = val
 		case "category":
 			item.LocalCategoryID = val
+		case "categoryName":
+			item.LocalCategoryName = val
 		case "size":
 			bytes, err := humanize.ParseBytes(strings.Replace(val, ",", "", -1))
 			if err != nil {

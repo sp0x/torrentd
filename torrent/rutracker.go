@@ -8,6 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/db"
 	"github.com/sp0x/rutracker-rss/indexer"
+	"github.com/sp0x/rutracker-rss/indexer/formatting"
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/sp0x/rutracker-rss/requests"
 	"regexp"
@@ -161,31 +162,31 @@ func (r *Rutracker) parseTorrentRow(row *goquery.Selection) *db.Torrent {
 	}
 	//Get the id of the rorrent
 	torrentId, _ := row.Find("a.tLink").First().Attr("href")
-	torrentId = extractAttr(torrentId, "t")
+	torrentId = formatting.ExtractAttr(torrentId, "t")
 	//Get the time on which the torrent was created
-	torrentTime := formatTime(clearSpaces(row.Find("td").Last().Text()))
+	torrentTime := formatting.FormatTime(formatting.ClearSpaces(row.Find("td").Last().Text()))
 
 	//Get the author
 	authorNode := row.Find("td").Eq(4).Find("a").First()
 	author := authorNode.Text()
 	authorId, _ := authorNode.Attr("href")
-	authorId = extractAttr(authorId, "pid")
+	authorId = formatting.ExtractAttr(authorId, "pid")
 	//Get the category
 	categoryNode := row.Find("td").Eq(2).Find("a").First()
 	category := categoryNode.Text()
 	categoryId, _ := categoryNode.Attr("href")
-	categoryId = extractAttr(categoryId, "f")
+	categoryId = formatting.ExtractAttr(categoryId, "f")
 	//Get the size
 	sizeNode := row.Find("td").Eq(5)
-	size := sizeStrToBytes(sizeNode.Text())
+	size := formatting.SizeStrToBytes(sizeNode.Text())
 	//Get the downloads
 	downloadsNode := row.Find("td").Eq(8)
-	downloads, _ := strconv.Atoi(stripToNumber(downloadsNode.Text()))
+	downloads, _ := strconv.Atoi(formatting.StripToNumber(downloadsNode.Text()))
 	//Get the leachers
-	leachersTxt := stripToNumber(clearSpaces(row.Find("td").Eq(7).Text()))
+	leachersTxt := formatting.StripToNumber(formatting.ClearSpaces(row.Find("td").Eq(7).Text()))
 	leachers, _ := strconv.Atoi(leachersTxt)
 	//Get the seeders
-	seedersNode := stripToNumber(clearSpaces(row.Find("td").Eq(6).Text()))
+	seedersNode := formatting.StripToNumber(formatting.ClearSpaces(row.Find("td").Eq(6).Text()))
 	seeders, _ := strconv.Atoi(seedersNode)
 	newTorrent := &db.Torrent{
 		Name:         nameData,

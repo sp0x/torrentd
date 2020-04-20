@@ -15,6 +15,8 @@ type ResultItem struct {
 	GUID        string
 	Comments    string
 	Link        string
+
+	SourceLink  string
 	Category    int
 	Size        uint64
 	Files       int

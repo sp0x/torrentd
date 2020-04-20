@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/rutracker-rss/indexer/formatting"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -75,7 +76,8 @@ func invokeFilter(name string, args interface{}, value string) (string, error) {
 			return "", fmt.Errorf("Filter %q requires a string argument at idx 0", name)
 		}
 		return strings.Trim(value, cutset), nil
-
+	case "whitespace":
+		return formatting.ClearSpaces(value), nil
 	case "append":
 		str, ok := args.(string)
 		if !ok {
@@ -90,11 +92,37 @@ func invokeFilter(name string, args interface{}, value string) (string, error) {
 		}
 		return str + value, nil
 
+	case "urlarg":
+		argName, ok := args.(string)
+		if !ok {
+			return "", fmt.Errorf("Filter %q requires a string argument at idx 0", name)
+		}
+		urlx, err := url.Parse(value)
+		if err != nil {
+			return "", fmt.Errorf("urlarg filter couldn't parse url value: %s", value)
+		}
+		value = urlx.Query().Get(argName)
+		return value, nil
+	case "size":
+		value = fmt.Sprint(formatting.SizeStrToBytes(value))
+		return value, nil
+	case "number":
+		value = formatting.StripToNumber(formatting.ClearSpaces(value))
+		return value, nil
+	case "mapreplace":
+		return filterMapReplace(value, args)
 	case "timeago", "fuzzytime", "reltime":
 		return filterFuzzyTime(value, time.Now())
 	}
-
 	return "", errors.New("Unknown filter " + name)
+}
+
+func filterMapReplace(value string, args interface{}) (string, error) {
+	replacemenets := args.(map[interface{}]interface{})
+	for oldVal, newVal := range replacemenets {
+		value = strings.Replace(value, oldVal.(string), newVal.(string), -1)
+	}
+	return value, nil
 }
 
 func filterQueryString(param string, value string) (string, error) {
@@ -135,9 +163,10 @@ func filterRegexp(pattern string, value string) (string, error) {
 	}
 
 	filterLogger.WithFields(log.Fields{"matches": matches}).Debug("Regex matched")
-	//If we have groups, use the first group
+	//If we have groups, use the groups concatenated by a space
 	if len(matches) > 1 {
-		return matches[1], nil
+		matches = matches[1:]
+		return strings.Join(matches, " "), nil
 	}
 
 	return matches[0], nil
