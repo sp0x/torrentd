@@ -15,4 +15,10 @@ func (s *Server) setupRoutes(r *gin.Engine) {
 	//Torznab
 	r.GET("torznab/:indexer", s.torznabHandler)
 	r.GET("torznab/:indexer/api", s.torznabHandler)
+
+	// download routes
+	r.HEAD("/download/:token/:filename", s.downloadHandler)
+	r.GET("/download/:token/:filename", s.downloadHandler)
+	//r.HEAD("/download/:indexer/:token/:filename", s.downloadHandler)
+	//r.GET("/download/:indexer/:token/:filename", s.downloadHandler)
 }
