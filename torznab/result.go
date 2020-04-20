@@ -3,7 +3,7 @@ package torznab
 import (
 	"encoding/xml"
 	"fmt"
-	"github.com/sp0x/rutracker-rss/torrent/search"
+	"github.com/sp0x/rutracker-rss/indexer/search"
 	"strconv"
 )
 
