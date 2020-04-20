@@ -61,6 +61,10 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extracte
 
 	for key, val := range row {
 		switch key {
+		case "id":
+			item.LocalId = val
+		case "author":
+			item.AuthorName = val
 		case "download":
 			u, err := r.resolvePath(val)
 			if err != nil {

@@ -80,7 +80,7 @@ func HandleTorrentDiscovery(client *Rutracker, torrent *db.Torrent) (bool, bool)
 			torrent.Fingerprint = existingTorrent.Fingerprint
 			client.storage.UpdateTorrent(existingTorrent.ID, torrent)
 		} else {
-			torrent.Fingerprint = getTorrentFingerprint(torrent)
+			torrent.Fingerprint = search.GetTorrentFingerprint(torrent)
 			client.storage.Create(torrent)
 		}
 	}

@@ -17,20 +17,24 @@ import (
 func (s *Server) torznabHandler(c *gin.Context) {
 	_ = c.Params
 	indexerID := c.Param("indexer")
+	//Type of operation
+	t := c.Query("t")
+	indexer, err := s.lookupIndexer(indexerID)
+	if err != nil {
+		torznab.Error(c, err.Error(), torznab.ErrIncorrectParameter)
+		return
+	}
+	switch t {
+	case "caps":
+		indexer.Capabilities().ServeHTTP(c.Writer, c.Request)
+		return
+	}
 
 	apiKey := c.Query("apikey")
 	if !s.checkAPIKey(apiKey) {
 		torznab.Error(c, "Invalid apikey parameter", torznab.ErrInsufficientPrivs)
 		return
 	}
-
-	indexer, err := s.lookupIndexer(indexerID)
-	if err != nil {
-		torznab.Error(c, err.Error(), torznab.ErrIncorrectParameter)
-		return
-	}
-	//Type of operation
-	t := c.Query("t")
 
 	if t == "" {
 		http.Redirect(c.Writer, c.Request, c.Request.URL.Path+"?t=caps", http.StatusTemporaryRedirect)

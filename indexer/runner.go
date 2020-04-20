@@ -609,6 +609,8 @@ type extractedItem struct {
 	search.ResultItem
 	LocalCategoryID   string
 	LocalCategoryName string
+	LocalId           string
+	AuthorName        string
 }
 
 // localCategories returns a slice of local categories that should be searched
@@ -826,12 +828,12 @@ func (r *Runner) Search(query torznab.Query) ([]search.ResultItem, error) {
 				continue
 			}
 		}
-
+		//Try to map the category from the indexer to the global categories
 		if mappedCat, ok := r.definition.Capabilities.CategoryMap[item.LocalCategoryID]; ok {
 			item.Category = mappedCat.ID
 		} else {
 			r.logger.
-				WithFields(logrus.Fields{"localId": item.LocalCategoryID}).
+				WithFields(logrus.Fields{"localId": item.LocalCategoryID, "localName": item.LocalCategoryName}).
 				Warn("Unknown local category")
 
 			if intCatId, err := strconv.Atoi(item.LocalCategoryID); err == nil {
