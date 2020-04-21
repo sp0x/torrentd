@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/torznab"
 	"github.com/sp0x/surf/browser"
 	"io/ioutil"
@@ -285,7 +286,11 @@ func (c *capabilitiesBlock) UnmarshalYAML(unmarshal func(interface{}) error) err
 				}
 			}
 			if !matchedCat {
-				return fmt.Errorf("Unknown category %q", catName)
+				logrus.
+					WithFields(logrus.Fields{"name": catName, "id": id}).
+					Warn("Unknown category")
+				continue
+				//return fmt.Errorf("Unknown category %q", catName)
 			}
 		}
 

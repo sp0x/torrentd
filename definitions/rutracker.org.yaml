@@ -14,27 +14,291 @@ settings:
 #A mapping of what category id from the indexer, matches to a category that we support
 caps:
   categories:
-    409: Audio  #Classical and modern academic music
-    1125: Audio #  Folklore, national and ethnical music
-    1849: Audio # New age, relax, meditative and flamenco
-    408: Audio # Rap, hip-hop and rnb
-    1760: Audio # Raggae, ska, dub
-    416: Audio  #  OST, karaoke and musicals
-    413: Audio  # Other music
-    2497: Audio # Popular foreign music
-    33: TV/Anime
-
-    189 : TV # /Foreign shows
-    2366: TV # Foreign shows in HD
-    2100: TV # Asian shows
-    313: TV # localName="Зарубежное кино (HD Video)"
-
-    7   : Movies #foreign films
-    124 : Movies/Other #art-house and author movies
-    93  : Movies #DVD
-    2198: Movies #HD Video
-    4   : Movies/Other #Multifilms
-    352 : Movies #3d/stereo movies, video, tv and sports
+    1564: Movies # , desc: "Новинки кинопроката 2020"}
+    1573: Movies # , desc: " |- Зарубежные новинки (2020)"}
+    1572: Movies # , desc: " |- Отечественные новинки (2020)"}
+    1571: Movies/HD # , desc: " |- Зарубежные новинки в 720p (2020)"}
+    1570: Movies/HD # , desc: " |- Отечественные новинки в 720p (2020)"}
+    1569: Movies/HD # , desc: " |- Зарубежные новинки в 1080p (2020)"}
+    1568: Movies/HD # , desc: " |- Отечественные новинки в 1080р (2020)"}
+    1543: Movies # , desc: "Фильмы 2019 года"}
+    1544: Movies # , desc: " |- Зарубежные фильмы (2019)"}
+    1545: Movies # , desc: " |- Отечественные фильмы (2019)"}
+    1546: Movies # , desc: " |- Зарубежные фильмы в 720p (2019)"}
+    1547: Movies/HD # , desc: " |- Отечественные фильмы в 720p (2019)"}
+    1548: Movies/HD # , desc: " |- Зарубежные фильмы в 1080p (2019)"}
+    1549: Movies/HD # , desc: " |- Отечественные фильмы в 1080р (2019)"}
+    1450: Movies # , desc: "Фильмы 2018 года"}
+    1451: Movies # , desc: " |- Зарубежные фильмы (2018)"}
+    1452: Movies # , desc: " |- Отечественные фильмы (2018)"}
+    1453: Movies/HD # , desc: " |- Зарубежные фильмы в 720p (2018)"}
+    1454: Movies/HD # , desc: " |- Отечественные фильмы в 720p (2018)"}
+    1455: Movies/HD # , desc: " |- Зарубежные фильмы в 1080p (2018)"}
+    1456: Movies/HD # , desc: " |- Отечественные фильмы в 1080р (2018)"}
+    1324: Movies # , desc: "Фильмы 2017 года"}
+    1325: Movies # , desc: " |- Зарубежные фильмы (2017)"}
+    1326: Movies # , desc: " |- Отечественные фильмы (2017)"}
+    1327: Movies/HD # , desc: " |- Зарубежные фильмы в 720p (2017)"}
+    1328: Movies/HD # , desc: " |- Отечественные фильмы в 720p (2017)"}
+    1329: Movies/HD # , desc: " |- Зарубежные фильмы в 1080p (2017)"}
+    1330: Movies/HD # , desc: " |- Отечественные фильмы в 1080р (2017)"}
+    1346: Movies/UHD # , desc: " |- [4K | ULTRA HD | 2160p]"}
+    843: Movies/HD # , desc: " |- Blu-Ray , BDRip 1080p , HDTV 1080 , WEB-DL 1080р"}
+    842: Movies/HD # , desc: " |- BDRip 720p , WEB-DL 720p , HDTVRip 720p"}
+    840: Movies/DVD # , desc: " |- DVD5 , DVD9"}
+    841: Movies/3D # , desc: " |- Фильмы в 3D формате"}
+    825: Movies # , desc: " |- Азиатское кино"}
+    830: Movies # , desc: " |- Индийское кино"}
+    826: Movies # , desc: " |- Боевик , Приключения , Вестерн"}
+    831: Movies # , desc: " |- Военные , Исторические"}
+    828: Movies # , desc: " |- Детектив , Криминал"}
+    829: Movies # , desc: " |- Драма , Мелодрама"}
+    833: Movies # , desc: " |- Комедия , Мюзикл , Семейный"}
+    835: Movies # , desc: " |- Мистика , Фэнтези"}
+    839: Movies # , desc: " |- Ужасы , Триллер"}
+    836: Movies # , desc: " |- Фантастика"}
+    832: Movies # , desc: " |- Классика зарубежного кино"}
+    1317: Movies # , desc: " |- Детские фильмы, сказки, сериалы"}
+    837: Movies # , desc: " |- Сборники фильмов , Фильмографии"}
+    838: Movies # , desc: " |- Короткометражные фильмы"}
+    845: Movies # , desc: " |- В оригинале"}
+    1560: Movies # , desc: " |- | - фильмы с переводом UKR"}
+    817: Movies/HD # , desc: " |- Blu-Ray , BDRip 1080p , HDTV 1080 , WEB-DL 1080р"}
+    818: Movies/HD # , desc: " |- BDRip 720p , WEB-DL 720p , HDTVRip 720p"}
+    802: Movies/DVD # , desc: " |- DVD5 , DVD9"}
+    801: Movies/3D # , desc: " |- Фильмы в 3D формате"}
+    815: Movies # , desc: " |- Боевик , Приключения , Вестерн"}
+    811: Movies # , desc: " |- Военные , Исторические"}
+    812: Movies # , desc: " |- Детектив , Криминал"}
+    813: Movies # , desc: " |- Драма , Мелодрама"}
+    809: Movies # , desc: " |- Комедия , Мюзикл , Семейный"}
+    807: Movies # , desc: " |- Мистика , Фэнтези"}
+    806: Movies # , desc: " |- Ужасы , Триллер"}
+    805: Movies # , desc: " |- Фантастика"}
+    810: Movies # , desc: " |- Классика отечественного кино"}
+    1318: Movies # , desc: " |- Детские фильмы, сказки, сериалы"}
+    804: Movies # , desc: " |- Сборники фильмов / Фильмографии"}
+    #Сериалы TV
+    17: TV # , desc: "Зарубежные сериалы"}
+    1551: TV/UHD # , desc: " |- [4K | ULTRA HD | 2160p]"}
+    1085: TV/HD # , desc: " |- BDRip 1080p , HDTV 1080 , WEB-DL 1080р"}
+    1086: TV/HD # , desc: " |- BDRip 720p , WEB-DL 720p , HDTVRip 720p"}
+    1087: TV/SD # , desc: " |- DVD5 , DVD9"}
+    16: TV # , desc: "Отечественные сериалы"}
+    1082: TV/HD # , desc: " |- BDRip 1080p , HDTV 1080 , WEB-DL 1080р"}
+    1083: TV/HD # , desc: " |- BDRip 720p , WEB-DL 720p , HDTVRip 720p"}
+    1084: TV/SD # , desc: " |- DVD5 , DVD9"}
+    #Мультипликация Animation
+    125: TV # , desc: "Мультфильмы"}
+    1353: TV/HD # , desc: " |- BDRip 1080p , HDTV 1080 , WEB-DL 1080р"}
+    1355: TV/HD # , desc: " |- BDRip 720p , WEB-DL 720p , HDTVRip 720p"}
+    1352: TV/SD # , desc: " |- DVD5 , DVD9"}
+    1343: TV/Anime # , desc: " |- Аниме"}
+    1025: TV/Anime # , desc: " |- Мультфильмы в 3D формате"}
+    8: TV # , desc: "Мультсериалы"}
+    1347: TV/HD # , desc: " |- BDRip 1080p , HDTV 1080 , WEB-DL 1080р"}
+    1348: TV/HD # , desc: " |- BDRip 720p , WEB-DL 720p , HDTVRip 720p"}
+    1349: TV/SD # , desc: " |- DVD5 , DVD9"}
+    #Игры Games
+    60: PC/Games # , desc: "Игры для PC"}
+    73: Console # , desc: " |- Горячие новинки 2020 года (только AAA проекты)"}
+    61: Console # , desc: " |- Онлайн Игры"}
+    1234: Console # , desc: " |- Симуляторы"}
+    84: Console # , desc: " |- Action"}
+    82: Console # , desc: " |- Гонки"}
+    85: Console # , desc: " |- RPG"}
+    78: Console # , desc: " |- Стратегии"}
+    77: Console # , desc: " |- Приключения и квесты"}
+    76: Console # , desc: " |- Аркады"}
+    1538: Console # , desc: "Игры для консолей"}
+    1539: Console/PSP # , desc: " |- PlayStation"}
+    878: Console/Xbox # , desc: " |- XBox"}
+    #Документалистика, развлекательные телепередачи , спорт Docs
+    11: TV/Documentary # , desc: "Документальные фильмы и телепередачи"}
+    12: TV # , desc: "Развлекательные телепередачи"}
+    13: TV/Sport # , desc: "Спорт"}
+    #Книги, Журналы, Аудиокниги Books
+    726: Books # , desc: "Художественная литература, журналы, газеты"}
+    728: Books # , desc: " |- Журналы и газеты"}
+    761: Books # , desc: " |- Фантастика, фентези, мистика"}
+    760: Books # , desc: " |- Детективы, боевики, триллеры"}
+    757: Books # , desc: " |- Классика мировой литературы"}
+    1314: Books # , desc: " |- Детская литература"}
+    722: Books # , desc: "Научная, техническая и учебная литература, хобби"}
+    727: Books # , desc: " |- Увлечения, хобби"}
+    1021: Books # , desc: " |- Инструкции, Схемы, Технические и сервисные документации"}
+    1020: Books # , desc: " |- Сварка, Пайка"}
+    730: Audio/Audiobook # , desc: "Аудиокниги"}
+    1223: Audio/Audiobook # , desc: " |- Аудиокниги Учебная, Научная и Техническая литература"}
+    776: Audio/Audiobook # , desc: " |- Фантастика Фэнтези"}
+    777: Audio/Audiobook # , desc: " |- Детективы триллеры боевики"}
+    1164: Audio/Audiobook # , desc: " |- Радиоспектакли аудиофильмы"}
+    1156: Audio/Audiobook # , desc: " |- Историческая литература биографии мемуары"}
+    1158: Audio/Audiobook # , desc: " |- Зарубежная проза"}
+    1233: Audio/Audiobook # , desc: " |- Отечественная проза"}
+    1159: Audio/Audiobook # , desc: " |- Любовные романы"}
+    1315: Audio/Audiobook # , desc: " |- Детская аудиокнига"}
+    #Музыка (Lossy) Music
+    1179: Audio/MP3 # , desc: " |- Сборники поп музыки (50/50 общие)"}
+    1178: Audio/MP3 # , desc: " |- Зарубежные поп сборники"}
+    1427: Audio/MP3 # , desc: " |- Сборники Российской поп музыки"}
+    1561: Audio/MP3 # , desc: " |- Сборники Русского шансона"}
+    1200: Audio/MP3 # , desc: " |- Зарубежный Classic Rock &amp;Hard Rock"}
+    1552: Audio/MP3 # , desc: " |- Зарубежный Progressive &amp;Art-Rock"}
+    1565: Audio/MP3 # , desc: " |- Зарубежный Folk-Rock, Folk-Punk, Songwriter"}
+    1554: Audio/MP3 # , desc: " |- Зарубежный Melodic Rock, Arena rock"}
+    1553: Audio/MP3 # , desc: " |- Зарубежный Pop-Rock &amp;Soft Rock"}
+    1567: Audio/MP3 # , desc: " |- Instrumental Guitar Rock (Виртуозы гитары)"}
+    1566: Audio/MP3 # , desc: " |- Зарубежный Rockabilly, Rock &#039;n &#039;Roll"}
+    1485: Audio/MP3 # , desc: " |- Зарубежный Metal"}
+    1556: Audio/MP3 # , desc: " |- Сборники зарубежного рока"}
+    1555: Audio/MP3 # , desc: " |- Русский рок, метал"}
+    1171: Audio/MP3 # , desc: "Электронная музыка"}
+    1457: Audio/MP3 # , desc: " |- Trance, Goa Trance, Psy-Trance, PsyChill, Ambient, Dub"}
+    1203: Audio/MP3 # , desc: " |- House, Techno, Hardcore, Hardstyle, Jumpstyle"}
+    1205: Audio/MP3 # , desc: " |- Drum &amp;Bass, Jungle, Breakbeat, Dubstep, IDM, Electro"}
+    1206: Audio/MP3 # , desc: " |- Chillout, Lounge, Downtempo, Trip-Hop"}
+    1575: Audio/MP3 # , desc: " |- Traditional Electronic, Ambient, Modern Classical,..."}
+    1576: Audio/MP3 # , desc: " |- Industrial, Noise, EBM, Dark Electro, Aggrotech,..."}
+    1458: Audio/MP3 # , desc: " |- Dance, Club, Hands Up"}
+    1577: Audio/MP3 # , desc: " |- Electronic music (разные стили)"}
+    1540: Audio/MP3 # , desc: "Остальные муз. жанры, + Видео"}
+    1183: Audio/MP3 # , desc: " |- Музыкальное видео (все жанры)"}
+    1578: Audio/MP3 # , desc: " |- Российская попса (альбомы, синглы)"}
+    1170: Audio/MP3 # , desc: " |- Русский шансон"}
+    1167: Audio/MP3 # , desc: " |- Зарубежная попса (альбомы, синглы)"}
+    1173: Audio/MP3 # , desc: " |- Rap, Hip-hop, R &#039;n &#039;B"}
+    1563: Audio/MP3 # , desc: " |- Jazz, Blues, Swing"}
+    1562: Audio/MP3 # , desc: " |- Инструментальная и классическая музыка"}
+    1185: Audio/MP3 # , desc: " |- New Age, Relax, Meditative"}
+    #Музыка (Lossless) Music
+    1210: Audio/Lossless # , desc: "Отечественная музыка (Lossless)"}
+    1211: Audio/Lossless # , desc: " |- Поп музыка"}
+    1212: Audio/Lossless # , desc: " |- Отечественный Рок, Панк, Метал, Альтернатива."}
+    1213: Audio/Lossless # , desc: " |- Шансон, авторская песня"}
+    1309: Audio/Lossless # , desc: " |- Официальные сборники отечественных исполнителей"}
+    1209: Audio/Lossless # , desc: "Зарубежная музыка (Lossless)"}
+    1214: Audio/Lossless # , desc: " |- Pop music"}
+    1215: Audio/Lossless # , desc: " |- Rock, Punk, Metal, Alternative music"}
+    1217: Audio/Lossless # , desc: " |- Electronic and club music"}
+    1394: Audio/Lossless # , desc: " |- Jazz, Blues, Soul"}
+    1308: Audio/Lossless # , desc: " |- Официальные сборники зарубежных исполнителей"}
+    1534: Audio/Lossless # , desc: " |- Classical and instrumental music"}
+    1231: Audio/Lossless # , desc: " |- Other musical genres"}
+    #Программное обеспечение Software
+    1120: PC # , desc: " |- Windows 10"}
+    706: PC # , desc: " |- Windows 8, 8.1"}
+    212: PC # , desc: " |- Windows 7"}
+    210: PC # , desc: " |- Windows XP , Windows Vista , Windows выпущенные до 20..."}
+    213: PC # , desc: " |- Серверные ОС от Microsoft"}
+    215: PC # , desc: " |- Разное (RC, Beta, Service Packs, Cracks)"}
+    1395: PC # , desc: " |- Linux, Unix, Mac и другие ОС"}
+    1405: PC # , desc: " |- Драйверы"}
+    1398: PC # , desc: " |- Обслуживание и диагностика компьютера"}
+    193: PC # , desc: " |- Работа с жёсткими дисками"}
+    1518: PC # , desc: " |- Работа с внешними носителями информации"}
+    195: PC # , desc: " |- Архиваторы и файловые менеджеры"}
+    341: PC # , desc: " |- Программы для интернета и сетей"}
+    196: PC # , desc: " |- Настройка и оптимизация и изменение интерфейса ОС"}
+    969: PC # , desc: " |- WPI и прочие сборники программ"}
+    1523: PC # , desc: " |- LiveCD/DVD/USB"}
+    201: PC # , desc: " |- Антивирусы"}
+    1506: PC # , desc: " |- Фаерволы, брандмауэры"}
+    1508: PC # , desc: " |- Антишпионское, антирекламное и антиблокировочное ПО"}
+    1509: PC # , desc: " |- Средства защиты информации"}
+    1507: PC # , desc: " |- Комплексная защита ПК"}
+    217: PC # , desc: " |- Офисные системы"}
+    218: PC # , desc: " |- Системы для бизнеса"}
+    222: PC # , desc: " |- Системы для научной работы"}
+    1404: PC # , desc: " |- САПР, софт для архитекторов, дизайнеров и пр."}
+    1522: PC # , desc: " |- Справочные системы, базы данных"}
+    1504: PC # , desc: " |- Программы для верстки, печати и работы со шрифтами"}
+    220: PC # , desc: " |- Работа с PDF, DjVu, FB2, EPUB, MOBI и пр."}
+    221: PC # , desc: " |- Словари, переводчики, программы обучения языкам"}
+    219: PC # , desc: " |- Распознавание текста, звука и синтез речи"}
+    1512: PC # , desc: " |- WYSIWYG-редакторы для веб-дизайна"}
+    1513: PC # , desc: " |- Текстовые редакторы с подсветкой кода"}
+    1514: PC # , desc: " |- Среды программирования, компиляторы и вспомогател..."}
+    1515: PC # , desc: " |- Системы управления базами данных (СУБД)"}
+    1516: PC # , desc: " |- Скрипты и шаблоны"}
+    966: PC # , desc: " |- Графические редакторы и каталогизаторы"}
+    1500: PC # , desc: " |- Видеоредакторы"}
+    1501: PC # , desc: " |- Аудиоредакторы"}
+    967: PC # , desc: " |- Аудио- Видео- проигрыватели и каталогизаторы"}
+    965: PC # , desc: " |- Аудио- Видео- грабберы, рипперы и конвертеры"}
+    1499: PC # , desc: " |- Анимация"}
+    1502: PC # , desc: " |- Программные комплекты"}
+    1503: PC # , desc: " |- Дополнительные материалы для мультимедиа"}
+    968: PC # , desc: " |- Разное (Программы для работы с мультимедиа и 3D)"}
+    #Все для мобильных устройств Mobiles
+    1287: PC/Phone-Other # , desc: "Видео"}
+    1307: PC/Phone-Other # , desc: " |- Мобильные телефоны"}
+    1306: PC/Phone-IOS # , desc: " |- iPhone"}
+    1305: PC/Phone-IOS # , desc: " |- iPad"}
+    1289: PC # , desc: "Программы"}
+    1302: PC # , desc: " |- Мобильные телефоны"}
+    1301: PC/Phone-Android # , desc: " |- Android OS"}
+    1298: PC # , desc: " |- Symbian OS"}
+    1293: PC/Phone-Other # , desc: " |- Windows Mobile"}
+    1292: PC/Phone-IOS # , desc: " |- iPhone"}
+    1291: PC/Phone-IOS # , desc: " |- Apple Macintosh"}
+    1294: PC # , desc: "Игры"}
+    1303: PC # , desc: " |- Мобильные телефоны"}
+    1300: PC/Phone-Android # , desc: " |- Android OS"}
+    1299: PC # , desc: " |- Symbian OS"}
+    1296: PC/Phone-IOS # , desc: " |- iPhone"}
+    1295: PC/Phone-Other # , desc: " |- Windows Mobile"}
+    #Клубничка ХХХ 18+️
+    1490: XXX # , desc: "Эротика (не порно)"}
+    1491: XXX # , desc: " |-  Эротические фильмы ≪с переводом Rus≫"}
+    1492: XXX # , desc: " |-  Эротические фильмы с «родной» озвучкой"}
+    1493: XXX # , desc: " |-  Playboy, Penthouse (эротический видео журнал)"}
+    1495: XXX # , desc: " |-  Нудизм-Натуризм"}
+    1494: XXX # , desc: " |-  Фото, картинки, журналы"}
+    1376: XXX # , desc: "Зарубежное видео ХХХ"}
+    1378: XXX # , desc: " |-  Зарубежные порно фильмы"}
+    1470: XXX # , desc: " |-  Гонзо-фильмы / Gonzo"}
+    1446: XXX # , desc: " |-  Гонзо и зарубежные  фильмы ≪720p, 1080p≫"}
+    1468: XXX # , desc: " |-  Этнические фильмы / Ethnic-Themed"}
+    1537: XXX # , desc: " |-  Лесбо-фильмы / All Girl &amp;Solo"}
+    1444: XXX # , desc: " |-  Порно пародии / Parody porn"}
+    1379: XXX # , desc: " |-  Зарубежное порно ≪с переводом Rus≫"}
+    1388: XXX # , desc: " |-  Классика и ретро порно / Classic (Retro)"}
+    1389: XXX # , desc: " |-  Японские фильмы и сайтрипы"}
+    1380: XXX # , desc: " |-  Зарубежные сайтрипы ≪Definition 480p, 540p≫"}
+    1441: XXX # , desc: " |-  Зарубежные сайтрипы  ≪HD Video 720p, 1080p≫"}
+    1439: XXX # , desc: " |-  Сцены и Сайтрипы ≪4К UHD 2160p≫"}
+    1535: XXX # , desc: " |-  Виртуальная реальность ХХХ / Virtual Reality Porn (VR)"}
+    1392: XXX # , desc: " |-  Любительское видео ≪WebCam, CamRip≫"}
+    1426: XXX # , desc: " |-  Документальное видео"}
+    1377: XXX # , desc: "Русское видео ХХХ"}
+    1383: XXX # , desc: " |-  Порно фильмы Российского пр-ва"}
+    1387: XXX # , desc: " |-  Сайтрипы с русскими актрисами ≪Definition 480p, 540p≫"}
+    1428: XXX # , desc: " |-  Сайтрипы с русскими актрисами ≪HD Video 720p, 1080p≫"}
+    1440: XXX # , desc: " |-  Сцены и Сайтрипы с Русскими актрисами ≪4К UHD 2160p≫"}
+    1384: XXX # , desc: " |-  Любительское порно ≪CamRip≫"}
+    1429: XXX # , desc: "Нетрадиционное порно"}
+    1430: XXX # , desc: " |-  Буккаке, Камшот / Bukkake, Cumshot Compilation"}
+    1431: XXX # , desc: " |-  Женское доминирование и страпон / Femdom &amp;Strapon"}
+    1432: XXX # , desc: " |-  BDSM ≪бандаж, дисциплина, садизм, мазохизм≫"}
+    1433: XXX # , desc: " |-  Фетиш, медосмотры / Medical Fetish"}
+    1442: XXX # , desc: " |-  Переодевание, униформа / Uniform"}
+    1434: XXX # , desc: " |-  Фистинг и дилдо / Fisting &amp;Dildo"}
+    1469: XXX # , desc: " |-  Транссексуалы / Transsexual"}
+    1443: XXX # , desc: " |-  Мочеиспускание / Peeing"}
+    1536: XXX # , desc: " |-  Подглядывание / Voyeur"}
+    1438: XXX # , desc: " |-  Беременные / Pregnant"}
+    1496: XXX # , desc: " |-  Бисексуалы / Bisexual"}
+    1480: XXX # , desc: "Мультфильмы ХХХ &amp;Хентай &amp;Порно игры"}
+    1542: XXX # , desc: " |-  Порно игры / Porno games"}
+    1481: XXX # , desc: " |-  Мультфильмы / Cartoons"}
+    1482: XXX # , desc: " |-  Хентай / Hentai "}
+    #Разное Other
+    118: Other # , desc: "Разное"}
+    987: Other # , desc: " |- Обои для рабочего стола"}
+    1068: Other # , desc: " |- Эротические обои"}
+    1424: Other # , desc: " |- Боевые искусства (Видеоуроки)"}
+    1425: Other # , desc: " |- Видеоуроки и обучающие интерактивные DVD"}
 
 login:
   path: /forum/login.php

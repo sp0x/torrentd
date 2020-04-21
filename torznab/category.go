@@ -41,6 +41,7 @@ var (
 	CategoryMovies_Other       = Category{2020, "Movies/Other"}
 	CategoryMovies_SD          = Category{2030, "Movies/SD"}
 	CategoryMovies_HD          = Category{2040, "Movies/HD"}
+	CategoryMovies_UHD         = Category{2045, "Movies/UHD"}
 	CategoryMovies_3D          = Category{2050, "Movies/3D"}
 	CategoryMovies_BluRay      = Category{2060, "Movies/BluRay"}
 	CategoryMovies_DVD         = Category{2070, "Movies/DVD"}
@@ -65,6 +66,7 @@ var (
 	CategoryTV_FOREIGN         = Category{5020, "TV/Foreign"}
 	CategoryTV_SD              = Category{5030, "TV/SD"}
 	CategoryTV_HD              = Category{5040, "TV/HD"}
+	CategoryTV_UHD             = Category{5045, "TV/UHD"}
 	CategoryTV_Other           = Category{5999, "TV/Other"}
 	CategoryTV_Sport           = Category{5060, "TV/Sport"}
 	CategoryTV_Anime           = Category{5070, "TV/Anime"}
@@ -110,6 +112,7 @@ var AllCategories = Categories{
 	CategoryMovies_Other,
 	CategoryMovies_SD,
 	CategoryMovies_HD,
+	CategoryMovies_UHD,
 	CategoryMovies_3D,
 	CategoryMovies_BluRay,
 	CategoryMovies_DVD,
@@ -134,6 +137,7 @@ var AllCategories = Categories{
 	CategoryTV_FOREIGN,
 	CategoryTV_SD,
 	CategoryTV_HD,
+	CategoryTV_UHD,
 	CategoryTV_Other,
 	CategoryTV_Sport,
 	CategoryTV_Anime,
