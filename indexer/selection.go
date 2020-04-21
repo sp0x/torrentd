@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"regexp"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -135,8 +136,11 @@ func (s *selectorBlock) applyFilters(val string) (string, error) {
 		prevFilterFailed = false
 	}
 	val = strings.TrimSpace(val)
+	val = spaceRx.ReplaceAllString(val, " ")
 	return val, nil
 }
+
+var spaceRx = regexp.MustCompile(`\s+`)
 
 func (s *selectorBlock) IsEmpty() bool {
 	return s.Selector == "" && s.TextVal == ""
