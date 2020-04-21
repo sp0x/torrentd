@@ -3,6 +3,7 @@ package search
 import (
 	"encoding/xml"
 	"fmt"
+	"github.com/jinzhu/gorm"
 	"strconv"
 	"time"
 )
@@ -13,6 +14,18 @@ type torznabAttrView struct {
 	XMLName struct{} `xml:"torznab:attr"`
 	Name    string   `xml:"name,attr"`
 	Value   string   `xml:"value,attr"`
+}
+
+type ExternalResultItem struct {
+	gorm.Model
+	ResultItem
+	LocalCategoryID   string
+	LocalCategoryName string
+	LocalId           string
+	IsMagnet          bool
+	Announce          string
+	Publisher         string
+	Fingerprint       string
 }
 
 type ResultItem struct {
@@ -29,7 +42,7 @@ type ResultItem struct {
 	Size        uint64
 	Files       int
 	Grabs       int
-	PublishDate time.Time
+	PublishDate int64
 
 	Seeders              int
 	Peers                int
@@ -38,12 +51,18 @@ type ResultItem struct {
 	DownloadVolumeFactor float64
 	UploadVolumeFactor   float64
 	Author               string
+	AuthorId             string
 	Indexer              *ResultIndexer
 }
 
 type ResultIndexer struct {
 	Id   string `xml:"id,attr"`
 	Name string `xml:",chardata"` //make the name the value
+}
+
+func (ri *ResultItem) AddedOnStr() interface{} {
+	tm := time.Unix(ri.PublishDate, 0)
+	return tm.String()
 }
 
 func (ri ResultItem) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -92,7 +111,7 @@ func (ri ResultItem) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		Category:    strconv.Itoa(ri.Category),
 		Files:       ri.Files,
 		Grabs:       ri.Grabs,
-		PublishDate: ri.PublishDate.Format(rfc822),
+		PublishDate: time.Unix(ri.PublishDate, 0).Format(rfc822),
 		Enclosure:   enclosure,
 		AtomLink:    atomLink,
 		Size:        ri.Size,

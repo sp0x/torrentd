@@ -3,23 +3,24 @@ package storage
 import (
 	"fmt"
 	"github.com/sp0x/rutracker-rss/db"
+	"github.com/sp0x/rutracker-rss/indexer/search"
 	"time"
 )
 
 type Storage struct {
 }
 
-func (ts *Storage) FindByTorrentId(id string) *db.Torrent {
+func (ts *Storage) FindByTorrentId(id string) *search.ExternalResultItem {
 	gdb := db.GetOrmDb()
 	defer gdb.Close()
-	var torrent db.Torrent
-	if gdb.First(&torrent, &db.Torrent{TorrentId: id}).RowsAffected == 0 {
+	var torrent search.ExternalResultItem
+	if gdb.First(&torrent, &search.ExternalResultItem{LocalId: id}).RowsAffected == 0 {
 		return nil
 	}
 	return &torrent
 }
 
-func (ts *Storage) Create(tr *db.Torrent) {
+func (ts *Storage) Create(tr *search.ExternalResultItem) {
 	gdb := db.GetOrmDb()
 	defer gdb.Close()
 	gdb.Create(tr)
@@ -28,14 +29,14 @@ func (ts *Storage) Create(tr *db.Torrent) {
 func (ts *Storage) Truncate() {
 	gdb := db.GetOrmDb()
 	defer gdb.Close()
-	gdb.Unscoped().Delete(&db.Torrent{})
+	gdb.Unscoped().Delete(&search.ExternalResultItem{})
 }
 
-func (ts *Storage) GetLatest(cnt int) []db.Torrent {
+func (ts *Storage) GetLatest(cnt int) []search.ExternalResultItem {
 	gdb := db.GetOrmDb()
 	defer gdb.Close()
-	var items []db.Torrent
-	gdb.Model(&db.Torrent{}).Find(&items).Order("added_on").Limit(cnt)
+	var items []search.ExternalResultItem
+	gdb.Model(&search.ExternalResultItem{}).Find(&items).Order("added_on").Limit(cnt)
 	return items
 }
 
@@ -43,7 +44,7 @@ func (ts *Storage) GetTorrentCount() int64 {
 	gdb := db.GetOrmDb()
 	defer gdb.Close()
 	var result int64
-	gdb.Model(&db.Torrent{}).Count(&result)
+	gdb.Model(&search.ExternalResultItem{}).Count(&result)
 	return result
 }
 
@@ -51,29 +52,29 @@ func (ts *Storage) GetCategories() []db.TorrentCategory {
 	gdb := db.GetOrmDb()
 	defer gdb.Close()
 	var categories []db.TorrentCategory
-	gdb.Model(&db.Torrent{}).Select("category_name, category_id").Group("category_id").Scan(&categories)
+	gdb.Model(&search.ExternalResultItem{}).Select("category_name, category_id").Group("category_id").Scan(&categories)
 	return categories
 }
 
-func (ts *Storage) UpdateTorrent(id uint, torrent *db.Torrent) {
+func (ts *Storage) UpdateTorrent(id uint, torrent *search.ExternalResultItem) {
 	gdb := db.GetOrmDb()
 	defer gdb.Close()
-	gdb.Model(&db.Torrent{}).Where(id).Update(torrent)
+	gdb.Model(&search.ExternalResultItem{}).Where(id).Update(torrent)
 }
 
-func (ts *Storage) GetTorrentsInCategories(ids []int) []db.Torrent {
+func (ts *Storage) GetTorrentsInCategories(ids []int) []search.ExternalResultItem {
 	gdb := db.GetOrmDb()
 	defer gdb.Close()
-	var torrents []db.Torrent
-	gdb.Model(&db.Torrent{}).Where(" category_id IN (?)", ids).Order("added_on desc").Find(&torrents)
+	var torrents []search.ExternalResultItem
+	gdb.Model(&search.ExternalResultItem{}).Where(" category_id IN (?)", ids).Order("added_on desc").Find(&torrents)
 	return torrents
 }
 
-func (ts *Storage) GetOlderThanHours(h int) []db.Torrent {
+func (ts *Storage) GetOlderThanHours(h int) []search.ExternalResultItem {
 	gdb := db.GetOrmDb()
 	defer gdb.Close()
-	var torrents []db.Torrent
+	var torrents []search.ExternalResultItem
 	tm := time.Now().Unix() - int64(60)*int64(60)*int64(h)
-	gdb.Model(&db.Torrent{}).Where(fmt.Sprintf("added_on < %d", tm)).Find(&torrents)
+	gdb.Model(&search.ExternalResultItem{}).Where(fmt.Sprintf("added_on < %d", tm)).Find(&torrents)
 	return torrents
 }

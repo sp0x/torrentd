@@ -43,7 +43,7 @@ func atomOutput(c *gin.Context, v *torznab.ResultFeed, encoding string) {
 			Link:        &feeds.Link{Href: torr.Link},
 			Description: torr.Link,
 			Author:      &feeds.Author{Name: torr.Author},
-			Created:     timep,
+			Created:     time.Unix(timep, 0),
 		}
 		feed.Items[i] = feedItem
 	}

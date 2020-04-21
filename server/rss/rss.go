@@ -5,12 +5,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/feeds"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/db"
+	"github.com/sp0x/rutracker-rss/indexer/search"
 	"net/http"
 	"time"
 )
 
-func SendRssFeed(hostname, name string, torrents []db.Torrent, c *gin.Context) {
+func SendRssFeed(hostname, name string, torrents []search.ExternalResultItem, c *gin.Context) {
 	feed := &feeds.Feed{
 		Title:       fmt.Sprintf("%s from Rutracker", name),
 		Link:        &feeds.Link{Href: fmt.Sprintf("http://%s/%s", hostname, name)},
@@ -20,12 +20,12 @@ func SendRssFeed(hostname, name string, torrents []db.Torrent, c *gin.Context) {
 	}
 	feed.Items = make([]*feeds.Item, len(torrents), len(torrents))
 	for i, torr := range torrents {
-		timep := time.Unix(torr.AddedOn, 0)
+		timep := time.Unix(torr.PublishDate, 0)
 		feedItem := &feeds.Item{
-			Title:       torr.Name,
-			Link:        &feeds.Link{Href: torr.DownloadLink},
+			Title:       torr.Title,
+			Link:        &feeds.Link{Href: torr.SourceLink},
 			Description: torr.Link,
-			Author:      &feeds.Author{Name: torr.AuthorName},
+			Author:      &feeds.Author{Name: torr.Author},
 			Created:     timep,
 		}
 		feed.Items[i] = feedItem

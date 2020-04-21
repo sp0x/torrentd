@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/sp0x/rutracker-rss/config"
 	"github.com/sp0x/rutracker-rss/indexer/search"
+	"github.com/sp0x/rutracker-rss/torrent"
 	"github.com/sp0x/rutracker-rss/torznab"
 	"io"
 	"io/ioutil"
@@ -581,13 +582,6 @@ func (r *Runner) Capabilities() torznab.Capabilities {
 	return caps
 }
 
-type extractedItem struct {
-	search.ResultItem
-	LocalCategoryID   string
-	LocalCategoryName string
-	LocalId           string
-}
-
 // localCategories returns a slice of local categories that should be searched
 func (r *Runner) localCategories(query torznab.Query) []string {
 	localCats := []string{}
@@ -780,18 +774,18 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 			"offset":   query.Offset,
 		}).Debugf("Found %d rows", rows.Length())
 
-	var extracted []extractedItem
+	var extracted []search.ExternalResultItem
 
 	for i := 0; i < rows.Length(); i++ {
 		if query.Limit > 0 && len(extracted) >= query.Limit {
 			break
 		}
-
+		//Get the result from the row
 		item, err := r.extractItem(i+1, rows.Eq(i))
 		if err != nil {
 			return nil, err
 		}
-
+		torrent.HandleTorrentDiscovery(&item)
 		var matchCat bool
 		if len(localCats) > 0 {
 			for _, catId := range localCats {

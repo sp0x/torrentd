@@ -3,7 +3,6 @@ package torrent
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/db"
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"os"
 	"text/tabwriter"
@@ -48,19 +47,19 @@ func Watch(client *Rutracker, interval int) {
 		counter := uint(0)
 		finished := false
 		hasStaleTorrents := false
-		client.ParseTorrents(currentSearch.DOM, func(i int, torrent *db.Torrent) {
+		client.ParseTorrents(currentSearch.DOM, func(i int, torrent *search.ExternalResultItem) {
 			if finished || torrent == nil {
 				return
 			}
 			//torrentNumber := page*client.pageSize + counter + 1
-			isNew, isUpdate := HandleTorrentDiscovery(client, torrent)
+			isNew, isUpdate := HandleTorrentDiscovery(torrent)
 			if isNew || isUpdate {
 				if isNew && !isUpdate {
 					_, _ = fmt.Fprintf(tabWr, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
-						torrent.TorrentId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Name)
+						torrent.LocalId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Title)
 				} else {
 					_, _ = fmt.Fprintf(tabWr, "Updated torrent #%s:\t%s\t[%s]:\t%s\n",
-						torrent.TorrentId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Name)
+						torrent.LocalId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Title)
 				}
 			}
 			_ = tabWr.Flush()

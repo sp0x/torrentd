@@ -12,7 +12,7 @@ import (
 )
 
 //Extract the actual result item from it's row/col
-func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extractedItem, error) {
+func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.ExternalResultItem, error) {
 	row := map[string]string{}
 	nonFilteredRow := map[string]string{}
 	html, _ := goquery.OuterHtml(selection)
@@ -51,13 +51,13 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extracte
 		templateData := row
 		updated, err := applyTemplate("result_template", val, templateData)
 		if err != nil {
-			return extractedItem{}, err
+			return search.ExternalResultItem{}, err
 		}
 		val = updated
 		row[item.Field] = val
 	}
 
-	item := extractedItem{
+	item := search.ExternalResultItem{
 		ResultItem: search.ResultItem{
 			Site:    r.definition.Site,
 			Indexer: r.getIndexer(),
@@ -146,7 +146,7 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extracte
 				r.logger.Warnf("Row #%d has unparseable time %q in %s", rowIdx, val, key)
 				continue
 			}
-			item.PublishDate = t
+			item.PublishDate = t.Unix()
 		case "files":
 			files, err := strconv.Atoi(normalizeNumber(val))
 			if err != nil {
@@ -202,10 +202,10 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extracte
 	if r.hasDateHeader() {
 		date, err := r.extractDateHeader(selection)
 		if err != nil {
-			return extractedItem{}, err
+			return search.ExternalResultItem{}, err
 		}
 
-		item.PublishDate = date
+		item.PublishDate = date.Unix()
 	}
 
 	return item, nil

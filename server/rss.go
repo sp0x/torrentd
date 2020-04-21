@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/db"
-	search2 "github.com/sp0x/rutracker-rss/indexer/search"
+	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/sp0x/rutracker-rss/server/rss"
 	"github.com/sp0x/rutracker-rss/torrent"
 	"net/url"
@@ -33,18 +32,18 @@ func (s *Server) serveAnime(c *gin.Context) {
 }
 
 func (s *Server) searchAndServe(c *gin.Context) {
-	var search *search2.Search
+	var srch *search.Search
 	ops := s.tracker.GetDefaultOptions()
 	currentPage := uint(0)
 	name := c.Param("name")
 	name = url.QueryEscape(name)
-	var items []db.Torrent
+	var items []search.ExternalResultItem
 	for true {
 		var err error
-		if search == nil {
-			search, err = s.tracker.Search(nil, name, 0)
+		if srch == nil {
+			srch, err = s.tracker.Search(nil, name, 0)
 		} else {
-			search, err = s.tracker.Search(search, name, currentPage)
+			srch, err = s.tracker.Search(srch, name, currentPage)
 		}
 		if err != nil {
 			log.Warningf("Error while searching for torrent: %s . %s", name, err)
@@ -52,19 +51,19 @@ func (s *Server) searchAndServe(c *gin.Context) {
 		if currentPage >= ops.PageCount {
 			break
 		}
-		s.tracker.ParseTorrents(search.GetDocument(), func(i int, tr *db.Torrent) {
-			isNew, isUpdate := torrent.HandleTorrentDiscovery(s.tracker, tr)
+		s.tracker.ParseTorrents(srch.GetDocument(), func(i int, tr *search.ExternalResultItem) {
+			isNew, isUpdate := torrent.HandleTorrentDiscovery(tr)
 			if isNew || isUpdate {
 				if isNew && !isUpdate {
 					_, _ = fmt.Fprintf(s.tabWriter, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
-						tr.TorrentId, tr.AddedOnStr(), tr.Fingerprint, tr.Name)
+						tr.LocalId, tr.AddedOnStr(), tr.Fingerprint, tr.Title)
 				} else {
 					_, _ = fmt.Fprintf(s.tabWriter, "Updated torrent #%s:\t%s\t[%s]:\t%s\n",
-						tr.TorrentId, tr.AddedOnStr(), tr.Fingerprint, tr.Name)
+						tr.LocalId, tr.AddedOnStr(), tr.Fingerprint, tr.Title)
 				}
 			} else {
 				_, _ = fmt.Fprintf(s.tabWriter, "Torrent #%s:\t%s\t[%s]:\t%s\n",
-					tr.TorrentId, tr.AddedOnStr(), "#", tr.Name)
+					tr.LocalId, tr.AddedOnStr(), "#", tr.Title)
 			}
 			items = append(items, *tr)
 			s.tabWriter.Flush()

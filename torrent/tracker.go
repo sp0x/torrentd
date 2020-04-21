@@ -2,10 +2,10 @@ package torrent
 
 import (
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/db"
-	"github.com/sp0x/rutracker-rss/indexer"
+	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/sp0x/rutracker-rss/requests"
 	storage2 "github.com/sp0x/rutracker-rss/torrent/storage"
+	"github.com/sp0x/surf/browser/encoding"
 	"net/http"
 	"net/http/cookiejar"
 	"time"
@@ -13,8 +13,8 @@ import (
 
 type Tracker interface {
 	Login(username, password string) error
-	GetTorrentLink(t *db.Torrent) string
-	GetTorrentDownloadLink(t *db.Torrent) string
+	GetTorrentLink(t *search.ExternalResultItem) string
+	GetTorrentDownloadLink(t *search.ExternalResultItem) string
 	GetDefaultOptions() *GenericSearchOptions
 }
 
@@ -41,7 +41,8 @@ func (r *BasicTracker) request(urlx string, data []byte, headers map[string]stri
 	if err != nil {
 		return nil, err
 	}
-	resp = indexer.DecodeWindows1251(resp)
+	decoder := encoding.GetEncoding("windows1251").NewDecoder()
+	resp, _ = decoder.Bytes(resp)
 	return resp, nil
 }
 

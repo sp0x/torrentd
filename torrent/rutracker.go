@@ -6,11 +6,10 @@ import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/db"
-	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/rutracker-rss/indexer/formatting"
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/sp0x/rutracker-rss/requests"
+	"github.com/sp0x/surf/browser/encoding"
 	"regexp"
 	"strconv"
 	"strings"
@@ -43,7 +42,8 @@ func (r *Rutracker) Login(username, password string) error {
 	if err != nil {
 		return err
 	}
-	page = indexer.DecodeWindows1251(page)
+	cp := encoding.GetEncoding("windows1251").NewDecoder()
+	page, _ = cp.Bytes(page)
 	r.loggedIn = true
 	return nil
 }
@@ -152,7 +152,7 @@ func (r *Rutracker) GetDefaultOptions() *GenericSearchOptions {
 }
 
 //Parse the torrent row
-func (r *Rutracker) parseTorrentRow(row *goquery.Selection) *db.Torrent {
+func (r *Rutracker) parseTorrentRow(row *goquery.Selection) *search.ExternalResultItem {
 	nameData := row.Find("a.tLink").Nodes[0].FirstChild.Data
 	if nameData == "" {
 		return nil
@@ -185,45 +185,47 @@ func (r *Rutracker) parseTorrentRow(row *goquery.Selection) *db.Torrent {
 	//Get the seeders
 	seedersNode := formatting.StripToNumber(formatting.ClearSpaces(row.Find("td").Eq(6).Text()))
 	seeders, _ := strconv.Atoi(seedersNode)
-	newTorrent := &db.Torrent{
-		Name:         nameData,
-		TorrentId:    torrentId,
-		AddedOn:      torrentTime.Unix(),
-		AuthorName:   author,
-		AuthorId:     authorId,
-		CategoryName: category,
-		CategoryId:   categoryId,
-		Size:         size,
-		Seeders:      seeders,
-		Leachers:     leachers,
-		Downloaded:   downloads,
+	newTorrent := &search.ExternalResultItem{
+		ResultItem: search.ResultItem{
+			Title:       nameData,
+			PublishDate: torrentTime.Unix(),
+			Author:      author,
+			AuthorId:    authorId,
+			Size:        size,
+			Seeders:     seeders,
+			Peers:       leachers,
+			Grabs:       downloads,
+		},
+		LocalId:           torrentId,
+		LocalCategoryName: category,
+		LocalCategoryID:   categoryId,
 	}
 	newTorrent.Link = r.GetTorrentLink(newTorrent)
-	newTorrent.DownloadLink = r.GetTorrentDownloadLink(newTorrent)
+	newTorrent.SourceLink = r.GetTorrentDownloadLink(newTorrent)
 	newTorrent.IsMagnet = false
 	if r.FetchDefinition {
-		def, err := ParseTorrentFromUrl(r, newTorrent.DownloadLink)
+		def, err := ParseTorrentFromUrl(r, newTorrent.SourceLink)
 		if err != nil {
 			log.Warningf("Could not get torrent definition: %v", err)
 		} else {
 			newTorrent.Announce = def.Announce
 			newTorrent.Publisher = def.Publisher
-			newTorrent.Name = def.Info.Name
+			newTorrent.Title = def.Info.Name
 			newTorrent.Size = def.GetTotalFileSize()
 		}
 	}
 	return newTorrent
 }
 
-func (r *Rutracker) GetTorrentLink(t *db.Torrent) string {
-	return fmt.Sprintf("http://rutracker.org/forum/viewtopic.php?t=%s", t.TorrentId)
+func (r *Rutracker) GetTorrentLink(t *search.ExternalResultItem) string {
+	return fmt.Sprintf("http://rutracker.org/forum/viewtopic.php?t=%s", t.LocalId)
 }
 
-func (r *Rutracker) GetTorrentDownloadLink(t *db.Torrent) string {
-	return fmt.Sprintf("http://rutracker.org/forum/dl.php?t=%s", t.TorrentId)
+func (r *Rutracker) GetTorrentDownloadLink(t *search.ExternalResultItem) string {
+	return fmt.Sprintf("http://rutracker.org/forum/dl.php?t=%s", t.LocalId)
 }
 
-func (r *Rutracker) ParseTorrents(doc *goquery.Selection, f func(i int, s *db.Torrent)) *goquery.Selection {
+func (r *Rutracker) ParseTorrents(doc *goquery.Selection, f func(i int, s *search.ExternalResultItem)) *goquery.Selection {
 	return doc.Find("tr.tCenter.hl-tr").Each(func(i int, s *goquery.Selection) {
 		torrent := r.parseTorrentRow(s)
 		f(i, torrent)

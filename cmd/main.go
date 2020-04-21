@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/sp0x/rutracker-rss/db"
+	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
@@ -18,7 +19,7 @@ func init() {
 	_ = os.MkdirAll("./db", os.ModePerm)
 	gormDb := db.GetOrmDb()
 	defer gormDb.Close()
-	gormDb.AutoMigrate(&db.Torrent{})
+	gormDb.AutoMigrate(&search.ExternalResultItem{})
 	cobra.OnInitialize(initConfig)
 	flags := rootCmd.PersistentFlags()
 	var username, password string

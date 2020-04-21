@@ -1,7 +1,6 @@
 package search
 
 import (
-	"github.com/sp0x/rutracker-rss/db"
 	"html"
 	"regexp"
 	"strings"
@@ -26,9 +25,9 @@ var arrowsRx, _ = regexp.Compile("^«([^»]{6,})»")
 var cyrilicRx, _ = regexp.Compile("^([0-9a-zабвгдеёжзийклмнопрстуфхцчшщьъыэюя., \\-:]{6,}?(?:[:.?!]| - | — |\\|)).*")
 var badKeywordsRx, _ = regexp.Compile("(?:\\s|\\()(:?выпуск|выпуски|выпусков|обновлено|передачи за|серия из|сезон|серия|серии|премьера|эфир с|эфир от|эфиры от|satrip)(?:\\s|\\)|$)")
 
-func GetTorrentFingerprint(t *db.Torrent) string {
+func GetTorrentFingerprint(t *ExternalResultItem) string {
 	tagsRx, _ := regexp.Compile("</?[a-z]+>")
-	name := strings.Replace(t.Name, "ё", "e", -1)
+	name := strings.Replace(t.Title, "ё", "e", -1)
 	name = html.UnescapeString(name)
 	name = tagsRx.ReplaceAllString(name, "")
 

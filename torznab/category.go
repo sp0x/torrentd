@@ -46,6 +46,7 @@ var (
 	CategoryMovies_BluRay      = Category{2060, "Movies/BluRay"}
 	CategoryMovies_DVD         = Category{2070, "Movies/DVD"}
 	CategoryMovies_WEBDL       = Category{2080, "Movies/WEBDL"}
+	CategoryMovies_Trailers    = Category{2090, "Movies/Trailers"}
 	CategoryAudio              = Category{3000, "Audio"}
 	CategoryAudio_MP3          = Category{3010, "Audio/MP3"}
 	CategoryAudio_Video        = Category{3020, "Audio/Video"}
@@ -117,6 +118,7 @@ var AllCategories = Categories{
 	CategoryMovies_BluRay,
 	CategoryMovies_DVD,
 	CategoryMovies_WEBDL,
+	CategoryMovies_Trailers,
 	CategoryAudio,
 	CategoryAudio_MP3,
 	CategoryAudio_Video,

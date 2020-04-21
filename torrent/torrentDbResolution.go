@@ -21,17 +21,17 @@ func ResolveTorrents(client *Rutracker, hours int) {
 		if t.Announce != "" {
 			continue
 		}
-		def, err := ParseTorrentFromUrl(client, t.DownloadLink)
+		def, err := ParseTorrentFromUrl(client, t.SourceLink)
 		if err != nil {
-			log.Debugf("Could not resolve torrent: [%v] %v", t.TorrentId, t.Name)
+			log.Debugf("Could not resolve torrent: [%v] %v", t.LocalId, t.Title)
 			continue
 		}
 		t.Announce = def.Announce
 		t.Publisher = def.Publisher
-		t.AltName = def.Info.Name
+		t.OriginalTitle = def.Info.Name
 		t.Size = def.GetTotalFileSize()
 		perc := (float32(i) / float32(len(torrents))) * 100
-		_, _ = fmt.Fprintf(tabWr, "%f%% Resolved [%s]\t%s\n", perc, t.TorrentId, t.Name)
+		_, _ = fmt.Fprintf(tabWr, "%f%% Resolved [%s]\t%s\n", perc, t.LocalId, t.Title)
 		gdb.Save(t)
 		_ = tabWr.Flush()
 	}

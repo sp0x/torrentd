@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	storage2 "github.com/sp0x/rutracker-rss/torrent/storage"
+	storage "github.com/sp0x/rutracker-rss/torrent/storage"
 	"github.com/spf13/cobra"
 	"os"
 	"text/tabwriter"
@@ -22,13 +22,13 @@ func init() {
 }
 
 func listLatestTorrents(cmd *cobra.Command, args []string) {
-	storage := storage2.Storage{}
+	st := storage.Storage{}
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 
-	torrents := storage.GetLatest(torrentCount)
+	torrents := st.GetLatest(torrentCount)
 	for _, tr := range torrents {
-		_, _ = fmt.Fprintf(tabWr, "%s\t%s\t%s", tr.CategoryId, tr.Name, tr.AddedOnStr())
+		_, _ = fmt.Fprintf(tabWr, "%s\t%s\t%s", tr.LocalCategoryID, tr.Title, tr.AddedOnStr())
 		_ = tabWr.Flush()
 	}
 }

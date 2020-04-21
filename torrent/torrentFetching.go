@@ -3,8 +3,8 @@ package torrent
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/db"
 	"github.com/sp0x/rutracker-rss/indexer/search"
+	"github.com/sp0x/rutracker-rss/torrent/storage"
 	"os"
 	"text/tabwriter"
 )
@@ -39,22 +39,22 @@ func GetNewTorrents(client *Rutracker, fetchOptions *GenericSearchOptions) error
 		*/
 		counter := uint(0)
 		finished := false
-		client.ParseTorrents(currentSearch.DOM, func(i int, torrent *db.Torrent) {
+		client.ParseTorrents(currentSearch.DOM, func(i int, torrent *search.ExternalResultItem) {
 			if finished || torrent == nil {
 				return
 			}
-			isNew, isUpdate := HandleTorrentDiscovery(client, torrent)
+			isNew, isUpdate := HandleTorrentDiscovery(torrent)
 			if isNew || isUpdate {
 				if isNew && !isUpdate {
 					_, _ = fmt.Fprintf(tabWr, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
-						torrent.TorrentId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Name)
+						torrent.LocalId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Title)
 				} else {
 					_, _ = fmt.Fprintf(tabWr, "Updated torrent #%s:\t%s\t[%s]:\t%s\n",
-						torrent.TorrentId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Name)
+						torrent.LocalId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Title)
 				}
 			} else {
 				_, _ = fmt.Fprintf(tabWr, "Torrent #%s:\t%s\t[%s]:\t%s\n",
-					torrent.TorrentId, torrent.AddedOnStr(), "#", torrent.Name)
+					torrent.LocalId, torrent.AddedOnStr(), "#", torrent.Title)
 			}
 			if !isNew && fetchOptions.StopOnStaleTorrents {
 				finished = true
@@ -72,20 +72,21 @@ func GetNewTorrents(client *Rutracker, fetchOptions *GenericSearchOptions) error
 	return nil
 }
 
+var defaultStorage = storage.Storage{}
+
 //Handles torrent discovery
-func HandleTorrentDiscovery(client *Rutracker, torrent *db.Torrent) (bool, bool) {
-	existingTorrent := client.storage.FindByTorrentId(torrent.TorrentId)
-	isNew := existingTorrent == nil || existingTorrent.AddedOn != torrent.AddedOn
-	isUpdate := existingTorrent != nil && (existingTorrent.AddedOn != torrent.AddedOn)
+func HandleTorrentDiscovery(torrent *search.ExternalResultItem) (bool, bool) {
+	existingTorrent := defaultStorage.FindByTorrentId(torrent.LocalId)
+	isNew := existingTorrent == nil || existingTorrent.PublishDate != torrent.PublishDate
+	isUpdate := existingTorrent != nil && (existingTorrent.PublishDate != torrent.PublishDate)
 	if isNew {
 		if isUpdate && existingTorrent != nil {
 			torrent.Fingerprint = existingTorrent.Fingerprint
-			client.storage.UpdateTorrent(existingTorrent.ID, torrent)
+			defaultStorage.UpdateTorrent(existingTorrent.ID, torrent)
 		} else {
 			torrent.Fingerprint = search.GetTorrentFingerprint(torrent)
-			client.storage.Create(torrent)
+			defaultStorage.Create(torrent)
 		}
 	}
-
 	return isNew, isUpdate
 }

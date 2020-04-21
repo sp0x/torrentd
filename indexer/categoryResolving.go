@@ -2,11 +2,12 @@ package indexer
 
 import (
 	"github.com/sirupsen/logrus"
+	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/sp0x/rutracker-rss/torznab"
 	"strconv"
 )
 
-func (r *Runner) resolveCategory(item *extractedItem) {
+func (r *Runner) resolveCategory(item *search.ExternalResultItem) {
 	if mappedCat, ok := r.definition.Capabilities.CategoryMap[item.LocalCategoryID]; ok {
 		item.Category = mappedCat.ID
 	} else {
