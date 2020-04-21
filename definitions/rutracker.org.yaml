@@ -1,0 +1,143 @@
+---
+site: rutracker.org
+name: Rutracker.org
+language: en-us
+encoding: windows1251
+links:
+  - https://rutracker.org/forum/index.php
+
+settings:
+  - name: cookie
+    type: text
+    label: Cookie
+
+#A mapping of what category id from the indexer, matches to a category that we support
+caps:
+  categories:
+    409: Audio  #Classical and modern academic music
+    1125: Audio #  Folklore, national and ethnical music
+    1849: Audio # New age, relax, meditative and flamenco
+    408: Audio # Rap, hip-hop and rnb
+    1760: Audio # Raggae, ska, dub
+    416: Audio  #  OST, karaoke and musicals
+    413: Audio  # Other music
+    2497: Audio # Popular foreign music
+    33: TV/Anime
+
+    189 : TV # /Foreign shows
+    2366: TV # Foreign shows in HD
+    2100: TV # Asian shows
+    313: TV # localName="Зарубежное кино (HD Video)"
+
+    7   : Movies #foreign films
+    124 : Movies/Other #art-house and author movies
+    93  : Movies #DVD
+    2198: Movies #HD Video
+    4   : Movies/Other #Multifilms
+    352 : Movies #3d/stereo movies, video, tv and sports
+
+login:
+  path: /forum/login.php
+  method: post
+  inputs:
+    login_username: "{{ .Config.username }}"
+    login_password: "{{ .Config.password }}"
+    login: "%C2%F5%EE%E4"
+  error:
+    - selector: h4.warnColor1
+  test:
+    path: index.php
+    selector: a#logged-in-username
+
+ratio:
+  path: https://www.bitmetv.org/browse.php
+  selector: span.smallfont > font[color="1900D1"] + font
+
+
+search:
+  path: /forum/tracker.php
+  method: get
+  pagesize: 50
+  maxpages: 10
+  inputs:
+    $raw: "nm={{ .Query.Keywords }}&search_id={{ .Context.Search.Id }}&start={{ .Context.Search.StartIndex }}"
+  rows:
+    selector: tr.tCenter.hl-tr
+  context:
+    searchId:
+      selector: a.pg
+      attribute: href
+      filters:
+        - name: regexp
+          args: "tracker.php\\?search_id=([^&]+)[^'\"]*?"
+  fields:
+    id:
+      selector: a.tLink
+      attribute: href
+      filters:
+        - name: urlarg
+          args: "t"
+    categoryName:
+      selector: td:nth-child(3) a
+    category:
+      selector: td:nth-child(3) a
+      attribute: href
+      filters:
+        - name: urlarg
+          args: "f"
+    title:
+      selector: a.tLink
+    link:
+      pattern: "http://rutracker.org/forum/viewtopic.php?t={{ .id }}"
+    download:
+      pattern: "http://rutracker.org/forum/dl.php?t={{ .id }}"
+    author:
+      selector: td:nth-child(5)
+      remove: br
+    size:
+      selector: td:nth-child(6)
+      remove: br
+      filters:
+        - name: size
+    date:
+      selector: td:last-child
+      remove: br
+      filters:
+        - name: trim
+          args: "."
+        - name: whitespace
+        - name: mapreplace
+          args:
+            Янв: "Jan"
+            Фев: "Feb"
+            Мар: "Mar"
+            Апр: "Apr"
+            Май: "May"
+            Июн: "Jun"
+            Июл: "Jul"
+            Авг: "Aug"
+            Сен: "Sep"
+            Окт: "Oct"
+            Ноя: "Nov"
+            Дек: "Dec"
+        - name: dateparse
+          args: "2-Jan-06 15:04"
+        - name: dateparseAlt
+          args: "2-Jan-06"
+    seeders:
+      selector: td:nth-child(7)
+      filters:
+        - name: number
+    leechers:
+      selector: td:nth-child(8)
+      filters:
+        - name: number
+    grabs:
+      selector: td:nth-child(9)
+      filters:
+        - name: number
+    downloadvolumefactor:
+      case:
+        "*": "1"
+    uploadvolumefactor:
+      text: "1"

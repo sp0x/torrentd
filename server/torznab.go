@@ -119,17 +119,17 @@ func (s *Server) torznabSearch(r *http.Request, indexer torznab.Indexer, siteKey
 		return nil, err
 	}
 
-	items, err := indexer.Search(query)
+	srch, err := indexer.Search(query)
 	if err != nil {
 		return nil, err
 	}
 
 	feed := &torznab.ResultFeed{
 		Info:  indexer.Info(),
-		Items: items.Results,
+		Items: srch.Results,
 	}
 
-	rewritten, err := s.rewriteLinks(r, items.Results)
+	rewritten, err := s.rewriteLinks(r, srch.Results)
 	if err != nil {
 		return nil, err
 	}

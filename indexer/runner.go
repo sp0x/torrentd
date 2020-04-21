@@ -827,8 +827,8 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 
 			if !matchCat {
 				r.logger.
-					WithFields(logrus.Fields{"id": item.LocalCategoryID, "localCats": localCats}).
-					Debug("Skipping non-matching category")
+					WithFields(logrus.Fields{"id": item.LocalCategoryID, "name": item.LocalCategoryName, "localCats": localCats}).
+					Warn("Skipping non-matching category")
 				continue
 			}
 		}
