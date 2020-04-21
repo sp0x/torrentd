@@ -108,7 +108,9 @@ func (s *selectorBlock) applyFilters(val string) (string, error) {
 		var err error
 		newVal, err := invokeFilter(f.Name, f.Args, val)
 		if err != nil {
-			logrus.Warningf("Filter %s failed on value `%v`. %s\n", f.Name, val, err)
+			if f.Name != "dateparse" {
+				logrus.Warningf("Filter %s failed on value `%v`. %s\n", f.Name, val, err)
+			}
 			prevFilterFailed = true
 			prevFilter = f
 			continue

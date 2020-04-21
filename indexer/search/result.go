@@ -79,6 +79,7 @@ func (ri ResultItem) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		Grabs             int            `xml:"grabs,omitempty"`
 		PublishDate       string         `xml:"pubDate,omitempty"`
 		Enclosure         interface{}    `xml:"enclosure,omitempty"`
+		Size              uint64         `xml:"size"`
 		TorznabAttributes []torznabAttrView
 	}{
 		Title:       ri.Title,
@@ -93,6 +94,7 @@ func (ri ResultItem) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		PublishDate: ri.PublishDate.Format(rfc822),
 		Enclosure:   enclosure,
 		AtomLink:    atomLink,
+		Size:        ri.Size,
 	}
 	attribs := itemView.TorznabAttributes
 	attribs = append(attribs, torznabAttrView{Name: "category", Value: strconv.Itoa(ri.Category)})

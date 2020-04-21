@@ -23,6 +23,7 @@ func xmlOutput(c *gin.Context, feed *torznab.ResultFeed, encoding string) {
 	} else {
 		c.Header("Content-Type", "application/rss+xml")
 	}
+	x = []byte("<?xml version=\"1.0\" encoding=\"" + encoding + "\"?>\n" + string(x))
 	_, _ = c.Writer.Write(x)
 }
 
