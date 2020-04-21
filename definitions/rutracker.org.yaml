@@ -342,8 +342,14 @@ caps:
     2452: Books #="История Азии и Африки"
     1780: Audio #="Death, Doom (lossy)"
     1712: Audio #="Rockabilly, Psychobilly, Rock'n'Roll (lossless)"
-
-
+    786: Audio # Саундтреки к зарубежным фильмам (lossless)
+    14577: TV/UHD # UHD Video
+    785: Audio #Саундтреки к зарубежным фильмам (lossy)
+    847: Movies/Trailers # Трейлеры и дополнительные материалы к фильмам
+    549: Movies #3D Кинофильмы
+    2220: Movies #Фильмы 2016-2019
+    313: Movies/HD #Зарубежное кино (HD Video)
+    1936: Movies/HD #Фильмы HD для Apple TV
 
 login:
   path: /forum/login.php

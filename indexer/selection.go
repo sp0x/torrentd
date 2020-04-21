@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/yosssi/gohtml"
 )
 
 type filterBlock struct {
@@ -31,6 +30,7 @@ func (s *selectorBlock) Match(selection *goquery.Selection) bool {
 	return !s.IsEmpty() && (selection.Find(s.Selector).Length() > 0 || s.TextVal != "")
 }
 
+//MatchText using the selector to get the text of that element
 func (s *selectorBlock) MatchText(from *goquery.Selection) (string, error) {
 	if s.TextVal != "" {
 		return s.TextVal, nil
@@ -48,7 +48,53 @@ func (s *selectorBlock) MatchText(from *goquery.Selection) (string, error) {
 	return s.Text(from)
 }
 
-//Text extracts text from the selection
+func (s *selectorBlock) MatchRawText(from *goquery.Selection) (string, error) {
+	if s.TextVal != "" {
+		return s.TextVal, nil
+	}
+	if s.Selector != "" {
+		result := from.Find(s.Selector)
+		if result.Length() == 0 {
+			return "", fmt.Errorf("Failed to match selector %q", s.Selector)
+		}
+		return s.TextRaw(result)
+	}
+	if s.Pattern != "" {
+		return s.Pattern, nil
+	}
+	return s.TextRaw(from)
+}
+
+func (s *selectorBlock) TextRaw(el *goquery.Selection) (string, error) {
+	if s.TextVal != "" {
+		return s.TextVal, nil
+	}
+	if s.Remove != "" {
+		el.Find(s.Remove).Remove()
+	}
+	if s.Case != nil {
+		filterLogger.WithFields(logrus.Fields{"case": s.Case}).
+			Debugf("Applying case to selection")
+		for pattern, value := range s.Case {
+			if el.Is(pattern) || el.Has(pattern).Length() >= 1 {
+				return s.applyFilters(value)
+			}
+		}
+		return "", errors.New("None of the cases match")
+	}
+	output := strings.TrimSpace(el.Text())
+	output = spaceRx.ReplaceAllString(output, " ")
+	if s.Attribute != "" {
+		val, exists := el.Attr(s.Attribute)
+		if !exists {
+			return "", fmt.Errorf("Requested attribute %q doesn't exist", s.Attribute)
+		}
+		output = val
+	}
+	return output, nil
+}
+
+//Text extracts text from the selection, applying all filters
 func (s *selectorBlock) Text(el *goquery.Selection) (string, error) {
 	if s.TextVal != "" {
 		return s.applyFilters(s.TextVal)
@@ -68,14 +114,8 @@ func (s *selectorBlock) Text(el *goquery.Selection) (string, error) {
 		}
 		return "", errors.New("None of the cases match")
 	}
-
-	html, _ := goquery.OuterHtml(el)
-	filterLogger.
-		WithFields(logrus.Fields{"html": gohtml.Format(html)}).
-		Debugf("Extracting text from selection")
-
 	output := strings.TrimSpace(el.Text())
-
+	output = spaceRx.ReplaceAllString(output, " ")
 	if s.Attribute != "" {
 		val, exists := el.Attr(s.Attribute)
 		if !exists {

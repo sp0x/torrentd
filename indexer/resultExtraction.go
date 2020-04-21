@@ -14,7 +14,7 @@ import (
 //Extract the actual result item from it's row/col
 func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extractedItem, error) {
 	row := map[string]string{}
-
+	nonFilteredRow := map[string]string{}
 	html, _ := goquery.OuterHtml(selection)
 	r.logger.WithFields(logrus.Fields{"html": gohtml.Format(html)}).Debug("Processing row")
 
@@ -23,13 +23,18 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extracte
 			WithFields(logrus.Fields{"row": rowIdx, "block": item.Block.String()}).
 			Debugf("Processing field %q", item.Field)
 		val, err := item.Block.MatchText(selection)
+		if item.Field == "title" {
+			valRaw, err := item.Block.MatchRawText(selection)
+			if err == nil {
+				nonFilteredRow[item.Field] = valRaw
+			}
+		}
+
 		if err != nil {
 			r.logger.WithFields(logrus.Fields{"error": err, "selector": item.Field}).
 				Warnf("Couldn't process selector")
 			continue
-			//return extractedItem{}, err
 		}
-
 		r.logger.
 			WithFields(logrus.Fields{"row": rowIdx, "output": val}).
 			Debugf("Finished processing field %q", item.Field)
@@ -39,10 +44,10 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extracte
 
 	//Evaluate pattern items
 	for _, item := range r.definition.Search.Fields {
-		if item.Block.Pattern == "" {
+		val := row[item.Field]
+		if item.Block.Pattern == "" && !strings.Contains(val, "{{") {
 			continue
 		}
-		val := row[item.Field]
 		templateData := row
 		updated, err := applyTemplate("result_template", val, templateData)
 		if err != nil {
@@ -59,8 +64,7 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extracte
 		},
 	}
 
-	r.logger.
-		WithFields(logrus.Fields{"row": rowIdx, "data": row}).
+	r.logger.WithFields(logrus.Fields{"row": rowIdx, "data": row}).
 		Debugf("Finished row %d", rowIdx)
 
 	for key, val := range row {
@@ -68,7 +72,7 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extracte
 		case "id":
 			item.LocalId = val
 		case "author":
-			item.AuthorName = val
+			item.Author = val
 		case "download":
 			u, err := r.resolvePath(val)
 			if err != nil {
@@ -91,7 +95,6 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extracte
 				continue
 			}
 			item.GUID = u
-
 			// comments is used by Sonarr for linking to
 			if item.Comments == "" {
 				item.Comments = u
@@ -105,6 +108,9 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extracte
 			item.Comments = u
 		case "title":
 			item.Title = val
+			if _, ok := nonFilteredRow["title"]; ok {
+				item.OriginalTitle = nonFilteredRow["title"]
+			}
 		case "description":
 			item.Description = val
 		case "category":

@@ -16,12 +16,13 @@ type torznabAttrView struct {
 }
 
 type ResultItem struct {
-	Site        string
-	Title       string
-	Description string
-	GUID        string
-	Comments    string
-	Link        string
+	Site          string
+	Title         string
+	OriginalTitle string
+	Description   string
+	GUID          string
+	Comments      string
+	Link          string
 
 	SourceLink  string
 	Category    int

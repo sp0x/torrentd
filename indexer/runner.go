@@ -586,7 +586,6 @@ type extractedItem struct {
 	LocalCategoryID   string
 	LocalCategoryName string
 	LocalId           string
-	AuthorName        string
 }
 
 // localCategories returns a slice of local categories that should be searched
@@ -802,13 +801,14 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 			}
 
 			if !matchCat {
+				r.logger.
+					WithFields(logrus.Fields{"category": item.LocalCategoryName, "categoryId": item.LocalCategoryID}).
+					Debugf("Skipping result because it's not contained in our needed categories.")
 				continue
 			}
 		}
-
 		//Try to map the category from the indexer to the global categories
 		r.resolveCategory(&item)
-
 		if query.Series != "" {
 			info, err := releaseinfo.Parse(item.Title)
 			if err != nil {
@@ -826,7 +826,6 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 				continue
 			}
 		}
-
 		extracted = append(extracted, item)
 	}
 
@@ -840,13 +839,6 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 	}
 	srchResult := &context.Search
 	srchResult.Results = items
-	//search.Search{
-	//	DOM:         &context.Search.DOM,
-	//	Id:          "",
-	//	CurrentPage: 0,
-	//	StartIndex:  0,
-	//	Results:     nil,
-	//}
 	return srchResult, nil
 }
 
