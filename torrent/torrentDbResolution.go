@@ -8,6 +8,7 @@ import (
 	"text/tabwriter"
 )
 
+//Gets torrent information from a given tracker and updates the torrent db
 func ResolveTorrents(client *Rutracker, hours int) {
 	gdb := db.GetOrmDb()
 	defer gdb.Close()
@@ -32,6 +33,6 @@ func ResolveTorrents(client *Rutracker, hours int) {
 		perc := (float32(i) / float32(len(torrents))) * 100
 		_, _ = fmt.Fprintf(tabWr, "%f%% Resolved [%s]\t%s\n", perc, t.TorrentId, t.Name)
 		gdb.Save(t)
-		tabWr.Flush()
+		_ = tabWr.Flush()
 	}
 }

@@ -275,7 +275,7 @@ func (r *Runner) openPage(u string) error {
 		return err
 	}
 
-	r.cachePage()
+	_ = r.cachePage()
 
 	r.logger.
 		WithFields(logrus.Fields{"code": r.browser.StatusCode(), "page": r.browser.Url()}).
@@ -297,7 +297,7 @@ func (r *Runner) postToPage(u string, vals url.Values) error {
 		return err
 	}
 
-	r.cachePage()
+	_ = r.cachePage()
 
 	r.logger.
 		WithFields(logrus.Fields{"code": r.browser.StatusCode(), "page": r.browser.Url()}).
@@ -329,13 +329,13 @@ func (r *Runner) cachePage() error {
 	}
 
 	body := strings.NewReader(r.browser.Body())
-	io.Copy(tmpfile, body)
+	_, _ = io.Copy(tmpfile, body)
 	if err = tmpfile.Close(); err != nil {
 		return err
 	}
 
 	newFile := tmpfile.Name() + ".html"
-	os.Rename(tmpfile.Name(), newFile)
+	_ = os.Rename(tmpfile.Name(), newFile)
 
 	r.logger.
 		WithFields(logrus.Fields{"file": "file://" + newFile}).
@@ -712,7 +712,7 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 			return nil, err
 		}
 	}
-	//Get the categories for this query
+	//Get the categories for this query based on the indexer
 	localCats := r.localCategories(query)
 
 	r.logger.Debugf("Query is %v\n", query)

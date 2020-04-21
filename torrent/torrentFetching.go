@@ -9,6 +9,7 @@ import (
 	"text/tabwriter"
 )
 
+//
 func GetNewTorrents(client *Rutracker, fetchOptions *GenericSearchOptions) error {
 	log.Info("Searching for new torrents")
 	if fetchOptions == nil {
@@ -71,6 +72,7 @@ func GetNewTorrents(client *Rutracker, fetchOptions *GenericSearchOptions) error
 	return nil
 }
 
+//Handles torrent discovery
 func HandleTorrentDiscovery(client *Rutracker, torrent *db.Torrent) (bool, bool) {
 	existingTorrent := client.storage.FindByTorrentId(torrent.TorrentId)
 	isNew := existingTorrent == nil || existingTorrent.AddedOn != torrent.AddedOn

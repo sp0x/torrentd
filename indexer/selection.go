@@ -88,13 +88,13 @@ func (s *selectorBlock) Text(el *goquery.Selection) (string, error) {
 //Filter the value through a list of filters
 func (s *selectorBlock) applyFilters(val string) (string, error) {
 	prevFilterFailed := false
-	var prevFilter *filterBlock
+	var prevFilter filterBlock
 	for _, f := range s.Filters {
 		shouldFilter := true
 		switch f.Name {
 		case "dateparseAlt":
 			//This is ran only if there has been a failure before.
-			shouldFilter = prevFilterFailed && prevFilter != nil && prevFilter.Name == "dateparse"
+			shouldFilter = prevFilterFailed && prevFilter.Name == "dateparse"
 			break
 		default:
 			shouldFilter = true
@@ -106,14 +106,15 @@ func (s *selectorBlock) applyFilters(val string) (string, error) {
 		filterLogger.WithFields(logrus.Fields{"args": f.Args, "before": val}).
 			Debugf("Applying filter %s", f.Name)
 		var err error
-		val, err = invokeFilter(f.Name, f.Args, val)
+		newVal, err := invokeFilter(f.Name, f.Args, val)
 		if err != nil {
-			logrus.Warningf("Filter %s failed on value `%v`\n", f.Name, val)
+			logrus.Warningf("Filter %s failed on value `%v`. %s\n", f.Name, val, err)
 			prevFilterFailed = true
-			prevFilter = &f
+			prevFilter = f
 			continue
 			//return "", err
 		}
+		val = newVal
 		prevFilterFailed = false
 	}
 

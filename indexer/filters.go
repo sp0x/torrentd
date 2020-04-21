@@ -32,7 +32,7 @@ func invokeFilter(name string, args interface{}, value string) (string, error) {
 		}
 		return filterQueryString(param, value)
 
-	case "timeparse", "dateparse":
+	case "timeparse", "dateparse", "dateparseAlt":
 		if args == nil {
 			return filterDateParse(nil, value)
 		}
