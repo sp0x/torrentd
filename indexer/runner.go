@@ -15,7 +15,6 @@ import (
 	"net/url"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
 	"text/template"
@@ -828,18 +827,9 @@ func (r *Runner) Search(query torznab.Query) ([]search.ResultItem, error) {
 				continue
 			}
 		}
-		//Try to map the category from the indexer to the global categories
-		if mappedCat, ok := r.definition.Capabilities.CategoryMap[item.LocalCategoryID]; ok {
-			item.Category = mappedCat.ID
-		} else {
-			r.logger.
-				WithFields(logrus.Fields{"localId": item.LocalCategoryID, "localName": item.LocalCategoryName}).
-				Warn("Unknown local category")
 
-			if intCatId, err := strconv.Atoi(item.LocalCategoryID); err == nil {
-				item.Category = intCatId + torznab.CustomCategoryOffset
-			}
-		}
+		//Try to map the category from the indexer to the global categories
+		r.resolveCategory(&item)
 
 		if query.Series != "" {
 			info, err := releaseinfo.Parse(item.Title)

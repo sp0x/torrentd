@@ -146,8 +146,8 @@ func (r *Rutracker) startSearch(query string) (*search.Search, error) {
 	return &srch, nil
 }
 
-func (r *Rutracker) GetDefaultOptions() *FetchOptions {
-	return &FetchOptions{
+func (r *Rutracker) GetDefaultOptions() *GenericSearchOptions {
+	return &GenericSearchOptions{
 		PageCount:            10,
 		StartingPage:         0,
 		MaxRequestsPerSecond: 1,

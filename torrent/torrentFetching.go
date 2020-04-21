@@ -9,7 +9,7 @@ import (
 	"text/tabwriter"
 )
 
-func GetNewTorrents(client *Rutracker, fetchOptions *FetchOptions) error {
+func GetNewTorrents(client *Rutracker, fetchOptions *GenericSearchOptions) error {
 	log.Info("Searching for new torrents")
 	if fetchOptions == nil {
 		fetchOptions = client.GetDefaultOptions()

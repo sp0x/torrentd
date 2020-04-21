@@ -15,7 +15,7 @@ type Tracker interface {
 	Login(username, password string) error
 	GetTorrentLink(t *db.Torrent) string
 	GetTorrentDownloadLink(t *db.Torrent) string
-	GetDefaultOptions() *FetchOptions
+	GetDefaultOptions() *GenericSearchOptions
 }
 
 type BasicTracker struct {
