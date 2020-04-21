@@ -218,6 +218,9 @@ func (f *fieldsListBlock) UnmarshalYAML(unmarshal func(interface{}) error) error
 		if err = yaml.Unmarshal(b, &sb); err != nil {
 			return err
 		}
+		if sb.FilterConfig == nil {
+			sb.FilterConfig = defaultFilterConfig()
+		}
 		*f = append(*f, fieldBlock{
 			Field: item.Key.(string),
 			Block: sb,

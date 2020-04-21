@@ -1,7 +1,6 @@
 package indexer
 
 import (
-	"bytes"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -17,7 +16,6 @@ import (
 	"regexp"
 	"strings"
 	"sync"
-	"text/template"
 	"time"
 
 	"golang.org/x/net/proxy"
@@ -163,28 +161,6 @@ func (r *Runner) checkHasConfig() error {
 		}
 	}
 	return nil
-}
-
-//Evaluate a template
-func (r *Runner) applyTemplate(name, tpl string, ctx interface{}) (string, error) {
-	funcMap := template.FuncMap{
-		"replace": strings.Replace,
-	}
-	tmpl, err := template.New(name).Funcs(funcMap).Parse(tpl)
-	if err != nil {
-		return "", err
-	}
-	b := &bytes.Buffer{}
-	err = tmpl.Execute(b, ctx) //Evaluate the template
-	if err != nil {
-		return "", err
-	}
-	if strings.Contains(tpl, "{{") {
-		r.logger.
-			WithFields(logrus.Fields{"src": tpl, "result": b.String(), "ctx": ctx}).
-			Debugf("Processed template")
-	}
-	return b.String(), nil
 }
 
 //Get a working url for the indexer
@@ -434,7 +410,7 @@ func (r *Runner) extractInputLogins() (map[string]string, error) {
 	}
 
 	for name, val := range r.definition.Login.Inputs {
-		resolved, err := r.applyTemplate("login_inputs", val, ctx)
+		resolved, err := applyTemplate("login_inputs", val, ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -724,7 +700,7 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 	templateCtx := r.getRunnerContext(query, localCats, context)
 	//Apply our context to the search path
 
-	searchURL, err := r.applyTemplate("search_path", r.definition.Search.Path, templateCtx)
+	searchURL, err := applyTemplate("search_path", r.definition.Search.Path, templateCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -741,7 +717,7 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 	vals := url.Values{}
 	//Parse the values that will be used in the url for the search
 	for name, val := range r.definition.Search.Inputs {
-		resolved, err := r.applyTemplate("search_inputs", val, templateCtx)
+		resolved, err := applyTemplate("search_inputs", val, templateCtx)
 		if err != nil {
 			return nil, err
 		}
@@ -826,9 +802,6 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 			}
 
 			if !matchCat {
-				//r.logger.
-				//	WithFields(logrus.Fields{"id": item.LocalCategoryID, "name": item.LocalCategoryName, "localCats": localCats}).
-				//	Warn("Generic search skipping non-matching category")
 				continue
 			}
 		}

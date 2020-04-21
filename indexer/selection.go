@@ -16,13 +16,14 @@ type filterBlock struct {
 }
 
 type selectorBlock struct {
-	Selector  string            `yaml:"selector"`
-	Pattern   string            `yaml:"pattern"`
-	TextVal   string            `yaml:"text"`
-	Attribute string            `yaml:"attribute,omitempty"`
-	Remove    string            `yaml:"remove,omitempty"`
-	Filters   []filterBlock     `yaml:"filters,omitempty"`
-	Case      map[string]string `yaml:"case,omitempty"`
+	Selector     string            `yaml:"selector"`
+	Pattern      string            `yaml:"pattern"`
+	TextVal      string            `yaml:"text"`
+	Attribute    string            `yaml:"attribute,omitempty"`
+	Remove       string            `yaml:"remove,omitempty"`
+	Filters      []filterBlock     `yaml:"filters,omitempty"`
+	Case         map[string]string `yaml:"case,omitempty"`
+	FilterConfig map[string]string `yaml:"filterconfig"`
 }
 
 func (s *selectorBlock) Match(selection *goquery.Selection) bool {
@@ -116,10 +117,24 @@ func (s *selectorBlock) applyFilters(val string) (string, error) {
 			continue
 			//return "", err
 		}
+		//If we've got a template
+		if strings.Contains(newVal, "{{") {
+			filterContext := struct {
+				Config map[string]string
+			}{
+				s.FilterConfig,
+			}
+			newVal, err = applyTemplate("filter_template", newVal, filterContext)
+			if err != nil {
+				//We revert back..
+				newVal = val
+			}
+		}
+
 		val = newVal
 		prevFilterFailed = false
 	}
-
+	val = strings.TrimSpace(val)
 	return val, nil
 }
 

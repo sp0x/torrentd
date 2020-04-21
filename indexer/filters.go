@@ -22,6 +22,12 @@ const (
 
 var filterLogger log.FieldLogger
 
+func defaultFilterConfig() map[string]string {
+	return map[string]string{
+		"striprussian": "true",
+	}
+}
+
 //Filter out whatever's needed
 func invokeFilter(name string, args interface{}, value string) (string, error) {
 	switch name {

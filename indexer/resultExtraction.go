@@ -44,7 +44,7 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extracte
 		}
 		val := row[item.Field]
 		templateData := row
-		updated, err := r.applyTemplate("result_template", val, templateData)
+		updated, err := applyTemplate("result_template", val, templateData)
 		if err != nil {
 			return extractedItem{}, err
 		}
