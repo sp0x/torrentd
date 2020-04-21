@@ -579,6 +579,7 @@ func (r *Runner) Info() torznab.Info {
 	}
 }
 
+//Capabilities gets the torznab formatted capabilities of this indexer.
 func (r *Runner) Capabilities() torznab.Capabilities {
 	caps := r.definition.Capabilities.ToTorznab()
 
@@ -615,13 +616,17 @@ type extractedItem struct {
 // localCategories returns a slice of local categories that should be searched
 func (r *Runner) localCategories(query torznab.Query) []string {
 	localCats := []string{}
-
+	set := make(map[string]struct{})
 	if len(query.Categories) > 0 {
 		queryCats := torznab.AllCategories.Subset(query.Categories...)
 
 		// resolve query categories to the exact local, or the local based on parent cat
 		for _, id := range r.definition.Capabilities.CategoryMap.ResolveAll(queryCats...) {
-			localCats = append(localCats, id)
+			//Add only if it doesn't exist
+			if _, ok := set[id]; !ok {
+				localCats = append(localCats, id)
+				set[id] = struct{}{}
+			}
 		}
 
 		r.logger.
@@ -684,7 +689,7 @@ func (r *Runner) GetEncoding() string {
 }
 
 //Search for a given torrent
-func (r *Runner) Search(query torznab.Query) ([]search.ResultItem, error) {
+func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 	r.createBrowser()
 	defer r.releaseBrowser()
 	//[]torznab.ResultItem
@@ -860,8 +865,16 @@ func (r *Runner) Search(query torznab.Query) ([]search.ResultItem, error) {
 	for _, item := range extracted {
 		items = append(items, item.ResultItem)
 	}
-
-	return items, nil
+	srchResult := &context.Search
+	srchResult.Results = items
+	//search.Search{
+	//	DOM:         &context.Search.DOM,
+	//	Id:          "",
+	//	CurrentPage: 0,
+	//	StartIndex:  0,
+	//	Results:     nil,
+	//}
+	return srchResult, nil
 }
 
 type RunnerPatternData struct {

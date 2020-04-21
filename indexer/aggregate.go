@@ -20,7 +20,7 @@ func (ag Aggregate) GetEncoding() string {
 	return "utf-8"
 }
 
-func (ag Aggregate) Search(query torznab.Query) ([]search.ResultItem, error) {
+func (ag Aggregate) Search(query torznab.Query) (*search.Search, error) {
 	g := errgroup.Group{}
 	allResults := make([][]search.ResultItem, len(ag))
 	maxLength := 0
@@ -30,13 +30,13 @@ func (ag Aggregate) Search(query torznab.Query) ([]search.ResultItem, error) {
 		indexerID := indexer.Info().ID
 		idx, indexer := idx, indexer
 		g.Go(func() error {
-			result, err := indexer.Search(query)
+			srchRes, err := indexer.Search(query)
 			if err != nil {
 				log.Warnf("Indexer %q failed: %s", indexerID, err)
 				return nil
 			}
-			allResults[idx] = result
-			if l := len(result); l > maxLength {
+			allResults[idx] = srchRes.Results
+			if l := len(srchRes.Results); l > maxLength {
 				maxLength = l
 			}
 			return nil
@@ -47,6 +47,7 @@ func (ag Aggregate) Search(query torznab.Query) ([]search.ResultItem, error) {
 		return nil, err
 	}
 
+	var outputSearch = &search.Search{}
 	var results []search.ResultItem
 
 	// interleave search results to preserve ordering
@@ -61,8 +62,8 @@ func (ag Aggregate) Search(query torznab.Query) ([]search.ResultItem, error) {
 	if query.Limit > 0 && len(results) > query.Limit {
 		results = results[:query.Limit]
 	}
-
-	return results, nil
+	outputSearch.Results = results
+	return outputSearch, nil
 }
 
 func (ag Aggregate) Info() torznab.Info {

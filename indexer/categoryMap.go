@@ -4,6 +4,7 @@ import "github.com/sp0x/rutracker-rss/torznab"
 
 type categoryMap map[string]torznab.Category
 
+//Categories gets the collection of categories that this map contains
 func (mapping categoryMap) Categories() torznab.Categories {
 	cats := torznab.Categories{}
 	added := map[int]bool{}

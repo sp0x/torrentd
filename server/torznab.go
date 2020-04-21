@@ -126,10 +126,10 @@ func (s *Server) torznabSearch(r *http.Request, indexer torznab.Indexer, siteKey
 
 	feed := &torznab.ResultFeed{
 		Info:  indexer.Info(),
-		Items: items,
+		Items: items.Results,
 	}
 
-	rewritten, err := s.rewriteLinks(r, items)
+	rewritten, err := s.rewriteLinks(r, items.Results)
 	if err != nil {
 		return nil, err
 	}

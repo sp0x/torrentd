@@ -21,7 +21,7 @@ type Info struct {
 
 type Indexer interface {
 	Info() Info
-	Search(query Query) ([]search.ResultItem, error)
+	Search(query Query) (*search.Search, error)
 	Download(urlStr string) (io.ReadCloser, http.Header, error)
 	Capabilities() Capabilities
 	GetEncoding() string

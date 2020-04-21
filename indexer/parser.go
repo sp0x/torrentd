@@ -274,7 +274,7 @@ func (c *capabilitiesBlock) UnmarshalYAML(unmarshal func(interface{}) error) err
 
 	if err := unmarshal(&intermediate); err == nil {
 		c.CategoryMap = categoryMap{}
-
+		//Map the found categories using our own Categories `torznab.AllCategories`.
 		for id, catName := range intermediate.Categories {
 			matchedCat := false
 			for _, cat := range torznab.AllCategories {
@@ -292,7 +292,7 @@ func (c *capabilitiesBlock) UnmarshalYAML(unmarshal func(interface{}) error) err
 		c.SearchModes = []torznab.SearchMode{}
 
 		for key, supported := range intermediate.Modes {
-			c.SearchModes = append(c.SearchModes, torznab.SearchMode{key, true, supported})
+			c.SearchModes = append(c.SearchModes, torznab.SearchMode{Key: key, Available: true, SupportedParams: supported})
 		}
 
 		return nil
@@ -301,6 +301,7 @@ func (c *capabilitiesBlock) UnmarshalYAML(unmarshal func(interface{}) error) err
 	return errors.New("Failed to unmarshal capabilities block")
 }
 
+//ToTorznab converts a capabilities def. block to torznab capabilities object.
 func (c *capabilitiesBlock) ToTorznab() torznab.Capabilities {
 	caps := torznab.Capabilities{
 		Categories:  c.CategoryMap.Categories(),

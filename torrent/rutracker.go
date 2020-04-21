@@ -19,9 +19,6 @@ import (
 type Rutracker struct {
 	BasicTracker
 	loggedIn bool
-	//id string
-	//doc    *goquery.DOM
-	//currentSearch *Search
 	pageSize uint
 }
 

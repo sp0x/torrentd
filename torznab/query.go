@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/rutracker-rss/indexer/search"
 	"net/url"
 	"strconv"
 	"strings"
@@ -11,6 +12,7 @@ import (
 
 // Query represents a torznab query
 type Query struct {
+	*search.PaginationSearch
 	Type                               string
 	Q, Series, Ep, Season, Movie, Year string
 	Limit, Offset                      int
@@ -163,7 +165,9 @@ func ParseQuery(v url.Values) (Query, error) {
 				return query, errors.New("Multiple t parameters not allowed")
 			}
 			query.Type = vals[0]
-
+		case "p":
+			cnt, _ := strconv.Atoi(vals[0])
+			query.PageCount = uint(cnt)
 		case "q":
 			query.Q = strings.Join(vals, " ")
 
