@@ -54,7 +54,8 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extracte
 
 	item := extractedItem{
 		ResultItem: search.ResultItem{
-			Site: r.definition.Site,
+			Site:    r.definition.Site,
+			Indexer: r.getIndexer(),
 		},
 	}
 
@@ -74,14 +75,15 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extracte
 				r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 				continue
 			}
-			item.Link = u
+			//item.Link = u
+			item.SourceLink = u
 		case "link":
 			u, err := r.resolvePath(val)
 			if err != nil {
 				r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 				continue
 			}
-			item.SourceLink = u
+			item.Link = u
 		case "details":
 			u, err := r.resolvePath(val)
 			if err != nil {

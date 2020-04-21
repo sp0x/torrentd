@@ -826,9 +826,9 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 			}
 
 			if !matchCat {
-				r.logger.
-					WithFields(logrus.Fields{"id": item.LocalCategoryID, "name": item.LocalCategoryName, "localCats": localCats}).
-					Warn("Skipping non-matching category")
+				//r.logger.
+				//	WithFields(logrus.Fields{"id": item.LocalCategoryID, "name": item.LocalCategoryName, "localCats": localCats}).
+				//	Warn("Generic search skipping non-matching category")
 				continue
 			}
 		}
@@ -849,7 +849,7 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 			if info != nil && !info.SeriesTitleInfo.Equal(query.Series) {
 				r.logger.
 					WithFields(logrus.Fields{"got": info.SeriesTitleInfo.TitleWithoutYear, "expected": query.Series}).
-					Debugf("Skipping non-matching series")
+					Debugf("Series search skipping non-matching series")
 				continue
 			}
 		}
@@ -1009,4 +1009,11 @@ func (r *Runner) Ratio() (string, error) {
 	}
 
 	return strings.Trim(ratio, "- "), nil
+}
+
+func (r *Runner) getIndexer() *search.ResultIndexer {
+	return &search.ResultIndexer{
+		Id:   "",
+		Name: r.definition.Site,
+	}
 }

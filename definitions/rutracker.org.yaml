@@ -299,6 +299,51 @@ caps:
     1068: Other # , desc: " |- Эротические обои"}
     1424: Other # , desc: " |- Боевые искусства (Видеоуроки)"}
     1425: Other # , desc: " |- Видеоуроки и обучающие интерактивные DVD"}
+    ##MISC
+    2047: Movies #="Приключения"
+    2387: Audio #="[Аудио] Российская фантастика, фэнтези, мистика, ужасы, фанфики"
+    2302: Audio #="Джаз и Блюз (Hi-Res stereo)"
+    2375: Books #="Публицистика, журналистика"
+    50: Movies #="Хорроры"
+    1689: Books/Foreign #="Учебная литература для старших классов (5-11 класс)"
+    1055: PC #="Среды программирования, компиляторы и вспомогательные программы"
+    2046: Books/Foreign #="Худ. лит-ра для средних и старших классов"
+    1992: PC #="Нативные игры для Linux"
+    753: Books #="Вязание"
+    1865: Audio #="Traditional Electronic, Ambient (lossy)"
+    1707: Audio #="Folk-Rock (lossy)"
+    1747: Audio #="Emocore, Post-hardcore, Metalcore (lossy)"
+    185: Audio/Audiobook #="Звуковые дорожки и Переводы"
+    2031: Books/Technical #="Архитектура / Строительство / Инженерные сети / Ландшафтный дизайн"
+    489: TV #="Сериалы Ближнего Зарубежья"
+    9: TV/Foreign #="Русские сериалы"
+    1418: Books/Technical #="Компьютерная литература"
+    1410: Books #="Другие виды декоративно-прикладного искусства"
+
+    1727: Audio #="Heavy, Power, Progressive (lossy)"
+    148: Audio #="Аудио"
+    1724: Audio #="Gothic Metal (lossless)"
+    31: Books #="Журналы и газеты (общий раздел)"
+    1756: Audio #="Зарубежная рок-музыка (оцифровки)"
+    2427: Audio #="История Европы"
+    93: Movies #="DVD Video"
+    909: Audio #="Зарубежный Рэп, Хип-Хоп (lossless)"
+    1997: TV/Sport #="NBA / NCAA (2010-2020 гг.)"
+    1511: TV #="Встроенная автомобильная навигация"
+    2164: TV/HD #="BBC, Discovery, National Geographic (HD Video)"
+    1818: Audio #="Trance (lossless)"
+    24: TV #="Развлекательные телепередачи и шоу, приколы и юмор"
+
+    764: Books #="Бизнес, менеджмент"
+    1795: Audio #="Рок-музыка (HD Video)"
+    7: Movies #="Зарубежное кино"
+    1736: Audio #="Alternative & Nu-metal (lossless)"
+    930: Movies/HD #="Иностранные мультфильмы (HD Video)"
+    2452: Books #="История Азии и Африки"
+    1780: Audio #="Death, Doom (lossy)"
+    1712: Audio #="Rockabilly, Psychobilly, Rock'n'Roll (lossless)"
+
+
 
 login:
   path: /forum/login.php

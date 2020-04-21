@@ -30,7 +30,7 @@ func SendRssFeed(hostname, name string, torrents []db.Torrent, c *gin.Context) {
 		}
 		feed.Items[i] = feedItem
 	}
-	rss, err := feed.ToRss()
+	rss, err := feed.ToAtom()
 	if err != nil {
 		log.Fatal(err)
 	}

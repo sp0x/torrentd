@@ -1,8 +1,6 @@
 package server
 
 import (
-	"encoding/json"
-	"encoding/xml"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -52,19 +50,10 @@ func (s *Server) torznabHandler(c *gin.Context) {
 			return
 		}
 		switch c.Query("format") {
+		case "atom":
+			atomOutput(c, feed, indexer.GetEncoding())
 		case "", "xml":
-			x, err := xml.MarshalIndent(feed, "", "  ")
-			if err != nil {
-				torznab.Error(c, err.Error(), torznab.ErrUnknownError)
-				return
-			}
-			if indexer.GetEncoding() != "" {
-				c.Header("Content-Type", fmt.Sprintf("application/rss+xml; charset=%s", formatEncoding(indexer.GetEncoding())))
-			} else {
-				c.Header("Content-Type", "application/rss+xml")
-			}
-
-			_, _ = c.Writer.Write(x)
+			xmlOutput(c, feed, indexer.GetEncoding())
 		case "json":
 			jsonOutput(c.Writer, feed, indexer.GetEncoding())
 		}
@@ -128,6 +117,7 @@ func (s *Server) torznabSearch(r *http.Request, indexer torznab.Indexer, siteKey
 		Info:  indexer.Info(),
 		Items: srch.Results,
 	}
+	feed.Info.Category = query.Type
 
 	rewritten, err := s.rewriteLinks(r, srch.Results)
 	if err != nil {
@@ -135,6 +125,7 @@ func (s *Server) torznabSearch(r *http.Request, indexer torznab.Indexer, siteKey
 	}
 
 	feed.Items = rewritten
+
 	return feed, err
 }
 
@@ -154,10 +145,10 @@ func (s *Server) rewriteLinks(r *http.Request, items []search.ResultItem) ([]sea
 		if strings.HasPrefix(item.Link, "magnet:") {
 			continue
 		}
-
+		//Encode the site and source of the torrent as a JWT token
 		t := &token{
 			Site: item.Site,
-			Link: item.Link,
+			Link: item.SourceLink,
 		}
 
 		te, err := t.Encode(k)
@@ -171,18 +162,4 @@ func (s *Server) rewriteLinks(r *http.Request, items []search.ResultItem) ([]sea
 	}
 
 	return items, nil
-}
-
-func jsonOutput(w http.ResponseWriter, v interface{}, encoding string) {
-	if encoding != "" {
-		w.Header().Set("Content-Type", fmt.Sprintf("application/json; charset=%s", formatEncoding(encoding)))
-	} else {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	}
-	b, err := json.MarshalIndent(v, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-
-	_, _ = w.Write(append(b, '\n'))
 }
