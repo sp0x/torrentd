@@ -48,6 +48,7 @@ func (ml multiLoader) Load(key string) (*IndexerDefinition, error) {
 		}
 		loaded, err := loader.Load(key)
 		if err != nil {
+			log.Warnf("Couldn't load the indexer `%s` using %s. Error : %s\n", key, loader, err)
 			continue
 		}
 		if def == nil || loaded.Stats().ModTime.After(def.Stats().ModTime) { // If no definition is loaded so far, or the new one is newer
@@ -56,7 +57,7 @@ func (ml multiLoader) Load(key string) (*IndexerDefinition, error) {
 	}
 
 	if def == nil {
-		log.Infof("Couldn't load the indexer `%s` from any of these locations: \n", key)
+		log.Infof("No loaders managed to load indexer `%s` from any of these locations: \n", key)
 		for _, ldr := range ml {
 			log.Infof("%s\n", ldr)
 		}

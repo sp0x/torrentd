@@ -24,7 +24,10 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (extracte
 			Debugf("Processing field %q", item.Field)
 		val, err := item.Block.MatchText(selection)
 		if err != nil {
-			return extractedItem{}, err
+			r.logger.WithFields(logrus.Fields{"error": err, "selector": item.Field}).
+				Warnf("Couldn't process selector")
+			continue
+			//return extractedItem{}, err
 		}
 
 		r.logger.

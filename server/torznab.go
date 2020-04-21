@@ -83,7 +83,7 @@ func formatEncoding(nm string) string {
 func (s *Server) createIndexer(key string) (torznab.Indexer, error) {
 	def, err := indexer.DefaultDefinitionLoader.Load(key)
 	if err != nil {
-		log.WithError(err).Warnf("Failed to load definition for %q", key)
+		log.WithError(err).Warnf("Failed to load definition for %q. %v", key, err)
 		return nil, err
 	}
 

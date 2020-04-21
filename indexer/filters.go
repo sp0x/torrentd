@@ -111,6 +111,8 @@ func invokeFilter(name string, args interface{}, value string) (string, error) {
 		return value, nil
 	case "mapreplace":
 		return filterMapReplace(value, args)
+	case "re_replace":
+		return filterReReplace(value, args)
 	case "timeago", "fuzzytime", "reltime":
 		return filterFuzzyTime(value, time.Now())
 	}
@@ -122,6 +124,17 @@ func filterMapReplace(value string, args interface{}) (string, error) {
 	for oldVal, newVal := range replacemenets {
 		value = strings.Replace(value, oldVal.(string), newVal.(string), -1)
 	}
+	return value, nil
+}
+
+func filterReReplace(value string, args interface{}) (string, error) {
+	pattern := args.([]interface{})[0].(string)
+	replacement := args.([]interface{})[1].(string)
+	re, err := regexp.Compile(pattern)
+	if err != nil {
+		return "", err
+	}
+	value = re.ReplaceAllString(value, replacement)
 	return value, nil
 }
 
