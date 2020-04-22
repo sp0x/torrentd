@@ -701,34 +701,10 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 	r.logger.
 		WithFields(logrus.Fields{"query": query.Encode()}).
 		Infof("Searching indexer")
-
-	vals := url.Values{}
-	//Parse the values that will be used in the url for the search
-	for name, val := range r.definition.Search.Inputs {
-		resolved, err := applyTemplate("search_inputs", val, templateCtx)
-		if err != nil {
-			return nil, err
-		}
-		switch name {
-		case "$raw":
-			parsedVals, err := url.ParseQuery(resolved)
-			if err != nil {
-				r.logger.WithError(err).Warn(err)
-				return nil, fmt.Errorf("Error parsing $raw input: %s", err.Error())
-			}
-
-			r.logger.
-				WithFields(logrus.Fields{"source": val, "parsed": parsedVals}).
-				Debugf("Processed $raw input")
-
-			for k, values := range parsedVals {
-				for _, val := range values {
-					vals.Add(k, val)
-				}
-			}
-		default:
-			vals.Add(name, resolved)
-		}
+	//Get our indexer url values
+	vals, err := r.extractUrlValues(templateCtx)
+	if err != nil {
+		return nil, err
 	}
 
 	timer := time.Now()
@@ -830,6 +806,38 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 	srchResult := &context.Search
 	srchResult.Results = items
 	return srchResult, nil
+}
+
+func (r *Runner) extractUrlValues(templateCtx RunnerPatternData) (url.Values, error) {
+	//Parse the values that will be used in the url for the search
+	vals := url.Values{}
+	for name, val := range r.definition.Search.Inputs {
+		resolved, err := applyTemplate("search_inputs", val, templateCtx)
+		if err != nil {
+			return nil, err
+		}
+		switch name {
+		case "$raw":
+			parsedVals, err := url.ParseQuery(resolved)
+			if err != nil {
+				r.logger.WithError(err).Warn(err)
+				return nil, fmt.Errorf("Error parsing $raw input: %s", err.Error())
+			}
+
+			r.logger.
+				WithFields(logrus.Fields{"source": val, "parsed": parsedVals}).
+				Debugf("Processed $raw input")
+
+			for k, values := range parsedVals {
+				for _, val := range values {
+					vals.Add(k, val)
+				}
+			}
+		default:
+			vals.Add(name, resolved)
+		}
+	}
+	return vals, nil
 }
 
 type RunnerPatternData struct {

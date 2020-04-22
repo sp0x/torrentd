@@ -97,7 +97,12 @@ func invokeFilter(name string, args interface{}, value string) (string, error) {
 			return "", fmt.Errorf("Filter %q requires a string argument at idx 0", name)
 		}
 		return str + value, nil
-
+	case "urldecode":
+		decoded, err := url.QueryUnescape(value)
+		if err != nil {
+			return "", fmt.Errorf("Filter urldecode couldn't decode value `%s`, %s\n", value, err)
+		}
+		return decoded, nil
 	case "urlarg":
 		argName, ok := args.(string)
 		if !ok {
