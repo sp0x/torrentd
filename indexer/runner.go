@@ -114,6 +114,12 @@ func (r *Runner) createTransport() (http.RoundTripper, error) {
 }
 
 func (r *Runner) createBrowser() {
+	if r.keepSessions {
+		//No need to recreate browsers if we're keeping the session
+		if r.browser != nil {
+			return
+		}
+	}
 	r.browserLock.Lock()
 
 	if r.cookies == nil {
