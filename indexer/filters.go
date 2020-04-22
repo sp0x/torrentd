@@ -125,7 +125,7 @@ func invokeFilter(name string, args interface{}, value string) (string, error) {
 	case "re_replace":
 		return filterReReplace(value, args)
 	case "timeago", "fuzzytime", "reltime":
-		return filterFuzzyTime(value, time.Now())
+		return filterFuzzyTime(value, time.Now(), true)
 	}
 	return "", errors.New("Unknown filter " + name)
 }
@@ -314,7 +314,7 @@ func parseTimeAgo(src string, now time.Time) (time.Time, error) {
 	return now, nil
 }
 
-func parseFuzzyTime(src string, now time.Time) (time.Time, error) {
+func parseFuzzyTime(src string, now time.Time, allowPartialDate bool) (time.Time, error) {
 	if timeAgoRegexp.MatchString(src) {
 		t, err := parseTimeAgo(src, now)
 		if err != nil {
@@ -324,8 +324,7 @@ func parseFuzzyTime(src string, now time.Time) (time.Time, error) {
 	}
 
 	normalized := normalizeSpace(src)
-
-	out := todayRegexp.ReplaceAllLiteralString(normalized, now.Format("Mon, 02 Jan 2006 "))
+	out := todayRegexp.ReplaceAllLiteralString(normalized, now.Format("2006 "))
 	out = tomorrowRegexp.ReplaceAllLiteralString(out, now.AddDate(0, 0, 1).Format("Mon, 02 Jan 2006 "))
 	out = yesterdayRegexp.ReplaceAllLiteralString(out, now.AddDate(0, 0, -1).Format("Mon, 02 Jan 2006 "))
 
@@ -341,9 +340,19 @@ func parseFuzzyTime(src string, now time.Time) (time.Time, error) {
 	if dt.Time.Empty() {
 		dt.Time.SetHour(0)
 		dt.Time.SetMinute(0)
+		dtx, err := time.Parse("2006", out)
+		if err != nil {
+			dtx, err = time.Parse("Jan 2006", out)
+			if err == nil {
+				return dtx, nil
+			}
+		} else {
+			return dtx, nil
+		}
 	}
 
-	if !dt.HasFullDate() {
+	//If we dont support partial dates, we return an error
+	if !allowPartialDate && !dt.HasFullDate() {
 		return time.Time{}, fmt.Errorf("found only partial date %v", dt.ISOFormat())
 	}
 
@@ -358,8 +367,8 @@ func parseFuzzyTime(src string, now time.Time) (time.Time, error) {
 	return time.Parse("2006-01-02T15:04:05Z07:00", dt.ISOFormat())
 }
 
-func filterFuzzyTime(src string, now time.Time) (string, error) {
-	t, err := parseFuzzyTime(src, now)
+func filterFuzzyTime(src string, now time.Time, allowPartialDate bool) (string, error) {
+	t, err := parseFuzzyTime(src, now, allowPartialDate)
 	if err != nil {
 		return "", fmt.Errorf("error parsing fuzzy time %q: %v", src, err)
 	}
