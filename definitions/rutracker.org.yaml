@@ -361,7 +361,7 @@ login:
   error:
     - selector: h4.warnColor1
   test:
-    path: index.php
+    #    path: index.php
     selector: a#logged-in-username
 
 ratio:
@@ -438,7 +438,7 @@ search:
       selector: td:nth-child(5)
       remove: br
     authorId:
-      selector: td:nth-child(5)
+      selector: td:nth-child(5) a
       attribute: href
       filters:
         - name: urlarg

@@ -111,6 +111,14 @@ search:
     download:
       selector: a:has(i.fa-download)
       attribute: href
+    link:
+      text: "{{ .details }}"
+    id:
+      text: "{{ .details }}"
+      filters:
+        - name: urlarg
+          args: id
+
     grabs:
       selector: td:nth-child(7)
       filters:

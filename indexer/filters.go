@@ -314,7 +314,22 @@ func parseTimeAgo(src string, now time.Time) (time.Time, error) {
 	return now, nil
 }
 
+var todayTimeFormat = "15:04:05"
+
 func parseFuzzyTime(src string, now time.Time, allowPartialDate bool) (time.Time, error) {
+	if okTime, err := time.Parse(todayTimeFormat, src); err == nil {
+		dt := fuzzytime.DateTime{}
+		dt.Time.SetHour(okTime.Hour())
+		dt.Time.SetSecond(okTime.Second())
+		dt.Time.SetMinute(okTime.Minute())
+		dt.Date.SetYear(now.Year())
+		dt.Date.SetDay(now.Day())
+		dt.Date.SetMonth(int(now.Month()))
+		isof := dt.ISOFormat()
+		okTime, _ = time.Parse("2006-01-02T15:04:05", isof)
+		return okTime, nil
+	}
+
 	if timeAgoRegexp.MatchString(src) {
 		t, err := parseTimeAgo(src, now)
 		if err != nil {

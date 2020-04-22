@@ -1,4 +1,23 @@
 ---
+language: bg-BG
+name: ArenaBG
+links:
+  - "https://arenabg.ch/"
+login:
+  error:
+    - message:
+        selector: "div.row div div.alert"
+      selector: "div.row div div.alert i.fa-warning"
+  form: "form[action=\"/users/\"]"
+  inputs:
+    action: login
+    email: "{{ .Config.username }}"
+    password: "{{ .Config.password }}"
+  method: form
+  path: /
+  test:
+    selector: "a[href=\"/users/logout/\"]"
+
 caps:
   categories:
     0-day: PC
@@ -54,36 +73,12 @@ caps:
     xvid: Movies/SD
     xxx: XXX
     xxx-hd: XXX
-language: bg-BG
-links:
-  - "https://arenabg.ch/"
-login:
-  error:
-    - message:
-        selector: "div.row div div.alert"
-      selector: "div.row div div.alert i.fa-warning"
-  form: "form[action=\"/users/\"]"
-  inputs:
-    action: login
-    email: "{{ .Config.username }}"
-    password: "{{ .Config.password }}"
-  method: form
-  path: /
-  test:
-    path: /
-    selector: "a[href=\"/users/logout/\"]"
-name: ArenaBG
-ratio:
-  path: "https://www.bitmetv.org/browse.php"
-  selector: "span.smallfont > font[color=\"1900D1\"] + font"
 search:
-  context:
-    searchId:
-      attribute: href
-      filters:
-        - args: "tracker.php\\?search_id=([^&]+)[^'\"]*?"
-          name: regexp
-      selector: a.pg
+  maxpages: 10
+  method: post
+  pagesize: 25
+  path: torrents/
+  followredirect: true
   fields:
     #    author:
     #      selector: td.filename span.user-icon a
@@ -174,11 +169,6 @@ search:
     subtitles: 0
     audio: 0
     text_mobile:
-  maxpages: 10
-  method: post
-  pagesize: 50
-  path: torrents/
-  followredirect: true
   rows:
     selector: "tr:has(td.category)"
 
