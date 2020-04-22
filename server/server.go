@@ -10,7 +10,6 @@ import (
 	"github.com/sp0x/rutracker-rss/torrent"
 	storage2 "github.com/sp0x/rutracker-rss/torrent/storage"
 	"github.com/sp0x/rutracker-rss/torznab"
-	"github.com/spf13/viper"
 	"net/http"
 	"net/url"
 	"os"
@@ -96,8 +95,8 @@ func (s *Server) createAggregate() (torznab.Indexer, error) {
 
 	agg := indexer.Aggregate{}
 	for _, key := range keys {
-		ifaceConfig := viper.Get("indexer." + key)
-		if ifaceConfig != nil {
+		ifaceConfig, _ := s.config.GetSite(key) //Get all the configured indexers
+		if ifaceConfig != nil && len(ifaceConfig) > 0 {
 
 			indexer, err := s.lookupIndexer(key)
 			if err != nil {
@@ -105,13 +104,6 @@ func (s *Server) createAggregate() (torznab.Indexer, error) {
 			}
 			agg = append(agg, indexer)
 		}
-		//if config.IsSectionEnabled(key, s.Params) {
-		//	indexer, err := s.lookupIndexer(key)
-		//	if err != nil {
-		//		return nil, err
-		//	}
-		//	agg = append(agg, indexer)
-		//}
 	}
 
 	return agg, nil

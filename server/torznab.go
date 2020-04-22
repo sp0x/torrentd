@@ -88,7 +88,7 @@ func (s *Server) createIndexer(key string) (torznab.Indexer, error) {
 }
 
 func (s *Server) lookupIndexer(key string) (torznab.Indexer, error) {
-	if key == "aggregate" {
+	if key == "aggregate" || key == "all" {
 		return s.createAggregate()
 	}
 	if _, ok := s.indexers[key]; !ok {
