@@ -22,11 +22,8 @@ type ExternalResultItem struct {
 	LocalCategoryID   string
 	LocalCategoryName string
 	LocalId           string
-	IsMagnet          bool
 	Announce          string
 	Publisher         string
-	Fingerprint       string
-	Banner            string
 }
 
 type ResultItem struct {
@@ -37,6 +34,9 @@ type ResultItem struct {
 	GUID          string
 	Comments      string
 	Link          string
+	Fingerprint   string
+	Banner        string
+	IsMagnet      bool
 
 	SourceLink  string
 	Category    int
@@ -101,6 +101,7 @@ func (ri ResultItem) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		PublishDate       string         `xml:"pubDate,omitempty"`
 		Enclosure         interface{}    `xml:"enclosure,omitempty"`
 		Size              uint64         `xml:"size"`
+		Banner            string         `xml:"banner"`
 		TorznabAttributes []torznabAttrView
 	}{
 		Title:       ri.Title,
@@ -116,6 +117,7 @@ func (ri ResultItem) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		Enclosure:   enclosure,
 		AtomLink:    atomLink,
 		Size:        ri.Size,
+		Banner:      ri.Banner,
 	}
 	attribs := itemView.TorznabAttributes
 	attribs = append(attribs, torznabAttrView{Name: "category", Value: strconv.Itoa(ri.Category)})

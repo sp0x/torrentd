@@ -1,212 +1,189 @@
 ---
-site: arenabg
-name: ArenaBG
-language: bg-BG
-links:
-  - https://arenabg.ch/
-
-settings:
-  - name: cookie
-    type: text
-    label: Cookie
-
-#A mapping of what category id from the indexer, matches to a category that we support
 caps:
   categories:
-    movies: Movies # "Movies"
-    arenabgtv: Movies # "Movies / ArenaBG.TV"
-    xvid: Movies/SD # "Movies / XviD"
-    dvd-r: Movies/DVD # "Movies / DVD-R"
-    x264: Movies/HD # "Movies / x264"
-    animemanga: TV/Anime # "Movies / Anime & Manga"
-    documentaries: TV/Documentary # "Movies / Documentaries"
-    blu-ray: Movies/BluRay # "Movies / Blu-ray"
-    boxset: Movies # "Movies / Boxset"
-    x264boxset: Movies/HD # "Movies / x264 Boxset"
-    tvepisodeshd: Movies/HD # "Movies / HDTV"
-    3d: Movies/3D # "Movies / 3D"
-    movies-hd: Movies/HD # "Movies / Movies HD"
-    x265: Movies/HD # "Movies / x265"
-    4k: Movies/UHD # "Movies / 4K"
-    series: TV # "Series"
-    hdtv: TV/HD # "Series / TV Episodes HD"
-    tvepisodes: TV # "Series / TV Episodes"
-    tvboxset: TV # "Series / TV Boxset"
-    tvboxsethd: TV/HD # "Series / TV Boxset HD"
-    music: Audio # "Music"
-    mp3: Audio/MP3 # "Music / MP3"
-    music-video: Audio/Video # "Music / Video"
-    flac: Audio/Lossless # "Music / FLAC"
-    music-dvd: Audio # "Music / DVD"
-    music-ape: Audio/Lossless # "Music / APE"
-    music-dts: Audio # "Music / DTS"
-    musicwavpack: Audio # "Music / WavePack"
-    musicost: Audio # "Music / OST"
-    games: PC/Games # "Games"
-    games-iso: PC/Games # "Games / PC ISO"
-    pc-rip: PC # "Games / PC RIP"
-    ps2: Console # "Games / PS2"
-    psp: Console/PSP # "Games / PSP"
-    xbox: Console/Xbox # "Games / XBOX"
-    xbox-360: Console/Xbox 360 # "Games / XBOX-360"
-    ps3: Console/PS3 # "Games / PS3"
-    wii: Console/Wii # "Games / WII"
-    PS4: Console/PS4 # "Games / PS4"
-    software: PC # "Software"
-    pc-iso: PC # "Software / PC ISO"
-    pdasmartphone: PC/Phone-Other # "Software / Smartphone"
-    tutorial: PC # "Software / Tutorial"
-    android: PC/Phone-Android # "Software / Android"
-    ios: PC/Phone-IOS # "Software / iOS"
-    misc: Other/Misc # "Misc"
-    other: Other # "Misc / Other"
-    e-books: Books/Ebook # "Misc / e-Books"
-    sports: TV/Sport # "Misc / Sports"
-    0-day: PC # "Misc / 0-Day"
-    xxx: XXX # "XXX"
-    porn: XXX # "XXX / Porn"
-    xxx-hd: XXX # "XXX / XXX HD"
-
+    0-day: PC
+    3d: Movies/3D
+    4k: Movies/UHD
+    PS4: Console/PS4
+    android: PC/Phone-Android
+    animemanga: TV/Anime
+    arenabgtv: Movies
+    blu-ray: Movies/BluRay
+    boxset: Movies
+    documentaries: TV/Documentary
+    dvd-r: Movies/DVD
+    e-books: Books/Ebook
+    flac: Audio/Lossless
+    games: PC/Games
+    games-iso: PC/Games
+    hdtv: TV/HD
+    ios: PC/Phone-IOS
+    misc: Other/Misc
+    movies: Movies
+    movies-hd: Movies/HD
+    mp3: Audio/MP3
+    music: Audio
+    music-ape: Audio/Lossless
+    music-dts: Audio
+    music-dvd: Audio
+    music-video: Audio/Video
+    musicost: Audio
+    musicwavpack: Audio
+    other: Other
+    pc-iso: PC
+    pc-rip: PC
+    pdasmartphone: PC/Phone-Other
+    porn: XXX
+    ps2: Console
+    ps3: Console/PS3
+    psp: Console/PSP
+    series: TV
+    software: PC
+    sports: TV/Sport
+    tutorial: PC
+    tvboxset: TV
+    tvboxsethd: TV/HD
+    tvepisodes: TV
+    tvepisodeshd: Movies/HD
+    wii: Console/Wii
+    x264: Movies/HD
+    x264boxset: Movies/HD
+    x265: Movies/HD
+    xbox: Console/Xbox
+    xbox-360: "Console/Xbox 360"
+    xvid: Movies/SD
+    xxx: XXX
+    xxx-hd: XXX
+language: bg-BG
+links:
+  - "https://arenabg.ch/"
 login:
-  path: /
-  method: form
+  error:
+    - message:
+        selector: "div.row div div.alert"
+      selector: "div.row div div.alert i.fa-warning"
+  form: "form[action=\"/users/\"]"
   inputs:
+    action: login
     email: "{{ .Config.username }}"
     password: "{{ .Config.password }}"
-    action: "login"
-  error:
-    - selector: h4.warnColor1
+  method: form
+  path: /
   test:
     path: /
-    selector: a[href="/users/logout/"]
-
+    selector: "a[href=\"/users/logout/\"]"
+name: ArenaBG
 ratio:
-  path: https://www.bitmetv.org/browse.php
-  selector: span.smallfont > font[color="1900D1"] + font
-
-
+  path: "https://www.bitmetv.org/browse.php"
+  selector: "span.smallfont > font[color=\"1900D1\"] + font"
 search:
-  path: torrents/
-  method: post
-  followredirect: true
-  pagesize: 50
-  maxpages: 10
-  inputs:
-    $raw: "{{ if .Query.Keywords }}{{ .Query.Keywords }}{{else}}{{end}}"
-  rows:
-    selector: tr:has(td.category)
   context:
     searchId:
+      attribute: href
+      filters:
+        - args: "tracker.php\\?search_id=([^&]+)[^'\"]*?"
+          name: regexp
       selector: a.pg
-      attribute: href
-      filters:
-        - name: regexp
-          args: "tracker.php\\?search_id=([^&]+)[^'\"]*?"
   fields:
+    #    author:
+    #      selector: td.filename span.user-icon a
+    #    authorId:
+    #      selector: td.filename span.user-icon a
+    #      attribute: href
+    #      filters:
+    #        - name: re_replace
+    #          args: ["/torrents/user:(.+?)/", "$1"]
     id:
-      selector: a.tLink
+      selector: a.torrent-link
       attribute: href
-      filters:
-        - name: urlarg
-          args: "t"
-    categoryName:
-      selector: td:nth-child(3) a
-    category:
-      selector: td:nth-child(3) a
-      attribute: href
-      filters:
-        - name: urlarg
-          args: "f"
     title:
-      selector: a.tLink
+      selector: "td.filename div:nth-child(2) a"
       filters:
-        # normalize to SXXEYY format
-        - name: re_replace
-          args: ["[\\.\\,\\:\\-\\/\\|\\[\\]\\(\\)]", " "]
-        - name: re_replace
-          args: ["(.*)[CСcс]езон\\s*(\\d+)\\s*[CСcс]ери[ияй]\\s*(\\d+)\\s*(\\d+)\\s*из\\s*\\d+(.*)", "$1 S$2E$3-$4 rus $5"]
-        - name: re_replace
-          args: ["(.*)[CСcс]езон\\s*(\\d+)\\s*(\\d+)\\s*(\\d+)\\s*[CСcс]ери[ияй]\\s*из\\s*\\d+(.*)", "$1 S$2E$3-$4 rus $5"]
-        - name: re_replace
-          args: ["(.*)(\\d+)\\s*[CСcс]езон\\s*(\\d+)\\s*(\\d+)\\s*[CСcс]ери[ияй]\\s*из\\s*\\d+(.*)", "$1 S$2E$3-$4 rus $5"]
-        - name: re_replace
-          args: ["(.*)[CСcс]езон\\s*(\\d+)\\s*[CСcс]ери[ияй]\\s*(\\d+)\\s*(\\d+)\\s*(.*)", "$1 S$2E$3-$4 rus $5"]
-        - name: re_replace
-          args: ["(.*)[CСcс]езон\\s*(\\d+)\\s*[CСcс]ери[ияй]\\s*(\\d+)\\s*из\\s*\\d+(.*)", "$1 S$2E$3 rus $4"]
-        - name: re_replace
-          args: ["(.*)[CСcс]езон\\s*(\\d+)(.*)", "$1 S$2 rus $3"]
-        - name: re_replace
-          args: ["(.*)[CСcс]]ери[ия]\\s*(\\d+)(.*)", "$1 E$2 rus $3"]
         - name: re_replace
           args: ["(\\([А-Яа-яЁё\\W]+\\))|(^[А-Яа-яЁё\\W\\d]+\\/ )|([а-яА-ЯЁё \\-]+,+)|([а-яА-ЯЁё]+)", "{{ if .Config.striprussian }}{{ else }}$1$2$3$4{{ end }}"]
-        - name: replace
-          args: ["WEBRip", "WEBDL"]
-        - name: replace
-          args: ["WEB DL", "WEBDL"]
-        - name: replace
-          args: ["WEBDLRip", "WEBDL"]
-        - name: replace
-          args: ["HDTVRip", "HDTV"]
-    link:
-      pattern: "http://rutracker.org/forum/viewtopic.php?t={{ .id }}"
-    download:
-      pattern: "http://rutracker.org/forum/dl.php?t={{ .id }}"
-    author:
-      selector: td:nth-child(5)
-      remove: br
-    authorId:
-      selector: td:nth-child(5)
+    banner:
+      selector: "td.filename div:nth-child(2) a"
+      attribute: onmouseover
+      filters:
+        - name: regexp
+          args: "src=\\\\'([^\\s]+?[\\\\'])"
+        - name: trim
+          args: "\\"
+    category:
+      selector: "td.category a"
       attribute: href
       filters:
-        - name: urlarg
-          args: "pid"
+        - name: re_replace
+          args:
+            - "/torrents/type:(.+?)/"
+            - $1
+    categoryName:
+      text: "{{ .category }}"
+    date:
+      optional: true
+      selector: "td:nth-child(3)"
+      filters:
+        - name: dateparse
+          args: "2006-01-02 15:04:05"
+    details:
+      attribute: href
+      selector: "td.filename div a"
+    download:
+      attribute: href
+      selector: "td.filename div a"
+    link:
+      attribute: href
+      selector: "td.filename div a"
+    downloadvolumefactor:
+      text: 0
+    grabs:
+      filters:
+        - name: replace
+          args:
+            - "-"
+            - "0"
+      selector: "td:nth-child(8)"
+    leechers:
+      selector: "td:nth-child(7)"
+      filters:
+        - name: replace
+          args:
+            - "-"
+            - "0"
+    seeders:
+      filters:
+        - args:
+            - "-"
+            - "0"
+          name: replace
+        - args:
+            - DHT
+            - "0"
+          name: replace
+      selector: "td:nth-child(6)"
     size:
-      selector: td:nth-child(6)
-      remove: br
+      selector: "td:nth-child(4)"
       filters:
         - name: size
-    date:
-      selector: td:last-child
-      remove: br
-      filters:
-        - name: trim
-          args: "."
-        - name: whitespace
-        - name: mapreplace
-          args:
-            Янв: "Jan"
-            Фев: "Feb"
-            Мар: "Mar"
-            Апр: "Apr"
-            Май: "May"
-            Июн: "Jun"
-            Июл: "Jul"
-            Авг: "Aug"
-            Сен: "Sep"
-            Окт: "Oct"
-            Ноя: "Nov"
-            Дек: "Dec"
-        - name: dateparse
-          args: "2-Jan-06 15:04"
-        - name: dateparseAlt
-          args: "2-Jan-06"
-    seeders:
-      selector: td:nth-child(7)
-      filters:
-        - name: number
-    leechers:
-      selector: td:nth-child(8)
-      filters:
-        - name: number
-    grabs:
-      selector: td:nth-child(9)
-      filters:
-        - name: number
-    #    magnet:
-    #      selector: a[href^="magnet:?xt="]
-    #      attribute: href
-    downloadvolumefactor:
-      case:
-        "*": "1"
     uploadvolumefactor:
-      text: "1"
+      text: 1
+  inputs:
+    text: "{{ if .Query.Keywords }}{{ .Query.Keywords }}{{else}}{{end}}"
+    action: search
+    type: 0
+    subtitles: 0
+    audio: 0
+    text_mobile:
+  maxpages: 10
+  method: post
+  pagesize: 50
+  path: torrents/
+  followredirect: true
+  rows:
+    selector: "tr:has(td.category)"
+
+settings:
+  - label: Cookie
+    name: cookie
+    type: text
+site: arenabg

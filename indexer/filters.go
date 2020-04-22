@@ -174,13 +174,10 @@ func filterRegexp(pattern string, value string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	matches := re.FindStringSubmatch(value)
-
 	if len(matches) == 0 {
 		return "", errors.New("No matches found for pattern")
 	}
-
 	filterLogger.WithFields(log.Fields{"matches": matches}).Debug("Regex matched")
 	//If we have groups, use the groups concatenated by a space
 	if len(matches) > 1 {
