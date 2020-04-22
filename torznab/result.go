@@ -19,7 +19,6 @@ type ResultFeed struct {
 }
 
 func (rf ResultFeed) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	//<atom:link href="http://jackett.vaskovasilev.eu/" rel="self" type="application/rss+xml" />
 	var channelView = struct {
 		XMLName     struct{} `xml:"channel"`
 		Title       string   `xml:"title,omitempty"`

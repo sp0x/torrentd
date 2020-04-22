@@ -74,7 +74,7 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 		case "author":
 			item.Author = val
 		case "download":
-			u, err := r.resolvePath(val)
+			u, err := r.resolveIndexerPath(val)
 			if err != nil {
 				r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 				continue
@@ -82,14 +82,14 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 			//item.Link = u
 			item.SourceLink = u
 		case "link":
-			u, err := r.resolvePath(val)
+			u, err := r.resolveIndexerPath(val)
 			if err != nil {
 				r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 				continue
 			}
 			item.Link = u
 		case "details":
-			u, err := r.resolvePath(val)
+			u, err := r.resolveIndexerPath(val)
 			if err != nil {
 				r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 				continue
@@ -100,7 +100,7 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 				item.Comments = u
 			}
 		case "comments":
-			u, err := r.resolvePath(val)
+			u, err := r.resolveIndexerPath(val)
 			if err != nil {
 				r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 				continue
@@ -143,7 +143,7 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 		case "authorId":
 			item.AuthorId = val
 		case "date":
-			t, err := parseFuzzyTime(val, time.Now())
+			t, err := parseFuzzyTime(val, time.Now(), true)
 			if err != nil {
 				r.logger.Warnf("Row #%d has unparseable time %q in %s", rowIdx, val, key)
 				continue
@@ -192,7 +192,12 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 			}
 			item.MinimumSeedTime = time.Duration(minimumseedtime) * time.Second
 		case "banner":
-			item.Banner = val
+			banner, err := r.resolveIndexerPath(val)
+			if err != nil {
+				banner = val
+			} else {
+				item.Banner = banner
+			}
 		default:
 			r.logger.Warnf("Row #%d has unknown field %s", rowIdx, key)
 			continue

@@ -209,8 +209,8 @@ func (r *Runner) testURLWorks(u string) bool {
 	return true
 }
 
-//resolvePath resolve a relative url based on the working indexer base url
-func (r *Runner) resolvePath(urlPath string) (string, error) {
+//resolveIndexerPath resolve a relative url based on the working indexer base url
+func (r *Runner) resolveIndexerPath(urlPath string) (string, error) {
 	if strings.HasPrefix(urlPath, "magnet:") {
 		return urlPath, nil
 	}
@@ -243,7 +243,7 @@ func (r *Runner) handleMetaRefreshHeader() error {
 				WithField("fields", s).
 				Debug("Found refresh header")
 
-			u, err := r.resolvePath(strings.TrimPrefix(s[1], "url="))
+			u, err := r.resolveIndexerPath(strings.TrimPrefix(s[1], "url="))
 			if err != nil {
 				return err
 			}
@@ -272,10 +272,12 @@ func (r *Runner) openPage(u string) error {
 	return nil
 }
 
-func (r *Runner) postToPage(u string, vals url.Values) error {
-	r.logger.
-		WithFields(logrus.Fields{"url": u, "vals": vals}).
-		Info("Posting to page")
+func (r *Runner) postToPage(u string, vals url.Values, log bool) error {
+	if log {
+		r.logger.
+			WithFields(logrus.Fields{"url": u, "vals": vals.Encode()}).
+			Info("Posting to page")
+	}
 	if err := r.browser.PostForm(u, vals); err != nil {
 		return err
 	}
@@ -372,7 +374,7 @@ func (r *Runner) loginViaPost(loginURL string, vals map[string]string) error {
 		data.Add(key, value)
 	}
 
-	return r.postToPage(loginURL, data)
+	return r.postToPage(loginURL, data, false)
 }
 
 func parseCookieString(cookie string) []*http.Cookie {
@@ -445,7 +447,7 @@ func (r *Runner) matchPageTestBlock(p pageTestBlock) (bool, error) {
 	}
 	//Go to a path to verify
 	if p.Path != "" {
-		testUrl, err := r.resolvePath(p.Path)
+		testUrl, err := r.resolveIndexerPath(p.Path)
 		if err != nil {
 			return false, err
 		}
@@ -513,7 +515,7 @@ func (r *Runner) login() error {
 
 	filterLogger = r.logger
 
-	loginUrl, err := r.resolvePath(r.definition.Login.Path)
+	loginUrl, err := r.resolveIndexerPath(r.definition.Login.Path)
 	if err != nil {
 		return err
 	}
@@ -709,7 +711,7 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 		return nil, err
 	}
 	//Resolve the search url
-	searchURL, err = r.resolvePath(searchURL)
+	searchURL, err = r.resolveIndexerPath(searchURL)
 	if err != nil {
 		return nil, err
 	}
@@ -889,7 +891,7 @@ func (r *Runner) requireContent(urlVals url.Values, searchURL string) error {
 			return err
 		}
 	case searchMethodPost:
-		if err = r.postToPage(searchURL, urlVals); err != nil {
+		if err = r.postToPage(searchURL, urlVals, true); err != nil {
 			return err
 		}
 
@@ -916,7 +918,7 @@ func (r *Runner) extractDateHeader(selection *goquery.Selection) (time.Time, err
 	}
 
 	dv, _ := dateHeaders.Text(prev.First())
-	return parseFuzzyTime(dv, time.Now())
+	return parseFuzzyTime(dv, time.Now(), true)
 }
 
 func (r *Runner) Download(u string) (io.ReadCloser, http.Header, error) {
@@ -931,7 +933,7 @@ func (r *Runner) Download(u string) (io.ReadCloser, http.Header, error) {
 		return nil, http.Header{}, err
 	}
 
-	fullUrl, err := r.resolvePath(u)
+	fullUrl, err := r.resolveIndexerPath(u)
 	if err != nil {
 		return nil, http.Header{}, err
 	}
@@ -979,7 +981,7 @@ func (r *Runner) Ratio() (string, error) {
 		return "error", err
 	}
 
-	ratioUrl, err := r.resolvePath(r.definition.Ratio.Path)
+	ratioUrl, err := r.resolveIndexerPath(r.definition.Ratio.Path)
 	if err != nil {
 		return "error", err
 	}

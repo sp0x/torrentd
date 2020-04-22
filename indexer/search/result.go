@@ -83,7 +83,7 @@ func (ri ResultItem) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		Rel     string `xml:"rel,attr"`
 		Type    string `xml:"type,attr"`
 	}{
-		Href: "http://jackett.vaskovasilev.eu/", Rel: "self", Type: "application/rss+xml",
+		Href: "", Rel: "self", Type: "application/rss+xml",
 	}
 	var itemView = struct {
 		XMLName  struct{} `xml:"item"`
