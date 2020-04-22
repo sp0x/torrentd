@@ -943,7 +943,9 @@ func (r *Runner) Download(u string) (io.ReadCloser, http.Header, error) {
 	pipeR, pipeW := io.Pipe()
 	go func() {
 		defer pipeW.Close()
-		defer r.releaseBrowser()
+		if !r.keepSessions {
+			defer r.releaseBrowser()
+		}
 		n, err := r.browser.Download(pipeW)
 		if err != nil {
 			r.logger.Error(err)
@@ -964,7 +966,9 @@ func (r *Runner) Ratio() (string, error) {
 	}
 
 	r.createBrowser()
-	defer r.releaseBrowser()
+	if !r.keepSessions {
+		defer r.releaseBrowser()
+	}
 
 	if required, err := r.isLoginRequired(); required {
 		if err := r.login(); err != nil {
