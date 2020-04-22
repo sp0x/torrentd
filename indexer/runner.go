@@ -58,6 +58,7 @@ type Runner struct {
 	browserLock       sync.Mutex
 	connectivityCache *ConnectivityCache
 	state             *IndexerState
+	keepSessions      bool
 }
 
 type RunContext struct {
@@ -73,6 +74,7 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 		logger:            logger.WithFields(logrus.Fields{"site": def.Site}),
 		connectivityCache: NewConnectivityCache(),
 		state:             defaultIndexerState(),
+		keepSessions:      true,
 	}
 }
 
@@ -504,7 +506,9 @@ func (r *Runner) isLoginRequired() (bool, error) {
 func (r *Runner) login() error {
 	if r.browser == nil {
 		r.createBrowser()
-		defer r.releaseBrowser()
+		if !r.keepSessions {
+			defer r.releaseBrowser()
+		}
 	}
 
 	filterLogger = r.logger
@@ -668,7 +672,9 @@ func (r *Runner) GetEncoding() string {
 //Search for a given torrent
 func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 	r.createBrowser()
-	defer r.releaseBrowser()
+	if !r.keepSessions {
+		defer r.releaseBrowser()
+	}
 	var err error
 	query, err = r.resolveQuery(query)
 	if err != nil {
