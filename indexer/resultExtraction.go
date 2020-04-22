@@ -140,6 +140,8 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 			}
 			item.Seeders = seeders
 			item.Peers += seeders
+		case "authorId":
+			item.AuthorId = val
 		case "date":
 			t, err := parseFuzzyTime(val, time.Now())
 			if err != nil {
@@ -189,6 +191,8 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 				continue
 			}
 			item.MinimumSeedTime = time.Duration(minimumseedtime) * time.Second
+		case "banner":
+			item.Banner = val
 		default:
 			r.logger.Warnf("Row #%d has unknown field %s", rowIdx, key)
 			continue

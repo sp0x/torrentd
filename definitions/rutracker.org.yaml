@@ -437,6 +437,12 @@ search:
     author:
       selector: td:nth-child(5)
       remove: br
+    authorId:
+      selector: td:nth-child(5)
+      attribute: href
+      filters:
+        - name: urlarg
+          args: "pid"
     size:
       selector: td:nth-child(6)
       remove: br

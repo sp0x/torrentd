@@ -245,19 +245,15 @@ func (r *Runner) handleMetaRefreshHeader() error {
 }
 
 func (r *Runner) openPage(u string) error {
-	r.logger.WithField("url", u).Debug("Opening page")
-
+	r.logger.WithField("url", u).Info("Opening page")
 	err := r.browser.Open(u)
 	if err != nil {
 		return err
 	}
-
 	_ = r.cachePage()
-
 	r.logger.
 		WithFields(logrus.Fields{"code": r.browser.StatusCode(), "page": r.browser.Url()}).
 		Debugf("Finished request")
-
 	if err = r.handleMetaRefreshHeader(); err != nil {
 		return err
 	}
@@ -268,12 +264,10 @@ func (r *Runner) openPage(u string) error {
 func (r *Runner) postToPage(u string, vals url.Values) error {
 	r.logger.
 		WithFields(logrus.Fields{"url": u, "vals": vals}).
-		Debugf("Posting to page")
-
+		Info("Posting to page")
 	if err := r.browser.PostForm(u, vals); err != nil {
 		return err
 	}
-
 	_ = r.cachePage()
 
 	r.logger.
@@ -460,7 +454,8 @@ func (r *Runner) matchPageTestBlock(p pageTestBlock) (bool, error) {
 	}
 
 	if p.Selector != "" && r.browser.Find(p.Selector).Length() == 0 {
-		r.logger.Debug(r.browser.Body())
+		body := r.browser.Body()
+		r.logger.Debug(body)
 		r.logger.
 			WithFields(logrus.Fields{"selector": p.Selector}).
 			Debug("Selector didn't match page")
@@ -540,7 +535,7 @@ func (r *Runner) login() error {
 	if err != nil {
 		return err
 	} else if !match {
-		return errors.New("Login check after login failed")
+		return errors.New(fmt.Sprintf("Login check after login failed. No matches found."))
 	}
 
 	r.logger.Debug("Successfully logged in")
@@ -785,7 +780,6 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 		if err != nil {
 			return nil, err
 		}
-		torrent.HandleTorrentDiscovery(&item)
 		var matchCat bool
 		if len(localCats) > 0 {
 			for _, catId := range localCats {
@@ -795,6 +789,7 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 			}
 
 			if !matchCat {
+				torrent.HandleTorrentDiscovery(&item)
 				r.logger.
 					WithFields(logrus.Fields{"category": item.LocalCategoryName, "categoryId": item.LocalCategoryID}).
 					Debugf("Skipping result because it's not contained in our needed categories.")
@@ -803,6 +798,7 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 		}
 		//Try to map the category from the indexer to the global categories
 		r.resolveCategory(&item)
+		torrent.HandleTorrentDiscovery(&item)
 		if query.Series != "" {
 			info, err := releaseinfo.Parse(item.Title)
 			if err != nil {

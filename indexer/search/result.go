@@ -26,6 +26,7 @@ type ExternalResultItem struct {
 	Announce          string
 	Publisher         string
 	Fingerprint       string
+	Banner            string
 }
 
 type ResultItem struct {

@@ -1,0 +1,212 @@
+---
+site: arenabg
+name: ArenaBG
+language: bg-BG
+links:
+  - https://arenabg.ch/
+
+settings:
+  - name: cookie
+    type: text
+    label: Cookie
+
+#A mapping of what category id from the indexer, matches to a category that we support
+caps:
+  categories:
+    movies: Movies # "Movies"
+    arenabgtv: Movies # "Movies / ArenaBG.TV"
+    xvid: Movies/SD # "Movies / XviD"
+    dvd-r: Movies/DVD # "Movies / DVD-R"
+    x264: Movies/HD # "Movies / x264"
+    animemanga: TV/Anime # "Movies / Anime & Manga"
+    documentaries: TV/Documentary # "Movies / Documentaries"
+    blu-ray: Movies/BluRay # "Movies / Blu-ray"
+    boxset: Movies # "Movies / Boxset"
+    x264boxset: Movies/HD # "Movies / x264 Boxset"
+    tvepisodeshd: Movies/HD # "Movies / HDTV"
+    3d: Movies/3D # "Movies / 3D"
+    movies-hd: Movies/HD # "Movies / Movies HD"
+    x265: Movies/HD # "Movies / x265"
+    4k: Movies/UHD # "Movies / 4K"
+    series: TV # "Series"
+    hdtv: TV/HD # "Series / TV Episodes HD"
+    tvepisodes: TV # "Series / TV Episodes"
+    tvboxset: TV # "Series / TV Boxset"
+    tvboxsethd: TV/HD # "Series / TV Boxset HD"
+    music: Audio # "Music"
+    mp3: Audio/MP3 # "Music / MP3"
+    music-video: Audio/Video # "Music / Video"
+    flac: Audio/Lossless # "Music / FLAC"
+    music-dvd: Audio # "Music / DVD"
+    music-ape: Audio/Lossless # "Music / APE"
+    music-dts: Audio # "Music / DTS"
+    musicwavpack: Audio # "Music / WavePack"
+    musicost: Audio # "Music / OST"
+    games: PC/Games # "Games"
+    games-iso: PC/Games # "Games / PC ISO"
+    pc-rip: PC # "Games / PC RIP"
+    ps2: Console # "Games / PS2"
+    psp: Console/PSP # "Games / PSP"
+    xbox: Console/Xbox # "Games / XBOX"
+    xbox-360: Console/Xbox 360 # "Games / XBOX-360"
+    ps3: Console/PS3 # "Games / PS3"
+    wii: Console/Wii # "Games / WII"
+    PS4: Console/PS4 # "Games / PS4"
+    software: PC # "Software"
+    pc-iso: PC # "Software / PC ISO"
+    pdasmartphone: PC/Phone-Other # "Software / Smartphone"
+    tutorial: PC # "Software / Tutorial"
+    android: PC/Phone-Android # "Software / Android"
+    ios: PC/Phone-IOS # "Software / iOS"
+    misc: Other/Misc # "Misc"
+    other: Other # "Misc / Other"
+    e-books: Books/Ebook # "Misc / e-Books"
+    sports: TV/Sport # "Misc / Sports"
+    0-day: PC # "Misc / 0-Day"
+    xxx: XXX # "XXX"
+    porn: XXX # "XXX / Porn"
+    xxx-hd: XXX # "XXX / XXX HD"
+
+login:
+  path: /
+  method: form
+  inputs:
+    email: "{{ .Config.username }}"
+    password: "{{ .Config.password }}"
+    action: "login"
+  error:
+    - selector: h4.warnColor1
+  test:
+    path: /
+    selector: a[href="/users/logout/"]
+
+ratio:
+  path: https://www.bitmetv.org/browse.php
+  selector: span.smallfont > font[color="1900D1"] + font
+
+
+search:
+  path: torrents/
+  method: post
+  followredirect: true
+  pagesize: 50
+  maxpages: 10
+  inputs:
+    $raw: "{{ if .Query.Keywords }}{{ .Query.Keywords }}{{else}}{{end}}"
+  rows:
+    selector: tr:has(td.category)
+  context:
+    searchId:
+      selector: a.pg
+      attribute: href
+      filters:
+        - name: regexp
+          args: "tracker.php\\?search_id=([^&]+)[^'\"]*?"
+  fields:
+    id:
+      selector: a.tLink
+      attribute: href
+      filters:
+        - name: urlarg
+          args: "t"
+    categoryName:
+      selector: td:nth-child(3) a
+    category:
+      selector: td:nth-child(3) a
+      attribute: href
+      filters:
+        - name: urlarg
+          args: "f"
+    title:
+      selector: a.tLink
+      filters:
+        # normalize to SXXEYY format
+        - name: re_replace
+          args: ["[\\.\\,\\:\\-\\/\\|\\[\\]\\(\\)]", " "]
+        - name: re_replace
+          args: ["(.*)[CСcс]езон\\s*(\\d+)\\s*[CСcс]ери[ияй]\\s*(\\d+)\\s*(\\d+)\\s*из\\s*\\d+(.*)", "$1 S$2E$3-$4 rus $5"]
+        - name: re_replace
+          args: ["(.*)[CСcс]езон\\s*(\\d+)\\s*(\\d+)\\s*(\\d+)\\s*[CСcс]ери[ияй]\\s*из\\s*\\d+(.*)", "$1 S$2E$3-$4 rus $5"]
+        - name: re_replace
+          args: ["(.*)(\\d+)\\s*[CСcс]езон\\s*(\\d+)\\s*(\\d+)\\s*[CСcс]ери[ияй]\\s*из\\s*\\d+(.*)", "$1 S$2E$3-$4 rus $5"]
+        - name: re_replace
+          args: ["(.*)[CСcс]езон\\s*(\\d+)\\s*[CСcс]ери[ияй]\\s*(\\d+)\\s*(\\d+)\\s*(.*)", "$1 S$2E$3-$4 rus $5"]
+        - name: re_replace
+          args: ["(.*)[CСcс]езон\\s*(\\d+)\\s*[CСcс]ери[ияй]\\s*(\\d+)\\s*из\\s*\\d+(.*)", "$1 S$2E$3 rus $4"]
+        - name: re_replace
+          args: ["(.*)[CСcс]езон\\s*(\\d+)(.*)", "$1 S$2 rus $3"]
+        - name: re_replace
+          args: ["(.*)[CСcс]]ери[ия]\\s*(\\d+)(.*)", "$1 E$2 rus $3"]
+        - name: re_replace
+          args: ["(\\([А-Яа-яЁё\\W]+\\))|(^[А-Яа-яЁё\\W\\d]+\\/ )|([а-яА-ЯЁё \\-]+,+)|([а-яА-ЯЁё]+)", "{{ if .Config.striprussian }}{{ else }}$1$2$3$4{{ end }}"]
+        - name: replace
+          args: ["WEBRip", "WEBDL"]
+        - name: replace
+          args: ["WEB DL", "WEBDL"]
+        - name: replace
+          args: ["WEBDLRip", "WEBDL"]
+        - name: replace
+          args: ["HDTVRip", "HDTV"]
+    link:
+      pattern: "http://rutracker.org/forum/viewtopic.php?t={{ .id }}"
+    download:
+      pattern: "http://rutracker.org/forum/dl.php?t={{ .id }}"
+    author:
+      selector: td:nth-child(5)
+      remove: br
+    authorId:
+      selector: td:nth-child(5)
+      attribute: href
+      filters:
+        - name: urlarg
+          args: "pid"
+    size:
+      selector: td:nth-child(6)
+      remove: br
+      filters:
+        - name: size
+    date:
+      selector: td:last-child
+      remove: br
+      filters:
+        - name: trim
+          args: "."
+        - name: whitespace
+        - name: mapreplace
+          args:
+            Янв: "Jan"
+            Фев: "Feb"
+            Мар: "Mar"
+            Апр: "Apr"
+            Май: "May"
+            Июн: "Jun"
+            Июл: "Jul"
+            Авг: "Aug"
+            Сен: "Sep"
+            Окт: "Oct"
+            Ноя: "Nov"
+            Дек: "Dec"
+        - name: dateparse
+          args: "2-Jan-06 15:04"
+        - name: dateparseAlt
+          args: "2-Jan-06"
+    seeders:
+      selector: td:nth-child(7)
+      filters:
+        - name: number
+    leechers:
+      selector: td:nth-child(8)
+      filters:
+        - name: number
+    grabs:
+      selector: td:nth-child(9)
+      filters:
+        - name: number
+    #    magnet:
+    #      selector: a[href^="magnet:?xt="]
+    #      attribute: href
+    downloadvolumefactor:
+      case:
+        "*": "1"
+    uploadvolumefactor:
+      text: "1"
