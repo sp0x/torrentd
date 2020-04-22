@@ -77,7 +77,7 @@ func (s *selectorBlock) TextRaw(el *goquery.Selection) (string, error) {
 			Debugf("Applying case to selection")
 		for pattern, value := range s.Case {
 			if el.Is(pattern) || el.Has(pattern).Length() >= 1 {
-				return s.applyFilters(value)
+				return s.ApplyFilters(value)
 			}
 		}
 		return "", errors.New("None of the cases match")
@@ -97,7 +97,7 @@ func (s *selectorBlock) TextRaw(el *goquery.Selection) (string, error) {
 //Text extracts text from the selection, applying all filters
 func (s *selectorBlock) Text(el *goquery.Selection) (string, error) {
 	if s.TextVal != "" {
-		return s.applyFilters(s.TextVal)
+		return s.ApplyFilters(s.TextVal)
 	}
 
 	if s.Remove != "" {
@@ -109,7 +109,7 @@ func (s *selectorBlock) Text(el *goquery.Selection) (string, error) {
 			Debugf("Applying case to selection")
 		for pattern, value := range s.Case {
 			if el.Is(pattern) || el.Has(pattern).Length() >= 1 {
-				return s.applyFilters(value)
+				return s.ApplyFilters(value)
 			}
 		}
 		return "", errors.New("None of the cases match")
@@ -124,11 +124,11 @@ func (s *selectorBlock) Text(el *goquery.Selection) (string, error) {
 		output = val
 	}
 
-	return s.applyFilters(output)
+	return s.ApplyFilters(output)
 }
 
 //Filter the value through a list of filters
-func (s *selectorBlock) applyFilters(val string) (string, error) {
+func (s *selectorBlock) ApplyFilters(val string) (string, error) {
 	prevFilterFailed := false
 	var prevFilter filterBlock
 	for _, f := range s.Filters {

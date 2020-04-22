@@ -76,7 +76,13 @@ var defaultStorage = storage.Storage{}
 
 //Handles torrent discovery
 func HandleTorrentDiscovery(torrent *search.ExternalResultItem) (bool, bool) {
-	existingTorrent := defaultStorage.FindByTorrentId(torrent.LocalId)
+	var existingTorrent *search.ExternalResultItem
+	if torrent.LocalId != "" {
+		existingTorrent = defaultStorage.FindByTorrentId(torrent.LocalId)
+	} else {
+		existingTorrent = defaultStorage.FindNameAndIndexer(torrent.Title, torrent.Site)
+	}
+
 	isNew := existingTorrent == nil || existingTorrent.PublishDate != torrent.PublishDate
 	isUpdate := existingTorrent != nil && (existingTorrent.PublishDate != torrent.PublishDate)
 	if isNew {

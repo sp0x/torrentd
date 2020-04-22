@@ -53,6 +53,10 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 		if err != nil {
 			return search.ExternalResultItem{}, err
 		}
+		updated, err = item.Block.ApplyFilters(updated)
+		if err != nil {
+			return search.ExternalResultItem{}, err
+		}
 		val = updated
 		row[item.Field] = val
 	}

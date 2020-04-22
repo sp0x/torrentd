@@ -78,3 +78,16 @@ func (ts *Storage) GetOlderThanHours(h int) []search.ExternalResultItem {
 	gdb.Model(&search.ExternalResultItem{}).Where(fmt.Sprintf("added_on < %d", tm)).Find(&torrents)
 	return torrents
 }
+
+func (ts *Storage) FindNameAndIndexer(title string, indexerSite string) *search.ExternalResultItem {
+	gdb := db.GetOrmDb()
+	defer gdb.Close()
+	var torrent search.ExternalResultItem
+	srch := &search.ExternalResultItem{}
+	srch.Title = title
+	srch.Site = indexerSite
+	if gdb.First(&torrent, srch).RowsAffected == 0 {
+		return nil
+	}
+	return &torrent
+}
