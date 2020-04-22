@@ -49,13 +49,15 @@ type RunnerOpts struct {
 
 //Runner works with indexers and their definitions
 type Runner struct {
-	definition  *IndexerDefinition
-	browser     browser.Browsable
-	cookies     http.CookieJar
-	opts        RunnerOpts
-	logger      logrus.FieldLogger
-	caps        torznab.Capabilities
-	browserLock sync.Mutex
+	definition        *IndexerDefinition
+	browser           browser.Browsable
+	cookies           http.CookieJar
+	opts              RunnerOpts
+	logger            logrus.FieldLogger
+	caps              torznab.Capabilities
+	browserLock       sync.Mutex
+	connectivityCache *ConnectivityCache
+	state             *IndexerState
 }
 
 type RunContext struct {
@@ -66,9 +68,11 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 	logger := logrus.New()
 	logger.Level = logrus.InfoLevel
 	return &Runner{
-		opts:       opts,
-		definition: def,
-		logger:     logger.WithFields(logrus.Fields{"site": def.Site}),
+		opts:              opts,
+		definition:        def,
+		logger:            logger.WithFields(logrus.Fields{"site": def.Site}),
+		connectivityCache: NewConnectivityCache(),
+		state:             defaultIndexerState(),
 	}
 }
 
@@ -141,12 +145,13 @@ func (r *Runner) createBrowser() {
 	default:
 		panic("Unknown value for DEBUG_HTTP")
 	}
-
+	r.connectivityCache.SetBrowser(bow)
 	r.browser = bow
 }
 
 func (r *Runner) releaseBrowser() {
 	r.browser = nil
+	r.connectivityCache.ClearBrowser()
 	r.browserLock.Unlock()
 }
 
@@ -185,10 +190,12 @@ func (r *Runner) currentURL() (*url.URL, error) {
 }
 
 func (r *Runner) testURLWorks(u string) bool {
+	if ok := r.connectivityCache.IsOk(u); ok {
+		return true
+	}
 	r.logger.WithField("url", u).
 		Info("Checking connectivity to url")
-
-	err := r.browser.Open(u)
+	err := r.connectivityCache.Test(u)
 	if err != nil {
 		r.logger.WithError(err).Warn("URL check failed")
 		return false
@@ -434,7 +441,7 @@ func (r *Runner) matchPageTestBlock(p pageTestBlock) (bool, error) {
 	if r.browser.Url() == nil && p.Path == "" {
 		return false, errors.New("No url loaded and pageTestBlock has no path")
 	}
-
+	//Go to a path to verify
 	if p.Path != "" {
 		testUrl, err := r.resolvePath(p.Path)
 		if err != nil {
@@ -474,7 +481,10 @@ func (r *Runner) isLoginRequired() (bool, error) {
 	} else if r.definition.Login.Test.IsEmpty() {
 		return true, nil
 	}
-
+	isLoggedIn := r.state.GetBool("loggedIn")
+	if !isLoggedIn {
+		return true, nil
+	}
 	r.logger.Debug("Testing if login is needed")
 	//Check if the login page is valid
 	match, err := r.matchPageTestBlock(r.definition.Login.Test)
@@ -532,7 +542,7 @@ func (r *Runner) login() error {
 			return err
 		}
 	}
-
+	//Check if the login went ok
 	match, err := r.matchPageTestBlock(r.definition.Login.Test)
 	if err != nil {
 		return err
@@ -541,6 +551,7 @@ func (r *Runner) login() error {
 	}
 
 	r.logger.Debug("Successfully logged in")
+	r.state.Set("loggedIn", true)
 	return nil
 }
 
