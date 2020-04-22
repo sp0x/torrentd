@@ -1,0 +1,150 @@
+---
+name: Zamunda.net
+site: zamundanet
+description: "Zamunda is a BULGARIAN Private Torrent Tracker for 0DAY / GENERAL"
+encoding: windows1251
+type: private
+language: bg-BG
+
+settings:
+  - label: Cookie
+    name: cookie
+    type: text
+
+links:
+  - https://zamunda.net/
+  - https://zamunda.ch/
+
+login:
+  path: takelogin.php
+  method: post
+  inputs:
+    username: "{{ .Config.username }}"
+    password: "{{ .Config.password }}"
+  error:
+    selector: d.embedded:has(h2:contains("failed"))
+  test:
+    selector: a[href="/logout.php"]
+
+caps:
+  categories:
+    42:  Movies/BluRay #Movies Blu-ray
+    25:  TV/Anime #TV Animation/Anime
+    35:  Movies/HD #Movies HD
+    46:  Movies/3D #Movies 3D
+    20:  Movies/DVD #Movies DVD-R
+    19:  Movies/SD #Movies SD
+    5:  Movies/HD #Movies HD
+    24:  Movies #Movies BG
+    31:  Movies #Movies Science
+    28:  Movies #Movies Russia
+    7:  TV/SD #TV SD
+    33:  TV/HD #TV HD
+    39:  PC/Mac #Games Mac
+    4:  PC/ISO #Games ISO
+    21:  PC/Games #Games PC Rip
+    40:  Console/Xbox #Games Xbox
+    12:  Console #Games Console
+    54:  PC #Games Linux
+    17:  Console/PS3 #Games PS
+    6:  Audio #Music
+    30:  Audio/Other #Music DTS
+    29:  Audio/Other #Music DVD-R
+    51:  Audio/Other #Music Hi-Res/Vinyl
+    34:  Audio/Lossless #Music Lossless
+    38:  PC/Mac #Programs Mac
+    1:  PC/ISO #Programs PC ISO
+    22:  PC/Phone-Other #Programs Other
+    43:  TV/Sport #Sport HD
+    41:  TV/Sport #Sport SD
+    36:  PC/Phone-Other #Programs Mobile/GSM
+    52:  PC/Phone-Android #Android/Games
+    53:  PC/Phone-Android #Android/Apps
+    26:  Other #Other
+    23:  Other #Clips
+    32:  Books/Comics #Books Comics
+    37:  Books/Technical #Books Dox
+    9:  XXX #XXX
+    48:  XXX #XXX 3D
+    49:  XXX #XXX HD
+    27:  TV/Anime #Hentai
+
+search:
+  maxpages: 10
+  method: get
+  pagesize: 20
+  path: bananas
+  followredirect: true
+  inputs:
+    $raw: "{{ range .Categories }}c{{.}}=1&{{end}}"
+    search: "{{ if .Query.Keywords }}{{ .Query.Keywords }}{{else}}{{end}}"
+    incldead: 0
+    #sort: "{{ .Config.sort }}"
+    #type: "{{ .Config.type }}"
+
+  rows:
+    selector: ".responsetop > tbody > tr:has(td.td_newborder)"
+
+  fields:
+    title:
+      selector: td:nth-child(2) a b
+      filters:
+        - name: re_replace
+          args: ["(\\([А-Яа-яЁё\\W]+\\))|(^[А-Яа-яЁё\\W\\d]+\\/ )|([а-яА-ЯЁё \\-]+,+)|([а-яА-ЯЁё]+)", "{{ if .Config.striprussian }}{{ else }}$1$2$3$4{{ end }}"]
+        - name: replace
+          args: ["WEBRip", "WEBDL"]
+        - name: replace
+          args: ["WEB DL", "WEBDL"]
+        - name: replace
+          args: ["WEBDLRip", "WEBDL"]
+        - name: replace
+          args: ["HDTVRip", "HDTV"]
+    details:
+      selector: td:nth-child(2) > a:nth-child(1)
+      attribute: href
+    category:
+      selector: a[href^="list?cat="]
+      attribute: href
+      filters:
+        - name: querystring
+          args: cat
+    download:
+      selector: a:has(i.fa-download)
+      attribute: href
+    grabs:
+      selector: td:nth-child(7)
+      filters:
+        - name: regexp
+          args: (\d+)
+    size:
+      selector: td:nth-child(6)
+    date:
+      selector: td:nth-child(5)
+      remove: br
+      filters:
+        - name: fuzzytime
+        - name: dateparse
+          args: "2006-01-02 15:04"
+
+    seeders:
+      selector: td:nth-child(8)
+      filters:
+        - name: number
+    leechers:
+      selector: td:nth-child(9)
+      filters:
+        - name: number
+    banner:
+      selector: td:nth-child(2) > a:nth-child(1)
+      attribute: onmouseover
+      filters:
+        - name: regexp
+          args: src=\\'([^\s\\]+)
+    downloadvolumefactor:
+      case:
+        "a[style=\"color: #b9a100;\"][href^=\"banan?\"]": "0"
+        "*": "1"
+    uploadvolumefactor:
+      text: 1
+
+
