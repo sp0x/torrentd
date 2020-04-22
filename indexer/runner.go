@@ -115,7 +115,7 @@ func (r *Runner) createBrowser() {
 	}
 
 	bow := surf.NewBrowser()
-	bow.SetUserAgent(agent.Chrome())
+	bow.SetUserAgent(agent.Firefox())
 	bow.SetEncoding(r.definition.Encoding)
 	bow.SetAttribute(browser.SendReferer, true)
 	bow.SetAttribute(browser.MetaRefreshHandling, true)
@@ -185,7 +185,8 @@ func (r *Runner) currentURL() (*url.URL, error) {
 }
 
 func (r *Runner) testURLWorks(u string) bool {
-	r.logger.WithField("url", u).Debugf("Checking connectivity to url")
+	r.logger.WithField("url", u).
+		Info("Checking connectivity to url")
 
 	err := r.browser.Open(u)
 	if err != nil {
@@ -245,7 +246,8 @@ func (r *Runner) handleMetaRefreshHeader() error {
 }
 
 func (r *Runner) openPage(u string) error {
-	r.logger.WithField("url", u).Info("Opening page")
+	r.logger.WithField("url", u).
+		Info("Opening page")
 	err := r.browser.Open(u)
 	if err != nil {
 		return err
@@ -318,7 +320,7 @@ func (r *Runner) cachePage() error {
 func (r *Runner) loginViaForm(loginURL, formSelector string, vals map[string]string) error {
 	r.logger.
 		WithFields(logrus.Fields{"url": loginURL, "form": formSelector, "vals": vals}).
-		Debugf("Filling and submitting login form")
+		Info("Filling and submitting login form")
 
 	if err := r.openPage(loginURL); err != nil {
 		return err
@@ -656,9 +658,6 @@ func (r *Runner) GetEncoding() string {
 func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 	r.createBrowser()
 	defer r.releaseBrowser()
-	//[]torznab.ResultItem
-	//Search
-
 	var err error
 	query, err = r.resolveQuery(query)
 	if err != nil {
@@ -714,6 +713,10 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 		return nil, err
 	}
 	dom := r.browser.Dom()
+	html := r.browser.Body()
+	r.logger.
+		WithFields(logrus.Fields{"html": html}).
+		Debugf("Fetched indexer page.\n")
 	setupContext(r, &context, dom)
 	// merge following rows for After selector
 	if after := r.definition.Search.Rows.After; after > 0 {
