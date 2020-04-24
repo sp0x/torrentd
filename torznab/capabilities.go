@@ -2,14 +2,16 @@ package torznab
 
 import (
 	"encoding/xml"
+	"github.com/sp0x/rutracker-rss/indexer/categories"
+	"github.com/sp0x/rutracker-rss/indexer/search"
 	"net/http"
 	"sort"
 	"strings"
 )
 
 type Capabilities struct {
-	SearchModes []SearchMode
-	Categories  Categories
+	SearchModes []search.SearchMode
+	Categories  categories.Categories
 }
 
 func (c Capabilities) HasSearchMode(key string) (bool, []string) {
@@ -37,12 +39,6 @@ func (c Capabilities) HasMovies() bool {
 		}
 	}
 	return false
-}
-
-type SearchMode struct {
-	Key             string
-	Available       bool
-	SupportedParams []string
 }
 
 func (c Capabilities) MarshalXML(e *xml.Encoder, start xml.StartElement) error {

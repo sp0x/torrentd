@@ -6,7 +6,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/sp0x/rutracker-rss/server/rss"
-	"github.com/sp0x/rutracker-rss/torrent"
 	"net/url"
 )
 
@@ -51,23 +50,23 @@ func (s *Server) searchAndServe(c *gin.Context) {
 		if currentPage >= ops.PageCount {
 			break
 		}
-		s.tracker.ParseTorrents(srch.GetDocument(), func(i int, tr *search.ExternalResultItem) {
-			isNew, isUpdate := torrent.HandleTorrentDiscovery(tr)
-			if isNew || isUpdate {
-				if isNew && !isUpdate {
+		for _, torrent := range srch.Results {
+			//isNew, isUpdate := torrent.HandleTorrentDiscovery(tr)
+			if torrent.IsNew() || torrent.IsUpdate() {
+				if torrent.IsNew() && !torrent.IsUpdate() {
 					_, _ = fmt.Fprintf(s.tabWriter, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
-						tr.LocalId, tr.AddedOnStr(), tr.Fingerprint, tr.Title)
+						torrent.LocalId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Title)
 				} else {
 					_, _ = fmt.Fprintf(s.tabWriter, "Updated torrent #%s:\t%s\t[%s]:\t%s\n",
-						tr.LocalId, tr.AddedOnStr(), tr.Fingerprint, tr.Title)
+						torrent.LocalId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Title)
 				}
 			} else {
 				_, _ = fmt.Fprintf(s.tabWriter, "Torrent #%s:\t%s\t[%s]:\t%s\n",
-					tr.LocalId, tr.AddedOnStr(), "#", tr.Title)
+					torrent.LocalId, torrent.AddedOnStr(), "#", torrent.Title)
 			}
-			items = append(items, *tr)
+			items = append(items, torrent)
 			s.tabWriter.Flush()
-		})
+		}
 
 		currentPage++
 	}

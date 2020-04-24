@@ -19,9 +19,9 @@ var rxMagnet, _ = regexp.Compile("^(stream-)?magnet:")
 var rxHex, _ = regexp.Compile("^[a-f0-9]{40}$")
 var rxBase32, _ = regexp.Compile("^[a-z2-7]{32}")
 
-func ParseTorrentFromUrl(tracker *Rutracker, torrentUrl string) (*Definition, error) {
+func ParseTorrentFromUrl(h *TorrentHelper, torrentUrl string) (*Definition, error) {
 	req, _ := http.NewRequest("GET", torrentUrl, nil)
-	res, err := tracker.client.Do(req)
+	res, err := h.indexer.ProcessRequest(req)
 	if err != nil {
 		return nil, err
 	}

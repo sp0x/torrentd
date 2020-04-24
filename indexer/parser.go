@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"github.com/sp0x/rutracker-rss/indexer/categories"
+	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/sp0x/rutracker-rss/torznab"
 	"github.com/sp0x/surf/browser"
 	"io/ioutil"
@@ -266,7 +268,7 @@ const (
 
 type capabilitiesBlock struct {
 	CategoryMap categoryMap
-	SearchModes []torznab.SearchMode
+	SearchModes []search.SearchMode
 }
 
 // UnmarshalYAML implements the Unmarshaller interface.
@@ -281,7 +283,7 @@ func (c *capabilitiesBlock) UnmarshalYAML(unmarshal func(interface{}) error) err
 		//Map the found categories using our own Categories `torznab.AllCategories`.
 		for id, catName := range intermediate.Categories {
 			matchedCat := false
-			for _, cat := range torznab.AllCategories {
+			for _, cat := range categories.AllCategories {
 				if cat.Name == catName {
 					c.CategoryMap[id] = cat
 					matchedCat = true
@@ -297,10 +299,10 @@ func (c *capabilitiesBlock) UnmarshalYAML(unmarshal func(interface{}) error) err
 			}
 		}
 
-		c.SearchModes = []torznab.SearchMode{}
+		c.SearchModes = []search.SearchMode{}
 
 		for key, supported := range intermediate.Modes {
-			c.SearchModes = append(c.SearchModes, torznab.SearchMode{Key: key, Available: true, SupportedParams: supported})
+			c.SearchModes = append(c.SearchModes, search.SearchMode{Key: key, Available: true, SupportedParams: supported})
 		}
 
 		return nil
@@ -313,11 +315,11 @@ func (c *capabilitiesBlock) UnmarshalYAML(unmarshal func(interface{}) error) err
 func (c *capabilitiesBlock) ToTorznab() torznab.Capabilities {
 	caps := torznab.Capabilities{
 		Categories:  c.CategoryMap.Categories(),
-		SearchModes: []torznab.SearchMode{},
+		SearchModes: []search.SearchMode{},
 	}
 
 	// All indexers support search
-	caps.SearchModes = append(caps.SearchModes, torznab.SearchMode{
+	caps.SearchModes = append(caps.SearchModes, search.SearchMode{
 		Key:             "search",
 		Available:       true,
 		SupportedParams: []string{"q"},
@@ -325,7 +327,7 @@ func (c *capabilitiesBlock) ToTorznab() torznab.Capabilities {
 
 	// Some support TV
 	if caps.HasTVShows() {
-		caps.SearchModes = append(caps.SearchModes, torznab.SearchMode{
+		caps.SearchModes = append(caps.SearchModes, search.SearchMode{
 			Key:             "tv-search",
 			Available:       true,
 			SupportedParams: []string{"q", "season", "ep"},
@@ -334,7 +336,7 @@ func (c *capabilitiesBlock) ToTorznab() torznab.Capabilities {
 
 	// Some support Movies
 	if caps.HasMovies() {
-		caps.SearchModes = append(caps.SearchModes, torznab.SearchMode{
+		caps.SearchModes = append(caps.SearchModes, search.SearchMode{
 			Key:             "movie-search",
 			Available:       true,
 			SupportedParams: []string{"q"},

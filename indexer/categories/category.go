@@ -1,4 +1,4 @@
-package torznab
+package categories
 
 import "fmt"
 

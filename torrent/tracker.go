@@ -1,11 +1,7 @@
 package torrent
 
 import (
-	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/indexer/search"
-	"github.com/sp0x/rutracker-rss/requests"
-	storage2 "github.com/sp0x/rutracker-rss/torrent/storage"
-	"github.com/sp0x/surf/browser/encoding"
 	"net/http"
 	"net/http/cookiejar"
 	"time"
@@ -19,32 +15,31 @@ type Tracker interface {
 }
 
 type BasicTracker struct {
-	lastRequest     time.Time
-	client          *http.Client
-	storage         storage2.Storage
+	lastRequest time.Time
+	//client          *http.Client
 	FetchDefinition bool
 }
 
 //Send a request to the tracker
-func (r *BasicTracker) request(urlx string, data []byte, headers map[string]string) ([]byte, error) {
-	maxPerSecond := 1
-	minDiff := 1.0 / maxPerSecond
-	timeElapsed := time.Now().Sub(r.lastRequest)
-	if int(timeElapsed.Seconds()) < int(minDiff) {
-		t := r.lastRequest.Add(time.Second * time.Duration(minDiff)).Sub(time.Now())
-		time.Sleep(t)
-	}
-	r.lastRequest = time.Now()
-	log.Debugf("GET %s\n", urlx)
-	log.Debugf("DATA: %v\n", string(data))
-	resp, err := requests.Get(r.client, urlx, headers)
-	if err != nil {
-		return nil, err
-	}
-	decoder := encoding.GetEncoding("windows1251").NewDecoder()
-	resp, _ = decoder.Bytes(resp)
-	return resp, nil
-}
+//func (r *BasicTracker) request(urlx string, data []byte, headers map[string]string) ([]byte, error) {
+//	maxPerSecond := 1
+//	minDiff := 1.0 / maxPerSecond
+//	timeElapsed := time.Now().Sub(r.lastRequest)
+//	if int(timeElapsed.Seconds()) < int(minDiff) {
+//		t := r.lastRequest.Add(time.Second * time.Duration(minDiff)).Sub(time.Now())
+//		time.Sleep(t)
+//	}
+//	r.lastRequest = time.Now()
+//	log.Debugf("GET %s\n", urlx)
+//	log.Debugf("DATA: %v\n", string(data))
+//	resp, err := requests.Get(r.client, urlx, headers)
+//	if err != nil {
+//		return nil, err
+//	}
+//	decoder := encoding.GetEncoding("windows1251").NewDecoder()
+//	resp, _ = decoder.Bytes(resp)
+//	return resp, nil
+//}
 
 func newWebClient() *http.Client {
 	jar, _ := cookiejar.New(nil)

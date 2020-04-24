@@ -5,17 +5,18 @@ import (
 	"github.com/sp0x/rutracker-rss/indexer/search"
 )
 
-const rfc822 = "Mon, 02 Jan 2006 15:04:05 -0700"
-
-type torznabAttrView struct {
-	XMLName struct{} `xml:"torznab:attr"`
-	Name    string   `xml:"name,attr"`
-	Value   string   `xml:"value,attr"`
+type Info struct {
+	ID          string
+	Title       string
+	Description string
+	Link        string
+	Language    string
+	Category    string
 }
 
 type ResultFeed struct {
 	Info  Info
-	Items []search.ResultItem
+	Items []search.ExternalResultItem
 }
 
 func (rf ResultFeed) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -26,7 +27,7 @@ func (rf ResultFeed) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		Link        string   `xml:"link,omitempty"`
 		Language    string   `xml:"language,omitempty"`
 		Category    string   `xml:"category,omitempty"`
-		Items       []search.ResultItem
+		Items       []search.ExternalResultItem
 	}{
 		Title:       rf.Info.Title,
 		Description: rf.Info.Description,
@@ -36,7 +37,7 @@ func (rf ResultFeed) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		Items:       rf.Items,
 	}
 
-	e.Encode(struct {
+	_ = e.Encode(struct {
 		XMLName          struct{}    `xml:"rss"`
 		TorznabNamespace string      `xml:"xmlns:torznab,attr"`
 		AtomNamespace    string      `xml:"xmlns:atom,attr"`

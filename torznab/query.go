@@ -26,6 +26,7 @@ type Query struct {
 	IMDBID   string
 	TVMazeID string
 	TraktID  string
+	Page     uint
 }
 
 // Episode returns either the season + episode in the format S00E00 or just the season as S00 if
@@ -152,6 +153,13 @@ func (query Query) Encode() string {
 
 func (query Query) String() string {
 	return query.Encode()
+}
+
+func ParseQueryString(query string) Query {
+	q := Query{}
+	q.Type = "search"
+	q.Q = query
+	return q
 }
 
 // ParseQuery takes the query string parameters for a torznab query and parses them

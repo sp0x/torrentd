@@ -4,15 +4,16 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/db"
+	"github.com/sp0x/rutracker-rss/torrent/storage"
 	"os"
 	"text/tabwriter"
 )
 
 //Gets torrent information from a given tracker and updates the torrent db
-func ResolveTorrents(client *Rutracker, hours int) {
+func ResolveTorrents(client *TorrentHelper, hours int) {
 	gdb := db.GetOrmDb()
 	defer gdb.Close()
-	torrents := client.storage.GetOlderThanHours(hours)
+	torrents := storage.GetOlderThanHours(hours)
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 

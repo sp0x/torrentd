@@ -91,3 +91,33 @@ func (ts *Storage) FindNameAndIndexer(title string, indexerSite string) *search.
 	}
 	return &torrent
 }
+
+var defaultStorage = Storage{}
+
+func GetOlderThanHours(h int) []search.ExternalResultItem {
+	return defaultStorage.GetOlderThanHours(h)
+}
+
+//Handles torrent discovery
+func HandleTorrentDiscovery(item *search.ExternalResultItem) (bool, bool) {
+	var existingTorrent *search.ExternalResultItem
+	if item.LocalId != "" {
+		existingTorrent = defaultStorage.FindByTorrentId(item.LocalId)
+	} else {
+		existingTorrent = defaultStorage.FindNameAndIndexer(item.Title, item.Site)
+	}
+
+	isNew := existingTorrent == nil || existingTorrent.PublishDate != item.PublishDate
+	isUpdate := existingTorrent != nil && (existingTorrent.PublishDate != item.PublishDate)
+	if isNew {
+		if isUpdate && existingTorrent != nil {
+			item.Fingerprint = existingTorrent.Fingerprint
+			defaultStorage.UpdateTorrent(existingTorrent.ID, item)
+		} else {
+			item.Fingerprint = search.GetTorrentFingerprint(item)
+			defaultStorage.Create(item)
+		}
+	}
+	item.SetState(isNew, isUpdate)
+	return isNew, isUpdate
+}

@@ -2,12 +2,18 @@ package search
 
 import "github.com/PuerkitoBio/goquery"
 
+type SearchMode struct {
+	Key             string
+	Available       bool
+	SupportedParams []string
+}
+
 type Search struct {
 	DOM         *goquery.Selection
 	Id          string
 	CurrentPage int
 	StartIndex  int
-	Results     []ResultItem
+	Results     []ExternalResultItem
 }
 
 func (s *Search) GetDocument() *goquery.Selection {

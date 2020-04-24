@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/rutracker-rss/indexer"
 	"io"
 	"net/http"
 )
@@ -26,7 +27,7 @@ func (s *Server) downloadHandler(c *gin.Context) {
 		return
 	}
 
-	indexer, err := s.lookupIndexer(t.Site)
+	indexer, err := indexer.Lookup(s.config, t.Site)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusBadGateway)
 		return

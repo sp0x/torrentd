@@ -2,8 +2,8 @@ package indexer
 
 import (
 	"github.com/sirupsen/logrus"
+	"github.com/sp0x/rutracker-rss/indexer/categories"
 	"github.com/sp0x/rutracker-rss/indexer/search"
-	"github.com/sp0x/rutracker-rss/torznab"
 	"strconv"
 )
 
@@ -16,7 +16,7 @@ func (r *Runner) resolveCategory(item *search.ExternalResultItem) {
 			Warn("Unknown local category")
 
 		if intCatId, err := strconv.Atoi(item.LocalCategoryID); err == nil {
-			item.Category = intCatId + torznab.CustomCategoryOffset
+			item.Category = intCatId + categories.CustomCategoryOffset
 		}
 	}
 }

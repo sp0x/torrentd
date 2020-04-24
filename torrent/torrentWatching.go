@@ -10,7 +10,7 @@ import (
 )
 
 //Watch tracks a tracker for any new torrents and records them.
-func Watch(client *Rutracker, interval int) {
+func Watch(client *TorrentHelper, interval int) {
 	//Fetch pages untill we don't see any new torrents
 	startingPage := uint(0)
 	maxPages := uint(10)
@@ -52,9 +52,9 @@ func Watch(client *Rutracker, interval int) {
 				return
 			}
 			//torrentNumber := page*client.pageSize + counter + 1
-			isNew, isUpdate := HandleTorrentDiscovery(torrent)
-			if isNew || isUpdate {
-				if isNew && !isUpdate {
+			//isNew, isUpdate := HandleTorrentDiscovery(torrent)
+			if torrent.IsNew() || torrent.IsUpdate() {
+				if torrent.IsNew() && !torrent.IsUpdate() {
 					_, _ = fmt.Fprintf(tabWr, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
 						torrent.LocalId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Title)
 				} else {
@@ -63,7 +63,7 @@ func Watch(client *Rutracker, interval int) {
 				}
 			}
 			_ = tabWr.Flush()
-			if !isNew {
+			if !torrent.IsNew() {
 				hasStaleTorrents = true
 				finished = true
 				return

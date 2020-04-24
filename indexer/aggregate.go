@@ -11,7 +11,14 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type Aggregate []torznab.Indexer
+type Aggregate []Indexer
+
+func (ag Aggregate) ProcessRequest(req *http.Request) (*http.Response, error) {
+	for _, indexer := range ag {
+		return indexer.ProcessRequest(req)
+	}
+	return nil, nil
+}
 
 func (ag Aggregate) GetEncoding() string {
 	for _, indexer := range ag {
@@ -22,12 +29,12 @@ func (ag Aggregate) GetEncoding() string {
 
 func (ag Aggregate) Search(query torznab.Query) (*search.Search, error) {
 	g := errgroup.Group{}
-	allResults := make([][]search.ResultItem, len(ag))
+	allResults := make([][]search.ExternalResultItem, len(ag))
 	maxLength := 0
 
 	// fetch all results
 	for idx, indexer := range ag {
-		indexerID := indexer.Info().ID
+		indexerID := indexer.Info().GetId()
 		idx, indexer := idx, indexer
 		g.Go(func() error {
 			srchRes, err := indexer.Search(query)
@@ -48,7 +55,7 @@ func (ag Aggregate) Search(query torznab.Query) (*search.Search, error) {
 	}
 
 	var outputSearch = &search.Search{}
-	var results []search.ResultItem
+	var results []search.ExternalResultItem
 
 	// interleave search results to preserve ordering
 	for i := 0; i <= maxLength; i++ {
@@ -66,18 +73,9 @@ func (ag Aggregate) Search(query torznab.Query) (*search.Search, error) {
 	return outputSearch, nil
 }
 
-func (ag Aggregate) Info() torznab.Info {
-	return torznab.Info{
-		ID:       "aggregate",
-		Title:    "Aggregated Indexer",
-		Language: "en-US",
-		Link:     "",
-	}
-}
-
 func (ag Aggregate) Capabilities() torznab.Capabilities {
 	return torznab.Capabilities{
-		SearchModes: []torznab.SearchMode{
+		SearchModes: []search.SearchMode{
 			{Key: "movie-search", Available: true, SupportedParams: []string{"q", "imdbid"}},
 			{Key: "tv-search", Available: true, SupportedParams: []string{"q", "season", "ep"}},
 			{Key: "search", Available: true, SupportedParams: []string{"q"}},
@@ -87,4 +85,23 @@ func (ag Aggregate) Capabilities() torznab.Capabilities {
 
 func (ag Aggregate) Download(u string) (io.ReadCloser, http.Header, error) {
 	return nil, http.Header{}, errors.New("Not implemented")
+}
+
+type AggregateInfo struct{}
+
+func (a *AggregateInfo) GetLanguage() string {
+	return "en-US"
+}
+func (a *AggregateInfo) GetLink() string {
+	return ""
+}
+func (a *AggregateInfo) GetTitle() string {
+	return "Aggregated Indexer"
+}
+func (a *AggregateInfo) GetId() string {
+	return "aggregate"
+}
+
+func (ag Aggregate) Info() Info {
+	return &AggregateInfo{}
 }

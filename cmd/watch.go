@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/server"
 	"github.com/sp0x/rutracker-rss/torrent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
 )
 
 var watchInterval int
@@ -25,15 +25,15 @@ func init() {
 }
 
 func watchTracker(cmd *cobra.Command, args []string) {
-	client := torrent.NewRutracker()
-	err := client.Login(viper.GetString("username"), viper.GetString("password"))
-	if err != nil {
-		fmt.Printf("Could not login to tracker: %v\n", err)
-		os.Exit(1)
+	client := torrent.NewTorrentHelper(&appConfig)
+	if client == nil {
+		log.Error("Couldn't initialize torrent helper.")
+		return
 	}
+
 	go func() {
 		rserver := server.NewServer(&appConfig)
-		err = rserver.Listen(client)
+		err := rserver.Listen(client)
 		if err != nil {
 			fmt.Print(err)
 		}

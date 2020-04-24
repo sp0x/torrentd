@@ -17,7 +17,7 @@ func (s *Server) torznabHandler(c *gin.Context) {
 	indexerID := c.Param("indexer")
 	//Type of operation
 	t := c.Query("t")
-	indexer, err := s.lookupIndexer(indexerID)
+	indexer, err := indexer.Lookup(s.config, indexerID)
 	if err != nil {
 		torznab.Error(c, err.Error(), torznab.ErrIncorrectParameter)
 		return
@@ -69,40 +69,7 @@ func formatEncoding(nm string) string {
 	return nm
 }
 
-func (s *Server) createIndexer(key string) (torznab.Indexer, error) {
-	def, err := indexer.DefaultDefinitionLoader.Load(key)
-	if err != nil {
-		log.WithError(err).Warnf("Failed to load definition for %q. %v", key, err)
-		return nil, err
-	}
-
-	log.WithFields(log.Fields{"indexer": key}).Debugf("Loaded indexer")
-	indexer, err := indexer.NewRunner(def, indexer.RunnerOpts{
-		Config: s.Params.Config,
-	}), nil
-	if err != nil {
-		return nil, err
-	}
-
-	return indexer, nil
-}
-
-func (s *Server) lookupIndexer(key string) (torznab.Indexer, error) {
-	if key == "aggregate" || key == "all" {
-		return s.createAggregate()
-	}
-	if _, ok := s.indexers[key]; !ok {
-		indexer, err := s.createIndexer(key)
-		if err != nil {
-			return nil, err
-		}
-		s.indexers[key] = indexer
-	}
-
-	return s.indexers[key], nil
-}
-
-func (s *Server) torznabSearch(r *http.Request, indexer torznab.Indexer, siteKey string) (*torznab.ResultFeed, error) {
+func (s *Server) torznabSearch(r *http.Request, indexer indexer.Indexer, siteKey string) (*torznab.ResultFeed, error) {
 	query, err := torznab.ParseQuery(r.URL.Query())
 	if err != nil {
 		return nil, err
@@ -112,9 +79,17 @@ func (s *Server) torznabSearch(r *http.Request, indexer torznab.Indexer, siteKey
 	if err != nil {
 		return nil, err
 	}
+	nfo := indexer.Info()
 
 	feed := &torznab.ResultFeed{
-		Info:  indexer.Info(),
+		Info: torznab.Info{
+			ID:          nfo.GetId(),
+			Title:       nfo.GetTitle(),
+			Description: "",
+			Link:        nfo.GetLink(),
+			Language:    nfo.GetLanguage(),
+			Category:    "",
+		},
 		Items: srch.Results,
 	}
 	feed.Info.Category = query.Type
@@ -129,7 +104,7 @@ func (s *Server) torznabSearch(r *http.Request, indexer torznab.Indexer, siteKey
 	return feed, err
 }
 
-func (s *Server) rewriteLinks(r *http.Request, items []search.ResultItem) ([]search.ResultItem, error) {
+func (s *Server) rewriteLinks(r *http.Request, items []search.ExternalResultItem) ([]search.ExternalResultItem, error) {
 	baseURL, err := s.baseURL(r, "/download")
 	if err != nil {
 		return nil, err

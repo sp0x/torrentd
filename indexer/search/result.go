@@ -10,7 +10,7 @@ import (
 
 const rfc822 = "Mon, 02 Jan 2006 15:04:05 -0700"
 
-type torznabAttrView struct {
+type torznabAttribute struct {
 	XMLName struct{} `xml:"torznab:attr"`
 	Name    string   `xml:"name,attr"`
 	Value   string   `xml:"value,attr"`
@@ -24,6 +24,21 @@ type ExternalResultItem struct {
 	LocalId           string
 	Announce          string
 	Publisher         string
+	isNew             bool
+	isUpdate          bool
+}
+
+func (i *ExternalResultItem) SetState(isNew bool, update bool) {
+	i.isNew = isNew
+	i.isUpdate = update
+}
+
+func (i *ExternalResultItem) IsNew() bool {
+	return i.isNew
+}
+
+func (i *ExternalResultItem) IsUpdate() bool {
+	return i.isUpdate
 }
 
 type ResultItem struct {
@@ -102,7 +117,7 @@ func (ri ResultItem) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		Enclosure         interface{}    `xml:"enclosure,omitempty"`
 		Size              uint64         `xml:"size"`
 		Banner            string         `xml:"banner"`
-		TorznabAttributes []torznabAttrView
+		TorznabAttributes []torznabAttribute
 	}{
 		Title:       ri.Title,
 		Description: ri.Description,
@@ -120,15 +135,15 @@ func (ri ResultItem) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		Banner:      ri.Banner,
 	}
 	attribs := itemView.TorznabAttributes
-	attribs = append(attribs, torznabAttrView{Name: "category", Value: strconv.Itoa(ri.Category)})
-	attribs = append(attribs, torznabAttrView{Name: "seeds", Value: strconv.Itoa(ri.Seeders)})
-	attribs = append(attribs, torznabAttrView{Name: "peers", Value: strconv.Itoa(ri.Peers)})
-	attribs = append(attribs, torznabAttrView{Name: "minimumratio", Value: fmt.Sprint(ri.MinimumRatio)})
-	attribs = append(attribs, torznabAttrView{Name: "minimumseedtime", Value: fmt.Sprint(ri.MinimumSeedTime)})
-	attribs = append(attribs, torznabAttrView{Name: "downloadvolumefactor", Value: fmt.Sprint(ri.DownloadVolumeFactor)})
-	attribs = append(attribs, torznabAttrView{Name: "uploadvolumefactor", Value: fmt.Sprint(ri.UploadVolumeFactor)})
+	attribs = append(attribs, torznabAttribute{Name: "category", Value: strconv.Itoa(ri.Category)})
+	attribs = append(attribs, torznabAttribute{Name: "seeds", Value: strconv.Itoa(ri.Seeders)})
+	attribs = append(attribs, torznabAttribute{Name: "peers", Value: strconv.Itoa(ri.Peers)})
+	attribs = append(attribs, torznabAttribute{Name: "minimumratio", Value: fmt.Sprint(ri.MinimumRatio)})
+	attribs = append(attribs, torznabAttribute{Name: "minimumseedtime", Value: fmt.Sprint(ri.MinimumSeedTime)})
+	attribs = append(attribs, torznabAttribute{Name: "downloadvolumefactor", Value: fmt.Sprint(ri.DownloadVolumeFactor)})
+	attribs = append(attribs, torznabAttribute{Name: "uploadvolumefactor", Value: fmt.Sprint(ri.UploadVolumeFactor)})
 
 	itemView.TorznabAttributes = attribs
-	e.Encode(itemView)
+	_ = e.Encode(itemView)
 	return nil
 }

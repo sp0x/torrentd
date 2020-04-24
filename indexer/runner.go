@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sp0x/rutracker-rss/config"
+	"github.com/sp0x/rutracker-rss/indexer/categories"
 	"github.com/sp0x/rutracker-rss/indexer/search"
-	"github.com/sp0x/rutracker-rss/torrent"
+	"github.com/sp0x/rutracker-rss/torrent/storage"
 	"github.com/sp0x/rutracker-rss/torznab"
 	"io"
 	"io/ioutil"
@@ -38,7 +39,7 @@ import (
 //"github.com/tehjojo/go-tvmaze/tvmaze"
 
 var (
-	_ torznab.Indexer = &Runner{}
+	_ Indexer = &Runner{}
 )
 
 type RunnerOpts struct {
@@ -59,6 +60,13 @@ type Runner struct {
 	connectivityCache *ConnectivityCache
 	state             *IndexerState
 	keepSessions      bool
+}
+
+func (r *Runner) ProcessRequest(req *http.Request) (*http.Response, error) {
+	st := r.browser.State()
+	st.Request = req
+	err := r.browser.Reload()
+	return st.Response, err
 }
 
 type RunContext struct {
@@ -567,15 +575,6 @@ func (r *Runner) login() error {
 	return nil
 }
 
-func (r *Runner) Info() torznab.Info {
-	return torznab.Info{
-		ID:       r.definition.Site,
-		Title:    r.definition.Name,
-		Language: r.definition.Language,
-		Link:     r.definition.Links[0],
-	}
-}
-
 //Capabilities gets the torznab formatted capabilities of this indexer.
 func (r *Runner) Capabilities() torznab.Capabilities {
 	caps := r.definition.Capabilities.ToTorznab()
@@ -607,7 +606,7 @@ func (r *Runner) localCategories(query torznab.Query) []string {
 	localCats := []string{}
 	set := make(map[string]struct{})
 	if len(query.Categories) > 0 {
-		queryCats := torznab.AllCategories.Subset(query.Categories...)
+		queryCats := categories.AllCategories.Subset(query.Categories...)
 
 		// resolve query categories to the exact local, or the local based on parent cat
 		for _, id := range r.definition.Capabilities.CategoryMap.ResolveAll(queryCats...) {
@@ -703,8 +702,8 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 	//Get the categories for this query based on the indexer
 	localCats := r.localCategories(query)
 
-	r.logger.Debugf("Query is %v\n", query)
-	r.logger.Debugf("Keywords are %q\n", query.Keywords())
+	//r.logger.Debugf("Query is %v\n", query)
+	//r.logger.Debugf("Keywords are %q\n", query.Keywords())
 	//Context about the search
 	context := RunContext{}
 
@@ -793,7 +792,7 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 			}
 
 			if !matchCat {
-				torrent.HandleTorrentDiscovery(&item)
+				storage.HandleTorrentDiscovery(&item)
 				r.logger.
 					WithFields(logrus.Fields{"category": item.LocalCategoryName, "categoryId": item.LocalCategoryID}).
 					Debugf("Skipping result because it's not contained in our needed categories.")
@@ -802,7 +801,7 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 		}
 		//Try to map the category from the indexer to the global categories
 		r.resolveCategory(&item)
-		torrent.HandleTorrentDiscovery(&item)
+		storage.HandleTorrentDiscovery(&item)
 		if query.Series != "" {
 			info, err := releaseinfo.Parse(item.Title)
 			if err != nil {
@@ -827,12 +826,12 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 		WithFields(logrus.Fields{"time": time.Now().Sub(timer)}).
 		Infof("Query returned %d results", len(extracted))
 
-	var items []search.ResultItem
-	for _, item := range extracted {
-		items = append(items, item.ResultItem)
-	}
+	//var items []search.ExternalResultItem
+	//for _, item := range extracted {
+	//	items = append(items, item)
+	//}
 	srchResult := &context.Search
-	srchResult.Results = items
+	srchResult.Results = extracted
 	return srchResult, nil
 }
 
