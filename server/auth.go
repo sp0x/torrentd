@@ -34,6 +34,6 @@ func (s *Server) checkAPIKey(inputKey string) bool {
 	if inputKey == fmt.Sprintf("%s", k) {
 		return true
 	}
-	log.Printf("Incorrect api key %q, expected %x", s, k)
+	log.Printf("Incorrect api key, expected %x", k)
 	return false
 }

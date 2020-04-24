@@ -35,7 +35,7 @@ jobs:
       - run:
           name: "build binaries"
           command: |
-            make build; upx/${UPXVER}/upx torrent-rss.*
+            make build;
             mv torrent-rss.* artifacts
       - run:
           name: "code coverage"
