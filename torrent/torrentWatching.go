@@ -3,6 +3,7 @@ package torrent
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"os"
 	"text/tabwriter"
@@ -35,7 +36,10 @@ func Watch(client *TorrentHelper, interval int) {
 		}
 		if err != nil {
 			time.Sleep(time.Second * time.Duration(interval))
-			continue
+			switch err.(type) {
+			case *indexer.LoginError:
+				return
+			}
 		}
 		if currentSearch == nil {
 			log.Warningf("Could not fetch torrent page: %d\n", page)

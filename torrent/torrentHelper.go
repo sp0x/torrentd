@@ -1,7 +1,6 @@
 package torrent
 
 import (
-	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/config"
@@ -45,89 +44,7 @@ func (th *TorrentHelper) Search(searchContext *search.Search, query string, page
 		return nil, err
 	}
 	return srch, nil
-	//
-	////Get the page ids.
-	//if searchContext == nil {
-	//	searchContext, err = th.startSearch(query)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//}
-	//if page == 0 || searchContext == nil {
-	//	return searchContext, nil // th.searchPage
-	//}
-	//furl := fmt.Sprintf("https://rutracker.org/forum/tracker.php?nm=%s&search_id=%s&start=%d", query, searchContext.Id, page*th.pageSize)
-	//data, err := th.request(furl, nil, nil)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//contentReader := bytes.NewReader(data)
-	//doc, err := goquery.NewDocumentFromReader(contentReader)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//searchContext.DOM = doc.First()
-	////th.currentSearch.doc = doc
-	//return searchContext, nil
 }
-
-//
-////Start the search, getting the page ids
-//func (th *TorrentHelper) startSearch(query string) (*search.Search, error) {
-//	data := "prev_my=0&prev_new=0&prev_oop=0&o=1&s=2&tm=-1&pn=&submit=%CF%EE%E8%F1%EA"
-//	for _, forumId := range []int{
-//		//46, 56, 98, 103, 249, 314, 500, 552, 709, 1260, 2076, 2123, 2139,
-//	} {
-//		data += "&f%5B%5D=" + strconv.Itoa(forumId)
-//	}
-//	data += "&nm=" + query
-//	furl := fmt.Sprintf("https://rutracker.org/forum/tracker.php?%s", data)
-//	page, err := th.request(furl, nil, nil)
-//	if err != nil {
-//		return nil, err
-//	}
-//	contentReader := bytes.NewReader(page)
-//	doc, err := goquery.NewDocumentFromReader(contentReader)
-//	if err != nil {
-//		return nil, err
-//	}
-//	/*
-//		Scan all pages every time. It's not safe to skip them by last torrent ID in the database,
-//		because some of them might be hidden at the previous run.
-//	*/
-//	pageUrlRx, _ := regexp.Compile("tracker.php\\?search_id=([^&]+)[^'\"]*?")
-//	pageUrls := doc.Find("a.pg").FilterFunction(func(i int, s *goquery.Selection) bool {
-//		//get href args that match tracker.php\\?search_id=([^&]+)[^'\"]*?
-//		href, exists := s.Attr("href")
-//		if !exists {
-//			return false
-//		}
-//		matches := pageUrlRx.MatchString(href)
-//		return matches
-//	}).Map(func(i int, s *goquery.Selection) string {
-//		href, _ := s.Attr("href")
-//		matches := pageUrlRx.FindAllStringSubmatch(href, -1)
-//		if len(matches) == 0 || len(matches[0]) < 2 {
-//			return ""
-//		}
-//		return matches[0][1]
-//	})
-//	if len(pageUrls) == 0 {
-//		lowerPage := strings.ToLower(string(page))
-//		for _, reason := range []string{"форум временно отключен", "форум временно недоступен"} {
-//			if strings.Contains(lowerPage, reason) {
-//				return nil, errors.New("source in maintenance")
-//			}
-//		}
-//		return nil, fmt.Errorf("no search pages found")
-//	}
-//	srch := search.Search{
-//		DOM: doc.First(),
-//		Id:  pageUrls[0],
-//	}
-//	//th.currentSearch = &search
-//	return &srch, nil
-//}
 
 func (th *TorrentHelper) GetDefaultOptions() *GenericSearchOptions {
 	return &GenericSearchOptions{
@@ -186,8 +103,6 @@ func (th *TorrentHelper) parseTorrentRow(row *goquery.Selection) *search.Externa
 		LocalCategoryName: category,
 		LocalCategoryID:   categoryId,
 	}
-	newTorrent.Link = th.GetTorrentLink(newTorrent)
-	newTorrent.SourceLink = th.GetTorrentDownloadLink(newTorrent)
 	newTorrent.IsMagnet = false
 	if th.FetchDefinition {
 		def, err := ParseTorrentFromUrl(th, newTorrent.SourceLink)
@@ -202,18 +117,3 @@ func (th *TorrentHelper) parseTorrentRow(row *goquery.Selection) *search.Externa
 	}
 	return newTorrent
 }
-
-func (th *TorrentHelper) GetTorrentLink(t *search.ExternalResultItem) string {
-	return fmt.Sprintf("http://rutracker.org/forum/viewtopic.php?t=%s", t.LocalId)
-}
-
-func (th *TorrentHelper) GetTorrentDownloadLink(t *search.ExternalResultItem) string {
-	return fmt.Sprintf("http://rutracker.org/forum/dl.php?t=%s", t.LocalId)
-}
-
-//func (th *TorrentHelper) ParseTorrents(doc *goquery.Selection, f func(i int, s *search.ExternalResultItem)) *goquery.Selection {
-//	return doc.Find("tr.tCenter.hl-tr").Each(func(i int, s *goquery.Selection) {
-//		torrent := th.parseTorrentRow(s)
-//		f(i, torrent)
-//	})
-//}

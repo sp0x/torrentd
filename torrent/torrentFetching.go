@@ -3,6 +3,7 @@ package torrent
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"os"
 	"text/tabwriter"
@@ -30,7 +31,10 @@ func GetNewTorrents(client *TorrentHelper, fetchOptions *GenericSearchOptions) e
 		}
 		if err != nil {
 			log.Warningf("Could not fetch page %d\n", page)
-			continue
+			switch err.(type) {
+			case *indexer.LoginError:
+				return err
+			}
 		}
 		/*
 			Scan all pages every time. It's not safe to skip them by last torrent ID in the database,

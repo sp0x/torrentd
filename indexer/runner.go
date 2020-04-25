@@ -444,11 +444,11 @@ func (r *Runner) login() error {
 	default:
 		return fmt.Errorf("Unknown login method %q", r.definition.Login.Method)
 	}
-
+	// Get the error
 	if len(r.definition.Login.Error) > 0 {
 		if err = r.definition.Login.hasError(r.browser); err != nil {
 			r.logger.WithError(err).Error("Failed to login")
-			return err
+			return &LoginError{err}
 		}
 	}
 	//Check if the login went ok

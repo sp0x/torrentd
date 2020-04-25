@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/sp0x/rutracker-rss/server/rss"
 	"net/url"
@@ -46,6 +47,10 @@ func (s *Server) searchAndServe(c *gin.Context) {
 		}
 		if err != nil {
 			log.Warningf("Error while searching for torrent: %s . %s", name, err)
+			switch err.(type) {
+			case *indexer.LoginError:
+				break
+			}
 		}
 		if currentPage >= ops.PageCount {
 			break
