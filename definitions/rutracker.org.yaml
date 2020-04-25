@@ -376,6 +376,32 @@ caps:
     1778: Audio  #Black (lossy)
     783:  Audio #Саундтреки к играм (lossy)
     2090: Movies  #Фильмы до 1990 года
+    2157: Movies  #Кино, театр, ТВ, мультипликация, цирк
+    1199: PC  #Плагины для обработки звука
+    1719: Audio/Lossless  #Black (lossless)
+    1709: Audio  #Pop-Rock & Soft Rock (lossy)
+    1822: Audio  #Goa Trance, Psy-Trance (lossy)
+    2198: Movies/HD  #HD Video
+    1126: Audio  #New Age & Meditative (lossy)
+    1884: Audio  #Классика и классика в современной обработке (Hi-Res stereo)
+    1985: Movies  #Документальные/познавательные фильмы
+    1625: Audio  #Саундтреки и мюзиклы (оцифровки)
+    334:  Books #Водный транспорт
+    2282: Audio/Lossless  #Avant-Garde Jazz, Free Improvisation (lossless)
+    242:  TV #Сериалы Великобритании и Ирландии
+    2232: Audio  #Латиноамериканская поп-музыка (lossy)
+    2421: Audio  #Библиотеки и саундбанки для сэмплеров, пресеты для синтезаторов
+    1415: Books  #Худ. лит-ра для дошкольников и младших классов
+    1460: TV/HD  #Мультсериалы (HD Video)
+    46:   TV #Документальные фильмы и телепередачи
+    2501: Audio  #Disco, Italo-Disco, Euro-Disco, Hi-NRG (lossy)
+    1754: Audio  #Электронная музыка (оцифровки)
+    1895: Audio  #PsyChill, Ambient, Dub (lossy)
+    51:   PC #Стратегии в реальном времени
+    1755: Audio  #Рок-музыка (Hi-Res stereo)
+    2221: Movies  #Фильмы 1991-2000
+    2361: Books  #Школьные учебники, ЕГЭ, ОГЭ
+    2366: TV/HD  #Зарубежные сериалы (HD Video)
 
 
 login:
