@@ -2,7 +2,6 @@ package indexer
 
 import (
 	log "github.com/sirupsen/logrus"
-	"net/http"
 	"reflect"
 	"sort"
 )
@@ -12,7 +11,8 @@ type multiLoader []DefinitionLoader
 func defaultMultiLoader() *multiLoader {
 	return &multiLoader{
 		newFsLoader(),
-		escLoader{http.Dir("")},
+		embeddedLoader(),
+		//escLoader{http.Dir("")},
 	}
 }
 
