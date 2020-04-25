@@ -25,11 +25,16 @@ func (l *AssetLoader) List() ([]string, error) {
 }
 
 func (l *AssetLoader) Load(key string) (*IndexerDefinition, error) {
-	fullname := fmt.Sprintf("indexer/definitions/%s.yml", key)
+	fullname := fmt.Sprintf("definitions/%s.yml", key)
 	data, err := definitions.GzipAsset(fullname)
 	if err != nil {
-		return nil, err
+		fullname = fmt.Sprintf("definitions/%s.yaml", key)
+		data, err = definitions.GzipAsset(fullname)
+		if err != nil {
+			return nil, err
+		}
 	}
+	data, _ = definitions.UnzipData(data)
 	def, err := ParseDefinition(data)
 	if err != nil {
 		return def, err
