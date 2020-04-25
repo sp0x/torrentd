@@ -11,6 +11,7 @@ func (s *Server) setupRoutes(r *gin.Engine) {
 	r.GET("/music", s.serveMusic)
 	r.GET("/anime", s.serveAnime)
 	r.GET("/search/:name", s.searchAndServe)
+	r.GET("/status", s.status)
 
 	//Torznab
 	r.GET("torznab/:indexer", s.torznabHandler)

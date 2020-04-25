@@ -7,11 +7,12 @@ import (
 	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/sp0x/rutracker-rss/server/rss"
+	"github.com/sp0x/rutracker-rss/torrent/storage"
 	"net/url"
 )
 
 func (s *Server) serveMusic(c *gin.Context) {
-	torrents := storage.GetTorrentsInCategories([]int{
+	torrents := storage.DefaultStorage().GetTorrentsInCategories([]int{
 		409,  // Classical and modern academic music
 		1125, // Folklore, national and ethnical music
 		1849, //New age, relax, meditative and flamenco
@@ -25,10 +26,28 @@ func (s *Server) serveMusic(c *gin.Context) {
 }
 
 func (s *Server) serveAnime(c *gin.Context) {
-	torrents := storage.GetTorrentsInCategories([]int{
+	torrents := storage.DefaultStorage().GetTorrentsInCategories([]int{
 		33, // Anime
 	})
 	rss.SendRssFeed(hostname, "anime", torrents, c)
+}
+
+func (s *Server) status(c *gin.Context) {
+	strg := storage.DefaultStorage()
+	latest := strg.GetNewest(10)
+	var latestNames = []string{}
+	for _, late := range latest {
+		latestNames = append(latestNames, late.Title)
+	}
+
+	statusObj := struct {
+		Torrents int64    `json:"total_count"`
+		Latest   []string `json:"latest"`
+	}{
+		Torrents: strg.GetTorrentCount(),
+		Latest:   latestNames,
+	}
+	c.JSON(200, statusObj)
 }
 
 func (s *Server) searchAndServe(c *gin.Context) {
@@ -79,7 +98,7 @@ func (s *Server) searchAndServe(c *gin.Context) {
 }
 
 func (s *Server) serveShows(c *gin.Context) {
-	torrents := storage.GetTorrentsInCategories([]int{
+	torrents := storage.DefaultStorage().GetTorrentsInCategories([]int{
 		189,  //Foreign shows
 		2366, //Foreign shows in HD
 		2100, //Asian shows
@@ -88,7 +107,7 @@ func (s *Server) serveShows(c *gin.Context) {
 }
 
 func (s *Server) serveMovies(c *gin.Context) {
-	torrents := storage.GetTorrentsInCategories([]int{
+	torrents := storage.DefaultStorage().GetTorrentsInCategories([]int{
 		7,    //foreign films
 		124,  //art-house and author movies
 		93,   //DVD

@@ -7,7 +7,7 @@ import (
 	"github.com/sp0x/rutracker-rss/config"
 	"github.com/sp0x/rutracker-rss/server/rss"
 	"github.com/sp0x/rutracker-rss/torrent"
-	storage2 "github.com/sp0x/rutracker-rss/torrent/storage"
+	"github.com/sp0x/rutracker-rss/torrent/storage"
 	"net/http"
 	"net/url"
 	"os"
@@ -66,8 +66,6 @@ func (s *Server) Listen(tracker *torrent.TorrentHelper) error {
 	s.tabWriter = tabWr
 	r := gin.Default()
 	s.setupRoutes(r)
-
-	storage = &storage2.Storage{}
 	log.Info("Starting server...")
 	key, _ := s.sharedKey()
 	log.Infof("API Key: %s", key)
@@ -75,11 +73,10 @@ func (s *Server) Listen(tracker *torrent.TorrentHelper) error {
 	return err
 }
 
-var storage *storage2.Storage
 var hostname string
 
 func (s *Server) serveAllTorrents(c *gin.Context) {
-	torrents := storage.GetTorrentsInCategories([]int{})
+	torrents := storage.DefaultStorage().GetTorrentsInCategories([]int{})
 	rss.SendRssFeed(hostname, "torrents", torrents, c)
 }
 

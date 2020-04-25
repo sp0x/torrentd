@@ -75,7 +75,20 @@ func (ts *Storage) GetOlderThanHours(h int) []search.ExternalResultItem {
 	defer gdb.Close()
 	var torrents []search.ExternalResultItem
 	tm := time.Now().Unix() - int64(60)*int64(60)*int64(h)
-	gdb.Model(&search.ExternalResultItem{}).Where(fmt.Sprintf("added_on < %d", tm)).Find(&torrents)
+	gdb.Model(&search.ExternalResultItem{}).
+		Where(fmt.Sprintf("publish_date < %d", tm)).
+		Find(&torrents)
+	return torrents
+}
+
+func (ts *Storage) GetNewest(cnt int) []search.ExternalResultItem {
+	gdb := db.GetOrmDb()
+	defer gdb.Close()
+	var torrents []search.ExternalResultItem
+	gdb.Model(&search.ExternalResultItem{}).
+		Order("publish_date desc").
+		Limit(cnt).
+		Find(&torrents)
 	return torrents
 }
 
@@ -93,6 +106,10 @@ func (ts *Storage) FindNameAndIndexer(title string, indexerSite string) *search.
 }
 
 var defaultStorage = Storage{}
+
+func DefaultStorage() *Storage {
+	return &defaultStorage
+}
 
 func GetOlderThanHours(h int) []search.ExternalResultItem {
 	return defaultStorage.GetOlderThanHours(h)
