@@ -13,6 +13,7 @@ var rootCmd = &cobra.Command{
 	Use:   "rutracker",
 	Short: "Gathers torrents from rutracker and serves them through a RSS server.",
 }
+var configFile = ""
 
 func init() {
 	//Init our db
@@ -22,18 +23,12 @@ func init() {
 	gormDb.AutoMigrate(&search.ExternalResultItem{})
 	cobra.OnInitialize(initConfig)
 	flags := rootCmd.PersistentFlags()
-	var username, password string
 	var verbose bool
-	flags.StringVarP(&username, "username", "u", "", "The username to use")
-	flags.StringVarP(&password, "password", "p", "", "The password to use")
 	flags.BoolVarP(&verbose, "verbose", "v", false, "Show more logs")
-	_ = viper.BindPFlag("username", flags.Lookup("username"))
-	_ = viper.BindPFlag("password", flags.Lookup("password"))
+	flags.StringVar(&configFile, "config", "", "The configuration file to use. By default it is ~/.tracker-rss/.tracker-rss.yaml")
 	_ = viper.BindPFlag("verbose", flags.Lookup("verbose"))
 	_ = viper.BindEnv("verbose")
 	viper.SetEnvPrefix("TRACKER")
-	_ = viper.BindEnv("username")
-	_ = viper.BindEnv("password")
 
 }
 

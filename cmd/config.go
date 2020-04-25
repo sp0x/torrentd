@@ -14,11 +14,15 @@ var appConfig config.ViperConfig
 func initConfig() {
 	//We load the default config file
 	homeDir, _ := homedir.Dir()
-	defaultConfigPath := path.Join(homeDir, ".tracker-rss")
-	_ = os.MkdirAll(defaultConfigPath, os.ModePerm)
-	viper.AddConfigPath(defaultConfigPath)
-	viper.SetConfigType("yaml")
-	viper.SetConfigName(".tracker-rss")
+	if configFile != "" {
+		viper.SetConfigFile(configFile)
+	} else {
+		defaultConfigPath := path.Join(homeDir, ".tracker-rss")
+		_ = os.MkdirAll(defaultConfigPath, os.ModePerm)
+		viper.AddConfigPath(defaultConfigPath)
+		viper.SetConfigType("yaml")
+		viper.SetConfigName(".tracker-rss")
+	}
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
