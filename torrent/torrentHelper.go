@@ -19,13 +19,16 @@ type TorrentHelper struct {
 
 func NewTorrentHelper(config config.Config) *TorrentHelper {
 	rt := TorrentHelper{}
-	key := "rutracker.org"
-	ixr, err := indexer.Lookup(config, key)
+	ixr := config.GetString("indexer")
+	if ixr == "" {
+		ixr = "rutracker.org"
+	}
+	ixrObj, err := indexer.Lookup(config, ixr)
 	if err != nil {
-		log.Errorf("Could not find indexer `%s`.\n", key)
+		log.Errorf("Could not find indexer `%s`.\n", ixr)
 		return nil
 	}
-	rt.indexer = ixr
+	rt.indexer = ixrObj
 	return &rt
 }
 

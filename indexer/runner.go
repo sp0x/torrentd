@@ -619,7 +619,7 @@ func (r *Runner) Search(query torznab.Query, srch *search.Search) (*search.Searc
 
 	r.logger.
 		WithFields(logrus.Fields{"query": query.Encode()}).
-		Infof("Searching indexer")
+		Debugf("Searching indexer")
 	//Get our indexer url values
 	vals, err := r.extractUrlValues(templateCtx)
 	if err != nil {
@@ -720,7 +720,7 @@ func (r *Runner) Search(query torznab.Query, srch *search.Search) (*search.Searc
 
 	r.logger.
 		WithFields(logrus.Fields{"time": time.Now().Sub(timer)}).
-		Infof("Query returned %d results", len(extracted))
+		Debugf("Query returned %d results", len(extracted))
 
 	//var items []search.ExternalResultItem
 	//for _, item := range extracted {
