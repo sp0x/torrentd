@@ -427,7 +427,9 @@ func (r *Runner) login() error {
 	if err != nil {
 		return err
 	}
-
+	if vals["login_username"] == "<no value>" && vals["login_password"] == "<no value>" {
+		return &LoginError{errors.New("no login details configured")}
+	}
 	switch r.definition.Login.Method {
 	case "", loginMethodForm:
 		if err = r.loginViaForm(loginUrl, r.definition.Login.FormSelector, vals); err != nil {
