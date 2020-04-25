@@ -47,9 +47,9 @@ func Watch(client *TorrentHelper, interval int) {
 		counter := uint(0)
 		finished := false
 		hasStaleTorrents := false
-		client.ParseTorrents(currentSearch.DOM, func(i int, torrent *search.ExternalResultItem) {
-			if finished || torrent == nil {
-				return
+		for _, torrent := range currentSearch.Results {
+			if finished {
+				break
 			}
 			//torrentNumber := page*client.pageSize + counter + 1
 			//isNew, isUpdate := HandleTorrentDiscovery(torrent)
@@ -66,10 +66,10 @@ func Watch(client *TorrentHelper, interval int) {
 			if !torrent.IsNew() {
 				hasStaleTorrents = true
 				finished = true
-				return
+				break
 			}
 			counter++
-		})
+		}
 		//If we have stale torrents we wait some time and try again
 		if hasStaleTorrents {
 			time.Sleep(time.Second * time.Duration(interval))

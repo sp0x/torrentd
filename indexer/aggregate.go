@@ -27,21 +27,26 @@ func (ag Aggregate) GetEncoding() string {
 	return "utf-8"
 }
 
-func (ag Aggregate) Search(query torznab.Query) (*search.Search, error) {
+func (ag Aggregate) Search(query torznab.Query, srch *search.Search) (*search.Search, error) {
 	g := errgroup.Group{}
 	allResults := make([][]search.ExternalResultItem, len(ag))
 	maxLength := 0
+	indexerSearches := make(map[int]*search.Search)
 
 	// fetch all results
 	for idx, indexer := range ag {
 		indexerID := indexer.Info().GetId()
 		idx, indexer := idx, indexer
+		//Run the indexer in a goroutine
 		g.Go(func() error {
-			srchRes, err := indexer.Search(query)
+			srch := indexerSearches[idx]
+
+			srchRes, err := indexer.Search(query, srch)
 			if err != nil {
 				log.Warnf("Indexer %q failed: %s", indexerID, err)
 				return nil
 			}
+			indexerSearches[idx] = srch
 			allResults[idx] = srchRes.Results
 			if l := len(srchRes.Results); l > maxLength {
 				maxLength = l

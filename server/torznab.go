@@ -75,7 +75,7 @@ func (s *Server) torznabSearch(r *http.Request, indexer indexer.Indexer, siteKey
 		return nil, err
 	}
 
-	srch, err := indexer.Search(query)
+	srch, err := indexer.Search(query, nil)
 	if err != nil {
 		return nil, err
 	}

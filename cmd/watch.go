@@ -25,19 +25,20 @@ func init() {
 }
 
 func watchTracker(cmd *cobra.Command, args []string) {
-	client := torrent.NewTorrentHelper(&appConfig)
-	if client == nil {
+	helper := torrent.NewTorrentHelper(&appConfig)
+	if helper == nil {
 		log.Error("Couldn't initialize torrent helper.")
 		return
 	}
-
+	//Init the server
 	go func() {
 		rserver := server.NewServer(&appConfig)
-		err := rserver.Listen(client)
+		err := rserver.Listen(helper)
 		if err != nil {
 			fmt.Print(err)
 		}
 	}()
 
-	torrent.Watch(client, watchInterval)
+	//Start watching the torrent tracker.
+	torrent.Watch(helper, watchInterval)
 }

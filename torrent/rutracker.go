@@ -40,7 +40,7 @@ func NewTorrentHelper(config config.Config) *TorrentHelper {
 func (th *TorrentHelper) Search(searchContext *search.Search, query string, page uint) (*search.Search, error) {
 	qrobj := torznab.ParseQueryString(query)
 	qrobj.Page = page
-	srch, err := th.indexer.Search(qrobj)
+	srch, err := th.indexer.Search(qrobj, searchContext)
 	if err != nil {
 		return nil, err
 	}
@@ -211,9 +211,9 @@ func (th *TorrentHelper) GetTorrentDownloadLink(t *search.ExternalResultItem) st
 	return fmt.Sprintf("http://rutracker.org/forum/dl.php?t=%s", t.LocalId)
 }
 
-func (th *TorrentHelper) ParseTorrents(doc *goquery.Selection, f func(i int, s *search.ExternalResultItem)) *goquery.Selection {
-	return doc.Find("tr.tCenter.hl-tr").Each(func(i int, s *goquery.Selection) {
-		torrent := th.parseTorrentRow(s)
-		f(i, torrent)
-	})
-}
+//func (th *TorrentHelper) ParseTorrents(doc *goquery.Selection, f func(i int, s *search.ExternalResultItem)) *goquery.Selection {
+//	return doc.Find("tr.tCenter.hl-tr").Each(func(i int, s *goquery.Selection) {
+//		torrent := th.parseTorrentRow(s)
+//		f(i, torrent)
+//	})
+//}

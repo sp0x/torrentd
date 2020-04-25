@@ -13,7 +13,7 @@ func (r *Runner) resolveCategory(item *search.ExternalResultItem) {
 	} else {
 		r.logger.
 			WithFields(logrus.Fields{"localId": item.LocalCategoryID, "localName": item.LocalCategoryName}).
-			Warn("Unknown local category")
+			Debug("Unknown local category")
 
 		if intCatId, err := strconv.Atoi(item.LocalCategoryID); err == nil {
 			item.Category = intCatId + categories.CustomCategoryOffset

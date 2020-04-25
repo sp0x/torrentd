@@ -32,4 +32,5 @@ ENV PATH=/bin
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /dist /
 EXPOSE 5000
+ENV GIN_MODE=release
 ENTRYPOINT ["/torrent-rss"]

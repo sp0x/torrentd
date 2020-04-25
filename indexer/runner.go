@@ -1,7 +1,6 @@
 package indexer
 
 import (
-	"crypto/tls"
 	"errors"
 	"fmt"
 	"github.com/sp0x/rutracker-rss/config"
@@ -11,7 +10,6 @@ import (
 	"github.com/sp0x/rutracker-rss/torznab"
 	"io"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -20,16 +18,10 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/net/proxy"
-
 	"github.com/PuerkitoBio/goquery"
 	imdbscraper "github.com/cardigann/go-imdb-scraper"
 	"github.com/cardigann/releaseinfo"
-	"github.com/f2prateek/train"
-	trainlog "github.com/f2prateek/train/log"
 	"github.com/sirupsen/logrus"
-	"github.com/sp0x/surf"
-	"github.com/sp0x/surf/agent"
 	"github.com/sp0x/surf/browser"
 	"github.com/sp0x/surf/jar"
 
@@ -70,7 +62,7 @@ func (r *Runner) ProcessRequest(req *http.Request) (*http.Response, error) {
 }
 
 type RunContext struct {
-	Search search.Search
+	Search *search.Search
 }
 
 func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
@@ -84,91 +76,6 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 		state:             defaultIndexerState(),
 		keepSessions:      true,
 	}
-}
-
-func (r *Runner) createTransport() (http.RoundTripper, error) {
-	var t http.Transport
-	var custom bool
-
-	if proxyAddr, isset := os.LookupEnv("SOCKS_PROXY"); isset {
-		r.logger.
-			WithFields(logrus.Fields{"addr": proxyAddr}).
-			Debugf("Using SOCKS5 proxy")
-
-		dialer, err := proxy.SOCKS5("tcp", proxyAddr, nil, proxy.Direct)
-		if err != nil {
-			return nil, fmt.Errorf("can't connect to the proxy %s: %v", proxyAddr, err)
-		}
-
-		t.Dial = dialer.Dial
-		custom = true
-	}
-
-	if _, isset := os.LookupEnv("TLS_INSECURE"); isset {
-		t.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-		custom = true
-	}
-
-	if !custom {
-		return &http.Transport{
-			Dial: (&net.Dialer{
-				Timeout: 5 * time.Second,
-			}).Dial,
-			TLSHandshakeTimeout: 5 * time.Second,
-		}, nil
-	}
-
-	return &t, nil
-}
-
-func (r *Runner) createBrowser() {
-	if r.keepSessions {
-		//No need to recreate browsers if we're keeping the session
-		if r.browser != nil {
-			return
-		}
-	}
-	r.browserLock.Lock()
-
-	if r.cookies == nil {
-		r.cookies = jar.NewMemoryCookies()
-	}
-
-	bow := surf.NewBrowser()
-	bow.SetUserAgent(agent.Firefox())
-	bow.SetEncoding(r.definition.Encoding)
-	bow.SetAttribute(browser.SendReferer, true)
-	bow.SetAttribute(browser.MetaRefreshHandling, true)
-	bow.SetCookieJar(r.cookies)
-	//bow.SetTimeout(time.Second * 10)
-
-	transport, err := r.createTransport()
-	if err != nil {
-		panic(err)
-	}
-
-	if r.opts.Transport != nil {
-		transport = r.opts.Transport
-	}
-
-	switch os.Getenv("DEBUG_HTTP") {
-	case "1", "true", "basic":
-		bow.SetTransport(train.TransportWith(transport, trainlog.New(os.Stderr, trainlog.Basic)))
-	case "body":
-		bow.SetTransport(train.TransportWith(transport, trainlog.New(os.Stderr, trainlog.Body)))
-	case "":
-		bow.SetTransport(transport)
-	default:
-		panic("Unknown value for DEBUG_HTTP")
-	}
-	r.connectivityCache.SetBrowser(bow)
-	r.browser = bow
-}
-
-func (r *Runner) releaseBrowser() {
-	r.browser = nil
-	r.connectivityCache.ClearBrowser()
-	r.browserLock.Unlock()
 }
 
 // checks that the runner has the config values it needs
@@ -265,24 +172,6 @@ func (r *Runner) handleMetaRefreshHeader() error {
 			return r.openPage(u)
 		}
 	}
-	return nil
-}
-
-func (r *Runner) openPage(u string) error {
-	r.logger.WithField("url", u).
-		Info("Opening page")
-	err := r.browser.Open(u)
-	if err != nil {
-		return err
-	}
-	_ = r.cachePage()
-	r.logger.
-		WithFields(logrus.Fields{"code": r.browser.StatusCode(), "page": r.browser.Url()}).
-		Debugf("Finished request")
-	if err = r.handleMetaRefreshHeader(); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -601,8 +490,8 @@ func (r *Runner) Capabilities() torznab.Capabilities {
 	return caps
 }
 
-// localCategories returns a slice of local categories that should be searched
-func (r *Runner) localCategories(query torznab.Query) []string {
+// getLocalCategoriesMatchingQuery returns a slice of local categories that should be searched
+func (r *Runner) getLocalCategoriesMatchingQuery(query torznab.Query) []string {
 	localCats := []string{}
 	set := make(map[string]struct{})
 	if len(query.Categories) > 0 {
@@ -677,7 +566,7 @@ func (r *Runner) GetEncoding() string {
 }
 
 //Search for a given torrent
-func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
+func (r *Runner) Search(query torznab.Query, srch *search.Search) (*search.Search, error) {
 	r.createBrowser()
 	if !r.keepSessions {
 		defer r.releaseBrowser()
@@ -700,12 +589,17 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 		}
 	}
 	//Get the categories for this query based on the indexer
-	localCats := r.localCategories(query)
+	localCats := r.getLocalCategoriesMatchingQuery(query)
 
 	//r.logger.Debugf("Query is %v\n", query)
 	//r.logger.Debugf("Keywords are %q\n", query.Keywords())
 	//Context about the search
-	context := RunContext{}
+	if srch == nil {
+		srch = &search.Search{}
+	}
+	context := RunContext{
+		Search: srch,
+	}
 
 	//Exposed fields to add:
 	templateCtx := r.getRunnerContext(query, localCats, context)
@@ -830,9 +724,8 @@ func (r *Runner) Search(query torznab.Query) (*search.Search, error) {
 	//for _, item := range extracted {
 	//	items = append(items, item)
 	//}
-	srchResult := &context.Search
-	srchResult.Results = extracted
-	return srchResult, nil
+	context.Search.Results = extracted
+	return context.Search, nil
 }
 
 func (r *Runner) extractUrlValues(templateCtx RunnerPatternData) (url.Values, error) {
@@ -874,6 +767,7 @@ type RunnerPatternData struct {
 	Context    RunContext
 }
 
+//Get the default run context
 func (r *Runner) getRunnerContext(query torznab.Query, localCats []string, context RunContext) RunnerPatternData {
 	templateCtx := RunnerPatternData{
 		query,

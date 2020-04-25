@@ -55,6 +55,7 @@ func GetNewTorrents(client *TorrentHelper, fetchOptions *GenericSearchOptions) e
 				_, _ = fmt.Fprintf(tabWr, "Torrent #%s:\t%s\t[%s]:\t%s\n",
 					torrent.LocalId, torrent.AddedOnStr(), "#", torrent.Title)
 			}
+			_ = tabWr.Flush()
 			if !torrent.IsNew() && fetchOptions.StopOnStaleTorrents {
 				finished = true
 				break
