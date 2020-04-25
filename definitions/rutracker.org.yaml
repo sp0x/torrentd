@@ -350,6 +350,33 @@ caps:
     2220: Movies #Фильмы 2016-2019
     313: Movies/HD #Зарубежное кино (HD Video)
     1936: Movies/HD #Фильмы HD для Apple TV
+    647:  Movies #Экшены от первого лица
+    2480: PC  #Неофициальные модификации, плагины, дополнения
+    1802: Books  #Спорт, физическая культура, боевые искусства
+    189:  TV #Зарубежные сериалы
+    1909: Audio/Audiobook  #Аудиокниги (AAC, ALAC)
+    2512: Audio/Lossless  #Музыка разных жанров (Hi-Res stereo и многоканальная музыка)
+    1864: Audio/Lossless  #Traditional Electronic, Ambient (lossless)
+    1708: Audio/Lossless  #Pop-Rock & Soft Rock (lossless)
+    1857: Audio/Lossless  #House (lossless)
+    2028: Books  #Математика
+    257:  Books #Смешанные единоборства и K-1
+    465:  Audio #Synthwave, Spacesynth, Dreamwave, Retrowave, Outrun (lossy)
+    2216: Books  #Ислам
+    281:  Books/Comics #Манга (на русском языке)
+    1412: Books  #Коллекционирование и вспомогательные ист. дисциплины
+    1743: Audio  #Indie, Post-Rock & Post-Punk (lossy)
+    2189: Books  #Футбол (книги и журналы)
+    1220: Audio/Lossless  #Отечественный шансон (lossless)
+    235:  TV #Сериалы США и Канады
+    1192: Audio  #САПР (электроника, автоматика, ГАП)
+    2309: Audio  #Вокальная и хоровая музыка (lossy)
+    2223: Books  #Путешествия и туризм
+    1142: Movies  #Фольклор, Народная и Этническая музыка (DVD Video)
+    1778: Audio  #Black (lossy)
+    783:  Audio #Саундтреки к играм (lossy)
+    2090: Movies  #Фильмы до 1990 года
+
 
 login:
   path: /forum/login.php

@@ -19,6 +19,7 @@ func (l *AssetLoader) List() ([]string, error) {
 	for _, name := range names {
 		fname := path.Base(name)
 		fname = strings.Replace(fname, ".yml", "", -1)
+		fname = strings.Replace(fname, ".yaml", "", -1)
 		results = append(results, fname)
 	}
 	return results, nil
