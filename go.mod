@@ -21,6 +21,7 @@ require (
 	github.com/headzoo/surf v1.0.0 // indirect
 	github.com/jackpal/bencode-go v0.0.0-20180813173944-227668e840fa
 	github.com/jinzhu/gorm v1.9.12
+	github.com/kataras/bindata v3.3.0+incompatible // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mrobinsn/go-tvmaze v1.2.0
@@ -35,7 +36,6 @@ require (
 	github.com/yosssi/gohtml v0.0.0-20190915184251-7ff6f235ecaf
 	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/text v0.3.2
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v2 v2.2.8
 )

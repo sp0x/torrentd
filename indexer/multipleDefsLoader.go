@@ -3,6 +3,7 @@ package indexer
 import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"reflect"
 	"sort"
 )
 
@@ -48,7 +49,8 @@ func (ml multiLoader) Load(key string) (*IndexerDefinition, error) {
 		}
 		loaded, err := loader.Load(key)
 		if err != nil {
-			log.Warnf("Couldn't load the indexer `%s` using %s. Error : %s\n", key, loader, err)
+			loaderName := reflect.TypeOf(loader)
+			log.Warnf("Couldn't load the indexer `%s` using %s. Error : %s\n", key, loaderName, err)
 			continue
 		}
 		if def == nil || loaded.Stats().ModTime.After(def.Stats().ModTime) { // If no definition is loaded so far, or the new one is newer
