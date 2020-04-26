@@ -45,6 +45,7 @@ type ResultItem struct {
 	Site          string
 	Title         string
 	OriginalTitle string
+	ShortTitle    string
 	Description   string
 	GUID          string
 	Comments      string

@@ -115,6 +115,8 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 			if _, ok := nonFilteredRow["title"]; ok {
 				item.OriginalTitle = nonFilteredRow["title"]
 			}
+		case "shortTitle":
+			item.ShortTitle = val
 		case "description":
 			item.Description = val
 		case "category":
