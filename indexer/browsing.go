@@ -105,7 +105,7 @@ func (r *Runner) releaseBrowser() {
 
 func (r *Runner) openPage(u string) error {
 	r.logger.WithField("url", u).
-		Info("Opening page")
+		Debug("Opening page")
 	err := r.browser.Open(u)
 	if err != nil {
 		return err
