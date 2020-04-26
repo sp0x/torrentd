@@ -15,6 +15,17 @@ type Aggregate struct {
 	Indexers []Indexer
 }
 
+func (ag Aggregate) Open(s *search.ExternalResultItem) (io.ReadCloser, error) {
+	//Find the indexer
+	for _, ixr := range ag.Indexers {
+		nfo := ixr.Info()
+		if nfo.GetTitle() == s.Site {
+			return ixr.Open(s)
+		}
+	}
+	return nil, errors.New("couldn't find indexer")
+}
+
 func NewAggregate(indexers []Indexer) *Aggregate {
 	ag := &Aggregate{}
 	ag.Indexers = indexers
@@ -102,8 +113,8 @@ func (ag Aggregate) Capabilities() torznab.Capabilities {
 	}
 }
 
-func (ag Aggregate) Download(u string) (io.ReadCloser, http.Header, error) {
-	return nil, http.Header{}, errors.New("Not implemented")
+func (ag Aggregate) Download(u string) (io.ReadCloser, error) {
+	return nil, errors.New("not implemented")
 }
 
 type AggregateInfo struct{}

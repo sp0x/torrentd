@@ -22,7 +22,8 @@ func ResolveTorrents(client *TorrentHelper, hours int) {
 		if t.Announce != "" {
 			continue
 		}
-		def, err := ParseTorrentFromUrl(client, t.SourceLink)
+		link, err := client.indexer.Open(&t)
+		def, err := ParseTorrentFromStream(link)
 		if err != nil {
 			log.Debugf("Could not resolve torrent: [%v] %v", t.LocalId, t.Title)
 			continue

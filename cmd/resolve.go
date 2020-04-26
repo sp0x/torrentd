@@ -1,6 +1,7 @@
 package main
 
 import (
+	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/torrent"
 	"github.com/spf13/cobra"
 )
@@ -18,6 +19,10 @@ func init() {
 }
 
 func resolveTorrents(cmd *cobra.Command, args []string) {
-	client := torrent.NewTorrentHelper(&appConfig)
-	torrent.ResolveTorrents(client, resolutionHours)
+	helper := torrent.NewTorrentHelper(&appConfig)
+	if helper == nil {
+		log.Error("Couldn't initialize torrent helper.")
+		return
+	}
+	torrent.ResolveTorrents(helper, resolutionHours)
 }

@@ -8,6 +8,7 @@ import (
 	bencode "github.com/jackpal/bencode-go"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/browser/encoding"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"regexp"
@@ -19,6 +20,14 @@ var rxMagnet, _ = regexp.Compile("^(stream-)?magnet:")
 var rxHex, _ = regexp.Compile("^[a-f0-9]{40}$")
 var rxBase32, _ = regexp.Compile("^[a-z2-7]{32}")
 
+func ParseTorrentFromStream(stream io.ReadCloser) (*Definition, error) {
+	body, err := ioutil.ReadAll(stream)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTorrent(string(body))
+}
+
 func ParseTorrentFromUrl(h *TorrentHelper, torrentUrl string) (*Definition, error) {
 	req, _ := http.NewRequest("GET", torrentUrl, nil)
 	res, err := h.indexer.ProcessRequest(req)
@@ -27,7 +36,6 @@ func ParseTorrentFromUrl(h *TorrentHelper, torrentUrl string) (*Definition, erro
 	}
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
-
 	if res.StatusCode >= 400 {
 		return nil, errors.New(strconv.Itoa(res.StatusCode))
 	}

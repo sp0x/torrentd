@@ -37,7 +37,7 @@ func (s *Server) downloadHandler(c *gin.Context) {
 		http.NotFound(c.Writer, c.Request)
 		return
 	}
-	rc, _, err := indexer.Download(t.Link)
+	rc, err := indexer.Download(t.Link)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusBadGateway)
 		return
