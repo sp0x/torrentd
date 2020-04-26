@@ -13,8 +13,8 @@ import (
 
 type TorrentHelper struct {
 	BasicTracker
-	pageSize uint
-	indexer  indexer.Indexer
+	//pageSize uint
+	indexer indexer.Indexer
 }
 
 func NewTorrentHelper(config config.Config) *TorrentHelper {

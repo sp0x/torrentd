@@ -69,9 +69,9 @@ func GetNewTorrents(client *TorrentHelper, fetchOptions *GenericSearchOptions) e
 		if finished {
 			break
 		}
-		if counter != client.pageSize {
-			log.Errorf("No results while parsing page %d: got %d torrents instead of %d\n", page, counter, client.pageSize)
-		}
+		//if counter != client.pageSize {
+		//	log.Errorf("No results while parsing page %d: got %d torrents instead of %d\n", page, counter, client.pageSize)
+		//}
 	}
 	return nil
 }
