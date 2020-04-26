@@ -1,6 +1,8 @@
 package search
 
-import "github.com/PuerkitoBio/goquery"
+import (
+	"github.com/PuerkitoBio/goquery"
+)
 
 type SearchMode struct {
 	Key             string
@@ -8,16 +10,44 @@ type SearchMode struct {
 	SupportedParams []string
 }
 
+type Instance interface {
+	GetStartingIndex() int
+	GetResults() []ExternalResultItem
+	SetStartIndex(key interface{}, i int)
+	SetResults(extracted []ExternalResultItem)
+	SetId(val string)
+}
+
 type Search struct {
 	DOM         *goquery.Selection
 	Id          string
-	CurrentPage int
-	StartIndex  int
+	currentPage int
+	startIndex  int
 	Results     []ExternalResultItem
+}
+
+func (s *Search) GetStartingIndex() int {
+	return s.startIndex
 }
 
 func (s *Search) GetDocument() *goquery.Selection {
 	return s.DOM
+}
+
+func (s *Search) SetStartIndex(key interface{}, i int) {
+	s.startIndex = i
+}
+
+func (s *Search) GetResults() []ExternalResultItem {
+	return s.Results
+}
+
+func (s *Search) SetResults(results []ExternalResultItem) {
+	s.Results = results
+}
+
+func (s *Search) SetId(val string) {
+	s.Id = val
 }
 
 type PaginationSearch struct {

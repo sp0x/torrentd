@@ -26,7 +26,7 @@ func Watch(client *TorrentHelper, interval int) {
 		os.Exit(1)
 	}
 	//client.clearSearch()
-	var currentSearch *search.Search
+	var currentSearch search.Instance
 	for true {
 		var err error
 		if currentSearch == nil {
@@ -51,7 +51,7 @@ func Watch(client *TorrentHelper, interval int) {
 		counter := uint(0)
 		finished := false
 		hasStaleTorrents := false
-		for _, torrent := range currentSearch.Results {
+		for _, torrent := range currentSearch.GetResults() {
 			if finished {
 				break
 			}

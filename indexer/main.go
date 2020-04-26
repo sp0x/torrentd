@@ -30,8 +30,7 @@ func CreateAggregate(config config.Config) (Indexer, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	agg := Aggregate{}
+	var indexers []Indexer
 	for _, key := range keys {
 		ifaceConfig, _ := config.GetSite(key) //Get all the configured indexers
 		if ifaceConfig != nil && len(ifaceConfig) > 0 {
@@ -39,10 +38,11 @@ func CreateAggregate(config config.Config) (Indexer, error) {
 			if err != nil {
 				return nil, err
 			}
-			agg = append(agg, indexer)
+			indexers = append(indexers, indexer)
 		}
 	}
 
+	agg := NewAggregate(indexers)
 	return agg, nil
 }
 

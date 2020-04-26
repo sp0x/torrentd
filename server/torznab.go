@@ -90,11 +90,11 @@ func (s *Server) torznabSearch(r *http.Request, indexer indexer.Indexer, siteKey
 			Language:    nfo.GetLanguage(),
 			Category:    "",
 		},
-		Items: srch.Results,
+		Items: srch.GetResults(),
 	}
 	feed.Info.Category = query.Type
 
-	rewritten, err := s.rewriteLinks(r, srch.Results)
+	rewritten, err := s.rewriteLinks(r, srch.GetResults())
 	if err != nil {
 		return nil, err
 	}

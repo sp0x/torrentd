@@ -20,7 +20,7 @@ type Info interface {
 
 type Indexer interface {
 	Info() Info
-	Search(query torznab.Query, srch *search.Search) (*search.Search, error)
+	Search(query torznab.Query, srch search.Instance) (search.Instance, error)
 	Download(urlStr string) (io.ReadCloser, http.Header, error)
 	Capabilities() torznab.Capabilities
 	GetEncoding() string

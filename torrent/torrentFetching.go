@@ -20,7 +20,7 @@ func GetNewTorrents(client *TorrentHelper, fetchOptions *GenericSearchOptions) e
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 
-	var currentSearch *search.Search
+	var currentSearch search.Instance
 	for page = 0; page < fetchOptions.PageCount; page++ {
 		log.Infof("Getting page %d\n", page)
 		var err error
@@ -42,7 +42,7 @@ func GetNewTorrents(client *TorrentHelper, fetchOptions *GenericSearchOptions) e
 		*/
 		counter := uint(0)
 		finished := false
-		for _, torrent := range currentSearch.Results {
+		for _, torrent := range currentSearch.GetResults() {
 			if finished {
 				break
 			}

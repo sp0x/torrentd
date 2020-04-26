@@ -11,44 +11,60 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type Aggregate []Indexer
+type Aggregate struct {
+	Indexers []Indexer
+}
+
+func NewAggregate(indexers []Indexer) *Aggregate {
+	ag := &Aggregate{}
+	ag.Indexers = indexers
+	return ag
+}
 
 func (ag Aggregate) ProcessRequest(req *http.Request) (*http.Response, error) {
-	for _, indexer := range ag {
+	for _, indexer := range ag.Indexers {
 		return indexer.ProcessRequest(req)
 	}
 	return nil, nil
 }
 
 func (ag Aggregate) GetEncoding() string {
-	for _, indexer := range ag {
+	for _, indexer := range ag.Indexers {
 		return indexer.GetEncoding()
 	}
 	return "utf-8"
 }
 
-func (ag Aggregate) Search(query torznab.Query, srch *search.Search) (*search.Search, error) {
+func (ag Aggregate) Search(query torznab.Query, srch search.Instance) (search.Instance, error) {
 	g := errgroup.Group{}
-	allResults := make([][]search.ExternalResultItem, len(ag))
+	allResults := make([][]search.ExternalResultItem, len(ag.Indexers))
 	maxLength := 0
-	indexerSearches := make(map[int]*search.Search)
-
+	if srch == nil {
+		srch = search.NewAggregatedSearch()
+	}
+	switch srch.(type) {
+	case *search.AggregatedSearch:
+	default:
+		return nil, errors.New("can't use normal search on an aggregate")
+	}
+	aggSearch := srch.(*search.AggregatedSearch)
+	//indexerSearches := make(map[int]*search.Search)
 	// fetch all results
-	for idx, indexer := range ag {
+	for idx, indexer := range ag.Indexers {
 		indexerID := indexer.Info().GetId()
 		idx, indexer := idx, indexer
+		ixrSearch := aggSearch.SearchContexts[&indexer]
+
 		//Run the indexer in a goroutine
 		g.Go(func() error {
-			srch := indexerSearches[idx]
-
-			srchRes, err := indexer.Search(query, srch)
+			srchRes, err := indexer.Search(query, ixrSearch)
 			if err != nil {
 				log.Warnf("Indexer %q failed: %s", indexerID, err)
 				return nil
 			}
-			indexerSearches[idx] = srch
-			allResults[idx] = srchRes.Results
-			if l := len(srchRes.Results); l > maxLength {
+			aggSearch.SearchContexts[&indexer] = srchRes
+			allResults[idx] = srchRes.GetResults()
+			if l := len(srchRes.GetResults()); l > maxLength {
 				maxLength = l
 			}
 			return nil
@@ -59,7 +75,7 @@ func (ag Aggregate) Search(query torznab.Query, srch *search.Search) (*search.Se
 		return nil, err
 	}
 
-	var outputSearch = &search.Search{}
+	var outputSearch = &search.AggregatedSearch{}
 	var results []search.ExternalResultItem
 
 	// interleave search results to preserve ordering
@@ -74,7 +90,7 @@ func (ag Aggregate) Search(query torznab.Query, srch *search.Search) (*search.Se
 	if query.Limit > 0 && len(results) > query.Limit {
 		results = results[:query.Limit]
 	}
-	outputSearch.Results = results
+	outputSearch.SetResults(results)
 	return outputSearch, nil
 }
 

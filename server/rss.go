@@ -51,7 +51,7 @@ func (s *Server) status(c *gin.Context) {
 }
 
 func (s *Server) searchAndServe(c *gin.Context) {
-	var srch *search.Search
+	var srch search.Instance
 	ops := s.tracker.GetDefaultOptions()
 	currentPage := uint(0)
 	name := c.Param("name")
@@ -74,7 +74,7 @@ func (s *Server) searchAndServe(c *gin.Context) {
 		if currentPage >= ops.PageCount {
 			break
 		}
-		for _, torrent := range srch.Results {
+		for _, torrent := range srch.GetResults() {
 			//isNew, isUpdate := torrent.HandleTorrentDiscovery(tr)
 			if torrent.IsNew() || torrent.IsUpdate() {
 				if torrent.IsNew() && !torrent.IsUpdate() {

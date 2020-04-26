@@ -39,7 +39,7 @@ func NewTorrentHelper(config config.Config) *TorrentHelper {
 //}
 
 //Open the search to a given page.
-func (th *TorrentHelper) Search(searchContext *search.Search, query string, page uint) (*search.Search, error) {
+func (th *TorrentHelper) Search(searchContext search.Instance, query string, page uint) (search.Instance, error) {
 	qrobj := torznab.ParseQueryString(query)
 	qrobj.Page = page
 	srch, err := th.indexer.Search(qrobj, searchContext)

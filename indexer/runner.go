@@ -62,7 +62,7 @@ func (r *Runner) ProcessRequest(req *http.Request) (*http.Response, error) {
 }
 
 type RunContext struct {
-	Search *search.Search
+	Search search.Instance
 }
 
 func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
@@ -568,7 +568,7 @@ func (r *Runner) GetEncoding() string {
 }
 
 //Search for a given torrent
-func (r *Runner) Search(query torznab.Query, srch *search.Search) (*search.Search, error) {
+func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Instance, error) {
 	r.createBrowser()
 	if !r.keepSessions {
 		defer r.releaseBrowser()
@@ -726,7 +726,7 @@ func (r *Runner) Search(query torznab.Query, srch *search.Search) (*search.Searc
 	//for _, item := range extracted {
 	//	items = append(items, item)
 	//}
-	context.Search.Results = extracted
+	context.Search.SetResults(extracted)
 	return context.Search, nil
 }
 
@@ -771,7 +771,7 @@ type RunnerPatternData struct {
 
 //Get the default run context
 func (r *Runner) getRunnerContext(query torznab.Query, localCats []string, context RunContext) RunnerPatternData {
-	context.Search.StartIndex = int(query.Page) * r.definition.Search.PageSize
+	context.Search.SetStartIndex(r, int(query.Page)*r.definition.Search.PageSize)
 	templateCtx := RunnerPatternData{
 		query,
 		query.Keywords(),
