@@ -125,7 +125,7 @@ search:
       selector: "td.filename div a"
     download:
       attribute: href
-      selector: "td.filename div a"
+      selector: a[href*="/get/key:"]
     link:
       attribute: href
       selector: "td.filename div a"
