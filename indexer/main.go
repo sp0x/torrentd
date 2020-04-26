@@ -12,11 +12,14 @@ func init() {
 }
 
 func Lookup(config config.Config, key string) (Indexer, error) {
-	if key == "aggregate" || key == "all" {
-		return CreateAggregate(config)
-	}
 	if _, ok := indexers[key]; !ok {
-		indexer, err := CreateIndexer(config, key)
+		var indexer Indexer
+		var err error
+		if key == "aggregate" || key == "all" {
+			indexer, err = CreateAggregate(config)
+		} else {
+			indexer, err = CreateIndexer(config, key)
+		}
 		if err != nil {
 			return nil, err
 		}
