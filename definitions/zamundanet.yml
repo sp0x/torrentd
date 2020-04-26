@@ -86,7 +86,7 @@ search:
     selector: ".responsetop > tbody > tr:has(td.td_newborder)"
 
   fields:
-    title:
+    shortTitle:
       selector: td:nth-child(2) a b
       filters:
         - name: re_replace
@@ -111,6 +111,11 @@ search:
     download:
       selector: a:has(i.fa-download)
       attribute: href
+    title:
+      text: "{{ .download }}"
+      filters:
+        - name: re_replace
+          args: ["/download.php/\\d*/(.*)?(\\.torrent)", "$1"]
     link:
       text: "{{ .details }}"
     id:

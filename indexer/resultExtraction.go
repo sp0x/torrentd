@@ -71,7 +71,15 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 	r.logger.WithFields(logrus.Fields{"row": rowIdx, "data": row}).
 		Debugf("Finished row %d", rowIdx)
 
+	//Fill in the extracted values
 	for key, val := range row {
+		if strings.Contains(val, "{{") {
+			//Value is a pattern, we must evaluate it for the last time
+			updated, err := applyTemplate("result_template", val, row)
+			if err == nil {
+				val = updated
+			}
+		}
 		switch key {
 		case "id":
 			item.LocalId = val
@@ -113,7 +121,14 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 		case "title":
 			item.Title = val
 			if _, ok := nonFilteredRow["title"]; ok {
-				item.OriginalTitle = nonFilteredRow["title"]
+				v := nonFilteredRow["title"]
+				if strings.Contains(v, "{{") {
+					v2, err := applyTemplate("original_title", v, row)
+					if err == nil {
+						v = v2
+					}
+				}
+				item.OriginalTitle = v
 			}
 		case "shortTitle":
 			item.ShortTitle = val
