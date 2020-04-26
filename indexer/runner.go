@@ -62,7 +62,8 @@ func (r *Runner) ProcessRequest(req *http.Request) (*http.Response, error) {
 }
 
 type RunContext struct {
-	Search search.Instance
+	Search *search.Search
+	//Search *search.Instance
 }
 
 func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
@@ -600,7 +601,7 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 		srch = &search.Search{}
 	}
 	context := RunContext{
-		Search: srch,
+		Search: srch.(*search.Search),
 	}
 
 	//Exposed fields to add:

@@ -22,12 +22,12 @@ type Search struct {
 	DOM         *goquery.Selection
 	Id          string
 	currentPage int
-	startIndex  int
+	StartIndex  int
 	Results     []ExternalResultItem
 }
 
 func (s *Search) GetStartingIndex() int {
-	return s.startIndex
+	return s.StartIndex
 }
 
 func (s *Search) GetDocument() *goquery.Selection {
@@ -35,7 +35,7 @@ func (s *Search) GetDocument() *goquery.Selection {
 }
 
 func (s *Search) SetStartIndex(key interface{}, i int) {
-	s.startIndex = i
+	s.StartIndex = i
 }
 
 func (s *Search) GetResults() []ExternalResultItem {

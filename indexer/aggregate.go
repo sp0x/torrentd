@@ -74,8 +74,6 @@ func (ag Aggregate) Search(query torznab.Query, srch search.Instance) (search.In
 		log.Warn(err)
 		return nil, err
 	}
-
-	var outputSearch = &search.AggregatedSearch{}
 	var results []search.ExternalResultItem
 
 	// interleave search results to preserve ordering
@@ -90,8 +88,8 @@ func (ag Aggregate) Search(query torznab.Query, srch search.Instance) (search.In
 	if query.Limit > 0 && len(results) > query.Limit {
 		results = results[:query.Limit]
 	}
-	outputSearch.SetResults(results)
-	return outputSearch, nil
+	aggSearch.SetResults(results)
+	return aggSearch, nil
 }
 
 func (ag Aggregate) Capabilities() torznab.Capabilities {
