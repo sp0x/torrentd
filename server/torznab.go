@@ -120,10 +120,14 @@ func (s *Server) rewriteLinks(r *http.Request, items []search.ExternalResultItem
 		if strings.HasPrefix(item.Link, "magnet:") {
 			continue
 		}
+		sourceLink := item.SourceLink
+		if sourceLink == "" {
+			sourceLink = item.Link
+		}
 		//Encode the site and source of the torrent as a JWT token
 		t := &token{
 			Site: item.Site,
-			Link: item.SourceLink,
+			Link: sourceLink,
 		}
 
 		te, err := t.Encode(k)
