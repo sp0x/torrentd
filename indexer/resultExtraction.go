@@ -11,6 +11,15 @@ import (
 	"time"
 )
 
+//Extracts a field's value from the given selection
+func (r *Runner) extractField(selection *goquery.Selection, field fieldBlock) (string, error) {
+	r.logger.
+		WithFields(logrus.Fields{"block": field.Block.String()}).
+		Debugf("Processing field %q", field.Field)
+	val, err := field.Block.MatchText(selection)
+	return val, err
+}
+
 //Extract the actual result item from it's row/col
 func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.ExternalResultItem, error) {
 	row := map[string]string{}
@@ -33,6 +42,7 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 		if err != nil {
 			r.logger.WithFields(logrus.Fields{"error": err, "selector": item.Field}).
 				Warnf("Couldn't process selector")
+			r.failingSearchFields[item.Field] = item
 			continue
 		}
 		r.logger.

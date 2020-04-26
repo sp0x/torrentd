@@ -42,16 +42,17 @@ type RunnerOpts struct {
 
 //Runner works with indexers and their definitions
 type Runner struct {
-	definition        *IndexerDefinition
-	browser           browser.Browsable
-	cookies           http.CookieJar
-	opts              RunnerOpts
-	logger            logrus.FieldLogger
-	caps              torznab.Capabilities
-	browserLock       sync.Mutex
-	connectivityCache *ConnectivityCache
-	state             *IndexerState
-	keepSessions      bool
+	definition          *IndexerDefinition
+	browser             browser.Browsable
+	cookies             http.CookieJar
+	opts                RunnerOpts
+	logger              logrus.FieldLogger
+	caps                torznab.Capabilities
+	browserLock         sync.Mutex
+	connectivityCache   *ConnectivityCache
+	state               *IndexerState
+	keepSessions        bool
+	failingSearchFields map[string]fieldBlock
 }
 
 func (r *Runner) ProcessRequest(req *http.Request) (*http.Response, error) {
@@ -70,12 +71,13 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 	logger := logrus.New()
 	logger.Level = logrus.InfoLevel
 	return &Runner{
-		opts:              opts,
-		definition:        def,
-		logger:            logger.WithFields(logrus.Fields{"site": def.Site}),
-		connectivityCache: NewConnectivityCache(),
-		state:             defaultIndexerState(),
-		keepSessions:      true,
+		opts:                opts,
+		definition:          def,
+		logger:              logger.WithFields(logrus.Fields{"site": def.Site}),
+		connectivityCache:   NewConnectivityCache(),
+		state:               defaultIndexerState(),
+		keepSessions:        true,
+		failingSearchFields: make(map[string]fieldBlock),
 	}
 }
 
@@ -822,43 +824,6 @@ func (r *Runner) extractDateHeader(selection *goquery.Selection) (time.Time, err
 
 	dv, _ := dateHeaders.Text(prev.First())
 	return parseFuzzyTime(dv, time.Now(), true)
-}
-
-func (r *Runner) Download(u string) (io.ReadCloser, http.Header, error) {
-	r.createBrowser()
-
-	if required, err := r.isLoginRequired(); required {
-		if err := r.login(); err != nil {
-			r.logger.WithError(err).Error("Login failed")
-			return nil, http.Header{}, err
-		}
-	} else if err != nil {
-		return nil, http.Header{}, err
-	}
-
-	fullUrl, err := r.resolveIndexerPath(u)
-	if err != nil {
-		return nil, http.Header{}, err
-	}
-
-	if err := r.browser.Open(fullUrl); err != nil {
-		return nil, http.Header{}, err
-	}
-
-	pipeR, pipeW := io.Pipe()
-	go func() {
-		defer pipeW.Close()
-		if !r.keepSessions {
-			defer r.releaseBrowser()
-		}
-		n, err := r.browser.Download(pipeW)
-		if err != nil {
-			r.logger.Error(err)
-		}
-		r.logger.WithFields(logrus.Fields{"url": fullUrl}).Debugf("Downloaded %d bytes", n)
-	}()
-
-	return pipeR, r.browser.ResponseHeaders(), nil
 }
 
 func (r *Runner) Ratio() (string, error) {
