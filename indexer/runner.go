@@ -235,7 +235,7 @@ func (r *Runner) cachePage() error {
 func (r *Runner) loginViaForm(loginURL, formSelector string, vals map[string]string) error {
 	r.logger.
 		WithFields(logrus.Fields{"url": loginURL, "form": formSelector, "vals": vals}).
-		Info("Filling and submitting login form")
+		Debugf("Filling and submitting login form")
 
 	if err := r.openPage(loginURL); err != nil {
 		return err

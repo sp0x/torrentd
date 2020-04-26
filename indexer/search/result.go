@@ -136,7 +136,7 @@ func (ri ResultItem) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	}
 	attribs := itemView.TorznabAttributes
 	attribs = append(attribs, torznabAttribute{Name: "category", Value: strconv.Itoa(ri.Category)})
-	attribs = append(attribs, torznabAttribute{Name: "seeds", Value: strconv.Itoa(ri.Seeders)})
+	attribs = append(attribs, torznabAttribute{Name: "seeders", Value: strconv.Itoa(ri.Seeders)})
 	attribs = append(attribs, torznabAttribute{Name: "peers", Value: strconv.Itoa(ri.Peers)})
 	attribs = append(attribs, torznabAttribute{Name: "minimumratio", Value: fmt.Sprint(ri.MinimumRatio)})
 	attribs = append(attribs, torznabAttribute{Name: "minimumseedtime", Value: fmt.Sprint(ri.MinimumSeedTime)})
