@@ -26,6 +26,7 @@ type ExternalResultItem struct {
 	Publisher         string
 	isNew             bool
 	isUpdate          bool
+	PublishedWith     string
 }
 
 func (i *ExternalResultItem) SetState(isNew bool, update bool) {

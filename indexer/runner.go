@@ -53,6 +53,7 @@ type Runner struct {
 	state               *IndexerState
 	keepSessions        bool
 	failingSearchFields map[string]fieldBlock
+	lastVerified        time.Time
 }
 
 func (r *Runner) ProcessRequest(req *http.Request) (*http.Response, error) {
@@ -570,6 +571,16 @@ func (r *Runner) GetEncoding() string {
 	return r.definition.Encoding
 }
 
+func (r *Runner) Check() error {
+	verifiedSpan := time.Now().Sub(r.lastVerified)
+	if verifiedSpan < time.Minute*60*24 {
+		return nil
+	}
+	_, err := r.Search(torznab.Query{}, nil)
+	r.lastVerified = time.Now()
+	return err
+}
+
 //Search for a given torrent
 func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Instance, error) {
 	r.createBrowser()
@@ -873,4 +884,13 @@ func (r *Runner) getIndexer() *search.ResultIndexer {
 		Id:   "",
 		Name: r.definition.Site,
 	}
+}
+
+func (r *Runner) getField(s string) *fieldBlock {
+	for _, fld := range r.definition.Search.Fields {
+		if fld.Field == s {
+			return &fld
+		}
+	}
+	return nil
 }

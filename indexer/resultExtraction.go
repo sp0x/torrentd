@@ -1,6 +1,7 @@
 package indexer
 
 import (
+	"errors"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/dustin/go-humanize"
 	"github.com/sirupsen/logrus"
@@ -12,7 +13,10 @@ import (
 )
 
 //Extracts a field's value from the given selection
-func (r *Runner) extractField(selection *goquery.Selection, field fieldBlock) (string, error) {
+func (r *Runner) extractField(selection *goquery.Selection, field *fieldBlock) (string, error) {
+	if field == nil {
+		return "", errors.New("no field given")
+	}
 	r.logger.
 		WithFields(logrus.Fields{"block": field.Block.String()}).
 		Debugf("Processing field %q", field.Field)

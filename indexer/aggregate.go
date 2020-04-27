@@ -15,7 +15,7 @@ type Aggregate struct {
 	Indexers []Indexer
 }
 
-func (ag Aggregate) Open(s *search.ExternalResultItem) (io.ReadCloser, error) {
+func (ag *Aggregate) Open(s *search.ExternalResultItem) (io.ReadCloser, error) {
 	//Find the indexer
 	for _, ixr := range ag.Indexers {
 		nfo := ixr.Info()
@@ -32,21 +32,43 @@ func NewAggregate(indexers []Indexer) *Aggregate {
 	return ag
 }
 
-func (ag Aggregate) ProcessRequest(req *http.Request) (*http.Response, error) {
+func (ag *Aggregate) ProcessRequest(req *http.Request) (*http.Response, error) {
 	for _, indexer := range ag.Indexers {
 		return indexer.ProcessRequest(req)
 	}
 	return nil, nil
 }
 
-func (ag Aggregate) GetEncoding() string {
+func (ag *Aggregate) GetEncoding() string {
 	for _, indexer := range ag.Indexers {
 		return indexer.GetEncoding()
 	}
 	return "utf-8"
 }
 
-func (ag Aggregate) Search(query torznab.Query, srch search.Instance) (search.Instance, error) {
+//Check checks all indexers
+func (ag *Aggregate) Check() error {
+	g := errgroup.Group{}
+	for _, ixr := range ag.Indexers {
+		indexerID := ixr.Info().GetId()
+		//Run the indexer in a goroutine
+		g.Go(func() error {
+			_, err := ixr.Search(torznab.Query{}, nil)
+			if err != nil {
+				log.Warnf("Indexer %q failed: %s", indexerID, err)
+				return nil
+			}
+			return nil
+		})
+	}
+	if err := g.Wait(); err != nil {
+		log.Warn(err)
+		return err
+	}
+	return nil
+}
+
+func (ag *Aggregate) Search(query torznab.Query, srch search.Instance) (search.Instance, error) {
 	g := errgroup.Group{}
 	allResults := make([][]search.ExternalResultItem, len(ag.Indexers))
 	maxLength := 0
@@ -103,7 +125,7 @@ func (ag Aggregate) Search(query torznab.Query, srch search.Instance) (search.In
 	return aggSearch, nil
 }
 
-func (ag Aggregate) Capabilities() torznab.Capabilities {
+func (ag *Aggregate) Capabilities() torznab.Capabilities {
 	return torznab.Capabilities{
 		SearchModes: []search.SearchMode{
 			{Key: "movie-search", Available: true, SupportedParams: []string{"q", "imdbid"}},
@@ -113,7 +135,7 @@ func (ag Aggregate) Capabilities() torznab.Capabilities {
 	}
 }
 
-func (ag Aggregate) Download(u string) (io.ReadCloser, error) {
+func (ag *Aggregate) Download(u string) (io.ReadCloser, error) {
 	return nil, errors.New("not implemented")
 }
 
@@ -132,6 +154,6 @@ func (a *AggregateInfo) GetId() string {
 	return "aggregate"
 }
 
-func (ag Aggregate) Info() Info {
+func (ag *Aggregate) Info() Info {
 	return &AggregateInfo{}
 }

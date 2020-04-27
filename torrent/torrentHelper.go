@@ -12,6 +12,7 @@ type TorrentHelper struct {
 	BasicTracker
 	//pageSize uint
 	indexer indexer.Indexer
+	Config  config.Config
 }
 
 func NewTorrentHelper(config config.Config) *TorrentHelper {
@@ -25,6 +26,7 @@ func NewTorrentHelper(config config.Config) *TorrentHelper {
 		log.Errorf("Could not find indexer `%s`.\n", ixr)
 		return nil
 	}
+	rt.Config = config
 	rt.indexer = ixrObj
 	return &rt
 }

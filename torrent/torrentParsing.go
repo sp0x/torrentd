@@ -25,6 +25,7 @@ func ParseTorrentFromStream(stream io.ReadCloser) (*Definition, error) {
 	if err != nil {
 		return nil, err
 	}
+	//ioutil.WriteFile("/tmp/rss.torrent", body, os.ModePerm)
 	return ParseTorrent(string(body))
 }
 

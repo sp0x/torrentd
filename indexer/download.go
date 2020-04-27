@@ -1,6 +1,7 @@
 package indexer
 
 import (
+	//"bytes"
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"io"
@@ -29,7 +30,7 @@ func (r *Runner) Open(s *search.ExternalResultItem) (io.ReadCloser, error) {
 		//Resolve the url
 		downloadItem := r.failingSearchFields["download"]
 		r.openPage(s.Link)
-		downloadLink, err := r.extractField(r.browser.Dom(), downloadItem)
+		downloadLink, err := r.extractField(r.browser.Dom(), &downloadItem)
 		if err != nil {
 			return nil, nil
 		}
@@ -39,23 +40,45 @@ func (r *Runner) Open(s *search.ExternalResultItem) (io.ReadCloser, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	if err := r.browser.Open(fullUrl); err != nil {
+	browserClone := r.browser.NewTab()
+	browserClone.SetEncoding("")
+	if err := browserClone.Open(fullUrl); err != nil {
 		return nil, err
 	}
+	//responseType := browserClone.State().Response.Header.Get("Content-Type")
+	//This isn't a torrent
+	//if strings.Contains(responseType, "text/html"){
+	//	downloadLink, err := r.extractField(r.browser.Dom(), r.getField("download"))
+	//	if err != nil {
+	//		return nil, nil
+	//	}
+	//	sourceLink = downloadLink
+	//	fullUrl, err := r.resolveIndexerPath(sourceLink)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	if err := browserClone.Open(fullUrl); err != nil {
+	//		return nil, err
+	//	}
+	//
+	//}
+	//bf := []byte{}
+	//w := bytes.NewBuffer(bf)
+	//_, err = browserClone.Download(w)
+	//rawBytes := w.Bytes()
+	//ioutil.WriteFile("/tmp/rss.torrent", rawBytes, os.ModePerm)
 	pipeR, pipeW := io.Pipe()
 	go func() {
 		defer pipeW.Close()
 		if !r.keepSessions {
 			defer r.releaseBrowser()
 		}
-		n, err := r.browser.Download(pipeW)
+		n, err := browserClone.Download(pipeW)
 		if err != nil {
 			r.logger.Error(err)
 		}
 		r.logger.WithFields(logrus.Fields{"url": fullUrl}).Debugf("Downloaded %d bytes", n)
 	}()
-
 	return pipeR, nil
 }
 
