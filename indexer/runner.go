@@ -707,7 +707,7 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 					matchCat = true
 				}
 			}
-
+			//The category doesn't match even 1 of the categories in the query.
 			if !matchCat {
 				storage.HandleTorrentDiscovery(&item)
 				r.logger.
@@ -740,7 +740,7 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 	}
 
 	r.logger.
-		WithFields(logrus.Fields{"indexer": r.definition.Site, "time": time.Now().Sub(timer)}).
+		WithFields(logrus.Fields{"indexer": r.definition.Site, "q": query.Keywords(), "time": time.Now().Sub(timer)}).
 		Infof("Query returned %d results", len(extracted))
 
 	//var items []search.ExternalResultItem

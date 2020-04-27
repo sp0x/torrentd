@@ -312,6 +312,7 @@ caps:
     753: Books #="Вязание"
     1865: Audio #="Traditional Electronic, Ambient (lossy)"
     1707: Audio #="Folk-Rock (lossy)"
+    1742: Audio # Indie, Post-Rock & Post-Punk (lossless)
     1747: Audio #="Emocore, Post-hardcore, Metalcore (lossy)"
     185: Audio/Audiobook #="Звуковые дорожки и Переводы"
     2031: Books/Technical #="Архитектура / Строительство / Инженерные сети / Ландшафтный дизайн"
@@ -402,6 +403,8 @@ caps:
     2221: Movies  #Фильмы 1991-2000
     2361: Books  #Школьные учебники, ЕГЭ, ОГЭ
     2366: TV/HD  #Зарубежные сериалы (HD Video)
+    1703: Audio #	Classic Rock & Hard Rock (lossy)
+
 
 
 login:
