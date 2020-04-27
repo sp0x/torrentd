@@ -21,19 +21,17 @@ require (
 	github.com/headzoo/surf v1.0.0 // indirect
 	github.com/jackpal/bencode-go v0.0.0-20180813173944-227668e840fa
 	github.com/jinzhu/gorm v1.9.12
-	github.com/kataras/bindata v3.3.0+incompatible // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mrobinsn/go-tvmaze v1.2.0
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/sirupsen/logrus v1.5.0
 	github.com/smartystreets/assertions v1.0.1 // indirect
-	github.com/sp0x/surf v1.0.1
+	github.com/sp0x/surf v0.0.0-20200427101727-f37e70cd344f
 	github.com/spf13/cobra v0.0.7
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1 // indirect
-	github.com/yosssi/gohtml v0.0.0-20190915184251-7ff6f235ecaf
 	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect

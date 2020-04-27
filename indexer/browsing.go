@@ -72,6 +72,7 @@ func (r *Runner) createBrowser() {
 	bow.SetAttribute(browser.SendReferer, true)
 	bow.SetAttribute(browser.MetaRefreshHandling, true)
 	bow.SetCookieJar(r.cookies)
+	bow.SetRateLimit(r.definition.RateLimit)
 	//bow.SetTimeout(time.Second * 10)
 
 	transport, err := r.createTransport()
