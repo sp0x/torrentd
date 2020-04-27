@@ -712,7 +712,7 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 				storage.HandleTorrentDiscovery(&item)
 				r.logger.
 					WithFields(logrus.Fields{"category": item.LocalCategoryName, "categoryId": item.LocalCategoryID}).
-					Debugf("Skipping result because it's not contained in our needed categories.")
+					Infof("Skipping result because it's not contained in our needed categories.")
 				continue
 			}
 		}
@@ -740,8 +740,8 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 	}
 
 	r.logger.
-		WithFields(logrus.Fields{"time": time.Now().Sub(timer)}).
-		Debugf("Query returned %d results", len(extracted))
+		WithFields(logrus.Fields{"indexer": r.definition.Site, "time": time.Now().Sub(timer)}).
+		Infof("Query returned %d results", len(extracted))
 
 	//var items []search.ExternalResultItem
 	//for _, item := range extracted {
