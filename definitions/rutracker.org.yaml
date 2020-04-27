@@ -327,14 +327,12 @@ caps:
     31: Books #="Журналы и газеты (общий раздел)"
     1756: Audio #="Зарубежная рок-музыка (оцифровки)"
     2427: Audio #="История Европы"
-    93: Movies #="DVD Video"
     909: Audio #="Зарубежный Рэп, Хип-Хоп (lossless)"
     1997: TV/Sport #="NBA / NCAA (2010-2020 гг.)"
     1511: TV #="Встроенная автомобильная навигация"
     2164: TV/HD #="BBC, Discovery, National Geographic (HD Video)"
     1818: Audio #="Trance (lossless)"
     24: TV #="Развлекательные телепередачи и шоу, приколы и юмор"
-
     764: Books #="Бизнес, менеджмент"
     1795: Audio #="Рок-музыка (HD Video)"
     7: Movies #="Зарубежное кино"
@@ -404,7 +402,48 @@ caps:
     2361: Books  #Школьные учебники, ЕГЭ, ОГЭ
     2366: TV/HD  #Зарубежные сериалы (HD Video)
     1703: Audio #	Classic Rock & Hard Rock (lossy)
-
+    2301: Audio   #"Джаз и блюз (оцифровки)"
+    2306: TV   #"Джаз и Блюз (HD Video)"
+    934:  Movies #"Азиатские фильмы"
+    1782: TV   #"Rock (Видео)"
+    2313: Books   #"Клиническая медицина после 2000 г."
+    2290: Audio/Lossless   #"Roots, Pre-War Blues, Early R&B, Gospel (lossless)"
+    1665: Audio/Lossless   #"Зарубежный R'n'B (lossless)"
+    2289: Audio/Lossless   #"Зарубежный блюз (сборники; Tribute VA) (lossless)"
+    453:  Audio  #"Конверсии Quadraphonic"
+    2304: Movies   #"Джаз и Блюз (DVD Видео)"
+    2089: Movies   #"Зарубежная поп-музыка (Сборные концерты, док. видео) (Видео и DVD)"
+    2287: Audio   #"Зарубежный джаз (lossy)"
+    2283: Audio/Lossless   #"Funk, Soul, R&B (lossless)"
+    1728: Audio/Lossless # Thrash, Speed (lossless)
+    1729: Audio # Thrash, Speed (lossy)
+    1705: Audio  # Progressive & Art-Rock (lossy)
+    1391: TV/Anime # Аниме (плеерный подраздел)
+    1056: PC # Компоненты для сред программирования
+    93: TV/DVD # DVD Video
+    2286: Audio/Lossless# Сборники зарубежного джаза (lossless)
+    911: TV # Сериалы Латинской Америки, Турции и Индии
+    2215: Books # Христианство
+    1467: TV # [Док] Информационно-аналитические и общественно-политические передачи
+    1648: Audio/Lossless # Label packs, Scene packs (lossy)
+    428: Audio # Зарубежная поп-музыка (lossy)
+    2056: TV # Боевые искусства, единоборства
+    429: Audio/Lossless # Зарубежная поп-музыка (lossless)
+    1825: Audio/Lossless # Techno (lossless)
+    1739: Audio # Punk (lossy)
+    557: Audio/Lossless # Оркестровая музыка (lossless)
+    103: TV # Документальные (DVD)
+    463: Audio # Alternative, Punk, Independent (lossy)
+    511: TV # Театр
+    399: Audio/Audiobook # [Аудио] Зарубежная литература
+    1869: Audio/Lossless # Experimental (lossless)
+    1702: Audio/Lossless # Classic Rock & Hard Rock (lossless)
+    1704: Audio/Lossless # Progressive & Art-Rock (lossless)
+    2329: Audio/Lossless # AOR (Melodic Hard Rock, Arena rock) (lossless)
+    424: Audio # Отечественная поп-музыка (lossy)
+    314: TV # Документальные (HD Video)
+    2458: TV # Ранобэ
+    1959: TV # [Видео Юмор] Интеллектуальные игры и викторины
 
 
 login:
