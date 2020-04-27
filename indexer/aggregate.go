@@ -83,17 +83,20 @@ func (ag *Aggregate) Search(query torznab.Query, srch search.Instance) (search.I
 	aggSearch := srch.(*search.AggregatedSearch)
 	//indexerSearches := make(map[int]*search.Search)
 	// fetch all results
-	for idx, indexer := range ag.Indexers {
+	for idx, pIndexer := range ag.Indexers {
 		//Run the indexer in a goroutine
+		idx, pIndexer := idx, pIndexer
 		g.Go(func() error {
-			indexerID := indexer.Info().GetId()
-			ixrSearch := aggSearch.SearchContexts[&indexer]
-			srchRes, err := indexer.Search(query, ixrSearch)
+			indexerID := pIndexer.Info().GetId()
+			ixrSearch := aggSearch.SearchContexts[&pIndexer]
+			//log.WithFields(log.Fields{"indexer": indexerID}).
+			//	Info("Aggregate index search")
+			srchRes, err := pIndexer.Search(query, ixrSearch)
 			if err != nil {
 				log.Warnf("Indexer %q failed: %s", indexerID, err)
 				return nil
 			}
-			aggSearch.SearchContexts[&indexer] = srchRes
+			aggSearch.SearchContexts[&pIndexer] = srchRes
 			allResults[idx] = srchRes.GetResults()
 			if l := len(srchRes.GetResults()); l > maxLength {
 				maxLength = l
