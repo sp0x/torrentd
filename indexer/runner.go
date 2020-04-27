@@ -537,7 +537,14 @@ func (r *Runner) resolveQuery(query torznab.Query) (torznab.Query, error) {
 		show, err = tvmaze.DefaultClient.GetShowWithTVRageID(query.TVRageID)
 		query.TVRageID = ""
 	case query.IMDBID != "":
-		movie, err = imdbscraper.FindByID(query.IMDBID)
+		imdbid := query.IMDBID
+		if !strings.HasPrefix(imdbid, "tt") {
+			imdbid = "tt" + imdbid
+		}
+		movie, err = imdbscraper.FindByID(imdbid)
+		if err != nil {
+			err = errors.New(fmt.Sprintf("imdb error. %s", err))
+		}
 		query.IMDBID = ""
 	}
 

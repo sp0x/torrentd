@@ -85,7 +85,6 @@ func (ag *Aggregate) Search(query torznab.Query, srch search.Instance) (search.I
 	// fetch all results
 	for idx, indexer := range ag.Indexers {
 		indexerID := indexer.Info().GetId()
-		idx, indexer := idx, indexer
 		ixrSearch := aggSearch.SearchContexts[&indexer]
 
 		//Run the indexer in a goroutine
