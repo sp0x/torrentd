@@ -70,7 +70,7 @@ type RunContext struct {
 
 func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 	logger := logrus.New()
-	logger.Level = logrus.InfoLevel
+	logger.Level = logrus.GetLevel()
 	return &Runner{
 		opts:                opts,
 		definition:          def,
@@ -151,9 +151,9 @@ func (r *Runner) resolveIndexerPath(urlPath string) (string, error) {
 	}
 	//Resolve the url
 	resolved := base.ResolveReference(u)
-	r.logger.
-		WithFields(logrus.Fields{"base": base.String(), "u": resolved.String()}).
-		Debugf("Resolving url")
+	//r.logger.
+	//	WithFields(logrus.Fields{"base": base.String(), "u": resolved.String()}).
+	//	Debugf("Resolving url")
 
 	return resolved.String(), nil
 }
@@ -654,9 +654,9 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 		return nil, err
 	}
 	dom := r.browser.Dom()
-	html := r.browser.Body()
+	//html := r.browser.Body()
 	r.logger.
-		WithFields(logrus.Fields{"html": html}).
+		WithFields(logrus.Fields{}).
 		Debugf("Fetched indexer page.\n")
 	setupContext(r, &context, dom)
 	// merge following rows for After selector

@@ -21,7 +21,7 @@ import (
 func (r *Runner) createTransport() (http.RoundTripper, error) {
 	var t http.Transport
 	var custom bool
-
+	//If we have a proxy to use
 	if proxyAddr, isset := os.LookupEnv("SOCKS_PROXY"); isset {
 		r.logger.
 			WithFields(logrus.Fields{"addr": proxyAddr}).
@@ -95,6 +95,13 @@ func (r *Runner) createBrowser() {
 	}
 	r.connectivityCache.SetBrowser(bow)
 	r.browser = bow
+
+	//	minDiff := 1.0 / maxPerSecond
+	//	timeElapsed := time.Now().Sub(r.lastRequest)
+	//	if int(timeElapsed.Seconds()) < int(minDiff) {
+	//		t := r.lastRequest.Add(time.Second * time.Duration(minDiff)).Sub(time.Now())
+	//		time.Sleep(t)
+	//	}
 }
 
 func (r *Runner) releaseBrowser() {

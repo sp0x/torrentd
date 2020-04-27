@@ -73,8 +73,8 @@ func (s *selectorBlock) TextRaw(el *goquery.Selection) (string, error) {
 		el.Find(s.Remove).Remove()
 	}
 	if s.Case != nil {
-		filterLogger.WithFields(logrus.Fields{"case": s.Case}).
-			Debugf("Applying case to selection")
+		//filterLogger.WithFields(logrus.Fields{"case": s.Case}).
+		//	Debugf("Applying case to selection")
 		for pattern, value := range s.Case {
 			if el.Is(pattern) || el.Has(pattern).Length() >= 1 {
 				return s.ApplyFilters(value)

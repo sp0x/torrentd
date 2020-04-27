@@ -19,6 +19,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+var defaultRateLimit = 500
+
 type IndexerDefinition struct {
 	Site         string                 `yaml:"site"`
 	Settings     []settingsField        `yaml:"settings"`
@@ -32,6 +34,8 @@ type IndexerDefinition struct {
 	Search       searchBlock            `yaml:"search"`
 	stats        IndexerDefinitionStats `yaml:"-"`
 	Encoding     string                 `yaml:"encoding"`
+	//The ms to wait between each request.
+	RateLimit int `yaml:"ratelimit"`
 }
 
 type IndexerDefinitionStats struct {
@@ -97,7 +101,9 @@ func ParseDefinition(src []byte) (*IndexerDefinition, error) {
 		ModTime: time.Now(),
 		Hash:    fmt.Sprintf("%x", sha1.Sum(src)),
 	}
-
+	if def.RateLimit == 0 {
+		def.RateLimit = defaultRateLimit
+	}
 	return &def, nil
 }
 

@@ -6,7 +6,6 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/indexer/search"
-	"github.com/yosssi/gohtml"
 	"strconv"
 	"strings"
 	"time"
@@ -28,8 +27,8 @@ func (r *Runner) extractField(selection *goquery.Selection, field *fieldBlock) (
 func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.ExternalResultItem, error) {
 	row := map[string]string{}
 	nonFilteredRow := map[string]string{}
-	html, _ := goquery.OuterHtml(selection)
-	r.logger.WithFields(logrus.Fields{"html": gohtml.Format(html)}).Debug("Processing row")
+	//html, _ := goquery.OuterHtml(selection)
+	r.logger.WithFields(logrus.Fields{}).Debug("Processing row")
 
 	for _, item := range r.definition.Search.Fields {
 		r.logger.
@@ -49,9 +48,9 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 			r.failingSearchFields[item.Field] = item
 			continue
 		}
-		r.logger.
-			WithFields(logrus.Fields{"row": rowIdx, "output": val}).
-			Debugf("Finished processing field %q", item.Field)
+		//r.logger.
+		//	WithFields(logrus.Fields{"row": rowIdx, "output": val}).
+		//	Debugf("Finished processing field %q", item.Field)
 
 		row[item.Field] = val
 	}
@@ -158,7 +157,7 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 				r.logger.Warnf("Row #%d has unparseable size %q: %v", rowIdx, val, err.Error())
 				continue
 			}
-			r.logger.Debugf("After parsing, size is %v", bytes)
+			//r.logger.Debugf("After parsing, size is %v", bytes)
 			item.Size = bytes
 		case "leechers":
 			leechers, err := strconv.Atoi(normalizeNumber(val))

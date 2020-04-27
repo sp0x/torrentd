@@ -84,11 +84,10 @@ func (ag *Aggregate) Search(query torznab.Query, srch search.Instance) (search.I
 	//indexerSearches := make(map[int]*search.Search)
 	// fetch all results
 	for idx, indexer := range ag.Indexers {
-		indexerID := indexer.Info().GetId()
-		ixrSearch := aggSearch.SearchContexts[&indexer]
-
 		//Run the indexer in a goroutine
 		g.Go(func() error {
+			indexerID := indexer.Info().GetId()
+			ixrSearch := aggSearch.SearchContexts[&indexer]
 			srchRes, err := indexer.Search(query, ixrSearch)
 			if err != nil {
 				log.Warnf("Indexer %q failed: %s", indexerID, err)
