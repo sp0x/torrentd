@@ -183,7 +183,7 @@ func (r *Runner) postToPage(u string, vals url.Values, log bool) error {
 	if log {
 		r.logger.
 			WithFields(logrus.Fields{"url": u, "vals": vals.Encode()}).
-			Info("Posting to page")
+			Debugf("Posting to page")
 	}
 	if err := r.browser.PostForm(u, vals); err != nil {
 		return err
