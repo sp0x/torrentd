@@ -96,6 +96,7 @@ search:
       filters:
         - name: re_replace
           args: ["(\\([А-Яа-яЁё\\W]+\\))|(^[А-Яа-яЁё\\W\\d]+\\/ )|([а-яА-ЯЁё \\-]+,+)|([а-яА-ЯЁё]+)", "{{ if .Config.striprussian }}{{ else }}$1$2$3$4{{ end }}"]
+        - name: urldecode
     banner:
       selector: "td.filename div:nth-child(2) a"
       attribute: onmouseover

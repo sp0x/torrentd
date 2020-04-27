@@ -116,6 +116,7 @@ search:
       filters:
         - name: re_replace
           args: ["/download.php/\\d*/(.*)?(\\.torrent)", "$1"]
+        - name: urldecode
     link:
       text: "{{ .details }}"
     id:
