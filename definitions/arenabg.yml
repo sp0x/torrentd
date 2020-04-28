@@ -69,7 +69,7 @@ caps:
     x264boxset: Movies/HD
     x265: Movies/HD
     xbox: Console/Xbox
-    xbox-360: "Console/Xbox 360"
+    xbox-360: "Console/Xbox360"
     xvid: Movies/SD
     xxx: XXX
     xxx-hd: XXX
