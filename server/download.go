@@ -42,6 +42,10 @@ func (s *Server) downloadHandler(c *gin.Context) {
 		http.Error(c.Writer, err.Error(), http.StatusBadGateway)
 		return
 	}
+	if rc == nil {
+		http.Error(c.Writer, "Couldn't open stream for download", http.StatusBadGateway)
+		return
+	}
 
 	c.Writer.Header().Set("Content-Type", "application/x-bittorrent")
 	c.Writer.Header().Set("Content-Disposition", "attachment; filename="+filename)
