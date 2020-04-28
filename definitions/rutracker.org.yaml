@@ -444,6 +444,29 @@ caps:
     314: TV # Документальные (HD Video)
     2458: TV # Ранобэ
     1959: TV # [Видео Юмор] Интеллектуальные игры и викторины
+    2502: Audio/Lossless #Eurodance, Euro-House, Technopop (lossless)
+    490: Audio/Audiobook #[Аудио] Детская литература
+    2336: Books #Учителям и педагогам
+    1136: Audio #Country, Bluegrass (lossy)
+    798: Audio #Folk, Pagan, Viking (lossy)
+    54: PC #Симуляторы
+    794: Audio/Lossless  #Опера (lossless)
+    446: Audio #Зарубежный Рэп, Хип-Хоп (lossy)
+    2043: Books #Русская литература
+    266: TV/HD #Сериалы США и Канады (HD Video)
+    2473: Books/Comics #Комиксы на других языках
+    2523: PC #Настольные ОС от Microsoft - Windows 8 и далее
+    1875: Audio #EBM, Dark Electro, Aggrotech (lossy)
+    715: Audio #Саундтреки к мультфильмам (lossy и lossless)
+    1737: Audio #Alternative & Nu-metal (lossy)
+    558: Audio/Lossless  #Камерная инструментальная музыка (lossless)
+    52: PC #Ролевые игры
+    2230: Audio/Lossless  #Сборники (lossless)
+    2132: Books #Нетрадиционная, народная медицина и популярные книги о здоровье
+    1801: Books #Международные отношения. Дипломатия
+    2252: Books #Религиоведение. История Религии
+    406: Audio #Darkwave, Neoclassical, Ethereal, Dungeon Synth (lossy)
+    1894: Audio/Lossless #PsyChill, Ambient, Dub (lossless)
 
 
 login:

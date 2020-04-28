@@ -65,6 +65,7 @@ var (
 	CategoryTV                 = Category{5000, "TV"}
 	CategoryTV_WEBDL           = Category{5010, "TV/WEB-DL"}
 	CategoryTV_FOREIGN         = Category{5020, "TV/Foreign"}
+	CategoryTV_DVD             = Category{5025, "TV/DVD"}
 	CategoryTV_SD              = Category{5030, "TV/SD"}
 	CategoryTV_HD              = Category{5040, "TV/HD"}
 	CategoryTV_UHD             = Category{5045, "TV/UHD"}
@@ -137,6 +138,7 @@ var AllCategories = Categories{
 	CategoryTV,
 	CategoryTV_WEBDL,
 	CategoryTV_FOREIGN,
+	CategoryTV_DVD,
 	CategoryTV_SD,
 	CategoryTV_HD,
 	CategoryTV_UHD,
