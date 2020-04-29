@@ -804,6 +804,10 @@ func (r *Runner) getRunnerContext(query torznab.Query, localCats []string, conte
 
 //Gets the content from which we'll extract the search results
 func (r *Runner) requireContent(urlVals url.Values, searchURL string) error {
+	defer func() {
+		//After we're done we'll cleanup the history of the browser.
+		r.browser.HistoryJar().Clear()
+	}()
 	var err error
 	switch r.definition.Search.Method {
 	case "", searchMethodGet:

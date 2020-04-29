@@ -111,6 +111,7 @@ func (r *Runner) releaseBrowser() {
 	r.browserLock.Unlock()
 }
 
+//Open a desired url
 func (r *Runner) openPage(u string) error {
 	r.logger.WithField("url", u).
 		Debug("Opening page")
