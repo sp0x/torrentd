@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/config"
@@ -65,6 +66,8 @@ func (s *Server) Listen(tracker *torrent.TorrentHelper) error {
 	s.tracker = tracker
 	s.tabWriter = tabWr
 	r := gin.Default()
+	//Register pprof so we can profile our app.
+	pprof.Register(r)
 	s.setupRoutes(r)
 	log.Info("Starting server...")
 	key, _ := s.sharedKey()

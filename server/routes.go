@@ -1,6 +1,8 @@
 package server
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 //http://localhost:5000/torznab/rutracker.org?apikey=210fc7bb818639a&t=search&q=bad%20boys
 func (s *Server) setupRoutes(r *gin.Engine) {
@@ -22,6 +24,4 @@ func (s *Server) setupRoutes(r *gin.Engine) {
 	r.GET("/download/:token/:filename", s.downloadHandler)
 	r.HEAD("/d/:token/:filename", s.downloadHandler)
 	r.GET("/d/:token/:filename", s.downloadHandler)
-	//r.HEAD("/download/:indexer/:token/:filename", s.downloadHandler)
-	//r.GET("/download/:indexer/:token/:filename", s.downloadHandler)
 }
