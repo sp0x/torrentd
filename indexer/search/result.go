@@ -91,7 +91,7 @@ func (ri ResultItem) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		Length uint64 `xml:"length,attr,omitempty"`
 		Type   string `xml:"type,attr,omitempty"`
 	}{
-		URL:    ri.SourceLink,
+		URL:    ri.Link,
 		Length: ri.Size,
 		Type:   "application/x-bittorrent",
 	}

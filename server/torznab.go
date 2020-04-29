@@ -104,17 +104,17 @@ func (s *Server) torznabSearch(r *http.Request, indexer indexer.Indexer, siteKey
 	return feed, err
 }
 
+//Rewrites the download links so that the download goes through us.
+//This is required since only we can access the torrent ( the site might need authorization )
 func (s *Server) rewriteLinks(r *http.Request, items []search.ExternalResultItem) ([]search.ExternalResultItem, error) {
-	baseURL, err := s.baseURL(r, "/download")
+	baseURL, err := s.baseURL(r, "/d")
 	if err != nil {
 		return nil, err
 	}
-
 	k, err := s.sharedKey()
 	if err != nil {
 		return nil, err
 	}
-
 	// rewrite non-magnet links to use the server
 	for idx, item := range items {
 		if strings.HasPrefix(item.Link, "magnet:") {

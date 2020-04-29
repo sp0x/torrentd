@@ -20,6 +20,8 @@ func (s *Server) setupRoutes(r *gin.Engine) {
 	// download routes
 	r.HEAD("/download/:token/:filename", s.downloadHandler)
 	r.GET("/download/:token/:filename", s.downloadHandler)
+	r.HEAD("/d/:token/:filename", s.downloadHandler)
+	r.GET("/d/:token/:filename", s.downloadHandler)
 	//r.HEAD("/download/:indexer/:token/:filename", s.downloadHandler)
 	//r.GET("/download/:indexer/:token/:filename", s.downloadHandler)
 }
