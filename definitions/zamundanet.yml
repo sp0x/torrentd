@@ -112,6 +112,9 @@ search:
     download:
       selector: a:has(i.fa-download)
       attribute: href
+    magnet:
+      selector: a:has(i.fa-magnet)
+      attribute: href
     title:
       text: "{{ .download }}"
       filters:

@@ -151,6 +151,14 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 			item.LocalCategoryID = val
 		case "categoryName":
 			item.LocalCategoryName = val
+		case "magnet":
+			murl, err := r.resolveIndexerPath(val)
+			if err != nil {
+				r.logger.Warningf("Couldn't resolve magnet url from value %s\n", val)
+				continue
+			} else {
+				item.MagnetLink = murl
+			}
 		case "size":
 			bytes, err := humanize.ParseBytes(strings.Replace(val, ",", "", -1))
 			if err != nil {

@@ -56,6 +56,7 @@ type ResultItem struct {
 	IsMagnet      bool
 
 	SourceLink  string
+	MagnetLink  string
 	Category    int
 	Size        uint64
 	Files       int
