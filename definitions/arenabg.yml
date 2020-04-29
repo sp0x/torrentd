@@ -73,6 +73,7 @@ caps:
     xvid: Movies/SD
     xxx: XXX
     xxx-hd: XXX
+
 search:
   maxpages: 10
   method: post
@@ -127,6 +128,9 @@ search:
     download:
       attribute: href
       selector: a[href*="/get/key:"]
+    magnet:
+      selector: a:has(i.fa-magnet)
+      attribute: href
     link:
       attribute: href
       selector: "td.filename div a"
