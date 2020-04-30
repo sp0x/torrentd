@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sp0x/rutracker-rss/config"
+	"github.com/sp0x/rutracker-rss/indexer/cache"
 	"github.com/sp0x/rutracker-rss/indexer/categories"
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/sp0x/rutracker-rss/torrent/storage"
@@ -49,7 +50,7 @@ type Runner struct {
 	logger              logrus.FieldLogger
 	caps                torznab.Capabilities
 	browserLock         sync.Mutex
-	connectivityCache   *ConnectivityCache
+	connectivityCache   *cache.ConnectivityCache
 	state               *IndexerState
 	keepSessions        bool
 	failingSearchFields map[string]fieldBlock
@@ -75,7 +76,7 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 		opts:                opts,
 		definition:          def,
 		logger:              logger.WithFields(logrus.Fields{"site": def.Site}),
-		connectivityCache:   NewConnectivityCache(),
+		connectivityCache:   cache.NewConnectivityCache(),
 		state:               defaultIndexerState(),
 		keepSessions:        true,
 		failingSearchFields: make(map[string]fieldBlock),

@@ -1,4 +1,4 @@
-package indexer
+package cache
 
 import (
 	"errors"
@@ -22,10 +22,8 @@ func NewConnectivityCache() *ConnectivityCache {
 }
 
 func (c *ConnectivityCache) IsOk(url string) bool {
-	if _, ok := c.cache[url]; ok {
-		return true
-	}
-	return false
+	_, ok := c.cache[url]
+	return ok
 }
 
 func (c *ConnectivityCache) Test(u string) error {
