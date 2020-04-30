@@ -12,17 +12,23 @@ type CacheInfo struct {
 
 type ConnectivityCache struct {
 	browser *browser.Browser
-	cache   map[string]CacheInfo
+	//cache   map[string]CacheInfo
+	cache LRUCache
 }
 
-func NewConnectivityCache() *ConnectivityCache {
+func NewConnectivityCache() (*ConnectivityCache, error) {
 	c := ConnectivityCache{}
-	c.cache = make(map[string]CacheInfo)
-	return &c
+	//c.cache = make(map[string]CacheInfo)
+	cache, err := NewThreadSafeCache(10000)
+	if err != nil {
+		return nil, err
+	}
+	c.cache = cache
+	return &c, nil
 }
 
 func (c *ConnectivityCache) IsOk(url string) bool {
-	_, ok := c.cache[url]
+	ok := c.cache.Contains(url)
 	return ok
 }
 
@@ -32,9 +38,9 @@ func (c *ConnectivityCache) Test(u string) error {
 	}
 	err := c.browser.Open(u)
 	if err == nil {
-		c.cache[u] = CacheInfo{
+		c.cache.Add(u, CacheInfo{
 			added: time.Now(),
-		}
+		})
 	}
 	return err
 }

@@ -72,11 +72,12 @@ type RunContext struct {
 func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 	logger := logrus.New()
 	logger.Level = logrus.GetLevel()
+	ch, _ := cache.NewConnectivityCache()
 	return &Runner{
 		opts:                opts,
 		definition:          def,
 		logger:              logger.WithFields(logrus.Fields{"site": def.Site}),
-		connectivityCache:   cache.NewConnectivityCache(),
+		connectivityCache:   ch,
 		state:               defaultIndexerState(),
 		keepSessions:        true,
 		failingSearchFields: make(map[string]fieldBlock),
