@@ -40,10 +40,10 @@ func NewTTLWithEvict(size int, ttl time.Duration, onEvict EvictionCallback) (LRU
 
 // Add adds the item to the cache. It also includes the `lastAccessTime` to the value.
 // Life of an item can be increased by calling `Add` multiple times on the same key.
-func (c *CacheWithTTL) Add(key, value interface{}) bool {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	return c.LRU.Add(key,
+func (t *CacheWithTTL) Add(key, value interface{}) bool {
+	t.lock.Lock()
+	defer t.lock.Unlock()
+	return t.LRU.Add(key,
 		ttledCacheValue{
 			value:          value,
 			lastAccessTime: time.Now(),
@@ -52,16 +52,16 @@ func (c *CacheWithTTL) Add(key, value interface{}) bool {
 
 // Get looks up a key's value from the cache.
 // Also, it unmarshals `lastAccessTime` from `Get` response
-func (c *CacheWithTTL) Get(key interface{}) (value interface{}, ok bool) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+func (t *CacheWithTTL) Get(key interface{}) (value interface{}, ok bool) {
+	t.lock.Lock()
+	defer t.lock.Unlock()
 
-	val, ok := c.LRU.Get(key)
+	val, ok := t.LRU.Get(key)
 	// while the cleanup routine is catching will the other items, remove the item
 	// if someone tries to access it through this GET call.
 	if ok {
-		if time.Now().After(val.(ttledCacheValue).lastAccessTime.Add(c.TTL)) {
-			c.LRU.Remove(key)
+		if time.Now().After(val.(ttledCacheValue).lastAccessTime.Add(t.TTL)) {
+			t.LRU.Remove(key)
 		} else {
 			return val.(ttledCacheValue).value, ok
 		}
@@ -73,11 +73,11 @@ func (c *CacheWithTTL) Get(key interface{}) (value interface{}, ok bool) {
 // Peek returns the key value (or undefined if not found) without updating
 // the "recently used"-ness of the key.
 // Also, it unmarshals the `lastAccessTime` from the result
-func (c *CacheWithTTL) Peek(key interface{}) (value interface{}, ok bool) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+func (t *CacheWithTTL) Peek(key interface{}) (value interface{}, ok bool) {
+	t.lock.Lock()
+	defer t.lock.Unlock()
 
-	val, ok := c.LRU.Peek(key)
+	val, ok := t.LRU.Peek(key)
 	if ok {
 		return val.(ttledCacheValue).value, ok
 	}
@@ -86,45 +86,45 @@ func (c *CacheWithTTL) Peek(key interface{}) (value interface{}, ok bool) {
 
 // Contains checks if a key is in the cache, without updating the
 // recent-ness or deleting it for being stale.
-func (c *CacheWithTTL) Contains(key interface{}) bool {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
-	return c.LRU.Contains(key)
+func (t *CacheWithTTL) Contains(key interface{}) bool {
+	t.lock.RLock()
+	defer t.lock.RUnlock()
+	return t.LRU.Contains(key)
 }
 
 // Purge is used to completely clear the cache.
-func (c *CacheWithTTL) Clear() {
-	c.lock.Lock()
-	c.LRU.Clear()
-	c.lock.Unlock()
+func (t *CacheWithTTL) Clear() {
+	t.lock.Lock()
+	t.LRU.Clear()
+	t.lock.Unlock()
 }
 
 // Remove removes the provided key from the cache.
-func (c *CacheWithTTL) Remove(key interface{}) bool {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	return c.LRU.Remove(key)
+func (t *CacheWithTTL) Remove(key interface{}) bool {
+	t.lock.Lock()
+	defer t.lock.Unlock()
+	return t.LRU.Remove(key)
 }
 
 // RemoveOldest removes the oldest item from the cache.
-func (c *CacheWithTTL) RemoveOldest() (key interface{}, value interface{}, ok bool) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	return c.LRU.RemoveOldest()
+func (t *CacheWithTTL) RemoveOldest() (key interface{}, value interface{}, ok bool) {
+	t.lock.Lock()
+	defer t.lock.Unlock()
+	return t.LRU.RemoveOldest()
 }
 
 // Keys returns a slice of the keys in the cache, from oldest to newest.
-func (c *CacheWithTTL) Keys() []interface{} {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
-	return c.LRU.Keys()
+func (t *CacheWithTTL) Keys() []interface{} {
+	t.lock.RLock()
+	defer t.lock.RUnlock()
+	return t.LRU.Keys()
 }
 
 // Len returns the number of items in the cache.
-func (c *CacheWithTTL) Len() int {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
-	return c.LRU.Len()
+func (t *CacheWithTTL) Len() int {
+	t.lock.RLock()
+	defer t.lock.RUnlock()
+	return t.LRU.Len()
 }
 
 func (t *CacheWithTTL) removeStales() {
