@@ -10,6 +10,7 @@ type SearchMode struct {
 	SupportedParams []string
 }
 
+//An instance of a search
 type Instance interface {
 	GetStartingIndex() int
 	GetResults() []ExternalResultItem

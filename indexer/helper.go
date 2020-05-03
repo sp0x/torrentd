@@ -20,7 +20,7 @@ type GenericSearchOptions struct {
 	StopOnStaleTorrents  bool
 }
 
-func NewTorrentHelper(config config.Config) *IndexerHelper {
+func NewIndexerHelper(config config.Config) *IndexerHelper {
 	rt := IndexerHelper{}
 	ixr := config.GetString("Indexer")
 	if ixr == "" {

@@ -26,7 +26,7 @@ func init() {
 }
 
 func watchTracker(cmd *cobra.Command, args []string) {
-	helper := indexer.NewTorrentHelper(&appConfig)
+	helper := indexer.NewIndexerHelper(&appConfig)
 	if helper == nil {
 		log.Error("Couldn't initialize torrent helper.")
 		return
