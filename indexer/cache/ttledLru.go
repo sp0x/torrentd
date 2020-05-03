@@ -8,8 +8,9 @@ import (
 
 type CacheWithTTL struct {
 	*LRU
-	lock sync.RWMutex
-	TTL  time.Duration
+	lock        sync.RWMutex
+	TTL         time.Duration
+	stopChannel chan struct{}
 }
 
 type ttledCacheValue struct {
@@ -33,7 +34,8 @@ func NewTTLWithEvict(size int, ttl time.Duration, onEvict EvictionCallback) (LRU
 	if err != nil {
 		return nil, err
 	}
-	ttlLruCache := &CacheWithTTL{LRU: lru, TTL: ttl}
+	ttlLruCache := &CacheWithTTL{LRU: lru, TTL: ttl, stopChannel: make(chan struct{})}
+
 	go ttlLruCache.removeStales()
 	return ttlLruCache, nil
 }
@@ -127,9 +129,12 @@ func (t *CacheWithTTL) Len() int {
 	return t.LRU.Len()
 }
 
+func (t *CacheWithTTL) Dispose() {
+	t.stopChannel <- struct{}{}
+}
+
 func (t *CacheWithTTL) removeStales() {
 	//TODO: add termination way
-	// - use heap instead of ticker
 	ticker := time.NewTicker(200 * time.Millisecond)
 	for {
 		select {
@@ -143,6 +148,8 @@ func (t *CacheWithTTL) removeStales() {
 					t.Remove(key)
 				}
 			}
+		case <-t.stopChannel:
+			return
 		}
 	}
 }
