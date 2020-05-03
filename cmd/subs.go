@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/indexer"
+	"github.com/sp0x/rutracker-rss/indexer/categories"
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -33,12 +35,13 @@ func findSubtitles(cmd *cobra.Command, args []string) {
 	var currentSearch search.Instance
 	var err error
 	var searchQuery = strings.Join(args, " ")
-	currentSearch, err = helper.SearchKeywords(nil, searchQuery, 0)
+	subCat := categories.Subtitle
+	currentSearch, err = helper.SearchKeywordsWithCategory(nil, searchQuery, subCat, 0)
 	if err != nil {
 		log.Error("Couldn't search for subtitles.")
 		os.Exit(1)
 	}
 	for _, r := range currentSearch.GetResults() {
-		print(r.ResultItem.Title)
+		fmt.Printf("%s - %s\n", r.ResultItem.Title, r.Link)
 	}
 }

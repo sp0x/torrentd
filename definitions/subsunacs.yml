@@ -5,7 +5,7 @@ description: "Zamunda is a BULGARIAN Private Torrent Tracker for 0DAY / GENERAL"
 encoding: windows1251
 type: private
 language: bg-BG
-ratelimit: 1000
+ratelimit: 10
 
 settings:
   - label: Cookie
@@ -40,17 +40,13 @@ search:
     selector: "tr:has(a.tooltip)"
 
   fields:
-    title:
-      selector: a.tooltip
-      attribute: title
-      filters:
-        - name: regexp
-          args: <br>(.*?)</div>
     shortTitle:
       selector: a.tooltip
       filters:
         - name: re_replace
-        args: ["(\\([А-Яа-яЁё\\W]+\\))|(^[А-Яа-яЁё\\W\\d]+\\/ )|([а-яА-ЯЁё \\-]+,+)|([а-яА-ЯЁё]+)", "{{ if .Config.striprussian }}{{ else }}$1$2$3$4{{ end }}"]
+          args: ["(\\([А-Яа-яЁё\\W]+\\))|(^[А-Яа-яЁё\\W\\d]+\\/ )|([а-яА-ЯЁё \\-]+,+)|([а-яА-ЯЁё]+)", "{{ if .Config.striprussian }}{{ else }}$1$2$3$4{{ end }}"]
+    title:
+      text: "{{ .shortTitle }}"
     category:
       text: subtitle
     download:
@@ -71,7 +67,11 @@ search:
       attribute: title
       filters:
         - name: regexp
-          args: src=\\'([^\s\\]+)
+          args: src="([^\\s]+)
+        - name: re_replace
+          args: ["^src=\"", ""]
+        - name: re_replace
+          args: ["\">.*$", ""]
     author:
       selector: td:nth-child(6) a
     authorId:

@@ -3,6 +3,7 @@ package indexer
 import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/config"
+	"github.com/sp0x/rutracker-rss/indexer/categories"
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/sp0x/rutracker-rss/torznab"
 )
@@ -40,6 +41,17 @@ func NewIndexerHelper(config config.Config) *IndexerHelper {
 func (th *IndexerHelper) SearchKeywords(searchContext search.Instance, query string, page uint) (search.Instance, error) {
 	qrobj := torznab.ParseQueryString(query)
 	qrobj.Page = page
+	srch, err := th.Indexer.Search(qrobj, searchContext)
+	if err != nil {
+		return nil, err
+	}
+	return srch, nil
+}
+
+func (th *IndexerHelper) SearchKeywordsWithCategory(searchContext search.Instance, query string, cat categories.Category, page uint) (search.Instance, error) {
+	qrobj := torznab.ParseQueryString(query)
+	qrobj.Page = page
+	qrobj.Categories = []int{cat.ID}
 	srch, err := th.Indexer.Search(qrobj, searchContext)
 	if err != nil {
 		return nil, err
