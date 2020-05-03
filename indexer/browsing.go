@@ -54,11 +54,11 @@ func (r *Runner) createTransport() (http.RoundTripper, error) {
 	return &t, nil
 }
 
-func (r *Runner) createBrowser() {
+func (r *Runner) createBrowser() *browser.Browser {
 	if r.keepSessions {
 		//No need to recreate browsers if we're keeping the session
 		if r.browser != nil {
-			return
+			return nil
 		}
 	}
 	r.browserLock.Lock()
@@ -97,13 +97,7 @@ func (r *Runner) createBrowser() {
 	}
 	r.connectivityCache.SetBrowser(bow)
 	r.browser = bow
-
-	//	minDiff := 1.0 / maxPerSecond
-	//	timeElapsed := time.Now().Sub(r.lastRequest)
-	//	if int(timeElapsed.Seconds()) < int(minDiff) {
-	//		t := r.lastRequest.Add(time.Second * time.Duration(minDiff)).Sub(time.Now())
-	//		time.Sleep(t)
-	//	}
+	return bow
 }
 
 func (r *Runner) releaseBrowser() {

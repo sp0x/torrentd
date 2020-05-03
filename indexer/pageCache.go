@@ -3,13 +3,12 @@ package indexer
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/config"
-	"io"
 	"io/ioutil"
 	"os"
-	"strings"
 )
 
 //If caching is enabled, we cache the page's contents in our pagecache
+//the current browser page is cached
 func (r *Runner) cachePage() error {
 	if !r.opts.CachePages {
 		return nil
@@ -23,9 +22,7 @@ func (r *Runner) cachePage() error {
 		r.logger.Warn(err)
 		return err
 	}
-
-	body := strings.NewReader(r.browser.Body())
-	_, _ = io.Copy(tmpfile, body)
+	_, _ = r.browser.Download(tmpfile)
 	if err = tmpfile.Close(); err != nil {
 		return err
 	}

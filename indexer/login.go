@@ -29,15 +29,13 @@ func (r *Runner) loginViaForm(loginURL, formSelector string, vals map[string]str
 			return err
 		}
 	}
-
 	r.logger.Debug("Submitting login form")
-	defer r.cachePage()
-
+	//Maybe we don't need to cache the current brower page
+	//defer r.cachePage()
 	if err = fm.Submit(); err != nil {
 		r.logger.WithError(err).Error("Login failed")
 		return err
 	}
-
 	r.logger.
 		WithFields(logrus.Fields{"code": r.browser.StatusCode(), "page": r.browser.Url()}).
 		Debugf("Submitted login form")
