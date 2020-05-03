@@ -18,7 +18,6 @@ type ConnectivityCache struct {
 
 func NewConnectivityCache() (*ConnectivityCache, error) {
 	c := ConnectivityCache{}
-	//c.cache = make(map[string]CacheInfo)
 	//cache, err := NewThreadSafeCache(10000)
 	cache, err := NewTTL(10000, time.Minute*60)
 	if err != nil {
