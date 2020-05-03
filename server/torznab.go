@@ -12,6 +12,23 @@ import (
 	"strings"
 )
 
+func (s *Server) aggregatesStatus(c *gin.Context) {
+	aggregate, err := indexer.Lookup(s.config, "all")
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	statusObj := struct {
+		ActiveIndexers []string `json:"latest"`
+	}{}
+	for _, ixr := range aggregate.(*indexer.Aggregate).Indexers {
+		ixrInfo := ixr.Info()
+		statusObj.ActiveIndexers = append(statusObj.ActiveIndexers, ixrInfo.GetTitle())
+	}
+	c.JSON(200, statusObj)
+}
+
 func (s *Server) torznabHandler(c *gin.Context) {
 	_ = c.Params
 	indexerID := c.Param("indexer")
