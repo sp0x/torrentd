@@ -189,6 +189,15 @@ func ParentCategory(c Category) Category {
 
 type Categories []Category
 
+func (slice Categories) ContainsCat(cat Category) bool {
+	for _, mycat := range slice {
+		if mycat.ID == cat.ID {
+			return true
+		}
+	}
+	return false
+}
+
 func (slice Categories) Subset(ids ...int) Categories {
 	cats := Categories{}
 

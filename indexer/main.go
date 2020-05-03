@@ -38,6 +38,7 @@ func CreateAggregate(config config.Config) (Indexer, error) {
 	}
 	var indexers []Indexer
 	for _, key := range keys {
+		//Get the site configuration
 		ifaceConfig, _ := config.GetSite(key) //Get all the configured indexers
 		if ifaceConfig != nil && len(ifaceConfig) > 0 {
 			indexer, err := Lookup(config, key)
@@ -45,6 +46,16 @@ func CreateAggregate(config config.Config) (Indexer, error) {
 				return nil, err
 			}
 			indexers = append(indexers, indexer)
+		} else {
+			//Indexer might not be configured
+			//indexer, err := Lookup(config, key)
+			//if err !=nil{
+			//	continue
+			//}
+			//isSub := indexer.Capabilities().Categories.ContainsCat(categories.Subtitle)
+			//if isSub{
+			//	//This is a subtitle category
+			//}
 		}
 	}
 
