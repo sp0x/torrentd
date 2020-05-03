@@ -60,9 +60,9 @@ func (s *Server) searchAndServe(c *gin.Context) {
 	for true {
 		var err error
 		if srch == nil {
-			srch, err = s.tracker.Search(nil, name, 0)
+			srch, err = s.tracker.SearchKeywords(nil, name, 0)
 		} else {
-			srch, err = s.tracker.Search(srch, name, currentPage)
+			srch, err = s.tracker.SearchKeywords(srch, name, currentPage)
 		}
 		if err != nil {
 			log.Warningf("Error while searching for torrent: %s . %s", name, err)

@@ -30,9 +30,9 @@ func Watch(client *indexer.IndexerHelper, interval int) {
 	for true {
 		var err error
 		if currentSearch == nil {
-			currentSearch, err = client.Search(nil, "", page)
+			currentSearch, err = client.SearchKeywords(nil, "", page)
 		} else {
-			currentSearch, err = client.Search(currentSearch, "", page)
+			currentSearch, err = client.SearchKeywords(currentSearch, "", page)
 		}
 		if err != nil {
 			time.Sleep(time.Second * time.Duration(interval))

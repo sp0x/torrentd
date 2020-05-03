@@ -25,9 +25,9 @@ func GetNewTorrents(client *indexer.IndexerHelper, fetchOptions *indexer.Generic
 		log.Infof("Getting page %d\n", page)
 		var err error
 		if currentSearch == nil {
-			currentSearch, err = client.Search(nil, "", page)
+			currentSearch, err = client.SearchKeywords(nil, "", page)
 		} else {
-			currentSearch, err = client.Search(currentSearch, "", page)
+			currentSearch, err = client.SearchKeywords(currentSearch, "", page)
 		}
 		if err != nil {
 			log.Warningf("Could not fetch page %d\n", page)

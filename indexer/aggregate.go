@@ -81,7 +81,7 @@ func (ag *Aggregate) Search(query torznab.Query, srch search.Instance) (search.I
 		return nil, errors.New("can't use normal search on an aggregate")
 	}
 	aggSearch := srch.(*search.AggregatedSearch)
-	//indexerSearches := make(map[int]*search.Search)
+	//indexerSearches := make(map[int]*search.SearchKeywords)
 	// fetch all results
 	for idx, pIndexer := range ag.Indexers {
 		//Run the Indexer in a goroutine

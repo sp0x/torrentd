@@ -63,7 +63,7 @@ func (r *Runner) ProcessRequest(req *http.Request) (*http.Response, error) {
 
 type RunContext struct {
 	Search *search.Search
-	//Search *search.Instance
+	//SearchKeywords *search.Instance
 }
 
 func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
@@ -482,7 +482,7 @@ func (r *Runner) Check() error {
 	return err
 }
 
-//Search for a given torrent
+//SearchKeywords for a given torrent
 func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Instance, error) {
 	r.createBrowser()
 	if !r.keepSessions {

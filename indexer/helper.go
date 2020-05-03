@@ -37,7 +37,7 @@ func NewIndexerHelper(config config.Config) *IndexerHelper {
 }
 
 //Open the search to a given page.
-func (th *IndexerHelper) Search(searchContext search.Instance, query string, page uint) (search.Instance, error) {
+func (th *IndexerHelper) SearchKeywords(searchContext search.Instance, query string, page uint) (search.Instance, error) {
 	qrobj := torznab.ParseQueryString(query)
 	qrobj.Page = page
 	srch, err := th.Indexer.Search(qrobj, searchContext)

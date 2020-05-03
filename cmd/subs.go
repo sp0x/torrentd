@@ -33,7 +33,7 @@ func findSubtitles(cmd *cobra.Command, args []string) {
 	var currentSearch search.Instance
 	var err error
 	var searchQuery = strings.Join(args, " ")
-	currentSearch, err = helper.Search(nil, searchQuery, 0)
+	currentSearch, err = helper.SearchKeywords(nil, searchQuery, 0)
 	if err != nil {
 		log.Error("Couldn't search for subtitles.")
 		os.Exit(1)
