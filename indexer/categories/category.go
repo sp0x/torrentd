@@ -18,6 +18,7 @@ const (
 // Categories from the Newznab spec
 // https://github.com/nZEDb/nZEDb/blob/0.x/docs/newznab_api_specification.txt#L627
 var (
+	Subtitle                   = Category{-1, "Subtitle"}
 	CategoryOther              = Category{0, "Other"}
 	CategoryOther_Misc         = Category{10, "Other/Misc"}
 	CategoryOther_Hashed       = Category{20, "Other/Hashed"}
@@ -91,6 +92,7 @@ var (
 )
 
 var AllCategories = Categories{
+	Subtitle,
 	CategoryOther,
 	CategoryOther_Misc,
 	CategoryOther_Hashed,
