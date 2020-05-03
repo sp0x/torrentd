@@ -19,6 +19,8 @@ type ConnectivityCache struct {
 func NewConnectivityCache() (*ConnectivityCache, error) {
 	c := ConnectivityCache{}
 	//cache, err := NewThreadSafeCache(10000)
+	//Connection statuses are kept for 60 minutes
+	//we keep at most 10k urls
 	cache, err := NewTTL(10000, time.Minute*60)
 	if err != nil {
 		return nil, err

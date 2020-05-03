@@ -11,6 +11,7 @@ func init() {
 	indexers = make(map[string]Indexer)
 }
 
+//Lookup finds the matching indexer.
 func Lookup(config config.Config, key string) (Indexer, error) {
 	if _, ok := indexers[key]; !ok {
 		var indexer Indexer
@@ -28,6 +29,8 @@ func Lookup(config config.Config, key string) (Indexer, error) {
 	return indexers[key], nil
 }
 
+//CreateAggregate gets you an aggregate of all the valid configured indexers
+//this includes indexers that don't need a login.
 func CreateAggregate(config config.Config) (Indexer, error) {
 	keys, err := DefaultDefinitionLoader.List()
 	if err != nil {

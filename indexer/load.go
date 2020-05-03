@@ -31,13 +31,6 @@ func LoadEnabledDefinitions(conf interface{}) ([]*IndexerDefinition, error) {
 			}
 			defs = append(defs, def)
 		}
-		//if config.IsSectionEnabled(key, conf) {
-		//	def, err := DefaultDefinitionLoader.Load(key)
-		//	if err != nil {
-		//		return nil, err
-		//	}
-		//	defs = append(defs, def)
-		//}
 	}
 	return defs, nil
 }

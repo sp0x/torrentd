@@ -10,6 +10,7 @@ import (
 	"golang.org/x/net/proxy"
 	"net"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/sp0x/surf"
@@ -109,6 +110,28 @@ func (r *Runner) releaseBrowser() {
 	r.browser = nil
 	r.connectivityCache.ClearBrowser()
 	r.browserLock.Unlock()
+}
+
+func (r *Runner) postToPage(u string, vals url.Values, log bool) error {
+	if log {
+		r.logger.
+			WithFields(logrus.Fields{"url": u, "vals": vals.Encode()}).
+			Debugf("Posting to page")
+	}
+	if err := r.browser.PostForm(u, vals); err != nil {
+		return err
+	}
+	_ = r.cachePage()
+
+	r.logger.
+		WithFields(logrus.Fields{"code": r.browser.StatusCode(), "page": r.browser.Url()}).
+		Debugf("Finished request")
+
+	if err := r.handleMetaRefreshHeader(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 //Open a desired url
