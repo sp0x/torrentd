@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	ErrUnknownIndexer       = errors.New("Unknown indexer")
+	ErrUnknownIndexer       = errors.New("Unknown Indexer")
 	DefaultDefinitionLoader DefinitionLoader
 )
 
@@ -38,7 +38,7 @@ func LoadEnabledDefinitions(conf interface{}) ([]*IndexerDefinition, error) {
 type DefinitionLoader interface {
 	//List - Lists available trackers.
 	List() ([]string, error)
-	//Load - Load a definition of an indexer from it's name
+	//Load - Load a definition of an Indexer from it's name
 	Load(key string) (*IndexerDefinition, error)
 }
 

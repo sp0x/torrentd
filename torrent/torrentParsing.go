@@ -7,6 +7,7 @@ import (
 	"fmt"
 	bencode "github.com/jackpal/bencode-go"
 	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/surf/browser/encoding"
 	"io"
 	"io/ioutil"
@@ -29,9 +30,9 @@ func ParseTorrentFromStream(stream io.ReadCloser) (*Definition, error) {
 	return ParseTorrent(string(body))
 }
 
-func ParseTorrentFromUrl(h *TorrentHelper, torrentUrl string) (*Definition, error) {
+func ParseTorrentFromUrl(h *indexer.IndexerHelper, torrentUrl string) (*Definition, error) {
 	req, _ := http.NewRequest("GET", torrentUrl, nil)
-	res, err := h.indexer.ProcessRequest(req)
+	res, err := h.Indexer.ProcessRequest(req)
 	if err != nil {
 		return nil, err
 	}

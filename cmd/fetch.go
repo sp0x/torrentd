@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/rutracker-rss/torrent"
 	"github.com/spf13/cobra"
 )
@@ -15,6 +16,6 @@ func init() {
 }
 
 func fetchTorrents(cmd *cobra.Command, args []string) {
-	client := torrent.NewTorrentHelper(&appConfig)
+	client := indexer.NewTorrentHelper(&appConfig)
 	_ = torrent.GetNewTorrents(client, nil)
 }

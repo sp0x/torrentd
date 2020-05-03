@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/config"
+	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/rutracker-rss/server/rss"
-	"github.com/sp0x/rutracker-rss/torrent"
 	"github.com/sp0x/rutracker-rss/torrent/storage"
 	"net/http"
 	"net/url"
@@ -22,7 +22,7 @@ import (
 
 //
 type Server struct {
-	tracker   *torrent.TorrentHelper
+	tracker   *indexer.IndexerHelper
 	tabWriter *tabwriter.Writer
 	//Params    Params
 	config     config.Config
@@ -59,7 +59,7 @@ func NewServer(conf config.Config) *Server {
 	return s
 }
 
-func (s *Server) Listen(tracker *torrent.TorrentHelper) error {
+func (s *Server) Listen(tracker *indexer.IndexerHelper) error {
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 

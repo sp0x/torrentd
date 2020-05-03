@@ -95,7 +95,7 @@ func (r *Runner) checkHasConfig() error {
 	return nil
 }
 
-//Get a working url for the indexer
+//Get a working url for the Indexer
 func (r *Runner) currentURL() (*url.URL, error) {
 	if u := r.browser.Url(); u != nil {
 		return u, nil
@@ -133,12 +133,12 @@ func (r *Runner) testURLWorks(u string) bool {
 	return true
 }
 
-//resolveIndexerPath resolve a relative url based on the working indexer base url
+//resolveIndexerPath resolve a relative url based on the working Indexer base url
 func (r *Runner) resolveIndexerPath(urlPath string) (string, error) {
 	if strings.HasPrefix(urlPath, "magnet:") {
 		return urlPath, nil
 	}
-	//Get the base url of the indexer
+	//Get the base url of the Indexer
 	base, err := r.currentURL()
 	if err != nil {
 		return "", err
@@ -206,7 +206,7 @@ func (r *Runner) loginViaCookie(loginURL string, cookie string) error {
 //extractInputLogins gets the configured input fields and vals for the login.
 func (r *Runner) extractInputLogins() (map[string]string, error) {
 	result := map[string]string{}
-	//Get configuration for the indexer so we can login
+	//Get configuration for the Indexer so we can login
 	cfg, err := r.opts.Config.GetSite(r.definition.Site)
 	if err != nil {
 		return nil, err
@@ -279,7 +279,7 @@ func (r *Runner) matchPageTestBlock(p pageTestBlock) (bool, error) {
 	return true, nil
 }
 
-//isLoginRequired Checks if login is required for the given indexer
+//isLoginRequired Checks if login is required for the given Indexer
 func (r *Runner) isLoginRequired() (bool, error) {
 	if r.definition.Login.IsEmpty() {
 		return false, nil
@@ -364,7 +364,7 @@ func (r *Runner) login() error {
 	return nil
 }
 
-//Capabilities gets the torznab formatted capabilities of this indexer.
+//Capabilities gets the torznab formatted capabilities of this Indexer.
 func (r *Runner) Capabilities() torznab.Capabilities {
 	caps := r.definition.Capabilities.ToTorznab()
 
@@ -505,7 +505,7 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 			return nil, err
 		}
 	}
-	//Get the categories for this query based on the indexer
+	//Get the categories for this query based on the Indexer
 	localCats := r.getLocalCategoriesMatchingQuery(query)
 
 	//r.logger.Debugf("Query is %v\n", query)
@@ -534,8 +534,8 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 
 	r.logger.
 		WithFields(logrus.Fields{"query": query.Encode()}).
-		Debugf("Searching indexer")
-	//Get our indexer url values
+		Debugf("Searching Indexer")
+	//Get our Indexer url values
 	vals, err := r.extractUrlValues(templateCtx)
 	if err != nil {
 		return nil, err
@@ -551,7 +551,7 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 	//html := r.browser.Body()
 	r.logger.
 		WithFields(logrus.Fields{}).
-		Debugf("Fetched indexer page.\n")
+		Debugf("Fetched Indexer page.\n")
 	setupContext(r, &context, dom)
 	// merge following rows for After selector
 	if after := r.definition.Search.Rows.After; after > 0 {
@@ -610,7 +610,7 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 				continue
 			}
 		}
-		//Try to map the category from the indexer to the global categories
+		//Try to map the category from the Indexer to the global categories
 		r.resolveCategory(&item)
 		storage.HandleTorrentDiscovery(&item)
 		if query.Series != "" {
@@ -634,7 +634,7 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 	}
 
 	r.logger.
-		WithFields(logrus.Fields{"indexer": r.definition.Site, "q": query.Keywords(), "time": time.Now().Sub(timer)}).
+		WithFields(logrus.Fields{"Indexer": r.definition.Site, "q": query.Keywords(), "time": time.Now().Sub(timer)}).
 		Infof("Query returned %d results", len(extracted))
 
 	//var items []search.ExternalResultItem

@@ -12,14 +12,14 @@ import (
 )
 
 //Gets torrent information from a given tracker and updates the torrent db
-func ResolveTorrents(client *TorrentHelper, hours int) {
+func ResolveTorrents(client *indexer.IndexerHelper, hours int) {
 	gdb := db.GetOrmDb()
 	defer gdb.Close()
 	torrents := storage.GetOlderThanHours(hours)
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
-	if err := client.indexer.Check(); err != nil {
-		log.Errorf("Failed while checking indexer %s. Err: %s\n", reflect.TypeOf(client.indexer), err)
+	if err := client.Indexer.Check(); err != nil {
+		log.Errorf("Failed while checking indexer %s. Err: %s\n", reflect.TypeOf(client.Indexer), err)
 		return
 	}
 	for i, t := range torrents {

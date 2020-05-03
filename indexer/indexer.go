@@ -26,7 +26,7 @@ type Indexer interface {
 	GetEncoding() string
 	ProcessRequest(req *http.Request) (*http.Response, error)
 	Open(s *search.ExternalResultItem) (io.ReadCloser, error)
-	//Check if the indexer works ok.
+	//Check if the Indexer works ok.
 	//This might be needed to validate the search result extraction.
 	Check() error
 }

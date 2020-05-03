@@ -2,6 +2,7 @@ package main
 
 import (
 	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/rutracker-rss/torrent"
 	"github.com/spf13/cobra"
 )
@@ -19,7 +20,7 @@ func init() {
 }
 
 func resolveTorrents(cmd *cobra.Command, args []string) {
-	helper := torrent.NewTorrentHelper(&appConfig)
+	helper := indexer.NewTorrentHelper(&appConfig)
 	if helper == nil {
 		log.Error("Couldn't initialize torrent helper.")
 		return

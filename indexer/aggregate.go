@@ -16,14 +16,14 @@ type Aggregate struct {
 }
 
 func (ag *Aggregate) Open(s *search.ExternalResultItem) (io.ReadCloser, error) {
-	//Find the indexer
+	//Find the Indexer
 	for _, ixr := range ag.Indexers {
 		nfo := ixr.Info()
 		if nfo.GetTitle() == s.Site {
 			return ixr.Open(s)
 		}
 	}
-	return nil, errors.New("couldn't find indexer")
+	return nil, errors.New("couldn't find Indexer")
 }
 
 func NewAggregate(indexers []Indexer) *Aggregate {
@@ -51,7 +51,7 @@ func (ag *Aggregate) Check() error {
 	g := errgroup.Group{}
 	for _, ixr := range ag.Indexers {
 		indexerID := ixr.Info().GetId()
-		//Run the indexer in a goroutine
+		//Run the Indexer in a goroutine
 		g.Go(func() error {
 			_, err := ixr.Search(torznab.Query{}, nil)
 			if err != nil {
@@ -84,12 +84,12 @@ func (ag *Aggregate) Search(query torznab.Query, srch search.Instance) (search.I
 	//indexerSearches := make(map[int]*search.Search)
 	// fetch all results
 	for idx, pIndexer := range ag.Indexers {
-		//Run the indexer in a goroutine
+		//Run the Indexer in a goroutine
 		idx, pIndexer := idx, pIndexer
 		g.Go(func() error {
 			indexerID := pIndexer.Info().GetId()
 			ixrSearch := aggSearch.SearchContexts[&pIndexer]
-			//log.WithFields(log.Fields{"indexer": indexerID}).
+			//log.WithFields(log.Fields{"Indexer": indexerID}).
 			//	Info("Aggregate index search")
 			srchRes, err := pIndexer.Search(query, ixrSearch)
 			if err != nil {

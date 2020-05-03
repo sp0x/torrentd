@@ -11,7 +11,7 @@ func init() {
 	indexers = make(map[string]Indexer)
 }
 
-//Lookup finds the matching indexer.
+//Lookup finds the matching Indexer.
 func Lookup(config config.Config, key string) (Indexer, error) {
 	if _, ok := indexers[key]; !ok {
 		var indexer Indexer
@@ -52,7 +52,7 @@ func CreateAggregate(config config.Config) (Indexer, error) {
 	return agg, nil
 }
 
-//CreateIndexer creates a new indexer or aggregate indexer with the given configuration.
+//CreateIndexer creates a new Indexer or aggregate Indexer with the given configuration.
 func CreateIndexer(config config.Config, indexerName string) (Indexer, error) {
 	def, err := DefaultDefinitionLoader.Load(indexerName)
 	if err != nil {
@@ -60,7 +60,7 @@ func CreateIndexer(config config.Config, indexerName string) (Indexer, error) {
 		return nil, err
 	}
 
-	log.WithFields(log.Fields{"indexer": indexerName}).Debugf("Loaded indexer")
+	log.WithFields(log.Fields{"Indexer": indexerName}).Debugf("Loaded Indexer")
 	indexer := NewRunner(def, RunnerOpts{
 		Config: config,
 	})

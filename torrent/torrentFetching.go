@@ -10,7 +10,7 @@ import (
 )
 
 //
-func GetNewTorrents(client *TorrentHelper, fetchOptions *GenericSearchOptions) error {
+func GetNewTorrents(client *indexer.IndexerHelper, fetchOptions *indexer.GenericSearchOptions) error {
 	log.Info("Searching for new torrents")
 	if fetchOptions == nil {
 		fetchOptions = client.GetDefaultOptions()
