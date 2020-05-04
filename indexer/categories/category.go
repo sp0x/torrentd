@@ -197,7 +197,7 @@ func ParentCategory(c Category) Category {
 	return CategoryOther
 }
 
-func (slice Categories) ContainsCat(cat Category) bool {
+func (slice Categories) ContainsCat(cat *Category) bool {
 	_, ok := slice[cat.ID]
 	return ok
 	//for _, mycat := range slice {

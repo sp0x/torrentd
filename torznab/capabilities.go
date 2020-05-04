@@ -14,6 +14,19 @@ type Capabilities struct {
 	Categories  categories.Categories
 }
 
+func (c Capabilities) HasCategory(cat categories.Category) bool {
+	return c.Categories.ContainsCat(&cat)
+}
+
+func (c Capabilities) HasCategories(cats categories.Categories) bool {
+	for _, theirCat := range cats {
+		if !c.Categories.ContainsCat(theirCat) {
+			return false
+		}
+	}
+	return true
+}
+
 func (c Capabilities) HasSearchMode(key string) (bool, []string) {
 	for _, m := range c.SearchModes {
 		if m.Key == key && m.Available {
