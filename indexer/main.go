@@ -3,6 +3,7 @@ package indexer
 import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/config"
+	"github.com/sp0x/rutracker-rss/indexer/categories"
 )
 
 var indexers map[string]Indexer
@@ -27,6 +28,23 @@ func Lookup(config config.Config, key string) (Indexer, error) {
 		indexers[key] = indexer
 	}
 	return indexers[key], nil
+}
+
+func CreateAggregateForCategories(config config.Config, cats categories.Categories) (Indexer, error) {
+	ixrKeys, err := DefaultDefinitionLoader.List()
+	if err != nil {
+		return nil, err
+	}
+	var indexers []Indexer
+	for _, key := range ixrKeys {
+		ifaceConfig, _ := config.GetSite(key) //Get all the configured indexers
+		ixr, err := Lookup(config, key)
+		if !ixr.Capabilities().HasCategories(cats) {
+			continue
+		}
+		indexers = append(indexers, ixr)
+	}
+
 }
 
 //CreateAggregate gets you an aggregate of all the valid configured indexers

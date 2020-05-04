@@ -91,7 +91,7 @@ var (
 	CategoryBooks_Unknown      = Category{7999, "Books/Unknown"}
 )
 
-var AllCategories = Categories{
+var AllCategories = CreateCategorySet([]Category{
 	Subtitle,
 	CategoryOther,
 	CategoryOther_Misc,
@@ -163,6 +163,16 @@ var AllCategories = Categories{
 	CategoryBooks_Technical,
 	CategoryBooks_Foreign,
 	CategoryBooks_Unknown,
+})
+
+type Categories map[int]*Category
+
+func CreateCategorySet(cats []Category) Categories {
+	cs := Categories{}
+	for _, c := range cats {
+		cs[c.ID] = &c
+	}
+	return cs
 }
 
 func ParentCategory(c Category) Category {
@@ -187,15 +197,15 @@ func ParentCategory(c Category) Category {
 	return CategoryOther
 }
 
-type Categories []Category
-
 func (slice Categories) ContainsCat(cat Category) bool {
-	for _, mycat := range slice {
-		if mycat.ID == cat.ID {
-			return true
-		}
-	}
-	return false
+	_, ok := slice[cat.ID]
+	return ok
+	//for _, mycat := range slice {
+	//	if mycat.ID == cat.ID {
+	//		return true
+	//	}
+	//}
+	//return false
 }
 
 func (slice Categories) Subset(ids ...int) Categories {
@@ -204,7 +214,7 @@ func (slice Categories) Subset(ids ...int) Categories {
 	for _, cat := range AllCategories {
 		for _, id := range ids {
 			if cat.ID == id {
-				cats = append(cats, cat)
+				cats[cat.ID] = cat
 			}
 		}
 	}
