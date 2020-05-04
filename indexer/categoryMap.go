@@ -4,7 +4,7 @@ import (
 	"github.com/sp0x/rutracker-rss/indexer/categories"
 )
 
-type categoryMap map[string]categories.Category
+type categoryMap map[string]*categories.Category
 
 //Categories gets the collection of categories that this map contains
 func (mapping categoryMap) Categories() categories.Categories {
@@ -15,14 +15,14 @@ func (mapping categoryMap) Categories() categories.Categories {
 		if _, exists := added[c.ID]; exists {
 			continue
 		}
-		cats = append(cats, c)
+		cats[c.ID] = c
 		added[c.ID] = true
 	}
 
 	return cats
 }
 
-func (mapping categoryMap) Resolve(cat categories.Category) []string {
+func (mapping categoryMap) Resolve(cat *categories.Category) []string {
 	var matched bool
 	var results = []string{}
 
@@ -60,9 +60,8 @@ func (mapping categoryMap) Resolve(cat categories.Category) []string {
 	return results
 }
 
-func (mapping categoryMap) ResolveAll(cats ...categories.Category) []string {
-	results := []string{}
-
+func (mapping categoryMap) ResolveAll(cats ...*categories.Category) []string {
+	var results []string
 	for _, cat := range cats {
 		results = append(results, mapping.Resolve(cat)...)
 	}

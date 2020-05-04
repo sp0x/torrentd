@@ -398,7 +398,7 @@ func (r *Runner) getLocalCategoriesMatchingQuery(query torznab.Query) []string {
 		queryCats := categories.AllCategories.Subset(query.Categories...)
 
 		// resolve query categories to the exact local, or the local based on parent cat
-		for _, id := range r.definition.Capabilities.CategoryMap.ResolveAll(queryCats...) {
+		for _, id := range r.definition.Capabilities.CategoryMap.ResolveAll(queryCats.Items()...) {
 			//Add only if it doesn't exist
 			if _, ok := set[id]; !ok {
 				localCats = append(localCats, id)

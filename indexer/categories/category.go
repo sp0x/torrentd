@@ -175,7 +175,7 @@ func CreateCategorySet(cats []Category) Categories {
 	return cs
 }
 
-func ParentCategory(c Category) Category {
+func ParentCategory(c *Category) Category {
 	switch {
 	case c.ID < 1000:
 		return CategoryOther
@@ -195,6 +195,14 @@ func ParentCategory(c Category) Category {
 		return CategoryBooks
 	}
 	return CategoryOther
+}
+
+func (slice Categories) Items() []*Category {
+	v := make([]*Category, len(slice))
+	for _, c := range slice {
+		v = append(v, c)
+	}
+	return v
 }
 
 func (slice Categories) ContainsCat(cat *Category) bool {

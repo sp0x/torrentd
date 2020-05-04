@@ -37,14 +37,16 @@ func CreateAggregateForCategories(config config.Config, cats categories.Categori
 	}
 	var indexers []Indexer
 	for _, key := range ixrKeys {
-		ifaceConfig, _ := config.GetSite(key) //Get all the configured indexers
 		ixr, err := Lookup(config, key)
+		if err != nil {
+			return nil, err
+		}
 		if !ixr.Capabilities().HasCategories(cats) {
 			continue
 		}
 		indexers = append(indexers, ixr)
 	}
-
+	return NewAggregate(indexers), nil
 }
 
 //CreateAggregate gets you an aggregate of all the valid configured indexers
@@ -56,7 +58,7 @@ func CreateAggregate(config config.Config) (Indexer, error) {
 	}
 	var indexers []Indexer
 	for _, key := range keys {
-		//Get the site configuration
+		//Get the site configuration, we only use configured indexers
 		ifaceConfig, _ := config.GetSite(key) //Get all the configured indexers
 		if ifaceConfig != nil && len(ifaceConfig) > 0 {
 			indexer, err := Lookup(config, key)
