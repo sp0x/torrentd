@@ -30,7 +30,8 @@ func Lookup(config config.Config, key string) (Indexer, error) {
 	return indexers[key], nil
 }
 
-func CreateAggregateForCategories(config config.Config, cats categories.Categories) (Indexer, error) {
+//CreateAggregateForCategories creates a new aggregate with the indexers that match a set of categories
+func CreateAggregateForCategories(config config.Config, cats []categories.Category) (Indexer, error) {
 	ixrKeys, err := DefaultDefinitionLoader.List()
 	if err != nil {
 		return nil, err

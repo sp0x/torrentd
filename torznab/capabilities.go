@@ -18,9 +18,9 @@ func (c Capabilities) HasCategory(cat categories.Category) bool {
 	return c.Categories.ContainsCat(&cat)
 }
 
-func (c Capabilities) HasCategories(cats categories.Categories) bool {
+func (c Capabilities) HasCategories(cats []categories.Category) bool {
 	for _, theirCat := range cats {
-		if !c.Categories.ContainsCat(theirCat) {
+		if !c.Categories.ContainsCat(&theirCat) {
 			return false
 		}
 	}
