@@ -37,6 +37,19 @@ func NewIndexerHelper(config config.Config) *IndexerHelper {
 	return &rt
 }
 
+func NewAggregateIndexerHelperWithCategories(config config.Config, cats ...categories.Category) *IndexerHelper {
+	rt := IndexerHelper{}
+	ixr := config.GetString("Indexer")
+	ixrObj, err := CreateAggregateForCategories(config, cats)
+	if err != nil {
+		log.Errorf("Could not find Indexer `%s`.\n", ixr)
+		return nil
+	}
+	rt.Config = config
+	rt.Indexer = ixrObj
+	return &rt
+}
+
 //Open the search to a given page.
 func (th *IndexerHelper) SearchKeywords(searchContext search.Instance, query string, page uint) (search.Instance, error) {
 	qrobj := torznab.ParseQueryString(query)

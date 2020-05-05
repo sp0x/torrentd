@@ -1,0 +1,81 @@
+---
+name: cityapartment.dk
+site: cityapartment
+description: "Denmark rental index site"
+type: private
+language: en-US
+ratelimit: 10
+
+settings:
+  - label: Cookie
+    name: cookie
+    type: text
+
+links:
+  - https://cityapartment.dk
+
+caps:
+  categories:
+    Rental: Rental
+
+search:
+  maxpages: 10
+  method: post
+  pagesize: 20
+  path: search.php
+  followredirect: true
+  inputs:
+    m: "{{ if .Query.Keywords }}{{ .Query.Keywords }}{{else}}{{end}}"
+    l: 0
+    c: ""
+    y: 0
+    a: ""
+    d: ""
+    u: ""
+    g: ""
+    t: "Submit"
+
+  rows:
+    selector: "tr:has(a.tooltip)"
+
+  fields:
+    shortTitle:
+      selector: a.tooltip
+      filters:
+        - name: re_replace
+          args: ["(\\([А-Яа-яЁё\\W]+\\))|(^[А-Яа-яЁё\\W\\d]+\\/ )|([а-яА-ЯЁё \\-]+,+)|([а-яА-ЯЁё]+)", "{{ if .Config.striprussian }}{{ else }}$1$2$3$4{{ end }}"]
+    title:
+      text: "{{ .shortTitle }}"
+    category:
+      text: subtitle
+    download:
+      selector: a.tooltip
+      attribute: href
+    link:
+      selector: a.tooltip
+      attribute: href
+    id:
+      selector: a.tooltip
+      attribute: href
+    grabs:
+      selector: td:nth-child(7)
+      filters:
+        - name: number
+    banner:
+      selector: a.tooltip
+      attribute: title
+      filters:
+        - name: regexp
+          args: src="([^\\s]+)
+        - name: re_replace
+          args: ["^src=\"", ""]
+        - name: re_replace
+          args: ["\">.*$", ""]
+    author:
+      selector: td:nth-child(6) a
+    authorId:
+      selector: td:nth-child(6) a
+      attribute: href
+      filters:
+        - name: urlarg
+          args: memid
