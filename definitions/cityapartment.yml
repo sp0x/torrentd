@@ -48,8 +48,9 @@ search:
       selector: img.attachment-post-preview
       attribute: src
     size:
-      name: size
       selector: .apartment-size-footer
+      filters:
+        - name: number
     link:
       selector: a.apartment-teaser
       attribute: href
@@ -59,4 +60,7 @@ search:
     price:
       selector: .info-wrapper-footer .row:nth-child(2) div:nth-child(2) strong
     availableFrom:
-      selector: .info-wrapper-footer .row:nth-child(1) div:nth-child(2) strong
+      selector: .info-wrapper-footer .row:nth-child(2) div:nth-child(1) strong
+      filters:
+        - name: dateparse
+          args: "02/01/2006"

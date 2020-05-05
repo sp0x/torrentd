@@ -76,8 +76,9 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 
 	item := search.ExternalResultItem{
 		ResultItem: search.ResultItem{
-			Site:    r.definition.Site,
-			Indexer: r.getIndexer(),
+			Site:        r.definition.Site,
+			Indexer:     r.getIndexer(),
+			ExtraFields: make(map[string]string),
 		},
 	}
 
@@ -241,8 +242,8 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 				item.Banner = banner
 			}
 		default:
-			r.logger.Warnf("Row #%d has unknown field %s", rowIdx, key)
-			continue
+			//r.logger.Warnf("Row #%d has unknown field %s", rowIdx, key)
+			item.SetField(key, val)
 		}
 	}
 

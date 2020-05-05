@@ -42,6 +42,11 @@ func (i *ExternalResultItem) IsUpdate() bool {
 	return i.isUpdate
 }
 
+//SetField sets the value of an extra fields
+func (i *ExternalResultItem) SetField(key string, val string) {
+	i.ExtraFields[key] = val
+}
+
 type ResultItem struct {
 	Site          string
 	Title         string
@@ -72,6 +77,7 @@ type ResultItem struct {
 	Author               string
 	AuthorId             string
 	Indexer              *ResultIndexer
+	ExtraFields          map[string]string `gorm:"-"` // Ignored in gorm
 }
 
 type ResultIndexer struct {
