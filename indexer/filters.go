@@ -46,7 +46,13 @@ func invokeFilter(name string, args interface{}, value string) (string, error) {
 			return filterDateParse([]string{layout}, value)
 		}
 		return "", fmt.Errorf("Filter argument type %T was invalid", args)
-
+	case "bool":
+		value := formatting.ClearSpaces(value)
+		if value != "" {
+			value = "true"
+		} else {
+			value = "false"
+		}
 	case "regexp":
 		pattern, ok := args.(string)
 		if !ok {

@@ -58,9 +58,13 @@ search:
       selector: a.apartment-teaser
       attribute: href
     price:
-      selector: .info-wrapper-footer .row:nth-child(2) div:nth-child(2) strong
+      selector: .info-wrapper-footer .row:nth-child(2)>div:nth-child(2) strong:nth-child(1)
     availableFrom:
-      selector: .info-wrapper-footer .row:nth-child(2) div:nth-child(1) strong
+      selector: .info-wrapper-footer .row:nth-child(2)>div:nth-child(1) strong:nth-child(1)
       filters:
         - name: dateparse
           args: "02/01/2006"
+    reserved:
+      selector: .ribbon-left
+      filters:
+        - name: bool
