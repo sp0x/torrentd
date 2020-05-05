@@ -41,7 +41,7 @@ search:
 
   fields:
     title:
-      selector: .info-wrapper-footer row:nth-child(1)
+      selector: .info-wrapper-footer .row:nth-child(1)
     category:
       text: rental
     banner:
@@ -52,10 +52,8 @@ search:
       filters:
         - name: number
     link:
-      selector: a.apartment-teaser
       attribute: href
     id:
-      selector: a.apartment-teaser
       attribute: href
     price:
       selector: .info-wrapper-footer .row:nth-child(2)>div:nth-child(2) strong:nth-child(1)
