@@ -7,7 +7,6 @@ import (
 	"github.com/sp0x/rutracker-rss/indexer/categories"
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"os"
 	"strings"
 )
@@ -20,10 +19,10 @@ func init() {
 		Short: "Finds subtitles using indexers",
 		Run:   findSubtitles,
 	}
-	flags := cmdFetchTorrents.Flags()
-	flags.StringVarP(&subtitleIndexer, "indexer", "x", "subsunacs", "The subtitle site to use.")
-	_ = viper.BindPFlag("indexer", flags.Lookup("indexer"))
-	_ = viper.BindEnv("indexer")
+	//flags := cmdFetchTorrents.Flags()
+	//flags.StringVarP(&subtitleIndexer, "indexer", "x", "subsunacs", "The subtitle site to use.")
+	//_ = viper.BindPFlag("indexer", flags.Lookup("indexer"))
+	//_ = viper.BindEnv("indexer")
 	rootCmd.AddCommand(cmdFetchTorrents)
 }
 

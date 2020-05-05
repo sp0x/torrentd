@@ -16,66 +16,47 @@ links:
 
 caps:
   categories:
-    Rental: Rental
+    rental: Rental
 
 search:
-  maxpages: 10
+  maxpages: 20
   method: post
-  pagesize: 20
-  path: search.php
+  pagesize: 30
+  path: wp-admin/admin-ajax.php
   followredirect: true
   inputs:
-    m: "{{ if .Query.Keywords }}{{ .Query.Keywords }}{{else}}{{end}}"
-    l: 0
-    c: ""
-    y: 0
-    a: ""
-    d: ""
-    u: ""
-    g: ""
-    t: "Submit"
+    action: ajax_filter_apartments
+    data[price][min]: 0
+    data[price][max]: 14000
+    data[size][min]: 0
+    data[size][max]: 100
+    paged: 1
+    post_type: bolig
+    order[orderby]: apartment_rent
+    order[ordertype]: ASC
+    posts_per_page: 30
 
   rows:
-    selector: "tr:has(a.tooltip)"
+    selector: "a.apartment-teaser"
 
   fields:
-    shortTitle:
-      selector: a.tooltip
-      filters:
-        - name: re_replace
-          args: ["(\\([А-Яа-яЁё\\W]+\\))|(^[А-Яа-яЁё\\W\\d]+\\/ )|([а-яА-ЯЁё \\-]+,+)|([а-яА-ЯЁё]+)", "{{ if .Config.striprussian }}{{ else }}$1$2$3$4{{ end }}"]
     title:
-      text: "{{ .shortTitle }}"
+      selector: .info-wrapper-footer row:nth-child(1)
     category:
-      text: subtitle
-    download:
-      selector: a.tooltip
-      attribute: href
+      text: rental
+    banner:
+      selector: img.attachment-post-preview
+      attribute: src
+    size:
+      name: size
+      selector: .apartment-size-footer
     link:
-      selector: a.tooltip
+      selector: a.apartment-teaser
       attribute: href
     id:
-      selector: a.tooltip
+      selector: a.apartment-teaser
       attribute: href
-    grabs:
-      selector: td:nth-child(7)
-      filters:
-        - name: number
-    banner:
-      selector: a.tooltip
-      attribute: title
-      filters:
-        - name: regexp
-          args: src="([^\\s]+)
-        - name: re_replace
-          args: ["^src=\"", ""]
-        - name: re_replace
-          args: ["\">.*$", ""]
-    author:
-      selector: td:nth-child(6) a
-    authorId:
-      selector: td:nth-child(6) a
-      attribute: href
-      filters:
-        - name: urlarg
-          args: memid
+    price:
+      selector: .info-wrapper-footer .row:nth-child(2) div:nth-child(2) strong
+    availableFrom:
+      selector: .info-wrapper-footer .row:nth-child(1) div:nth-child(2) strong

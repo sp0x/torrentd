@@ -172,7 +172,8 @@ type Categories map[int]*Category
 func CreateCategorySet(cats []Category) Categories {
 	cs := Categories{}
 	for _, c := range cats {
-		cs[c.ID] = &c
+		cx := c
+		cs[c.ID] = &cx
 	}
 	return cs
 }
@@ -222,6 +223,7 @@ func (slice Categories) Subset(ids ...int) Categories {
 	cats := Categories{}
 
 	for _, cat := range AllCategories {
+		cat := cat
 		for _, id := range ids {
 			if cat.ID == id {
 				cats[cat.ID] = cat

@@ -15,16 +15,16 @@ import (
 var aptIndexer string
 
 func init() {
-	cmdFetchTorrents := &cobra.Command{
-		Use:   "appartments",
+	cmdGetApartments := &cobra.Command{
+		Use:   "apartments",
 		Short: "Finds appartments using indexers",
 		Run:   findAppartments,
 	}
-	flags := cmdFetchTorrents.Flags()
+	flags := cmdGetApartments.Flags()
 	flags.StringVarP(&aptIndexer, "indexer", "x", "cityapartment", "The appartment site to use.")
 	_ = viper.BindPFlag("indexer", flags.Lookup("indexer"))
 	_ = viper.BindEnv("indexer")
-	rootCmd.AddCommand(cmdFetchTorrents)
+	rootCmd.AddCommand(cmdGetApartments)
 }
 
 func findAppartments(cmd *cobra.Command, args []string) {

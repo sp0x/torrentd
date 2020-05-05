@@ -287,9 +287,11 @@ func (c *capabilitiesBlock) UnmarshalYAML(unmarshal func(interface{}) error) err
 	if err := unmarshal(&intermediate); err == nil {
 		c.CategoryMap = categoryMap{}
 		//Map the found categories using our own Categories `torznab.AllCategories`.
+		allCats := categories.AllCategories
 		for id, catName := range intermediate.Categories {
 			matchedCat := false
-			for _, cat := range categories.AllCategories {
+			for key, cat := range allCats {
+				cat = allCats[key]
 				if cat.Name == catName {
 					c.CategoryMap[id] = cat
 					matchedCat = true
