@@ -22,10 +22,13 @@ func (mapping categoryMap) Categories() categories.Categories {
 	return cats
 }
 
+//Resolve the names of the category
 func (mapping categoryMap) Resolve(cat *categories.Category) []string {
 	var matched bool
 	var results = []string{}
-
+	if cat == nil {
+		return results
+	}
 	// check for exact matches
 	for localID, mappedCat := range mapping {
 		if mappedCat.ID == cat.ID {

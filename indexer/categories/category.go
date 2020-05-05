@@ -201,8 +201,11 @@ func ParentCategory(c *Category) Category {
 }
 
 func (slice Categories) Items() []*Category {
-	v := make([]*Category, len(slice))
+	v := make([]*Category, 0, len(slice))
 	for _, c := range slice {
+		if c == nil {
+			continue
+		}
 		v = append(v, c)
 	}
 	return v
