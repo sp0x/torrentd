@@ -15,6 +15,8 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 h1:DDGfHa7BWjL4YnC6+E63dPcxHo2sUxDIu8g3QgEJdRY=
 github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869/go.mod h1:Ekp36dRnpXw/yCqJaO+ZrUyxD+3VXMFFr56k5XYrpB4=
+github.com/boltdb/bolt v1.3.1 h1:JQmyP4ZBrce+ZQu0dY660FMfatumYDLun9hBCUVIkF4=
+github.com/boltdb/bolt v1.3.1/go.mod h1:clJnj/oiGkjum5o1McbSZDSLxVThjynRyGBgiAx27Ps=
 github.com/cardigann/go-imdb-scraper v0.0.0-20170921034215-f67df398e320 h1:J7AvFFqy/DJ3HBlHSZr114IMZz+El2cn4ZevwKjvlE8=
 github.com/cardigann/go-imdb-scraper v0.0.0-20170921034215-f67df398e320/go.mod h1:Mx8zQS32N/lASEJNJpn3wYMZ/5sSrItJJahi5Az9CaA=
 github.com/cardigann/releaseinfo v0.0.0-20161016223251-01f6c28996d5 h1:13iD5J31dQpLaMz4TmU3SwYO9v/hcQQPxU1m23eczN4=

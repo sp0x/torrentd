@@ -6,6 +6,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/bcampbell/fuzzytime v0.0.0-20191010161914-05ea0010feac
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
+	github.com/boltdb/bolt v1.3.1
 	github.com/cardigann/go-imdb-scraper v0.0.0-20170921034215-f67df398e320
 	github.com/cardigann/releaseinfo v0.0.0-20161016223251-01f6c28996d5
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
