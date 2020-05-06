@@ -10,6 +10,7 @@ import (
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"os"
 	"path"
+	"time"
 )
 
 type BoltStorage struct{}
@@ -74,19 +75,17 @@ func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) erro
 			}
 			//Use the category as a key
 			b := tx.Bucket([]byte("searchResults")).Bucket(cgryKey)
-			// Find last key in bucket, decode as bigendian uint64, increment
-			// by one, encode back to []byte, and add new key.
-			nextId, _ := b.NextSequence()
-			//Use the id as a key
 			key, err := getItemKey(item)
 			if err != nil {
 				return err
 			}
+			nextId, _ := b.NextSequence()
 			item.ID = uint(nextId)
 			buf, err := json.Marshal(item)
 			if err != nil {
 				return err
 			}
+			item.CreatedAt = time.Now()
 			err = b.Put(key, buf)
 			if err != nil {
 				item.ID = 0
