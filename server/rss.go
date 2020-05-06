@@ -7,7 +7,7 @@ import (
 	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/sp0x/rutracker-rss/server/rss"
-	"github.com/sp0x/rutracker-rss/torrent/storage"
+	"github.com/sp0x/rutracker-rss/storage"
 	"net/url"
 )
 

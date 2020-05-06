@@ -2,3 +2,4 @@
 **/main.db
 **/*.db-journal
 .env
+/db/bolt.db

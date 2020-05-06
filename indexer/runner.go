@@ -7,7 +7,7 @@ import (
 	"github.com/sp0x/rutracker-rss/indexer/cache"
 	"github.com/sp0x/rutracker-rss/indexer/categories"
 	"github.com/sp0x/rutracker-rss/indexer/search"
-	"github.com/sp0x/rutracker-rss/torrent/storage"
+	"github.com/sp0x/rutracker-rss/storage"
 	"github.com/sp0x/rutracker-rss/torznab"
 	"net/http"
 	"net/url"

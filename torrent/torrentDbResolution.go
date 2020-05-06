@@ -5,7 +5,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/db"
 	"github.com/sp0x/rutracker-rss/indexer"
-	"github.com/sp0x/rutracker-rss/torrent/storage"
+	"github.com/sp0x/rutracker-rss/storage"
 	"os"
 	"reflect"
 	"text/tabwriter"

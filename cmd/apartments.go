@@ -6,6 +6,7 @@ import (
 	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/rutracker-rss/indexer/categories"
 	"github.com/sp0x/rutracker-rss/indexer/search"
+	"github.com/sp0x/rutracker-rss/storage"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
@@ -41,6 +42,9 @@ func findAppartments(cmd *cobra.Command, args []string) {
 		log.Error("Couldn't search for subtitles.")
 		os.Exit(1)
 	}
+	//We store them here also, so we have faster access
+	bolts := storage.BoltStorage{}
+	_ = bolts.StoreSearchResults(currentSearch.GetResults())
 	for _, r := range currentSearch.GetResults() {
 		fmt.Printf("%s - %s\n", r.ResultItem.Title, r.Link)
 	}

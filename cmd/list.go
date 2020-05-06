@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	storage "github.com/sp0x/rutracker-rss/torrent/storage"
+	storage "github.com/sp0x/rutracker-rss/storage"
 	"github.com/spf13/cobra"
 	"os"
 	"text/tabwriter"
@@ -22,7 +22,7 @@ func init() {
 }
 
 func listLatestTorrents(cmd *cobra.Command, args []string) {
-	st := storage.Storage{}
+	st := storage.DBStorage{}
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 

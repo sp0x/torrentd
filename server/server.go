@@ -8,7 +8,7 @@ import (
 	"github.com/sp0x/rutracker-rss/config"
 	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/rutracker-rss/server/rss"
-	"github.com/sp0x/rutracker-rss/torrent/storage"
+	"github.com/sp0x/rutracker-rss/storage"
 	"net/http"
 	"net/url"
 	"os"

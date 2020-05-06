@@ -53,6 +53,7 @@ func invokeFilter(name string, args interface{}, value string) (string, error) {
 		} else {
 			value = "false"
 		}
+		return value, nil
 	case "regexp":
 		pattern, ok := args.(string)
 		if !ok {
