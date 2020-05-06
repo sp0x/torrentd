@@ -27,6 +27,7 @@ func init() {
 	flags.StringVarP(&aptIndexer, "indexer", "x", "cityapartment", "The appartment site to use.")
 	_ = viper.BindPFlag("indexer", flags.Lookup("indexer"))
 	_ = viper.BindEnv("indexer")
+	_ = viper.BindEnv("telegram_token")
 	rootCmd.AddCommand(cmdGetApartments)
 }
 
@@ -68,8 +69,8 @@ func findAppartments(cmd *cobra.Command, args []string) {
 }
 
 func runBot(itemsChannel <-chan search.ExternalResultItem) {
-	//1177292546:AAFQ7V9hEMjyOGsrsxeDV6aBQEaDY0duL8Y
-	bot, err := tgbotapi.NewBotAPI("1177292546:AAFQ7V9hEMjyOGsrsxeDV6aBQEaDY0duL8Y")
+	token := viper.GetString("telegram_token")
+	bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
 		log.Panic(err)
 	}
