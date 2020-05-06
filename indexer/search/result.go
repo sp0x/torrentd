@@ -47,6 +47,15 @@ func (i *ExternalResultItem) SetField(key string, val string) {
 	i.ExtraFields[key] = val
 }
 
+//GetField by a key, use this for extra fields.
+func (i *ExternalResultItem) GetField(key string) string {
+	val, ok := i.ExtraFields[key]
+	if !ok {
+		return ""
+	}
+	return val
+}
+
 type ResultItem struct {
 	Site          string
 	Title         string
