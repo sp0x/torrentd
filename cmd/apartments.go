@@ -43,10 +43,12 @@ func findAppartments(cmd *cobra.Command, args []string) {
 		select {
 		case result := <-resultsChan:
 			//log.Infof("New result: %s\n", result)
-			price := result.GetField("price")
-			reserved := result.GetField("reserved")
-			area := result.Size
-			fmt.Printf("[%s][%d][%s] %s - %s\n", price, area, reserved, result.ResultItem.Title, result.Link)
+			if result.IsNew() || result.IsUpdate() {
+				price := result.GetField("price")
+				reserved := result.GetField("reserved")
+				area := result.Size
+				fmt.Printf("[%s][%d][%s] %s - %s\n", price, area, reserved, result.ResultItem.Title, result.Link)
+			}
 		}
 	}
 

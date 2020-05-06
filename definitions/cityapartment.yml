@@ -22,7 +22,7 @@ search:
   maxpages: 20
   method: post
   pagesize: 30
-  path: wp-admin/admin-ajax.php
+  path: /wp-admin/admin-ajax.php
   followredirect: true
   inputs:
     action: ajax_filter_apartments
