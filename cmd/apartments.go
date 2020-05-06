@@ -115,14 +115,17 @@ func runBot(itemsChannel <-chan search.ExternalResultItem) {
 		_ = bolts.ForChat(func(chat *storage.Chat) {
 			msgText := fmt.Sprintf("I found a new property\n"+
 				"[%s](%s)\n"+
-				"[alt](%s)\n"+
-				"*%s* - %s", item.Title, item.Link, item.Banner, price, reserved)
+				"*%s* - %s", item.Title, item.Link, price, reserved)
 			msg := tgbotapi.NewMessage(chat.ChatId, msgText)
 			msg.DisableWebPagePreview = false
 			msg.ParseMode = "markdown"
 			//Since we're not replying.
 			//msg.ReplyToMessageID = update.Message.MessageID
 			_, _ = bot.Send(msg)
+			imgMsg := tgbotapi.NewPhotoUpload(chat.ChatId, nil)
+			imgMsg.FileID = item.Banner
+			imgMsg.UseExisting = true
+			_, _ = bot.Send(imgMsg)
 		})
 	}
 
