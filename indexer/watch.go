@@ -43,6 +43,9 @@ func Watch(helper *IndexerHelper, initialQuery torznab.Query, interval int) <-ch
 			finished := false
 			hasStaleTorrents := false
 			for _, result := range currentSearch.GetResults() {
+				outputChan <- result
+			}
+			for _, result := range currentSearch.GetResults() {
 				if finished {
 					break
 				}
@@ -55,7 +58,7 @@ func Watch(helper *IndexerHelper, initialQuery torznab.Query, interval int) <-ch
 						log.WithFields(log.Fields{"id": result.LocalId, "name": result.Title, "pub": result.PublishDate}).
 							Info("Updated torrent")
 					}
-					outputChan <- result
+
 				}
 				if !result.IsNew() {
 					hasStaleTorrents = true

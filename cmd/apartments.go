@@ -45,7 +45,8 @@ func findAppartments(cmd *cobra.Command, args []string) {
 			//log.Infof("New result: %s\n", result)
 			price := result.GetField("price")
 			reserved := result.GetField("reserved")
-			fmt.Printf("[%s][%s] %s - %s\n", price, reserved, result.ResultItem.Title, result.Link)
+			area := result.Size
+			fmt.Printf("[%s][%d][%s] %s - %s\n", price, area, reserved, result.ResultItem.Title, result.Link)
 		}
 	}
 
