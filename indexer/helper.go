@@ -50,15 +50,20 @@ func NewAggregateIndexerHelperWithCategories(config config.Config, cats ...categ
 	return &rt
 }
 
-//Open the search to a given page.
-func (th *IndexerHelper) SearchKeywords(searchContext search.Instance, query string, page uint) (search.Instance, error) {
-	qrobj := torznab.ParseQueryString(query)
-	qrobj.Page = page
-	srch, err := th.Indexer.Search(qrobj, searchContext)
+//Search using a given query
+func (th *IndexerHelper) Search(searchContext search.Instance, query torznab.Query) (search.Instance, error) {
+	srch, err := th.Indexer.Search(query, searchContext)
 	if err != nil {
 		return nil, err
 	}
 	return srch, nil
+}
+
+//Open the search to a given page.
+func (th *IndexerHelper) SearchKeywords(searchContext search.Instance, query string, page uint) (search.Instance, error) {
+	qrobj := torznab.ParseQueryString(query)
+	qrobj.Page = page
+	return th.Search(searchContext, qrobj)
 }
 
 func (th *IndexerHelper) SearchKeywordsWithCategory(searchContext search.Instance, query string, cat categories.Category, page uint) (search.Instance, error) {
