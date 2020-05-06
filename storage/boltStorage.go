@@ -34,6 +34,10 @@ func GetBoltDb() (*bolt.DB, error) {
 		if err != nil {
 			return err
 		}
+		_, err = tx.CreateBucketIfNotExists([]byte("telegram_chats"))
+		if err != nil {
+			return err
+		}
 		//Create all of our categories
 		if !categoriesInitialized {
 			for _, cat := range categories.AllCategories {
@@ -51,6 +55,55 @@ func GetBoltDb() (*bolt.DB, error) {
 		return nil, err
 	}
 	return db, nil
+}
+
+type ChatMessage struct {
+	Text   string
+	ChatId string
+}
+
+type Chat struct {
+	Username    string
+	InitialText string
+	ChatId      int64
+}
+
+//StoreChat stores a new chat.
+//The chat id is used as a key.
+func (b *BoltStorage) StoreChat(chat *Chat) error {
+	db, err := GetBoltDb()
+	if err != nil {
+		return err
+	}
+	err = db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("telegram_chats"))
+		key := i64tob(chat.ChatId)
+		val, err := json.Marshal(chat)
+		if err != nil {
+			return err
+		}
+		return b.Put(key, val)
+	})
+	return err
+}
+
+//ForChat calls the callback for each chat, in an async way.
+func (b *BoltStorage) ForChat(callback func(chat Chat)) error {
+	db, err := GetBoltDb()
+	if err != nil {
+		return err
+	}
+	return db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("telegram_chats"))
+		return b.ForEach(func(k, v []byte) error {
+			var chat = Chat{}
+			if err := json.Unmarshal(v, &chat); err != nil {
+				return err
+			}
+			go callback(chat)
+			return nil
+		})
+	})
 }
 
 //StoreSearchResults stores the given results
@@ -107,6 +160,11 @@ func getItemKey(item search.ExternalResultItem) ([]byte, error) {
 
 // itob returns an 8-byte big endian representation of v.
 func uitob(v uint) []byte {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, uint64(v))
+	return b
+}
+func i64tob(v int64) []byte {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, uint64(v))
 	return b
