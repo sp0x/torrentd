@@ -8,13 +8,14 @@ import (
 )
 
 //Watch tracks a tracker for any new torrents and records them.
-func Watch(helper *IndexerHelper, initialQuery torznab.Query, interval int) chan<- search.ExternalResultItem {
-	//Fetch pages untill we don't see any new torrents
+//The interval is in seconds
+func Watch(helper *IndexerHelper, initialQuery torznab.Query, interval int) <-chan search.ExternalResultItem {
+	//Fetch pages until we don't see any new torrents
 	startingPage := uint(0)
 	maxPages := uint(10)
 	page := uint(0)
 	var currentSearch search.Instance
-	outputChan := make(chan<- search.ExternalResultItem)
+	outputChan := make(chan search.ExternalResultItem)
 	go func() {
 		for true {
 			var err error
