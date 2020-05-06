@@ -75,6 +75,7 @@ func (b *BoltStorage) StoreChat(chat *Chat) error {
 	if err != nil {
 		return err
 	}
+	defer db.Close()
 	err = db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("telegram_chats"))
 		key := i64tob(chat.ChatId)
@@ -88,11 +89,12 @@ func (b *BoltStorage) StoreChat(chat *Chat) error {
 }
 
 //ForChat calls the callback for each chat, in an async way.
-func (b *BoltStorage) ForChat(callback func(chat Chat)) error {
+func (b *BoltStorage) ForChat(callback func(chat *Chat)) error {
 	db, err := GetBoltDb()
 	if err != nil {
 		return err
 	}
+	defer db.Close()
 	return db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("telegram_chats"))
 		return b.ForEach(func(k, v []byte) error {
@@ -100,7 +102,7 @@ func (b *BoltStorage) ForChat(callback func(chat Chat)) error {
 			if err := json.Unmarshal(v, &chat); err != nil {
 				return err
 			}
-			go callback(chat)
+			callback(&chat)
 			return nil
 		})
 	})
