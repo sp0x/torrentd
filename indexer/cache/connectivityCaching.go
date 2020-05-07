@@ -3,6 +3,7 @@ package cache
 import (
 	"errors"
 	"github.com/sp0x/surf/browser"
+	"sync"
 	"time"
 )
 
@@ -12,6 +13,7 @@ type CacheInfo struct {
 
 type ConnectivityCache struct {
 	browser *browser.Browser
+	lock    sync.RWMutex
 	//cache   map[string]CacheInfo
 	cache LRUCache
 }
@@ -32,6 +34,19 @@ func NewConnectivityCache() (*ConnectivityCache, error) {
 func (c *ConnectivityCache) IsOk(url string) bool {
 	ok := c.cache.Contains(url)
 	return ok
+}
+
+func (c *ConnectivityCache) IsOkAndSet(u string, f func() bool) bool {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	var result bool
+	contained := c.cache.Contains(u)
+	if !contained {
+		result = f()
+	} else {
+		result = contained
+	}
+	return result
 }
 
 func (c *ConnectivityCache) Test(u string) error {

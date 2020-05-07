@@ -116,21 +116,25 @@ func (r *Runner) currentURL() (*url.URL, error) {
 }
 
 func (r *Runner) testURLWorks(u string) bool {
-	if ok := r.connectivityCache.IsOk(u); ok {
+	var ok bool
+	//Do this like that so it's locked.
+	if ok = r.connectivityCache.IsOkAndSet(u, func() bool {
+		urlx := u
+		r.logger.WithField("url", u).
+			Info("Checking connectivity to url")
+		err := r.connectivityCache.Test(urlx)
+		if err != nil {
+			r.logger.WithError(err).Warn("URL check failed")
+			return false
+		} else if r.browser.StatusCode() != http.StatusOK {
+			r.logger.Warn("URL returned non-ok status")
+			return false
+		}
+		return true
+	}); ok {
 		return true
 	}
-	r.logger.WithField("url", u).
-		Info("Checking connectivity to url")
-	err := r.connectivityCache.Test(u)
-	if err != nil {
-		r.logger.WithError(err).Warn("URL check failed")
-		return false
-	} else if r.browser.StatusCode() != http.StatusOK {
-		r.logger.Warn("URL returned non-ok status")
-		return false
-	}
-
-	return true
+	return ok
 }
 
 //resolveIndexerPath resolve a relative url based on the working Indexer base url
