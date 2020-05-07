@@ -23,15 +23,18 @@ func init() {
 		Short: "Finds appartments using indexers",
 		Run:   findAppartments,
 	}
-	flags := cmdGetApartments.Flags()
-	flags.StringVarP(&aptIndexer, "indexer", "x", "cityapartment", "The appartment site to use.")
-	_ = viper.BindPFlag("indexer", flags.Lookup("indexer"))
+	//flags := cmdGetApartments.Flags()
+
 	_ = viper.BindEnv("indexer")
 	_ = viper.BindEnv("telegram_token")
 	rootCmd.AddCommand(cmdGetApartments)
 }
 
 func findAppartments(cmd *cobra.Command, args []string) {
+	flags := cmd.Flags()
+	flags.StringVarP(&aptIndexer, "indexer", "x", "cityapartment", "The appartment site to use.")
+	_ = viper.BindPFlag("indexer", flags.Lookup("indexer"))
+
 	helper := indexer.NewAggregateIndexerHelperWithCategories(&appConfig, categories.Rental)
 	if helper == nil {
 		os.Exit(1)

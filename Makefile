@@ -44,3 +44,6 @@ test-coverage:
 build-image:
 	docker-compose build rss
 	docker-compose push
+
+benchmark-server:
+	go-wrk -redir -d 20  -c 100 http://127.0.0.1:5000/status
