@@ -5,10 +5,12 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/indexer"
+	"github.com/sp0x/rutracker-rss/indexer/cache"
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/sp0x/rutracker-rss/server/rss"
 	"github.com/sp0x/rutracker-rss/storage"
 	"net/url"
+	"time"
 )
 
 func (s *Server) serveMusic(c *gin.Context) {
@@ -32,20 +34,26 @@ func (s *Server) serveAnime(c *gin.Context) {
 	rss.SendRssFeed(hostname, "anime", torrents, c)
 }
 
-func (s *Server) status(c *gin.Context) {
-	strg := storage.DefaultStorage()
-	latest := strg.GetNewest(10)
-	var latestNames = []string{}
-	for _, late := range latest {
-		latestNames = append(latestNames, late.Title)
-	}
+var statusCache, _ = cache.NewTTL(10, 3*time.Minute)
 
-	statusObj := struct {
-		Torrents int64    `json:"total_count"`
-		Latest   []string `json:"latest"`
-	}{
-		Torrents: strg.GetTorrentCount(),
-		Latest:   latestNames,
+func (s *Server) status(c *gin.Context) {
+	var statusObj interface{}
+	//If we don't have it in the cache
+	if !statusCache.Contains("status") {
+		strg := storage.DefaultStorage()
+		latest := strg.GetNewest(10)
+		var latestNames = []string{}
+		for _, late := range latest {
+			latestNames = append(latestNames, late.Title)
+		}
+		statusObj = struct {
+			Torrents int64    `json:"total_count"`
+			Latest   []string `json:"latest"`
+		}{
+			Torrents: strg.GetTorrentCount(),
+			Latest:   latestNames,
+		}
+		statusCache.Add("status", statusObj)
 	}
 	c.JSON(200, statusObj)
 }
