@@ -47,4 +47,4 @@ build-image:
 
 benchmark-server:
 	#go-wrk -redir -d 20  -c 100 http://127.0.0.1:5000/status
-	go-wrk -redir -d 3 -c 10 "http://127.0.0.1:5000/torznab/all/api?t=search&cat=2000,2010,2020,2030,2035,2040,2045,2050,2060&extended=1&apikey=210fc7bb818639a&offset=0&limit=100&q=accountant 2016"
+	go-wrk -redir -T 2000 -d 3 -c 100 "http://127.0.0.1:5000/torznab/all/api?t=search&cat=2000,2010,2020,2030,2035,2040,2045,2050,2060&extended=1&apikey=210fc7bb818639a&offset=0&limit=100&q=accountant 2016"
