@@ -606,7 +606,7 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 				storage.HandleTorrentDiscovery(&item)
 				r.logger.
 					WithFields(logrus.Fields{"category": item.LocalCategoryName, "categoryId": item.LocalCategoryID}).
-					Infof("Skipping result because it's not contained in our needed categories.")
+					Debugf("Skipping result because it's not contained in our needed categories.")
 				continue
 			}
 		}
