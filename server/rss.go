@@ -54,6 +54,8 @@ func (s *Server) status(c *gin.Context) {
 			Latest:   latestNames,
 		}
 		statusCache.Add("status", statusObj)
+	} else {
+		statusObj, _ = statusCache.Get("status")
 	}
 	c.JSON(200, statusObj)
 }

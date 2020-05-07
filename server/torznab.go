@@ -5,11 +5,13 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/indexer"
+	"github.com/sp0x/rutracker-rss/indexer/cache"
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"github.com/sp0x/rutracker-rss/torznab"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 func (s *Server) aggregatesStatus(c *gin.Context) {
@@ -29,22 +31,22 @@ func (s *Server) aggregatesStatus(c *gin.Context) {
 	c.JSON(200, statusObj)
 }
 
+var searchCache, _ = cache.NewTTL(100, 1*time.Hour)
+
+//Handle queries
 func (s *Server) torznabHandler(c *gin.Context) {
 	_ = c.Params
 	indexerID := c.Param("indexer")
-	//Type of operation
 	t := c.Query("t")
 	indexer, err := indexer.Lookup(s.config, indexerID)
 	if err != nil {
 		torznab.Error(c, err.Error(), torznab.ErrIncorrectParameter)
 		return
 	}
-	switch t {
-	case "caps":
+	if t == "caps" {
 		indexer.Capabilities().ServeHTTP(c.Writer, c.Request)
 		return
 	}
-
 	apiKey := c.Query("apikey")
 	if !s.checkAPIKey(apiKey) {
 		torznab.Error(c, "Invalid apikey parameter", torznab.ErrInsufficientPrivs)
@@ -57,11 +59,19 @@ func (s *Server) torznabHandler(c *gin.Context) {
 	}
 
 	switch t {
-	case "caps":
-		indexer.Capabilities().ServeHTTP(c.Writer, c.Request)
-
 	case "search", "tvsearch", "tv-search", "movie", "movie-search", "moviesearch":
-		feed, err := s.torznabSearch(c.Request, indexer, indexerID)
+		query, err := torznab.ParseQuery(c.Request.URL.Query())
+		if err != nil {
+			torznab.Error(c, "Invalid query", torznab.ErrInsufficientPrivs)
+			return
+		}
+		var feed *torznab.ResultFeed
+		if cachedFeed, ok := searchCache.Get(query.UniqueKey()); ok {
+			feed = cachedFeed.(*torznab.ResultFeed)
+		} else {
+			feed, err = s.torznabSearch(c.Request, query, indexer)
+			searchCache.Add(query.UniqueKey(), feed)
+		}
 		if err != nil {
 			torznab.Error(c, err.Error(), torznab.ErrUnknownError)
 			return
@@ -86,12 +96,7 @@ func formatEncoding(nm string) string {
 	return nm
 }
 
-func (s *Server) torznabSearch(r *http.Request, indexer indexer.Indexer, siteKey string) (*torznab.ResultFeed, error) {
-	query, err := torznab.ParseQuery(r.URL.Query())
-	if err != nil {
-		return nil, err
-	}
-
+func (s *Server) torznabSearch(r *http.Request, query torznab.Query, indexer indexer.Indexer) (*torznab.ResultFeed, error) {
 	srch, err := indexer.Search(query, nil)
 	if err != nil {
 		return nil, err

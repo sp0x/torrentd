@@ -178,7 +178,7 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 		case "seeders":
 			seeders, err := strconv.Atoi(normalizeNumber(val))
 			if err != nil {
-				r.logger.Warnf("Row #%d has unparseable seeders value %q in %s", rowIdx, val, key)
+				r.logger.Debugf("Row #%d has unparseable seeders value %q in %s", rowIdx, val, key)
 				continue
 			}
 			item.Seeders = seeders

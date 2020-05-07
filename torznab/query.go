@@ -155,6 +155,11 @@ func (query Query) String() string {
 	return query.Encode()
 }
 
+func (query Query) UniqueKey() interface{} {
+	encoded := query.Encode()
+	return encoded
+}
+
 func ParseQueryString(query string) Query {
 	q := Query{}
 	q.Type = "search"
