@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/boltdb/bolt"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/rutracker-rss/indexer/categories"
@@ -144,7 +145,7 @@ func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) erro
 			err = b.Put(key, buf)
 			if err != nil {
 				item.ID = 0
-				log.Error("Error while inserting %s-th item. %s", ix, err)
+				log.Error(fmt.Sprintf("Error while inserting %d-th item. %s", ix, err))
 				return err
 			}
 			return nil
