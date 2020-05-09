@@ -18,14 +18,8 @@ type BoltStorage struct{}
 
 var categoriesInitialized = false
 
-func GetBoltDb() (*bolt.DB, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Error(err)
-		return nil, err
-	}
-	dbPath := path.Join(cwd, "db", "bolt.db")
-	db, err := bolt.Open(dbPath, 0600, nil)
+func GetBoltDb(file string) (*bolt.DB, error) {
+	db, err := bolt.Open(file, 0600, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +66,7 @@ type Chat struct {
 //StoreChat stores a new chat.
 //The chat id is used as a key.
 func (b *BoltStorage) StoreChat(chat *Chat) error {
-	db, err := GetBoltDb()
+	db, err := GetBoltDb(defaultDbPath())
 	if err != nil {
 		return err
 	}
@@ -89,9 +83,14 @@ func (b *BoltStorage) StoreChat(chat *Chat) error {
 	return err
 }
 
+func defaultDbPath() string {
+	cwd, _ := os.Getwd()
+	return path.Join(cwd, "db", "bolt.db")
+}
+
 //ForChat calls the callback for each chat, in an async way.
 func (b *BoltStorage) ForChat(callback func(chat *Chat)) error {
-	db, err := GetBoltDb()
+	db, err := GetBoltDb(defaultDbPath())
 	if err != nil {
 		return err
 	}
@@ -111,7 +110,7 @@ func (b *BoltStorage) ForChat(callback func(chat *Chat)) error {
 
 //StoreSearchResults stores the given results
 func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) error {
-	db, err := GetBoltDb()
+	db, err := GetBoltDb(defaultDbPath())
 	if err != nil {
 		return nil
 	}
