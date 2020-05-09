@@ -18,8 +18,42 @@ var _ = Describe("Bolt storage", func() {
 			Fail(fmt.Sprintf("Nil db: %v", err))
 			return
 		}
-		defer db.Close()
+		defer func() {
+			_ = db.Close()
+		}()
+	})
+	It("Should be able to store chat messages", func() {
+		db, err := GetBoltDb(tempfile())
+		if err != nil {
+			Fail(fmt.Sprintf("Couldn't open a db: %v", err))
+			return
+		}
+		if db == nil {
+			Fail(fmt.Sprintf("Nil db: %v", err))
+			return
+		}
+		bstore := BoltStorage{db}
+		newchat := &Chat{
+			"tester", "", 12,
+		}
+		err = bstore.StoreChat(newchat)
+		if err != nil {
+			Fail("Couldn't store chat")
+			return
+		}
+		chat, err := bstore.GetChat(12)
+		if err != nil {
+			Fail("couldn't get chat from storage")
+			return
+		}
+		if chat.ChatId != newchat.ChatId || chat.Username != newchat.Username || chat.InitialText != newchat.InitialText {
+			Fail("couldn't properly restore chat from storage")
+			return
+		}
 
+		defer func() {
+			_ = db.Close()
+		}()
 	})
 })
 

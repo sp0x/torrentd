@@ -14,17 +14,30 @@ import (
 	"time"
 )
 
-type BoltStorage struct{}
+type BoltStorage struct {
+	Database *bolt.DB
+}
+
+func NewBoltStorage() (*BoltStorage, error) {
+	dbx, err := GetBoltDb(defaultDbPath())
+	if err != nil {
+		return nil, err
+	}
+	bls := &BoltStorage{
+		Database: dbx,
+	}
+	return bls, nil
+}
 
 var categoriesInitialized = false
 
 func GetBoltDb(file string) (*bolt.DB, error) {
-	db, err := bolt.Open(file, 0600, nil)
+	dbx, err := bolt.Open(file, 0600, nil)
 	if err != nil {
 		return nil, err
 	}
 	//Setup our DB
-	err = db.Update(func(tx *bolt.Tx) error {
+	err = dbx.Update(func(tx *bolt.Tx) error {
 		root, err := tx.CreateBucketIfNotExists([]byte("searchResults"))
 		if err != nil {
 			return err
@@ -49,7 +62,7 @@ func GetBoltDb(file string) (*bolt.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	return db, nil
+	return dbx, nil
 }
 
 type ChatMessage struct {
@@ -66,12 +79,8 @@ type Chat struct {
 //StoreChat stores a new chat.
 //The chat id is used as a key.
 func (b *BoltStorage) StoreChat(chat *Chat) error {
-	db, err := GetBoltDb(defaultDbPath())
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-	err = db.Update(func(tx *bolt.Tx) error {
+	//	defer db.Close()
+	err := b.Database.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("telegram_chats"))
 		key := i64tob(chat.ChatId)
 		val, err := json.Marshal(chat)
@@ -90,12 +99,7 @@ func defaultDbPath() string {
 
 //ForChat calls the callback for each chat, in an async way.
 func (b *BoltStorage) ForChat(callback func(chat *Chat)) error {
-	db, err := GetBoltDb(defaultDbPath())
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-	return db.View(func(tx *bolt.Tx) error {
+	return b.Database.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("telegram_chats"))
 		return b.ForEach(func(k, v []byte) error {
 			var chat = Chat{}
@@ -108,19 +112,32 @@ func (b *BoltStorage) ForChat(callback func(chat *Chat)) error {
 	})
 }
 
+func (b *BoltStorage) GetChat(id int) (*Chat, error) {
+	var chat = Chat{}
+	err := b.Database.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("telegram_chats"))
+		buff := b.Get(itob(id))
+		if buff == nil {
+			return fmt.Errorf("not found")
+		}
+		if err := json.Unmarshal(buff, &chat); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &chat, nil
+}
+
 //StoreSearchResults stores the given results
 func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) error {
-	db, err := GetBoltDb(defaultDbPath())
-	if err != nil {
-		return nil
-	}
-	defer func() {
-		_ = db.Close()
-	}()
+	db := b.Database
 	for ix, item := range items {
 
 		//the function passed to Batch may be called multiple times,
-		err = db.Batch(func(tx *bolt.Tx) error {
+		err := db.Batch(func(tx *bolt.Tx) error {
 			cgry := categories.AllCategories[item.Category]
 			var cgryKey []byte
 			if cgry == nil {
@@ -149,6 +166,9 @@ func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) erro
 			}
 			return nil
 		})
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -167,6 +187,11 @@ func uitob(v uint) []byte {
 	return b
 }
 func i64tob(v int64) []byte {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, uint64(v))
+	return b
+}
+func itob(v int) []byte {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, uint64(v))
 	return b

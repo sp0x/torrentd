@@ -82,7 +82,7 @@ func runBot(itemsChannel <-chan search.ExternalResultItem) {
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 	updates, err := bot.GetUpdatesChan(u)
-	bolts := storage.BoltStorage{}
+	bolts, _ := storage.NewBoltStorage()
 
 	//Listen for people connecting to us
 	go func() {
