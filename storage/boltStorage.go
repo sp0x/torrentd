@@ -145,11 +145,39 @@ func (b *BoltStorage) Truncate() error {
 	})
 }
 
+//GetSearchResults by a given category id
+func (b *BoltStorage) GetSearchResults(categoryId int) ([]search.ExternalResultItem, error) {
+	bdb := b.Database
+	var items []search.ExternalResultItem
+	err := bdb.View(func(tx *bolt.Tx) error {
+		var catName string
+		if _, ok := categories.AllCategories[categoryId]; !ok {
+			catName = "uncategorized"
+		} else {
+			catName = categories.AllCategories[categoryId].Name
+		}
+
+		b := tx.Bucket([]byte("searchResults")).Bucket([]byte(catName))
+		if b == nil {
+			return nil
+		}
+		return b.ForEach(func(k, v []byte) error {
+			var newItem search.ExternalResultItem
+			err := json.Unmarshal(v, &newItem)
+			if err != nil {
+				return err
+			}
+			items = append(items, newItem)
+			return nil
+		})
+	})
+	return items, err
+}
+
 //StoreSearchResults stores the given results
 func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) error {
 	db := b.Database
 	for ix, item := range items {
-
 		//the function passed to Batch may be called multiple times,
 		err := db.Batch(func(tx *bolt.Tx) error {
 			cgry := categories.AllCategories[item.Category]
@@ -160,7 +188,8 @@ func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) erro
 				cgryKey = []byte(cgry.Name)
 			}
 			//Use the category as a key
-			b := tx.Bucket([]byte("searchResults")).Bucket(cgryKey)
+			b, _ := tx.CreateBucketIfNotExists([]byte("searchResults"))
+			b, _ = b.CreateBucketIfNotExists(cgryKey)
 			key, err := getItemKey(item)
 			if err != nil {
 				return err

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/boltdb/bolt"
 	. "github.com/onsi/ginkgo"
+	"github.com/sp0x/rutracker-rss/indexer/categories"
+	"github.com/sp0x/rutracker-rss/indexer/search"
 	"io/ioutil"
 	"os"
 )
@@ -75,6 +77,73 @@ var _ = Describe("Bolt storage", func() {
 			}
 			if chat != nil {
 				Fail("chat was not nil")
+			}
+		})
+
+		It("Should be able to iterate over chats", func() {
+			c1, c2 := &Chat{"a", "", 1}, &Chat{"b", "", 2}
+			_ = bstore.StoreChat(c1)
+			_ = bstore.StoreChat(c2)
+			cnt := 0
+			err := bstore.ForChat(func(chat *Chat) {
+				if chat.ChatId == c1.ChatId || chat.ChatId == c2.ChatId {
+					cnt += 1
+				}
+			})
+			if err != nil {
+				Fail(fmt.Sprintf("failed iterating over chats: %v", err))
+				return
+			}
+			if cnt != 2 {
+				Fail("Couldn't correctly iterate over chats, got the wrong results.")
+			}
+		})
+
+		It("Should be able to store multiple search results", func() {
+			items := []search.ExternalResultItem{
+				{ResultItem: search.ResultItem{
+					Title: "a", Category: categories.CategoryBooks.ID, GUID: "a",
+				}},
+				{ResultItem: search.ResultItem{
+					Title: "b", Category: categories.CategoryBooks.ID, GUID: "b",
+				}},
+			}
+			err := bstore.StoreSearchResults(items)
+			if err != nil {
+				Fail(fmt.Sprintf("failed to save multiple search results: %v", err))
+				return
+			}
+			itemsRestored, err := bstore.GetSearchResults(categories.CategoryBooks.ID)
+			if err != nil {
+				Fail(fmt.Sprintf("error while fetching stored items"))
+				return
+			}
+			if len(itemsRestored) != len(items) {
+				Fail("mismatch in restoring search results")
+			}
+		})
+
+		It("Should be able to store multiple uncategorized search results", func() {
+			items := []search.ExternalResultItem{
+				{ResultItem: search.ResultItem{
+					Title: "az", Category: -100, GUID: "ag",
+				}},
+				{ResultItem: search.ResultItem{
+					Title: "bz", Category: -100, GUID: "bg",
+				}},
+			}
+			err := bstore.StoreSearchResults(items)
+			if err != nil {
+				Fail(fmt.Sprintf("failed to save multiple search results: %v", err))
+				return
+			}
+			itemsRestored, err := bstore.GetSearchResults(-100)
+			if err != nil {
+				Fail(fmt.Sprintf("error while fetching stored items"))
+				return
+			}
+			if len(itemsRestored) != len(items) {
+				Fail("mismatch in restoring search results")
 			}
 		})
 
