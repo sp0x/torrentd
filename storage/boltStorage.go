@@ -114,12 +114,14 @@ func (b *BoltStorage) ForChat(callback func(chat *Chat)) error {
 
 func (b *BoltStorage) GetChat(id int) (*Chat, error) {
 	var chat = Chat{}
+	found := false
 	err := b.Database.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("telegram_chats"))
 		buff := b.Get(itob(id))
 		if buff == nil {
-			return fmt.Errorf("not found")
+			return nil
 		}
+		found = true
 		if err := json.Unmarshal(buff, &chat); err != nil {
 			return err
 		}
@@ -128,7 +130,19 @@ func (b *BoltStorage) GetChat(id int) (*Chat, error) {
 	if err != nil {
 		return nil, err
 	}
+	if !found {
+		return nil, nil
+	}
 	return &chat, nil
+}
+
+func (b *BoltStorage) Truncate() error {
+	db := b.Database
+	return db.Update(func(tx *bolt.Tx) error {
+		return tx.ForEach(func(name []byte, b *bolt.Bucket) error {
+			return tx.DeleteBucket(name)
+		})
+	})
 }
 
 //StoreSearchResults stores the given results
