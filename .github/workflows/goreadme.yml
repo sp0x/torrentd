@@ -1,0 +1,33 @@
+- name: goreadme
+  uses: posener/goreadme@v1
+  with:
+    # Name of readme file
+    readme-file: # optional, default is README.md
+    # Email for commit message
+    email: vaskovasilev94@yahoo.com
+    # Github token for PR comments. Optional.
+    github-token: # optional
+    # Override package import path.
+    import-path: # optional
+    # Override readme title. Default is package name.
+    title: Tracker # optional
+    # Load docs recursively.
+    recursive: # optional
+    # Write functions section.
+    functions: # optional
+    # Skip the examples section.
+    skip-examples: # optional
+    # Skip the sub packages section.
+    skip-sub-packages: # optional
+    # Show TravisCI badge.
+    badge-travisci: false # optional
+    # Show CodeCov badge.
+    badge-codecov: # optional
+    # Show GolangCI badge.
+    badge-golangci: # optional
+    # Show GoDoc badge.
+    badge-godoc: # optional
+    # Show GoReportCard badge.
+    badge-goreportcard: # optional
+    # Add credit line.
+    credit: # optional, default is true
