@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"github.com/boltdb/bolt"
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"github.com/sp0x/rutracker-rss/indexer/categories"
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"io/ioutil"
 	"os"
+	"testing"
 )
 
 var _ = Describe("Bolt storage", func() {
@@ -164,4 +166,23 @@ func tempfile() string {
 		panic(err)
 	}
 	return f.Name()
+}
+
+func TestNewBoltStorage(t *testing.T) {
+	g := NewGomegaWithT(t)
+	tests := []struct {
+		name    string
+		want    *BoltStorage
+		wantErr bool
+	}{
+		{"", nil, false},
+	}
+	for _, tt := range tests {
+		//Run as a subtest
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := NewBoltStorage(tempfile())
+			g.Expect(err).ShouldNot(HaveOccurred())
+			g.Expect(got).ShouldNot(BeNil())
+		})
+	}
 }

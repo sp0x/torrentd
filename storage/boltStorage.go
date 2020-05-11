@@ -18,8 +18,11 @@ type BoltStorage struct {
 	Database *bolt.DB
 }
 
-func NewBoltStorage() (*BoltStorage, error) {
-	dbx, err := GetBoltDb(defaultDbPath())
+func NewBoltStorage(dbPath string) (*BoltStorage, error) {
+	if dbPath == "" {
+		dbPath = DefaultBoltPath()
+	}
+	dbx, err := GetBoltDb(dbPath)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +95,7 @@ func (b *BoltStorage) StoreChat(chat *Chat) error {
 	return err
 }
 
-func defaultDbPath() string {
+func DefaultBoltPath() string {
 	cwd, _ := os.Getwd()
 	return path.Join(cwd, "db", "bolt.db")
 }
