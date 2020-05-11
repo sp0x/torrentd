@@ -186,3 +186,40 @@ func TestNewBoltStorage(t *testing.T) {
 		})
 	}
 }
+
+func Test_getItemKey(t *testing.T) {
+	type args struct {
+		item search.ExternalResultItem
+	}
+	g := NewGomegaWithT(t)
+	tests := []struct {
+		name    string
+		args    args
+		want    []byte
+		wantErr bool
+		notNil  bool
+	}{
+		{name: "1", args: args{item: search.ExternalResultItem{
+			ResultItem: search.ResultItem{Title: "a", GUID: "x"},
+		}}, wantErr: false},
+		{name: "1", args: args{item: search.ExternalResultItem{
+			ResultItem: search.ResultItem{Title: "b", GUID: "y"},
+		}}, wantErr: false},
+		{name: "1", args: args{item: search.ExternalResultItem{
+			ResultItem: search.ResultItem{Title: "a"},
+		}}, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := getItemKey(tt.args.item)
+			if tt.wantErr {
+				g.Expect(err).ShouldNot(BeNil())
+			} else {
+				if tt.notNil {
+					g.Expect(got).ShouldNot(BeNil())
+				}
+
+			}
+		})
+	}
+}
