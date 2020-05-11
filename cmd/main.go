@@ -18,7 +18,7 @@ var configFile = ""
 func init() {
 	//Init our db
 	_ = os.MkdirAll("./db", os.ModePerm)
-	gormDb := db.GetOrmDb()
+	gormDb := db.GetOrmDb("")
 	defer gormDb.Close()
 	gormDb.AutoMigrate(&search.ExternalResultItem{})
 	cobra.OnInitialize(initConfig)

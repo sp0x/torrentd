@@ -13,7 +13,7 @@ import (
 
 //Gets torrent information from a given tracker and updates the torrent db
 func ResolveTorrents(client *indexer.IndexerHelper, hours int) {
-	gdb := db.GetOrmDb()
+	gdb := db.GetOrmDb("")
 	defer gdb.Close()
 	torrents := storage.GetOlderThanHours(hours)
 	tabWr := new(tabwriter.Writer)
