@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"github.com/jinzhu/gorm"
 	"github.com/sp0x/rutracker-rss/db"
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"time"
@@ -106,6 +107,10 @@ func (ts *DBStorage) FindNameAndIndexer(title string, indexerSite string) *searc
 		return nil
 	}
 	return &torrent
+}
+
+func (ts *DBStorage) GetDb() *gorm.DB {
+	return db.GetOrmDb(ts.Path)
 }
 
 var defaultStorage = DBStorage{}

@@ -12,6 +12,9 @@ var storage *DBStorage
 
 func setup() {
 	storage = &DBStorage{Path: tempfile()}
+	gormDb := storage.GetDb()
+	defer gormDb.Close()
+	gormDb.AutoMigrate(&search.ExternalResultItem{})
 }
 
 func shutdown() {
