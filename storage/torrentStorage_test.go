@@ -3,11 +3,24 @@ package storage
 import (
 	"github.com/sp0x/rutracker-rss/db"
 	"github.com/sp0x/rutracker-rss/indexer/search"
+	"os"
 	"reflect"
 	"testing"
 )
 
+var storage *DBStorage
+
+func setup() {
+	storage = &DBStorage{Path: tempfile()}
+}
+
+func shutdown() {
+	storage.Truncate()
+	_ = os.Remove(storage.Path)
+}
+
 func TestDBStorage_Create(t *testing.T) {
+	setup()
 	type args struct {
 		tr *search.ExternalResultItem
 	}
@@ -23,10 +36,10 @@ func TestDBStorage_Create(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ts := &DBStorage{Path: tempfile()}
-			ts.Create(tt.args.tr)
+			storage.Create(tt.args.tr)
 		})
 	}
+	shutdown()
 }
 
 func TestDBStorage_FindByTorrentId(t *testing.T) {
