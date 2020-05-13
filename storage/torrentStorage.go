@@ -56,7 +56,7 @@ func (ts *DBStorage) GetCategories() []db.TorrentCategory {
 	gdb := db.GetOrmDb(ts.Path)
 	defer gdb.Close()
 	var categories []db.TorrentCategory
-	gdb.Model(&search.ExternalResultItem{}).Select("category_name, category_id").Group("category_id").Scan(&categories)
+	gdb.Model(&search.ExternalResultItem{}).Select("local_category_name, category").Group("category").Scan(&categories)
 	return categories
 }
 
@@ -98,7 +98,9 @@ func (ts *DBStorage) GetNewest(cnt int) []search.ExternalResultItem {
 
 func (ts *DBStorage) FindNameAndIndexer(title string, indexerSite string) *search.ExternalResultItem {
 	gdb := db.GetOrmDb(ts.Path)
-	defer gdb.Close()
+	defer func() {
+		_ = gdb.Close()
+	}()
 	var torrent search.ExternalResultItem
 	srch := &search.ExternalResultItem{}
 	srch.Title = title

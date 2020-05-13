@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"github.com/onsi/gomega"
 	"github.com/sp0x/rutracker-rss/db"
 	"github.com/sp0x/rutracker-rss/indexer/search"
 	"os"
@@ -13,8 +14,11 @@ var storage *DBStorage
 func setup() {
 	storage = &DBStorage{Path: tempfile()}
 	gormDb := storage.GetDb()
-	defer gormDb.Close()
+	defer func() {
+		_ = gormDb.Close()
+	}()
 	gormDb.AutoMigrate(&search.ExternalResultItem{})
+	gormDb.AutoMigrate(&db.TorrentCategory{})
 }
 
 func shutdown() {
@@ -46,63 +50,96 @@ func TestDBStorage_Create(t *testing.T) {
 }
 
 func TestDBStorage_FindByTorrentId(t *testing.T) {
+	setup()
+	g := gomega.NewGomegaWithT(t)
 	type args struct {
 		id string
 	}
 	tests := []struct {
-		name string
-		args args
-		want *search.ExternalResultItem
+		name       string
+		args       args
+		want       *search.ExternalResultItem
+		wantNotNil bool
 	}{
-		// TODO: Add test cases.
+		{name: tempfile(), args: args{id: "1"}, wantNotNil: true},
 	}
+	storage.Create(&search.ExternalResultItem{
+		LocalId:    "1",
+		ResultItem: search.ResultItem{Title: "a"},
+	})
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ts := &DBStorage{}
-			if got := ts.FindByTorrentId(tt.args.id); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("FindByTorrentId() = %v, want %v", got, tt.want)
+			got := storage.FindByTorrentId(tt.args.id)
+			if tt.wantNotNil {
+				g.Expect(got).ShouldNot(gomega.BeNil())
 			}
 		})
 	}
+	shutdown()
 }
 
 func TestDBStorage_FindNameAndIndexer(t *testing.T) {
+	setup()
+	g := gomega.NewGomegaWithT(t)
 	type args struct {
 		title       string
 		indexerSite string
 	}
 	tests := []struct {
-		name string
-		args args
-		want *search.ExternalResultItem
+		name       string
+		args       args
+		want       *search.ExternalResultItem
+		wantNotNil bool
 	}{
-		// TODO: Add test cases.
+		{name: "a", args: args{
+			title:       "a",
+			indexerSite: "sitea",
+		}, wantNotNil: true},
 	}
+	storage.Create(&search.ExternalResultItem{
+		ResultItem: search.ResultItem{
+			Site:  "sitea",
+			Title: "a",
+		},
+	})
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ts := &DBStorage{}
-			if got := ts.FindNameAndIndexer(tt.args.title, tt.args.indexerSite); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("FindNameAndIndexer() = %v, want %v", got, tt.want)
+			got := storage.FindNameAndIndexer(tt.args.title, tt.args.indexerSite)
+			if tt.wantNotNil {
+				g.Expect(got).ShouldNot(gomega.BeNil())
 			}
 		})
 	}
+	shutdown()
 }
 
 func TestDBStorage_GetCategories(t *testing.T) {
+	setup()
+	g := gomega.NewGomegaWithT(t)
 	tests := []struct {
 		name string
 		want []db.TorrentCategory
 	}{
-		// TODO: Add test cases.
+		{name: "a", want: []db.TorrentCategory{db.TorrentCategory{
+			CategoryId:   "12",
+			CategoryName: "Localcat",
+		}}},
 	}
+	storage.Create(&search.ExternalResultItem{
+		ResultItem: search.ResultItem{
+			Site:     "sitea",
+			Title:    "a",
+			Category: 12,
+		},
+		LocalCategoryName: "Localcat",
+	})
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ts := &DBStorage{}
-			if got := ts.GetCategories(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetCategories() = %v, want %v", got, tt.want)
-			}
+			got := storage.GetCategories()
+			g.Expect(got).Should(gomega.BeEquivalentTo(tt.want))
 		})
 	}
+	shutdown()
 }
 
 func TestDBStorage_GetLatest(t *testing.T) {
