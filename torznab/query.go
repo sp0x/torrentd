@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/indexer/search"
+	"github.com/sp0x/torrentd/indexer/search"
 	"net/url"
 	"strconv"
 	"strings"

@@ -3,9 +3,9 @@ package torrent
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/db"
-	"github.com/sp0x/rutracker-rss/indexer"
-	"github.com/sp0x/rutracker-rss/storage"
+	"github.com/sp0x/torrentd/db"
+	"github.com/sp0x/torrentd/indexer"
+	"github.com/sp0x/torrentd/storage"
 	"os"
 	"reflect"
 	"text/tabwriter"

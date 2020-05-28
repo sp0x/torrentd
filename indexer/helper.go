@@ -2,10 +2,10 @@ package indexer
 
 import (
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/config"
-	"github.com/sp0x/rutracker-rss/indexer/categories"
-	"github.com/sp0x/rutracker-rss/indexer/search"
-	"github.com/sp0x/rutracker-rss/torznab"
+	"github.com/sp0x/torrentd/config"
+	"github.com/sp0x/torrentd/indexer/categories"
+	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/torznab"
 )
 
 type IndexerHelper struct {

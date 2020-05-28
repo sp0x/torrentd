@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/indexer"
-	"github.com/sp0x/rutracker-rss/indexer/categories"
-	"github.com/sp0x/rutracker-rss/indexer/search"
+	"github.com/sp0x/torrentd/indexer"
+	"github.com/sp0x/torrentd/indexer/categories"
+	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"

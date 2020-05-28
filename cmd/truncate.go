@@ -1,7 +1,7 @@
 package main
 
 import (
-	storage2 "github.com/sp0x/rutracker-rss/storage"
+	storage2 "github.com/sp0x/torrentd/storage"
 	"github.com/spf13/cobra"
 )
 

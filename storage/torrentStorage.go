@@ -3,8 +3,8 @@ package storage
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
-	"github.com/sp0x/rutracker-rss/db"
-	"github.com/sp0x/rutracker-rss/indexer/search"
+	"github.com/sp0x/torrentd/db"
+	"github.com/sp0x/torrentd/indexer/search"
 	"strconv"
 	"time"
 )

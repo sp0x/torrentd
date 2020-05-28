@@ -3,7 +3,7 @@ package indexer
 import (
 	//"bytes"
 	"github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/indexer/search"
+	"github.com/sp0x/torrentd/indexer/search"
 	"io"
 )
 

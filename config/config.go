@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-var appname = "tracker-rss"
+var appname = "torrentd"
 
 type Config interface {
 	GetSiteOption(name, key string) (string, bool, error)
@@ -41,7 +41,6 @@ func GetDefinitionDirs() []string {
 	if cwd, err := os.Getwd(); err == nil {
 		dirs = append(dirs, filepath.Join(cwd, "definitions"))
 	}
-
 	home, _ := homedir.Dir()
 	homeDefsDir := path.Join(home, "."+appname, "definitions")
 

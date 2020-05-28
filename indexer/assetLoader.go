@@ -2,7 +2,7 @@ package indexer
 
 import (
 	"fmt"
-	"github.com/sp0x/rutracker-rss/indexer/definitions"
+	"github.com/sp0x/torrentd/indexer/definitions"
 	"path"
 	"strings"
 )

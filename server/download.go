@@ -3,7 +3,7 @@ package server
 import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/indexer"
+	"github.com/sp0x/torrentd/indexer"
 	"io"
 	"net/http"
 )

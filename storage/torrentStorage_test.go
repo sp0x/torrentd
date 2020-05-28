@@ -2,8 +2,8 @@ package storage
 
 import (
 	"github.com/onsi/gomega"
-	"github.com/sp0x/rutracker-rss/db"
-	"github.com/sp0x/rutracker-rss/indexer/search"
+	"github.com/sp0x/torrentd/db"
+	"github.com/sp0x/torrentd/indexer/search"
 	"os"
 	"reflect"
 	"testing"
@@ -120,7 +120,7 @@ func TestDBStorage_GetCategories(t *testing.T) {
 		name string
 		want []db.TorrentCategory
 	}{
-		{name: "a", want: []db.TorrentCategory{db.TorrentCategory{
+		{name: "a", want: []db.TorrentCategory{{
 			CategoryId:   "12",
 			CategoryName: "Localcat",
 		}}},

@@ -1,7 +1,7 @@
 package indexer
 
 import (
-	"github.com/sp0x/rutracker-rss/config"
+	"github.com/sp0x/torrentd/config"
 	"os"
 	"path"
 	"strings"

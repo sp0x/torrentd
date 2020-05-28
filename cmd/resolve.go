@@ -2,8 +2,8 @@ package main
 
 import (
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/indexer"
-	"github.com/sp0x/rutracker-rss/torrent"
+	"github.com/sp0x/torrentd/indexer"
+	"github.com/sp0x/torrentd/torrent"
 	"github.com/spf13/cobra"
 )
 
