@@ -29,7 +29,6 @@ func init() {
 	_ = viper.BindPFlag("verbose", flags.Lookup("verbose"))
 	_ = viper.BindEnv("verbose")
 	viper.SetEnvPrefix("TRACKER")
-
 }
 
 func main() {
