@@ -9,6 +9,7 @@ import (
 var (
 	ErrUnknownIndexer       = errors.New("Unknown Indexer")
 	DefaultDefinitionLoader DefinitionLoader
+	Loader                  DefinitionLoader
 )
 
 func ListBuiltins() ([]string, error) {
@@ -44,4 +45,6 @@ type DefinitionLoader interface {
 
 func init() {
 	DefaultDefinitionLoader = defaultMultiLoader()
+	//Start with the default loader.
+	Loader = DefaultDefinitionLoader
 }
