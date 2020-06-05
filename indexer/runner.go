@@ -66,15 +66,16 @@ type RunContext struct {
 	//SearchKeywords *search.Instance
 }
 
+//NewRunner Start a runner for a given indexer.
 func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 	logger := logrus.New()
 	logger.Level = logrus.GetLevel()
-	ch, _ := cache.NewConnectivityCache()
+	connCache, _ := cache.NewConnectivityCache()
 	return &Runner{
 		opts:                opts,
 		definition:          def,
 		logger:              logger.WithFields(logrus.Fields{"site": def.Site}),
-		connectivityCache:   ch,
+		connectivityCache:   connCache,
 		state:               defaultIndexerState(),
 		keepSessions:        true,
 		failingSearchFields: make(map[string]fieldBlock),

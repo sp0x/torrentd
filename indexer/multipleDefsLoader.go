@@ -39,10 +39,10 @@ func (ml multiLoader) List() ([]string, error) {
 	return results, nil
 }
 
-//
+//Load an indexer with the matching name
 func (ml multiLoader) Load(key string) (*IndexerDefinition, error) {
 	var def *IndexerDefinition
-
+	//Go over each loader, until we reach the one that contains the definition for the indexer.
 	for _, loader := range ml {
 		if loader == nil {
 			continue
@@ -53,6 +53,7 @@ func (ml multiLoader) Load(key string) (*IndexerDefinition, error) {
 			log.Warnf("Couldn't load the Indexer `%s` using %s. Error : %s\n", key, loaderName, err)
 			continue
 		}
+		//If it's newer than our last one
 		if def == nil || loaded.Stats().ModTime.After(def.Stats().ModTime) { // If no definition is loaded so far, or the new one is newer
 			def = loaded
 		}

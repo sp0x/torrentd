@@ -11,9 +11,10 @@ import (
 
 //A facade for an indexer/aggregate.
 type Facade struct {
-	//pageSize uint
+	//The indexer that we're using
 	Indexer Indexer
-	Config  config.Config
+	//Configuration for the indexer.
+	Config config.Config
 }
 
 type GenericSearchOptions struct {
@@ -42,9 +43,10 @@ func NewFacadeFromConfiguration(config config.Config) *Facade {
 
 //NewFacade Creates a new facade for an indexer with the given name and config.
 //If any categories are given, the facade must be for an indexer that supports these categories.
+//If you don't provide a name or name is `all`, an aggregate is used.
 func NewFacade(name string, config config.Config, cats ...categories.Category) (*Facade, error) {
-	if name == "" {
-		return nil, errors.New("name is required")
+	if name == "" || name == "all" {
+		return NewAggregateIndexerHelperWithCategories(config, cats...), nil
 	}
 	facade := Facade{}
 	indexerObj, err := Lookup(config, name)
