@@ -34,7 +34,7 @@ func Lookup(config config.Config, key string) (Indexer, error) {
 
 //CreateAggregateForCategories creates a new aggregate with the indexers that match a set of categories
 func CreateAggregateForCategories(config config.Config, cats []categories.Category) (Indexer, error) {
-	ixrKeys, err := DefaultDefinitionLoader.List()
+	ixrKeys, err := Loader.List()
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func CreateAggregateForCategories(config config.Config, cats []categories.Catego
 //CreateAggregate gets you an aggregate of all the valid configured indexers
 //this includes indexers that don't need a login.
 func CreateAggregate(config config.Config) (Indexer, error) {
-	keys, err := DefaultDefinitionLoader.List()
+	keys, err := Loader.List()
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func CreateAggregate(config config.Config) (Indexer, error) {
 
 //CreateIndexer creates a new Indexer or aggregate Indexer with the given configuration.
 func CreateIndexer(config config.Config, indexerName string) (Indexer, error) {
-	def, err := DefaultDefinitionLoader.Load(indexerName)
+	def, err := Loader.Load(indexerName)
 	if err != nil {
 		log.WithError(err).Warnf("Failed to load definition for %q. %v", indexerName, err)
 		return nil, err

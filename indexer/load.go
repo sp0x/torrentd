@@ -18,7 +18,7 @@ func ListBuiltins() ([]string, error) {
 }
 
 func LoadEnabledDefinitions(conf interface{}) ([]*IndexerDefinition, error) {
-	keys, err := DefaultDefinitionLoader.List()
+	keys, err := Loader.List()
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func LoadEnabledDefinitions(conf interface{}) ([]*IndexerDefinition, error) {
 	for _, key := range keys {
 		section := viper.Get(key)
 		if section != nil {
-			def, err := DefaultDefinitionLoader.Load(key)
+			def, err := Loader.Load(key)
 			if err != nil {
 				return nil, err
 			}
