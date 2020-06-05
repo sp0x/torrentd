@@ -11,7 +11,7 @@ jobs:
       - image: circleci/golang:1.12
     environment:
 
-    working_directory: /go/src/github.com/sp0x/rutracker-rss
+    working_directory: /go/src/github.com/sp0x/torrentd
     steps:
       - checkout
       - attach_workspace:
