@@ -14,9 +14,11 @@ func init() {
 
 //Lookup finds the matching Indexer.
 func Lookup(config config.Config, key string) (Indexer, error) {
+	//If we already have that indexer running, we don't create a new one.
 	if _, ok := indexers[key]; !ok {
 		var indexer Indexer
 		var err error
+		//If we're looking up an aggregate indexer, we just create an aggregate
 		if key == "aggregate" || key == "all" {
 			indexer, err = CreateAggregate(config)
 		} else {

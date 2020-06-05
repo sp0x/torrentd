@@ -12,7 +12,7 @@ import (
 )
 
 //Gets torrent information from a given tracker and updates the torrent db
-func ResolveTorrents(client *indexer.IndexerHelper, hours int) {
+func ResolveTorrents(client *indexer.Facade, hours int) {
 	gdb := db.GetOrmDb("")
 	defer gdb.Close()
 	torrents := storage.GetOlderThanHours(hours)

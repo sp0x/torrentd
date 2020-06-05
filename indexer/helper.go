@@ -8,7 +8,8 @@ import (
 	"github.com/sp0x/torrentd/torznab"
 )
 
-type IndexerHelper struct {
+//A facade for an indexer/aggregate.
+type Facade struct {
 	//pageSize uint
 	Indexer Indexer
 	Config  config.Config
@@ -21,8 +22,8 @@ type GenericSearchOptions struct {
 	StopOnStaleTorrents  bool
 }
 
-func NewIndexerHelper(config config.Config) *IndexerHelper {
-	rt := IndexerHelper{}
+func NewFacade(config config.Config) *Facade {
+	rt := Facade{}
 	ixr := config.GetString("Indexer")
 	if ixr == "" {
 		ixr = "rutracker.org"
@@ -37,12 +38,13 @@ func NewIndexerHelper(config config.Config) *IndexerHelper {
 	return &rt
 }
 
-func NewAggregateIndexerHelperWithCategories(config config.Config, cats ...categories.Category) *IndexerHelper {
-	rt := IndexerHelper{}
-	ixr := config.GetString("Indexer")
+//NewAggregateIndexerHelperWithCategories Finds an indexer from the config, that matches the given categories.
+func NewAggregateIndexerHelperWithCategories(config config.Config, cats ...categories.Category) *Facade {
+	rt := Facade{}
+	indexerName := config.GetString("Indexer")
 	ixrObj, err := CreateAggregateForCategories(config, cats)
 	if err != nil {
-		log.Errorf("Could not find Indexer `%s`.\n", ixr)
+		log.Errorf("Could not find Indexer `%s`.\n", indexerName)
 		return nil
 	}
 	rt.Config = config
@@ -51,7 +53,7 @@ func NewAggregateIndexerHelperWithCategories(config config.Config, cats ...categ
 }
 
 //Search using a given query
-func (th *IndexerHelper) Search(searchContext search.Instance, query torznab.Query) (search.Instance, error) {
+func (th *Facade) Search(searchContext search.Instance, query torznab.Query) (search.Instance, error) {
 	srch, err := th.Indexer.Search(query, searchContext)
 	if err != nil {
 		return nil, err
@@ -60,13 +62,14 @@ func (th *IndexerHelper) Search(searchContext search.Instance, query torznab.Que
 }
 
 //Open the search to a given page.
-func (th *IndexerHelper) SearchKeywords(searchContext search.Instance, query string, page uint) (search.Instance, error) {
+func (th *Facade) SearchKeywords(searchContext search.Instance, query string, page uint) (search.Instance, error) {
 	qrobj := torznab.ParseQueryString(query)
 	qrobj.Page = page
 	return th.Search(searchContext, qrobj)
 }
 
-func (th *IndexerHelper) SearchKeywordsWithCategory(searchContext search.Instance, query string, cat categories.Category, page uint) (search.Instance, error) {
+//SearchKeywordsWithCategory Search for *keywords* matching the needed category.
+func (th *Facade) SearchKeywordsWithCategory(searchContext search.Instance, query string, cat categories.Category, page uint) (search.Instance, error) {
 	qrobj := torznab.ParseQueryString(query)
 	qrobj.Page = page
 	qrobj.Categories = []int{cat.ID}
@@ -77,7 +80,8 @@ func (th *IndexerHelper) SearchKeywordsWithCategory(searchContext search.Instanc
 	return srch, nil
 }
 
-func (th *IndexerHelper) GetDefaultOptions() *GenericSearchOptions {
+//
+func (th *Facade) GetDefaultOptions() *GenericSearchOptions {
 	return &GenericSearchOptions{
 		PageCount:            10,
 		StartingPage:         0,

@@ -11,7 +11,7 @@ import (
 )
 
 //Watch tracks a tracker for any new torrents and records them.
-func Watch(client *indexer.IndexerHelper, interval int) {
+func Watch(client *indexer.Facade, interval int) {
 	//Fetch pages untill we don't see any new torrents
 	startingPage := uint(0)
 	maxPages := uint(10)

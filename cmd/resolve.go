@@ -20,7 +20,7 @@ func init() {
 }
 
 func resolveTorrents(cmd *cobra.Command, args []string) {
-	helper := indexer.NewIndexerHelper(&appConfig)
+	helper := indexer.NewFacade(&appConfig)
 	if helper == nil {
 		log.Error("Couldn't initialize torrent helper.")
 		return

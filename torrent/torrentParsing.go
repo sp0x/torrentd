@@ -30,7 +30,7 @@ func ParseTorrentFromStream(stream io.ReadCloser) (*Definition, error) {
 	return ParseTorrent(string(body))
 }
 
-func ParseTorrentFromUrl(h *indexer.IndexerHelper, torrentUrl string) (*Definition, error) {
+func ParseTorrentFromUrl(h *indexer.Facade, torrentUrl string) (*Definition, error) {
 	req, _ := http.NewRequest("GET", torrentUrl, nil)
 	res, err := h.Indexer.ProcessRequest(req)
 	if err != nil {

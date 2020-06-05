@@ -27,7 +27,7 @@ func init() {
 }
 
 func findSubtitles(cmd *cobra.Command, args []string) {
-	helper := indexer.NewIndexerHelper(&appConfig)
+	helper := indexer.NewFacade(&appConfig)
 	if helper == nil {
 		os.Exit(1)
 	}

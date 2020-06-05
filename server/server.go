@@ -22,7 +22,7 @@ import (
 
 //
 type Server struct {
-	tracker   *indexer.IndexerHelper
+	tracker   *indexer.Facade
 	tabWriter *tabwriter.Writer
 	//Params    Params
 	config     config.Config
@@ -59,7 +59,7 @@ func NewServer(conf config.Config) *Server {
 	return s
 }
 
-func (s *Server) Listen(tracker *indexer.IndexerHelper) error {
+func (s *Server) Listen(tracker *indexer.Facade) error {
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 

@@ -10,7 +10,7 @@ import (
 )
 
 //GetNewTorrents gets the latest torrents.
-func GetNewTorrents(client *indexer.IndexerHelper, fetchOptions *indexer.GenericSearchOptions) error {
+func GetNewTorrents(client *indexer.Facade, fetchOptions *indexer.GenericSearchOptions) error {
 	log.Info("Searching for new torrents")
 	if fetchOptions == nil {
 		fetchOptions = client.GetDefaultOptions()
