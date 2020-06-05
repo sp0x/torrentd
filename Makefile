@@ -8,7 +8,7 @@ GOTEST = $(GOCMD) test -v
 # Coverage
 COVERAGE_REPORT = coverage.txt
 COVERAGE_MODE = atomic
-NAME=torrent-rss
+NAME=torrentd
 AUTHOR=sp0x
 ARCH=amd64
 OS=linux darwin windows

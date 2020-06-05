@@ -29,7 +29,7 @@ jobs:
           name: "build binaries"
           command: |
             make build;
-            mv torrent-rss.* artifacts
+            mv torrentd.* artifacts
       - run:
           name: "code coverage"
           command: bash <(curl -s https://codecov.io/bash)

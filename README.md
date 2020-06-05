@@ -10,7 +10,7 @@ You can also use it to track torrent sites, if you want to mirror a tracker, or 
 
 ## Torrent Tracker definitions
 You can define your torrent trackers in these directories:
-- ~/.torrent-rss/definitions
+- ~/.torrentd/definitions
 - <currentDirectory>/definitions
 
 This project also carries it's embedded definitions with which it was built.  
