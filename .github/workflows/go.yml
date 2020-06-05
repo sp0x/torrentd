@@ -37,5 +37,5 @@ jobs:
         go get github.com/konsorten/go-windows-terminal-sequences
         go get github.com/inconshreveable/mousetrap
 
-    - name: Build
-      run: make build
+    - name: Build all architectures
+      run: make build-multi-arch

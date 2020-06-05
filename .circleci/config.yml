@@ -28,7 +28,7 @@ jobs:
       - run:
           name: "build binaries"
           command: |
-            make build;
+            make build-multi-arch;
             mv torrentd.* artifacts
       - run:
           name: "code coverage"

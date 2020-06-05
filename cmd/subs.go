@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-var subtitleIndexer string
+//var subtitleIndexer string
 
 func init() {
 	cmdFetchTorrents := &cobra.Command{
@@ -26,8 +26,8 @@ func init() {
 	rootCmd.AddCommand(cmdFetchTorrents)
 }
 
-func findSubtitles(cmd *cobra.Command, args []string) {
-	helper := indexer.NewFacade(&appConfig)
+func findSubtitles(_ *cobra.Command, args []string) {
+	helper := indexer.NewFacadeFromConfiguration(&appConfig)
 	if helper == nil {
 		os.Exit(1)
 	}

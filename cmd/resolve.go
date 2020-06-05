@@ -19,8 +19,8 @@ func init() {
 	rootCmd.AddCommand(cmdResolve)
 }
 
-func resolveTorrents(cmd *cobra.Command, args []string) {
-	helper := indexer.NewFacade(&appConfig)
+func resolveTorrents(_ *cobra.Command, _ []string) {
+	helper := indexer.NewFacadeFromConfiguration(&appConfig)
 	if helper == nil {
 		log.Error("Couldn't initialize torrent helper.")
 		return

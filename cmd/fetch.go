@@ -15,7 +15,7 @@ func init() {
 	rootCmd.AddCommand(cmdFetchTorrents)
 }
 
-func fetchTorrents(cmd *cobra.Command, args []string) {
-	client := indexer.NewFacade(&appConfig)
+func fetchTorrents(_ *cobra.Command, _ []string) {
+	client := indexer.NewFacadeFromConfiguration(&appConfig)
 	_ = torrent.GetNewTorrents(client, nil)
 }

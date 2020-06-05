@@ -25,8 +25,8 @@ func init() {
 	rootCmd.AddCommand(cmdWatch)
 }
 
-func watchTracker(cmd *cobra.Command, args []string) {
-	helper := indexer.NewFacade(&appConfig)
+func watchTracker(_ *cobra.Command, _ []string) {
+	helper := indexer.NewFacadeFromConfiguration(&appConfig)
 	if helper == nil {
 		log.Error("Couldn't initialize torrent helper.")
 		return
