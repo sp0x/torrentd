@@ -8,7 +8,7 @@ import (
 )
 
 type FileIndexLoader struct {
-	dirs []string
+	Directories []string
 }
 
 func defaultFsLoader() DefinitionLoader {
@@ -18,7 +18,7 @@ func defaultFsLoader() DefinitionLoader {
 func (fs *FileIndexLoader) walkDirectories() (map[string]string, error) {
 	defs := map[string]string{}
 
-	for _, dirpath := range fs.dirs {
+	for _, dirpath := range fs.Directories {
 		dir, err := os.Open(dirpath)
 		if os.IsNotExist(err) {
 			continue
@@ -54,7 +54,7 @@ func (fs *FileIndexLoader) List() ([]string, error) {
 
 func (fs *FileIndexLoader) String() string {
 	buff := ""
-	defs := fs.dirs
+	defs := fs.Directories
 	for _, def := range defs {
 		buff += def + "\n"
 	}
