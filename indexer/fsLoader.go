@@ -7,15 +7,15 @@ import (
 	"strings"
 )
 
-type fsLoader struct {
+type FileIndexLoader struct {
 	dirs []string
 }
 
-func newFsLoader() DefinitionLoader {
-	return &fsLoader{config.GetDefinitionDirs()}
+func defaultFsLoader() DefinitionLoader {
+	return &FileIndexLoader{config.GetDefinitionDirs()}
 }
 
-func (fs *fsLoader) walkDirectories() (map[string]string, error) {
+func (fs *FileIndexLoader) walkDirectories() (map[string]string, error) {
 	defs := map[string]string{}
 
 	for _, dirpath := range fs.dirs {
@@ -40,7 +40,7 @@ func (fs *fsLoader) walkDirectories() (map[string]string, error) {
 	return defs, nil
 }
 
-func (fs *fsLoader) List() ([]string, error) {
+func (fs *FileIndexLoader) List() ([]string, error) {
 	defs, err := fs.walkDirectories()
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func (fs *fsLoader) List() ([]string, error) {
 	return results, nil
 }
 
-func (fs *fsLoader) String() string {
+func (fs *FileIndexLoader) String() string {
 	buff := ""
 	defs := fs.dirs
 	for _, def := range defs {
@@ -62,7 +62,7 @@ func (fs *fsLoader) String() string {
 }
 
 //Load - Load a definition of an Indexer from it's name
-func (fs *fsLoader) Load(key string) (*IndexerDefinition, error) {
+func (fs *FileIndexLoader) Load(key string) (*IndexerDefinition, error) {
 	defs, err := fs.walkDirectories()
 	if err != nil {
 		return nil, err

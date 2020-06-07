@@ -10,7 +10,7 @@ type MultipleDefinitionLoader []DefinitionLoader
 
 func defaultMultiLoader() *MultipleDefinitionLoader {
 	return &MultipleDefinitionLoader{
-		newFsLoader(),
+		defaultFsLoader(),
 		embeddedLoader(),
 		//escLoader{http.Dir("")},
 	}
