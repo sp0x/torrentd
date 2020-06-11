@@ -2,12 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/go-telegram-bot-api/telegram-bot-api"
-	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/rutracker-rss/cmd/bots"
 	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/rutracker-rss/indexer/categories"
-	"github.com/sp0x/rutracker-rss/indexer/search"
-	"github.com/sp0x/rutracker-rss/storage"
 	"github.com/sp0x/rutracker-rss/torznab"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -43,20 +40,31 @@ func findAppartments(cmd *cobra.Command, args []string) {
 	interval := 30
 	//Create our query
 	query := torznab.ParseQueryString(searchQuery)
-	query.Page = 0
 	query.Categories = []int{categories.Rental.ID}
 	resultsChan := indexer.Watch(helper, query, interval)
 	//Change this.
-	chatBroadcastChan := make(chan search.ExternalResultItem)
-	go runBot(chatBroadcastChan)
+	chatMessagesChannel := make(chan bots.ChatMessage)
+	telegram := bots.NewTelegram()
+	go telegram.Run()
+	go telegram.FeedBroadcast(chatMessagesChannel)
 	for true {
 		select {
 		case result := <-resultsChan:
-			//log.Infof("New result: %s\n", result)
-			chatBroadcastChan <- result
+			//Log it if it's needed
+			//
 			if result.IsNew() || result.IsUpdate() {
 				price := result.GetField("price")
 				reserved := result.GetField("reserved")
+				if reserved == "true" {
+					reserved = "It's currently reserved"
+				} else {
+					reserved = "And not reserved yet!!!"
+				}
+				msgText := fmt.Sprintf("I found a new property\n"+
+					"[%s](%s)\n"+
+					"*%s* - %s", result.Title, result.Link, price, reserved)
+				message := bots.ChatMessage{Text: msgText, Banner: result.Banner}
+				chatMessagesChannel <- message
 				area := result.Size
 				fmt.Printf("[%s][%d][%s] %s - %s\n", price, area, reserved, result.ResultItem.Title, result.Link)
 			}
@@ -69,68 +77,4 @@ func findAppartments(cmd *cobra.Command, args []string) {
 	//for _, r := range currentSearch.GetResults() {
 	//
 	//}
-}
-
-func runBot(itemsChannel <-chan search.ExternalResultItem) {
-	token := viper.GetString("telegram_token")
-	bot, err := tgbotapi.NewBotAPI(token)
-	if err != nil {
-		log.Panic(err)
-	}
-	//bot.Debug = true
-	log.Printf("Authorized on account %s", bot.Self.UserName)
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
-	updates, err := bot.GetUpdatesChan(u)
-	bolts, _ := storage.NewBoltStorage("")
-
-	//Listen for people connecting to us
-	go func() {
-		for update := range updates {
-			if update.Message == nil { // ignore any non-Message Updates
-				continue
-			}
-			//We create our chat
-			bolts.StoreChat(&storage.Chat{
-				Username:    update.Message.From.UserName,
-				InitialText: update.Message.Text,
-				ChatId:      update.Message.Chat.ID,
-			})
-			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-			//reply := update.Message.Text
-			if update.Message.Text == "/start" {
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Hello. I'll keep you posted for new apartments.")
-				//msg.ReplyToMessageID = update.Message.MessageID
-				_, _ = bot.Send(msg)
-			}
-		}
-	}()
-	for item := range itemsChannel {
-		if !item.IsNew() && !item.IsUpdate() {
-			continue
-		}
-		price := item.GetField("price")
-		reserved := item.GetField("reserved")
-		if reserved == "true" {
-			reserved = "It's currently reserved"
-		} else {
-			reserved = "And not reserved yet!!!"
-		}
-		_ = bolts.ForChat(func(chat *storage.Chat) {
-			msgText := fmt.Sprintf("I found a new property\n"+
-				"[%s](%s)\n"+
-				"*%s* - %s", item.Title, item.Link, price, reserved)
-			msg := tgbotapi.NewMessage(chat.ChatId, msgText)
-			msg.DisableWebPagePreview = false
-			msg.ParseMode = "markdown"
-			//Since we're not replying.
-			//msg.ReplyToMessageID = update.Message.MessageID
-			_, _ = bot.Send(msg)
-			imgMsg := tgbotapi.NewPhotoUpload(chat.ChatId, nil)
-			imgMsg.FileID = item.Banner
-			imgMsg.UseExisting = true
-			_, _ = bot.Send(imgMsg)
-		})
-	}
-
 }
