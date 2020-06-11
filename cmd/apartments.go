@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/sp0x/rutracker-rss/cmd/bots"
 	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/rutracker-rss/indexer/categories"
@@ -44,9 +45,25 @@ func findAppartments(cmd *cobra.Command, args []string) {
 	resultsChan := indexer.Watch(helper, query, interval)
 	//Change this.
 	chatMessagesChannel := make(chan bots.ChatMessage)
-	telegram := bots.NewTelegram()
-	go telegram.Run()
-	go telegram.FeedBroadcast(chatMessagesChannel)
+	telegram, err := bots.NewTelegram(viper.GetString("telegram_token"), tgbotapi.NewBotAPI)
+	if err != nil {
+		fmt.Printf("Couldn't initialize telegram: %s", err)
+		os.Exit(1)
+	}
+	go func() {
+		err := telegram.Run()
+		if err != nil {
+			fmt.Printf("Couldn't run telegram listener: %s", err)
+			os.Exit(1)
+		}
+	}()
+	go func() {
+		err := telegram.FeedBroadcast(chatMessagesChannel)
+		if err != nil {
+			fmt.Printf("Couldn't feed telegram: %s", err)
+			os.Exit(1)
+		}
+	}()
 	for true {
 		select {
 		case result := <-resultsChan:
