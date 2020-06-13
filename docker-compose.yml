@@ -5,7 +5,7 @@ volumes:
 services:
 
   rss:
-    image: sp0x/rutracker-rss:latest
+    image: sp0x/torrentd:latest
     build: .
     command: watch -v
     env_file:

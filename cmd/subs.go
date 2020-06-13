@@ -3,15 +3,15 @@ package main
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/indexer"
-	"github.com/sp0x/rutracker-rss/indexer/categories"
-	"github.com/sp0x/rutracker-rss/indexer/search"
+	"github.com/sp0x/torrentd/indexer"
+	"github.com/sp0x/torrentd/indexer/categories"
+	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
 )
 
-var subtitleIndexer string
+//var subtitleIndexer string
 
 func init() {
 	cmdFetchTorrents := &cobra.Command{
@@ -26,8 +26,8 @@ func init() {
 	rootCmd.AddCommand(cmdFetchTorrents)
 }
 
-func findSubtitles(cmd *cobra.Command, args []string) {
-	helper := indexer.NewIndexerHelper(&appConfig)
+func findSubtitles(_ *cobra.Command, args []string) {
+	helper := indexer.NewFacadeFromConfiguration(&appConfig)
 	if helper == nil {
 		os.Exit(1)
 	}

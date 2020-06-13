@@ -3,8 +3,9 @@ package storage
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
-	"github.com/sp0x/rutracker-rss/db"
-	"github.com/sp0x/rutracker-rss/indexer/search"
+	"github.com/sp0x/torrentd/db"
+	"github.com/sp0x/torrentd/indexer/search"
+	"strconv"
 	"time"
 )
 
@@ -54,9 +55,21 @@ func (ts *DBStorage) GetTorrentCount() int64 {
 
 func (ts *DBStorage) GetCategories() []db.TorrentCategory {
 	gdb := db.GetOrmDb(ts.Path)
-	defer gdb.Close()
+	defer func() {
+		_ = gdb.Close()
+	}()
 	var categories []db.TorrentCategory
-	gdb.Model(&search.ExternalResultItem{}).Select("local_category_name, category").Group("category").Scan(&categories)
+	var rawCats []search.ExternalResultItem
+	if gdb.Model(&search.ExternalResultItem{}).Group("local_category_id").
+		Scan(&rawCats).RowsAffected == 0 {
+		return nil
+	}
+	for _, rc := range rawCats {
+		categories = append(categories, db.TorrentCategory{
+			CategoryId:   strconv.Itoa(rc.Category),
+			CategoryName: rc.LocalCategoryName,
+		})
+	}
 	return categories
 }
 

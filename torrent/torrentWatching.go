@@ -3,15 +3,15 @@ package torrent
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/indexer"
-	"github.com/sp0x/rutracker-rss/indexer/search"
+	"github.com/sp0x/torrentd/indexer"
+	"github.com/sp0x/torrentd/indexer/search"
 	"os"
 	"text/tabwriter"
 	"time"
 )
 
 //Watch tracks a tracker for any new torrents and records them.
-func Watch(client *indexer.IndexerHelper, interval int) {
+func Watch(client *indexer.Facade, interval int) {
 	//Fetch pages untill we don't see any new torrents
 	startingPage := uint(0)
 	maxPages := uint(10)

@@ -2,8 +2,8 @@ package main
 
 import (
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/indexer"
-	"github.com/sp0x/rutracker-rss/torrent"
+	"github.com/sp0x/torrentd/indexer"
+	"github.com/sp0x/torrentd/torrent"
 	"github.com/spf13/cobra"
 )
 
@@ -19,8 +19,8 @@ func init() {
 	rootCmd.AddCommand(cmdResolve)
 }
 
-func resolveTorrents(cmd *cobra.Command, args []string) {
-	helper := indexer.NewIndexerHelper(&appConfig)
+func resolveTorrents(_ *cobra.Command, _ []string) {
+	helper := indexer.NewFacadeFromConfiguration(&appConfig)
 	if helper == nil {
 		log.Error("Couldn't initialize torrent helper.")
 		return

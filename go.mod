@@ -1,4 +1,4 @@
-module github.com/sp0x/rutracker-rss
+module github.com/sp0x/torrentd
 
 go 1.12
 

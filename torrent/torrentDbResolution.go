@@ -3,16 +3,16 @@ package torrent
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/db"
-	"github.com/sp0x/rutracker-rss/indexer"
-	"github.com/sp0x/rutracker-rss/storage"
+	"github.com/sp0x/torrentd/db"
+	"github.com/sp0x/torrentd/indexer"
+	"github.com/sp0x/torrentd/storage"
 	"os"
 	"reflect"
 	"text/tabwriter"
 )
 
 //Gets torrent information from a given tracker and updates the torrent db
-func ResolveTorrents(client *indexer.IndexerHelper, hours int) {
+func ResolveTorrents(client *indexer.Facade, hours int) {
 	gdb := db.GetOrmDb("")
 	defer gdb.Close()
 	torrents := storage.GetOlderThanHours(hours)

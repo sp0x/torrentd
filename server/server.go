@@ -5,10 +5,10 @@ import (
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/config"
-	"github.com/sp0x/rutracker-rss/indexer"
-	"github.com/sp0x/rutracker-rss/server/rss"
-	"github.com/sp0x/rutracker-rss/storage"
+	"github.com/sp0x/torrentd/config"
+	"github.com/sp0x/torrentd/indexer"
+	"github.com/sp0x/torrentd/server/rss"
+	"github.com/sp0x/torrentd/storage"
 	"net/http"
 	"net/url"
 	"os"
@@ -22,7 +22,7 @@ import (
 
 //
 type Server struct {
-	tracker   *indexer.IndexerHelper
+	tracker   *indexer.Facade
 	tabWriter *tabwriter.Writer
 	//Params    Params
 	config     config.Config
@@ -59,7 +59,7 @@ func NewServer(conf config.Config) *Server {
 	return s
 }
 
-func (s *Server) Listen(tracker *indexer.IndexerHelper) error {
+func (s *Server) Listen(tracker *indexer.Facade) error {
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 

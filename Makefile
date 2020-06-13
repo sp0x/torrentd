@@ -8,7 +8,7 @@ GOTEST = $(GOCMD) test -v
 # Coverage
 COVERAGE_REPORT = coverage.txt
 COVERAGE_MODE = atomic
-NAME=torrent-rss
+NAME=torrentd
 AUTHOR=sp0x
 ARCH=amd64
 OS=linux darwin windows
@@ -17,17 +17,22 @@ ifneq ($(origin CI), undefined)
 	WORKDIR := $(GOPATH)/src/github.com/$(NAME)
 endif
 
+
+
+build:
+	go build -o $(NAME) ./cmd
+
+#Note that gox is required for multi-arch build
+build-multi-arch:
+	gox -os="${OS}" -arch="${ARCH}" -output="$(NAME).{{.OS}}.{{.Arch}}" -ldflags "-s -w -X main.Rev=`git rev-parse --short HEAD`" -verbose ./...
+
 assets:
 	@echo "Embedding assets as code"
 	bindata -o indexer/definitions/assets.go ./definitions/...
 
-build:
-	gox -os="${OS}" -arch="${ARCH}" -output="$(NAME).{{.OS}}.{{.Arch}}" -ldflags "-s -w -X main.Rev=`git rev-parse --short HEAD`" -verbose ./...
-
 install-deps:
 	@echo "Installing go utils"
 	go get github.com/kataras/bindata/cmd/bindata
-
 
 install:
 	go build -i -o $(GOPATH)/bin/$(NAME) ./cmd
