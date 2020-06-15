@@ -14,7 +14,7 @@ ARCH=amd64
 OS=linux darwin windows
 
 ifneq ($(origin CI), undefined)
-	WORKDIR := $(GOPATH)/src/github.com/$(NAME)
+	WORKDIR := $(GOPATH)/src/github.com/$(AUTHOR)/$(NAME)
 endif
 
 
