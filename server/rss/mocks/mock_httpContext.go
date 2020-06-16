@@ -34,19 +34,19 @@ func (m *MockHttpContext) EXPECT() *MockHttpContextMockRecorder {
 
 // Header mocks base method
 func (m *MockHttpContext) Header(arg0, arg1 string) {
-	m.ctrl.Helper()
+	//m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Header", arg0, arg1)
 }
 
 // Header indicates an expected call of Header
 func (mr *MockHttpContextMockRecorder) Header(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
+	//mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Header", reflect.TypeOf((*MockHttpContext)(nil).Header), arg0, arg1)
 }
 
 // String mocks base method
 func (m *MockHttpContext) String(arg0 int, arg1 string, arg2 ...interface{}) {
-	m.ctrl.T.Helper()
+	//m.ctrl.T.Helper()
 	varargs := []interface{}{arg0, arg1}
 	for _, a := range arg2 {
 		varargs = append(varargs, a)
@@ -56,7 +56,7 @@ func (m *MockHttpContext) String(arg0 int, arg1 string, arg2 ...interface{}) {
 
 // String indicates an expected call of String
 func (mr *MockHttpContextMockRecorder) String(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
+	//mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "String", reflect.TypeOf((*MockHttpContext)(nil).String), varargs...)
 }

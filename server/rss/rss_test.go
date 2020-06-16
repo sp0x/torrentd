@@ -14,7 +14,8 @@ func TestSendRssFeed(t *testing.T) {
 	var items []search.ExternalResultItem
 	items = append(items, search.ExternalResultItem{ResultItem: search.ResultItem{Title: "A"}})
 	items = append(items, search.ExternalResultItem{ResultItem: search.ResultItem{Title: "B"}})
-	context.EXPECT().Header("", "").Return("")
-	context.EXPECT().String("", "").Return("")
+	context.EXPECT().Header("Content-Type", "application/xml;")
+	context.EXPECT().String(200, gomock.Any()).
+		AnyTimes()
 	SendRssFeed("host.host", "namex", items, context)
 }
