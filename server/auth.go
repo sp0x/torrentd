@@ -7,6 +7,8 @@ import (
 	"math/rand"
 )
 
+//sharedKey gets the hash of the api key or passphrase that's configured in our server.
+//If no key or passphrase is given, an array of 16 random bytes is returned.
 func (s *Server) sharedKey() ([]byte, error) {
 	var b []byte
 

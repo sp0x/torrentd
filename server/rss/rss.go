@@ -2,7 +2,6 @@ package rss
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"github.com/gorilla/feeds"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer/search"
@@ -10,7 +9,7 @@ import (
 	"time"
 )
 
-func SendRssFeed(hostname, name string, torrents []search.ExternalResultItem, c *gin.Context) {
+func SendRssFeed(hostname, name string, torrents []search.ExternalResultItem, c HttpContext) {
 	feed := &feeds.Feed{
 		Title:       fmt.Sprintf("%s from Rutracker", name),
 		Link:        &feeds.Link{Href: fmt.Sprintf("http://%s/%s", hostname, name)},
@@ -18,7 +17,7 @@ func SendRssFeed(hostname, name string, torrents []search.ExternalResultItem, c 
 		//Author:      &feeds.Author{},
 		Created: time.Now(),
 	}
-	feed.Items = make([]*feeds.Item, len(torrents), len(torrents))
+	feed.Items = make([]*feeds.Item, len(torrents))
 	for i, torr := range torrents {
 		timep := time.Unix(torr.PublishDate, 0)
 		feedItem := &feeds.Item{

@@ -19,6 +19,7 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
 	github.com/gohttp/response v1.2.0 // indirect
+	github.com/golang/mock v1.1.1
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/feeds v1.1.1
 	github.com/headzoo/surf v1.0.0 // indirect
