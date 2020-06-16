@@ -19,9 +19,9 @@ jobs:
       - run:
           name: "Install gomock"
           command: |
-            go get github.com/golang/mock/mockgen@latest
-          environment:
-            GO111MODULE: on
+            GO111MODULE=on go get github.com/golang/mock/mockgen@latest
+
+
       - run:
           name: "Install dependencies"
           command: |
