@@ -10,13 +10,13 @@ COPY go.sum .
 
 RUN go mod download
 COPY . .
-RUN go build -o /go/bin/torrent-rss -ldflags="-w -s" ./cmd
+RUN go build -o /go/bin/torrentd -ldflags="-w -s" ./cmd
 # Optional: in case your application uses dynamic linking (often the case with CGO),
 # this will collect dependent libraries so they're later copied to the final image
 # NOTE: make sure you honor the license terms of the libraries you copy and distribute
 WORKDIR /dist
-RUN cp /go/bin/torrent-rss .
-RUN ldd ./torrent-rss | tr -s '[:blank:]' '\n' | grep '^/' | \
+RUN cp /go/bin/torrentd .
+RUN ldd ./torrentd | tr -s '[:blank:]' '\n' | grep '^/' | \
     xargs -I % sh -c 'mkdir -p $(dirname ./%); cp % ./%;'
 #RUN mkdir -p lib64 && cp /lib64/ld-linux-x86-64.so.2 lib64/
 
@@ -33,4 +33,4 @@ COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certifica
 COPY --from=builder /dist /
 EXPOSE 5000
 ENV GIN_MODE=release
-ENTRYPOINT ["/torrent-rss"]
+ENTRYPOINT ["/torrentd"]

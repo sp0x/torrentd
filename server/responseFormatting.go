@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/feeds"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/torznab"
+	"github.com/sp0x/torrentd/torznab"
 	"net/http"
 	"time"
 )

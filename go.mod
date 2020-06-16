@@ -1,4 +1,4 @@
-module github.com/sp0x/rutracker-rss
+module github.com/sp0x/torrentd
 
 go 1.12
 
@@ -28,6 +28,8 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mrobinsn/go-tvmaze v1.2.0
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
+	github.com/onsi/ginkgo v1.12.0
+	github.com/onsi/gomega v1.7.1
 	github.com/sirupsen/logrus v1.5.0
 	github.com/smartystreets/assertions v1.0.1 // indirect
 	github.com/sp0x/surf v0.0.0-20200427101727-f37e70cd344f

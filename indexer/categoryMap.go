@@ -1,7 +1,7 @@
 package indexer
 
 import (
-	"github.com/sp0x/rutracker-rss/indexer/categories"
+	"github.com/sp0x/torrentd/indexer/categories"
 )
 
 type categoryMap map[string]*categories.Category

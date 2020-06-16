@@ -3,12 +3,12 @@ package indexer
 import (
 	"errors"
 	"fmt"
-	"github.com/sp0x/rutracker-rss/config"
-	"github.com/sp0x/rutracker-rss/indexer/cache"
-	"github.com/sp0x/rutracker-rss/indexer/categories"
-	"github.com/sp0x/rutracker-rss/indexer/search"
-	"github.com/sp0x/rutracker-rss/storage"
-	"github.com/sp0x/rutracker-rss/torznab"
+	"github.com/sp0x/torrentd/config"
+	"github.com/sp0x/torrentd/indexer/cache"
+	"github.com/sp0x/torrentd/indexer/categories"
+	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/storage"
+	"github.com/sp0x/torrentd/torznab"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -66,15 +66,16 @@ type RunContext struct {
 	//SearchKeywords *search.Instance
 }
 
+//NewRunner Start a runner for a given indexer.
 func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 	logger := logrus.New()
 	logger.Level = logrus.GetLevel()
-	ch, _ := cache.NewConnectivityCache()
+	connCache, _ := cache.NewConnectivityCache()
 	return &Runner{
 		opts:                opts,
 		definition:          def,
 		logger:              logger.WithFields(logrus.Fields{"site": def.Site}),
-		connectivityCache:   ch,
+		connectivityCache:   connCache,
 		state:               defaultIndexerState(),
 		keepSessions:        true,
 		failingSearchFields: make(map[string]fieldBlock),

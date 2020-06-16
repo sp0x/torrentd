@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/sp0x/rutracker-rss/indexer"
-	"github.com/sp0x/rutracker-rss/torrent"
+	"github.com/sp0x/torrentd/indexer"
+	"github.com/sp0x/torrentd/torrent"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +15,7 @@ func init() {
 	rootCmd.AddCommand(cmdFetchTorrents)
 }
 
-func fetchTorrents(cmd *cobra.Command, args []string) {
-	client := indexer.NewIndexerHelper(&appConfig)
+func fetchTorrents(_ *cobra.Command, _ []string) {
+	client := indexer.NewFacadeFromConfiguration(&appConfig)
 	_ = torrent.GetNewTorrents(client, nil)
 }

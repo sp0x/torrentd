@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	storage "github.com/sp0x/rutracker-rss/storage"
+	"github.com/sp0x/torrentd/storage"
 	"github.com/spf13/cobra"
 	"os"
 	"text/tabwriter"
 )
 
-var torrentCount int = 500
+var torrentCount = 500
 
 func init() {
 	cmdTruncate := &cobra.Command{

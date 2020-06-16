@@ -4,7 +4,8 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/indexer/search"
+	"github.com/sp0x/torrentd/indexer/categories"
+	"github.com/sp0x/torrentd/indexer/search"
 	"net/url"
 	"strconv"
 	"strings"
@@ -39,6 +40,14 @@ func (query Query) Episode() (s string) {
 		s += fmt.Sprintf("E%02s", query.Ep)
 	}
 	return s
+}
+
+//AddCategory adds a category to the query
+func (query *Query) AddCategory(cat categories.Category) {
+	if query.Categories == nil {
+		query.Categories = []int{}
+	}
+	query.Categories = append(query.Categories, cat.ID)
 }
 
 // Keywords returns the query formatted as search keywords

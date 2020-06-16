@@ -2,16 +2,19 @@ package storage
 
 import (
 	"fmt"
-	"github.com/sp0x/rutracker-rss/db"
-	"github.com/sp0x/rutracker-rss/indexer/search"
+	"github.com/jinzhu/gorm"
+	"github.com/sp0x/torrentd/db"
+	"github.com/sp0x/torrentd/indexer/search"
+	"strconv"
 	"time"
 )
 
 type DBStorage struct {
+	Path string
 }
 
 func (ts *DBStorage) FindByTorrentId(id string) *search.ExternalResultItem {
-	gdb := db.GetOrmDb()
+	gdb := db.GetOrmDb(ts.Path)
 	defer gdb.Close()
 	var torrent search.ExternalResultItem
 	if gdb.First(&torrent, &search.ExternalResultItem{LocalId: id}).RowsAffected == 0 {
@@ -21,19 +24,21 @@ func (ts *DBStorage) FindByTorrentId(id string) *search.ExternalResultItem {
 }
 
 func (ts *DBStorage) Create(tr *search.ExternalResultItem) {
-	gdb := db.GetOrmDb()
-	defer gdb.Close()
+	gdb := db.GetOrmDb(ts.Path)
+	defer func() {
+		_ = gdb.Close()
+	}()
 	gdb.Create(tr)
 }
 
 func (ts *DBStorage) Truncate() {
-	gdb := db.GetOrmDb()
+	gdb := db.GetOrmDb(ts.Path)
 	defer gdb.Close()
 	gdb.Unscoped().Delete(&search.ExternalResultItem{})
 }
 
 func (ts *DBStorage) GetLatest(cnt int) []search.ExternalResultItem {
-	gdb := db.GetOrmDb()
+	gdb := db.GetOrmDb(ts.Path)
 	defer gdb.Close()
 	var items []search.ExternalResultItem
 	gdb.Model(&search.ExternalResultItem{}).Find(&items).Order("added_on").Limit(cnt)
@@ -41,7 +46,7 @@ func (ts *DBStorage) GetLatest(cnt int) []search.ExternalResultItem {
 }
 
 func (ts *DBStorage) GetTorrentCount() int64 {
-	gdb := db.GetOrmDb()
+	gdb := db.GetOrmDb(ts.Path)
 	defer gdb.Close()
 	var result int64
 	gdb.Model(&search.ExternalResultItem{}).Count(&result)
@@ -49,21 +54,33 @@ func (ts *DBStorage) GetTorrentCount() int64 {
 }
 
 func (ts *DBStorage) GetCategories() []db.TorrentCategory {
-	gdb := db.GetOrmDb()
-	defer gdb.Close()
+	gdb := db.GetOrmDb(ts.Path)
+	defer func() {
+		_ = gdb.Close()
+	}()
 	var categories []db.TorrentCategory
-	gdb.Model(&search.ExternalResultItem{}).Select("category_name, category_id").Group("category_id").Scan(&categories)
+	var rawCats []search.ExternalResultItem
+	if gdb.Model(&search.ExternalResultItem{}).Group("local_category_id").
+		Scan(&rawCats).RowsAffected == 0 {
+		return nil
+	}
+	for _, rc := range rawCats {
+		categories = append(categories, db.TorrentCategory{
+			CategoryId:   strconv.Itoa(rc.Category),
+			CategoryName: rc.LocalCategoryName,
+		})
+	}
 	return categories
 }
 
 func (ts *DBStorage) UpdateTorrent(id uint, torrent *search.ExternalResultItem) {
-	gdb := db.GetOrmDb()
+	gdb := db.GetOrmDb(ts.Path)
 	defer gdb.Close()
 	gdb.Model(&search.ExternalResultItem{}).Where(id).Update(torrent)
 }
 
 func (ts *DBStorage) GetTorrentsInCategories(ids []int) []search.ExternalResultItem {
-	gdb := db.GetOrmDb()
+	gdb := db.GetOrmDb(ts.Path)
 	defer gdb.Close()
 	var torrents []search.ExternalResultItem
 	gdb.Model(&search.ExternalResultItem{}).Where(" category_id IN (?)", ids).Order("added_on desc").Find(&torrents)
@@ -71,7 +88,7 @@ func (ts *DBStorage) GetTorrentsInCategories(ids []int) []search.ExternalResultI
 }
 
 func (ts *DBStorage) GetOlderThanHours(h int) []search.ExternalResultItem {
-	gdb := db.GetOrmDb()
+	gdb := db.GetOrmDb(ts.Path)
 	defer gdb.Close()
 	var torrents []search.ExternalResultItem
 	tm := time.Now().Unix() - int64(60)*int64(60)*int64(h)
@@ -82,7 +99,7 @@ func (ts *DBStorage) GetOlderThanHours(h int) []search.ExternalResultItem {
 }
 
 func (ts *DBStorage) GetNewest(cnt int) []search.ExternalResultItem {
-	gdb := db.GetOrmDb()
+	gdb := db.GetOrmDb(ts.Path)
 	defer gdb.Close()
 	var torrents []search.ExternalResultItem
 	gdb.Model(&search.ExternalResultItem{}).
@@ -93,8 +110,10 @@ func (ts *DBStorage) GetNewest(cnt int) []search.ExternalResultItem {
 }
 
 func (ts *DBStorage) FindNameAndIndexer(title string, indexerSite string) *search.ExternalResultItem {
-	gdb := db.GetOrmDb()
-	defer gdb.Close()
+	gdb := db.GetOrmDb(ts.Path)
+	defer func() {
+		_ = gdb.Close()
+	}()
 	var torrent search.ExternalResultItem
 	srch := &search.ExternalResultItem{}
 	srch.Title = title
@@ -103,6 +122,10 @@ func (ts *DBStorage) FindNameAndIndexer(title string, indexerSite string) *searc
 		return nil
 	}
 	return &torrent
+}
+
+func (ts *DBStorage) GetDb() *gorm.DB {
+	return db.GetOrmDb(ts.Path)
 }
 
 var defaultStorage = DBStorage{}

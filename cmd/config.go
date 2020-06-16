@@ -1,9 +1,9 @@
 package main
 
 import (
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/config"
+	"github.com/sp0x/torrentd/config"
 	"github.com/spf13/viper"
 	"os"
 	"path"
@@ -17,11 +17,11 @@ func initConfig() {
 	if configFile != "" {
 		viper.SetConfigFile(configFile)
 	} else {
-		defaultConfigPath := path.Join(homeDir, ".tracker-rss")
+		defaultConfigPath := path.Join(homeDir, ".torrentd")
 		_ = os.MkdirAll(defaultConfigPath, os.ModePerm)
 		viper.AddConfigPath(defaultConfigPath)
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".tracker-rss")
+		viper.SetConfigName(".torrentd")
 	}
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {

@@ -4,32 +4,43 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/boltdb/bolt"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/indexer/categories"
-	"github.com/sp0x/rutracker-rss/indexer/search"
+	"github.com/sp0x/torrentd/indexer/categories"
+	"github.com/sp0x/torrentd/indexer/search"
 	"os"
 	"path"
 	"time"
 )
 
-type BoltStorage struct{}
+type BoltStorage struct {
+	Database *bolt.DB
+}
+
+func NewBoltStorage(dbPath string) (*BoltStorage, error) {
+	if dbPath == "" {
+		dbPath = DefaultBoltPath()
+	}
+	dbx, err := GetBoltDb(dbPath)
+	if err != nil {
+		return nil, err
+	}
+	bls := &BoltStorage{
+		Database: dbx,
+	}
+	return bls, nil
+}
 
 var categoriesInitialized = false
 
-func GetBoltDb() (*bolt.DB, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Error(err)
-		return nil, err
-	}
-	dbPath := path.Join(cwd, "db", "bolt.db")
-	db, err := bolt.Open(dbPath, 0600, nil)
+func GetBoltDb(file string) (*bolt.DB, error) {
+	dbx, err := bolt.Open(file, 0600, nil)
 	if err != nil {
 		return nil, err
 	}
 	//Setup our DB
-	err = db.Update(func(tx *bolt.Tx) error {
+	err = dbx.Update(func(tx *bolt.Tx) error {
 		root, err := tx.CreateBucketIfNotExists([]byte("searchResults"))
 		if err != nil {
 			return err
@@ -54,7 +65,7 @@ func GetBoltDb() (*bolt.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	return db, nil
+	return dbx, nil
 }
 
 type ChatMessage struct {
@@ -71,12 +82,8 @@ type Chat struct {
 //StoreChat stores a new chat.
 //The chat id is used as a key.
 func (b *BoltStorage) StoreChat(chat *Chat) error {
-	db, err := GetBoltDb()
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-	err = db.Update(func(tx *bolt.Tx) error {
+	//	defer db.Close()
+	err := b.Database.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("telegram_chats"))
 		key := i64tob(chat.ChatId)
 		val, err := json.Marshal(chat)
@@ -88,14 +95,14 @@ func (b *BoltStorage) StoreChat(chat *Chat) error {
 	return err
 }
 
+func DefaultBoltPath() string {
+	cwd, _ := os.Getwd()
+	return path.Join(cwd, "db", "bolt.db")
+}
+
 //ForChat calls the callback for each chat, in an async way.
 func (b *BoltStorage) ForChat(callback func(chat *Chat)) error {
-	db, err := GetBoltDb()
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-	return db.View(func(tx *bolt.Tx) error {
+	return b.Database.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("telegram_chats"))
 		return b.ForEach(func(k, v []byte) error {
 			var chat = Chat{}
@@ -108,19 +115,74 @@ func (b *BoltStorage) ForChat(callback func(chat *Chat)) error {
 	})
 }
 
+func (b *BoltStorage) GetChat(id int) (*Chat, error) {
+	var chat = Chat{}
+	found := false
+	err := b.Database.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("telegram_chats"))
+		buff := b.Get(itob(id))
+		if buff == nil {
+			return nil
+		}
+		found = true
+		if err := json.Unmarshal(buff, &chat); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return nil, nil
+	}
+	return &chat, nil
+}
+
+func (b *BoltStorage) Truncate() error {
+	db := b.Database
+	return db.Update(func(tx *bolt.Tx) error {
+		return tx.ForEach(func(name []byte, b *bolt.Bucket) error {
+			return tx.DeleteBucket(name)
+		})
+	})
+}
+
+//GetSearchResults by a given category id
+func (b *BoltStorage) GetSearchResults(categoryId int) ([]search.ExternalResultItem, error) {
+	bdb := b.Database
+	var items []search.ExternalResultItem
+	err := bdb.View(func(tx *bolt.Tx) error {
+		var catName string
+		if _, ok := categories.AllCategories[categoryId]; !ok {
+			catName = "uncategorized"
+		} else {
+			catName = categories.AllCategories[categoryId].Name
+		}
+
+		b := tx.Bucket([]byte("searchResults")).Bucket([]byte(catName))
+		if b == nil {
+			return nil
+		}
+		return b.ForEach(func(k, v []byte) error {
+			var newItem search.ExternalResultItem
+			err := json.Unmarshal(v, &newItem)
+			if err != nil {
+				return err
+			}
+			items = append(items, newItem)
+			return nil
+		})
+	})
+	return items, err
+}
+
 //StoreSearchResults stores the given results
 func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) error {
-	db, err := GetBoltDb()
-	if err != nil {
-		return nil
-	}
-	defer func() {
-		_ = db.Close()
-	}()
+	db := b.Database
 	for ix, item := range items {
-
 		//the function passed to Batch may be called multiple times,
-		err = db.Batch(func(tx *bolt.Tx) error {
+		err := db.Batch(func(tx *bolt.Tx) error {
 			cgry := categories.AllCategories[item.Category]
 			var cgryKey []byte
 			if cgry == nil {
@@ -129,7 +191,8 @@ func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) erro
 				cgryKey = []byte(cgry.Name)
 			}
 			//Use the category as a key
-			b := tx.Bucket([]byte("searchResults")).Bucket(cgryKey)
+			b, _ := tx.CreateBucketIfNotExists([]byte("searchResults"))
+			b, _ = b.CreateBucketIfNotExists(cgryKey)
 			key, err := getItemKey(item)
 			if err != nil {
 				return err
@@ -144,11 +207,14 @@ func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) erro
 			err = b.Put(key, buf)
 			if err != nil {
 				item.ID = 0
-				log.Error("Error while inserting %s-th item. %s", ix, err)
+				log.Error(fmt.Sprintf("Error while inserting %d-th item. %s", ix, err))
 				return err
 			}
 			return nil
 		})
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -167,6 +233,11 @@ func uitob(v uint) []byte {
 	return b
 }
 func i64tob(v int64) []byte {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, uint64(v))
+	return b
+}
+func itob(v int) []byte {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, uint64(v))
 	return b

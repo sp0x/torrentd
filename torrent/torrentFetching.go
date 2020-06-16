@@ -3,14 +3,14 @@ package torrent
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/indexer"
-	"github.com/sp0x/rutracker-rss/indexer/search"
+	"github.com/sp0x/torrentd/indexer"
+	"github.com/sp0x/torrentd/indexer/search"
 	"os"
 	"text/tabwriter"
 )
 
 //GetNewTorrents gets the latest torrents.
-func GetNewTorrents(client *indexer.IndexerHelper, fetchOptions *indexer.GenericSearchOptions) error {
+func GetNewTorrents(client *indexer.Facade, fetchOptions *indexer.GenericSearchOptions) error {
 	log.Info("Searching for new torrents")
 	if fetchOptions == nil {
 		fetchOptions = client.GetDefaultOptions()

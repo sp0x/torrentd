@@ -2,7 +2,7 @@ package torznab
 
 import (
 	"encoding/xml"
-	"github.com/sp0x/rutracker-rss/indexer/search"
+	"github.com/sp0x/torrentd/indexer/search"
 )
 
 type Info struct {

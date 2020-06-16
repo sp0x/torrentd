@@ -5,10 +5,10 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
-	bencode "github.com/jackpal/bencode-go"
+	"github.com/jackpal/bencode-go"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/rutracker-rss/indexer"
 	"github.com/sp0x/surf/browser/encoding"
+	"github.com/sp0x/torrentd/indexer"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -30,7 +30,7 @@ func ParseTorrentFromStream(stream io.ReadCloser) (*Definition, error) {
 	return ParseTorrent(string(body))
 }
 
-func ParseTorrentFromUrl(h *indexer.IndexerHelper, torrentUrl string) (*Definition, error) {
+func ParseTorrentFromUrl(h *indexer.Facade, torrentUrl string) (*Definition, error) {
 	req, _ := http.NewRequest("GET", torrentUrl, nil)
 	res, err := h.Indexer.ProcessRequest(req)
 	if err != nil {
