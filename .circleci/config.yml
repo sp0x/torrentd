@@ -17,6 +17,12 @@ jobs:
       - attach_workspace:
           at: ./artifacts
       - run:
+          name: "Install gomock"
+          command: |
+            go get github.com/golang/mock/mockgen@latest
+          environment:
+            GO111MODULE: on
+      - run:
           name: "Install dependencies"
           command: |
             go get github.com/mitchellh/gox; \
