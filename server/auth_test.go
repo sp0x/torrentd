@@ -1,97 +1,61 @@
 package server
 
 import (
-	"github.com/sp0x/torrentd/config"
-	"github.com/sp0x/torrentd/indexer"
-	"reflect"
+	"github.com/golang/mock/gomock"
+	. "github.com/onsi/gomega"
+	"github.com/sp0x/torrentd/config/mocks"
 	"testing"
-	"text/tabwriter"
 )
 
 func TestServer_checkAPIKey(t *testing.T) {
-	type fields struct {
-		tracker    *indexer.Facade
-		tabWriter  *tabwriter.Writer
-		config     config.Config
-		Port       int
-		Hostname   string
-		Params     Params
-		PathPrefix string
-		Password   string
-		version    string
-	}
-	type args struct {
-		inputKey string
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &Server{
-				tracker:    tt.fields.tracker,
-				tabWriter:  tt.fields.tabWriter,
-				config:     tt.fields.config,
-				Port:       tt.fields.Port,
-				Hostname:   tt.fields.Hostname,
-				Params:     tt.fields.Params,
-				PathPrefix: tt.fields.PathPrefix,
-				Password:   tt.fields.Password,
-				version:    tt.fields.version,
-			}
-			if got := s.checkAPIKey(tt.args.inputKey); got != tt.want {
-				t.Errorf("checkAPIKey() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	g := NewGomegaWithT(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	config := mocks.NewMockConfig(ctrl)
+	config.EXPECT().GetInt("port").Return(3333).Times(1)
+	config.EXPECT().GetString("hostname").Return("").Times(1)
+	config.EXPECT().GetBytes("api_key").Return(nil).Times(1)
+	//Test
+	s := NewServer(config)
+	s.Params.APIKey = []byte("demokey")
+	ok := s.checkAPIKey("demokey")
+	g.Expect(ok).Should(BeTrue())
+
+	s.Params.APIKey = nil
+	s.Params.Passphrase = "serverpass"
+	ok = s.checkAPIKey("serverpass")
+	g.Expect(ok).Should(BeFalse())
+
+	ok = s.checkAPIKey("cd2234c6b7755b8dd230bdbc84544c38")
+	g.Expect(ok).Should(BeTrue())
 }
 
 func TestServer_sharedKey(t *testing.T) {
-	type fields struct {
-		tracker    *indexer.Facade
-		tabWriter  *tabwriter.Writer
-		config     config.Config
-		Port       int
-		Hostname   string
-		Params     Params
-		PathPrefix string
-		Password   string
-		version    string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		want    []byte
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &Server{
-				tracker:    tt.fields.tracker,
-				tabWriter:  tt.fields.tabWriter,
-				config:     tt.fields.config,
-				Port:       tt.fields.Port,
-				Hostname:   tt.fields.Hostname,
-				Params:     tt.fields.Params,
-				PathPrefix: tt.fields.PathPrefix,
-				Password:   tt.fields.Password,
-				version:    tt.fields.version,
-			}
-			got, err := s.sharedKey()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("sharedKey() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("sharedKey() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	g := NewGomegaWithT(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	config := mocks.NewMockConfig(ctrl)
+	config.EXPECT().GetInt("port").Return(3333).Times(1)
+	config.EXPECT().GetString("hostname").Return("").Times(1)
+	config.EXPECT().GetBytes("api_key").Return(nil).Times(1)
+	//Test
+	s := NewServer(config)
+	bytes, _ := s.sharedKey()
+	bytes2, err := s.sharedKey()
+
+	g.Expect(err).Should(BeNil())
+	g.Expect(len(bytes)).Should(Equal(32))
+	g.Expect(bytes).ShouldNot(Equal(bytes2))
+
+	s.Params.APIKey = []byte("demokey")
+	bytes, err = s.sharedKey()
+	g.Expect(err).Should(BeNil())
+	g.Expect(bytes).Should(Equal([]byte("demokey")))
+
+	s.Params.APIKey = nil
+	s.Params.Passphrase = "serverpass"
+	bytes, err = s.sharedKey()
+	g.Expect(err).Should(BeNil())
+	g.Expect(len(bytes)).Should(Equal(32))
+	g.Expect(bytes).Should(Equal([]byte("cd2234c6b7755b8dd230bdbc84544c38")))
 }

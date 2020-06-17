@@ -9,6 +9,7 @@ import (
 
 var appname = "torrentd"
 
+//go:generate mockgen -destination=mocks/mock_config.go -package=mocks . Config
 type Config interface {
 	GetSiteOption(name, key string) (string, bool, error)
 	GetSite(section string) (map[string]string, error)
