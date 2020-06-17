@@ -70,7 +70,7 @@ func (s *Server) Listen(tracker *indexer.Facade) error {
 	pprof.Register(r)
 	s.setupRoutes(r)
 	log.Info("Starting server...")
-	key, _ := s.sharedKey()
+	key := s.sharedKey()
 	log.Infof("API Key: %s", key)
 	err := r.Run(fmt.Sprintf(":%d", s.Port))
 	return err

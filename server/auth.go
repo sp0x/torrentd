@@ -9,7 +9,7 @@ import (
 
 //sharedKey gets the hash of the api key or passphrase that's configured in our server.
 //If no key or passphrase is given, an array of 16 random bytes is returned.
-func (s *Server) sharedKey() ([]byte, error) {
+func (s *Server) sharedKey() []byte {
 	var b []byte
 	switch {
 	case s.Params.APIKey != nil:
@@ -25,17 +25,14 @@ func (s *Server) sharedKey() ([]byte, error) {
 		}
 		b = []byte(fmt.Sprintf("%x", b))
 	}
-	return b, nil
+	return b
 }
 
 func (s *Server) checkAPIKey(inputKey string) bool {
 	if inputKey == "" {
 		return false
 	}
-	k, err := s.sharedKey()
-	if err != nil {
-		return false
-	}
+	k := s.sharedKey()
 	keyToMatch := fmt.Sprintf("%s", k)
 	if inputKey == keyToMatch {
 		return true

@@ -17,7 +17,7 @@ import (
 func (s *Server) aggregatesStatus(c *gin.Context) {
 	aggregate, err := indexer.Lookup(s.config, "all")
 	if err != nil {
-		c.Error(err)
+		_ = c.Error(err)
 		return
 	}
 
@@ -36,15 +36,15 @@ var searchCache, _ = cache.NewTTL(100, 1*time.Hour)
 //Handle queries
 func (s *Server) torznabHandler(c *gin.Context) {
 	_ = c.Params
-	indexerID := c.Param("indexer")
+	indexerID := c.Param("ixr")
 	t := c.Query("t")
-	indexer, err := indexer.Lookup(s.config, indexerID)
+	ixr, err := indexer.Lookup(s.config, indexerID)
 	if err != nil {
 		torznab.Error(c, err.Error(), torznab.ErrIncorrectParameter)
 		return
 	}
 	if t == "caps" {
-		indexer.Capabilities().ServeHTTP(c.Writer, c.Request)
+		ixr.Capabilities().ServeHTTP(c.Writer, c.Request)
 		return
 	}
 	apiKey := c.Query("apikey")
@@ -69,7 +69,7 @@ func (s *Server) torznabHandler(c *gin.Context) {
 		if cachedFeed, ok := searchCache.Get(query.UniqueKey()); ok {
 			feed = cachedFeed.(*torznab.ResultFeed)
 		} else {
-			feed, err = s.torznabSearch(c.Request, query, indexer)
+			feed, err = s.torznabSearch(c.Request, query, ixr)
 			searchCache.Add(query.UniqueKey(), feed)
 		}
 		if err != nil {
@@ -78,11 +78,11 @@ func (s *Server) torznabHandler(c *gin.Context) {
 		}
 		switch c.Query("format") {
 		case "atom":
-			atomOutput(c, feed, indexer.GetEncoding())
+			atomOutput(c, feed, ixr.GetEncoding())
 		case "", "xml":
-			xmlOutput(c, feed, indexer.GetEncoding())
+			xmlOutput(c, feed, ixr.GetEncoding())
 		case "json":
-			jsonOutput(c.Writer, feed, indexer.GetEncoding())
+			jsonOutput(c.Writer, feed, ixr.GetEncoding())
 		}
 
 	default:
@@ -133,10 +133,7 @@ func (s *Server) rewriteLinks(r *http.Request, items []search.ExternalResultItem
 	if err != nil {
 		return nil, err
 	}
-	k, err := s.sharedKey()
-	if err != nil {
-		return nil, err
-	}
+	apiKey := s.sharedKey()
 	// rewrite non-magnet links to use the server
 	for idx, item := range items {
 		if strings.HasPrefix(item.Link, "magnet:") {
@@ -152,7 +149,7 @@ func (s *Server) rewriteLinks(r *http.Request, items []search.ExternalResultItem
 			Link: sourceLink,
 		}
 
-		te, err := t.Encode(k)
+		te, err := t.Encode(apiKey)
 		if err != nil {
 			log.Debugf("Error encoding token: %v", err)
 			return nil, err

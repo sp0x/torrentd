@@ -17,6 +17,8 @@ func TestServer_checkAPIKey(t *testing.T) {
 	config.EXPECT().GetBytes("api_key").Return(nil).Times(1)
 	//Test
 	s := NewServer(config)
+	g.Expect(s.checkAPIKey("")).Should(BeFalse())
+
 	s.Params.APIKey = []byte("demokey")
 	ok := s.checkAPIKey("demokey")
 	g.Expect(ok).Should(BeTrue())
@@ -40,22 +42,19 @@ func TestServer_sharedKey(t *testing.T) {
 	config.EXPECT().GetBytes("api_key").Return(nil).Times(1)
 	//Test
 	s := NewServer(config)
-	bytes, _ := s.sharedKey()
-	bytes2, err := s.sharedKey()
+	bytes := s.sharedKey()
+	bytes2 := s.sharedKey()
 
-	g.Expect(err).Should(BeNil())
 	g.Expect(len(bytes)).Should(Equal(32))
 	g.Expect(bytes).ShouldNot(Equal(bytes2))
 
 	s.Params.APIKey = []byte("demokey")
-	bytes, err = s.sharedKey()
-	g.Expect(err).Should(BeNil())
+	bytes = s.sharedKey()
 	g.Expect(bytes).Should(Equal([]byte("demokey")))
 
 	s.Params.APIKey = nil
 	s.Params.Passphrase = "serverpass"
-	bytes, err = s.sharedKey()
-	g.Expect(err).Should(BeNil())
+	bytes = s.sharedKey()
 	g.Expect(len(bytes)).Should(Equal(32))
 	g.Expect(bytes).Should(Equal([]byte("cd2234c6b7755b8dd230bdbc84544c38")))
 }
