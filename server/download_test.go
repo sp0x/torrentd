@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"github.com/golang/mock/gomock"
 
 	"github.com/sp0x/torrentd/config/mocks"
@@ -54,14 +55,13 @@ func TestServer_downloadHandler(t *testing.T) {
 	s.downloadHandler(context)
 
 	//If we've given a valid link, we should see the download
-	//tkn = token{ Site: "rutracker.org", Link: "http://google.com"}
-	//tokenString, _ = tkn.Encode([]byte("demotoken"))
-	//context.EXPECT().Param("token").Return(tokenString)
-	//context.EXPECT().Param("filename").Return("")
-	//context.EXPECT().String(404, gomock.Any())
-	////We expect the url of the site to be checked.
-	//config.EXPECT().GetSiteOption("rutracker.org", "url")
-
-	//context.EXPECT().Error(gomock.Any()).Times(1)
-	//s.downloadHandler(context)
+	tkn = token{Site: "rutracker.org", Link: "http://rutracker.org"}
+	tokenString, _ = tkn.Encode([]byte("demotoken"))
+	context.EXPECT().Param("token").Return(tokenString)
+	context.EXPECT().Param("filename").Return("")
+	//We expect the url of the site to be checked.
+	config.EXPECT().GetSite("rutracker.org")
+	config.EXPECT().GetSiteOption("rutracker.org", "url")
+	context.EXPECT().Error(errors.New("couldn't open stream for download")).Times(1)
+	s.downloadHandler(context)
 }
