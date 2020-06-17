@@ -25,10 +25,9 @@ type GenericSearchOptions struct {
 	StopOnStaleTorrents  bool
 }
 
-//Creates a new facade using the configuration
+//NewFacadeFromConfiguration Creates a new facade using the configuration
 func NewFacadeFromConfiguration(config config.Config) *Facade {
-	facade := Facade{}
-	facade.Scope = NewScope()
+	facade := NewEmptyFacade(config)
 	indexerName := config.GetString("Indexer")
 	if indexerName == "" {
 		indexerName = "rutracker.org"
@@ -38,21 +37,27 @@ func NewFacadeFromConfiguration(config config.Config) *Facade {
 		log.Errorf("Could not find Indexer `%s`.\n", indexerName)
 		return nil
 	}
-	facade.Config = config
 	facade.Indexer = ixrObj
-	return &facade
+	return facade
+}
+
+//NewEmptyFacade creates a new indexer facade with it's own scope and config.
+func NewEmptyFacade(config config.Config) *Facade {
+	facade := &Facade{}
+	facade.Scope = NewScope()
+	facade.Config = config
+	return facade
 }
 
 //NewFacade Creates a new facade for an indexer with the given name and config.
 //If any categories are given, the facade must be for an indexer that supports these categories.
 //If you don't provide a name or name is `all`, an aggregate is used.
-func NewFacade(name string, config config.Config, cats ...categories.Category) (*Facade, error) {
-	if name == "" || name == "all" {
+func NewFacade(indexerName string, config config.Config, cats ...categories.Category) (*Facade, error) {
+	if indexerName == "" || indexerName == "all" {
 		return NewAggregateIndexerHelperWithCategories(config, cats...), nil
 	}
-	facade := Facade{}
-	facade.Scope = NewScope()
-	indexerObj, err := facade.Scope.Lookup(config, name)
+	facade := NewEmptyFacade(config)
+	indexerObj, err := facade.Scope.Lookup(config, indexerName)
 	if err != nil {
 		log.Errorf("Could not find Indexer `%s`.\n", indexerObj)
 		return nil, errors.New("indexer wasn't found")
@@ -62,9 +67,8 @@ func NewFacade(name string, config config.Config, cats ...categories.Category) (
 			return nil, errors.New("indexer doesn't support the needed categories")
 		}
 	}
-	facade.Config = config
 	facade.Indexer = indexerObj
-	return &facade, nil
+	return facade, nil
 }
 
 //NewAggregateIndexerHelperWithCategories Finds an indexer from the config, that matches the given categories.

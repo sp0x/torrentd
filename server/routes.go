@@ -14,7 +14,7 @@ func (s *Server) setupRoutes(r *gin.Engine) {
 	r.GET("/music", func(c *gin.Context) { rss.ServeMusic(c) })
 	r.GET("/anime", func(c *gin.Context) { rss.ServeAnime(c) })
 	r.GET("/search/:name", func(c *gin.Context) {
-		rss.SearchAndServe(s.tracker, s.tracker.GetDefaultOptions(), c)
+		rss.SearchAndServe(s.indexerFacade, s.indexerFacade.GetDefaultOptions(), c)
 	})
 	r.GET("/status", s.status)
 

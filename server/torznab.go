@@ -15,7 +15,7 @@ import (
 )
 
 func (s *Server) aggregatesStatus(c *gin.Context) {
-	aggregate, err := s.tracker.Scope.Lookup(s.config, "all")
+	aggregate, err := s.indexerFacade.Scope.Lookup(s.config, "all")
 	if err != nil {
 		_ = c.Error(err)
 		return
@@ -38,7 +38,7 @@ func (s *Server) torznabHandler(c *gin.Context) {
 	_ = c.Params
 	indexerID := c.Param("ixr")
 	t := c.Query("t")
-	ixr, err := s.tracker.Scope.Lookup(s.config, indexerID)
+	ixr, err := s.indexerFacade.Scope.Lookup(s.config, indexerID)
 	if err != nil {
 		torznab.Error(c, err.Error(), torznab.ErrIncorrectParameter)
 		return

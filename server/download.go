@@ -23,7 +23,7 @@ func (s *Server) downloadHandler(c http.Context) {
 		_ = c.Error(err)
 		return
 	}
-	ixr, err := s.tracker.Scope.Lookup(s.config, t.Site)
+	ixr, err := s.indexerFacade.Scope.Lookup(s.config, t.Site)
 	if err != nil {
 		_ = c.Error(err)
 		return

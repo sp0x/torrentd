@@ -6,6 +6,7 @@ import (
 	"github.com/sp0x/torrentd/indexer/categories"
 )
 
+//go:generate mockgen -source creation.go -destination=mocks/creation.go -package=mocks
 type Scope interface {
 	Lookup(config config.Config, key string) (Indexer, error)
 	CreateAggregateForCategories(config config.Config, cats []categories.Category) (Indexer, error)

@@ -20,8 +20,8 @@ import (
 
 //
 type Server struct {
-	tracker   *indexer.Facade
-	tabWriter *tabwriter.Writer
+	indexerFacade *indexer.Facade
+	tabWriter     *tabwriter.Writer
 	//Params    Params
 	config     config.Config
 	Port       int
@@ -54,6 +54,7 @@ func NewServer(conf config.Config) *Server {
 		Version:    s.version,
 		APIKey:     conf.GetBytes("api_key"),
 	}
+	s.indexerFacade = indexer.NewFacadeFromConfiguration(conf)
 	return s
 }
 
@@ -61,7 +62,7 @@ func (s *Server) Listen(tracker *indexer.Facade) error {
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 
-	s.tracker = tracker
+	s.indexerFacade = tracker
 	s.tabWriter = tabWr
 	r := gin.Default()
 	//Register pprof so we can profile our app.
