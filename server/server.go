@@ -54,7 +54,7 @@ func NewServer(conf config.Config) *Server {
 		Version:    s.version,
 		APIKey:     conf.GetBytes("api_key"),
 	}
-	s.indexerFacade = indexer.NewFacadeFromConfiguration(conf)
+	s.indexerFacade = indexer.NewEmptyFacade(conf)
 	return s
 }
 

@@ -23,13 +23,17 @@ func (s *Server) downloadHandler(c http.Context) {
 		_ = c.Error(err)
 		return
 	}
+	if t.Link == "" {
+		c.String(404, "Indexer link not found")
+		return
+	}
 	ixr, err := s.indexerFacade.Scope.Lookup(s.config, t.Site)
 	if err != nil {
 		_ = c.Error(err)
 		return
 	}
-	if t.Link == "" {
-		c.String(404, "Indexer link not found")
+	if ixr == nil {
+		_ = c.Error(errors.New("indexer not found"))
 		return
 	}
 	rc, err := ixr.Download(t.Link)

@@ -18,6 +18,7 @@ type Info interface {
 	GetLink() string
 }
 
+//go:generate mockgen -source indexer.go -destination=mocks/indexer.go -package=mocks
 type Indexer interface {
 	Info() Info
 	Search(query torznab.Query, srch search.Instance) (search.Instance, error)
