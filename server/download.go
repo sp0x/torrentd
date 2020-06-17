@@ -1,15 +1,16 @@
 package server
 
 import (
-	"github.com/gin-gonic/gin"
+	"errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer"
-	"io"
-	"net/http"
+	"github.com/sp0x/torrentd/server/http"
 )
 
-func (s *Server) downloadHandler(c *gin.Context) {
-	_ = c.Params
+func (s *Server) downloadHandler(c http.Context) {
+	if c == nil {
+		return
+	}
 	token := c.Param("token")
 	filename := c.Param("filename")
 
@@ -18,36 +19,33 @@ func (s *Server) downloadHandler(c *gin.Context) {
 	apiKey := s.sharedKey()
 	t, err := decodeToken(token, apiKey)
 	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusBadGateway)
+		_ = c.Error(err)
 		return
 	}
-
 	ixr, err := indexer.Lookup(s.config, t.Site)
 	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusBadGateway)
+		_ = c.Error(err)
 		return
 	}
 	if t.Link == "" {
-		_, _ = c.Writer.WriteString("Indexer link not found.\n")
-		http.NotFound(c.Writer, c.Request)
+		c.String(404, "Indexer link not found")
 		return
 	}
 	rc, err := ixr.Download(t.Link)
 	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusBadGateway)
+		_ = c.Error(err)
 		return
 	}
 	if rc == nil {
-		http.Error(c.Writer, "Couldn't open stream for download", http.StatusBadGateway)
+		_ = c.Error(errors.New("couldn't open stream for download"))
 		return
 	}
-
-	c.Writer.Header().Set("Content-Type", "application/x-bittorrent")
-	c.Writer.Header().Set("Content-Disposition", "attachment; filename="+filename)
-	c.Writer.Header().Set("Content-Transfer-Encoding", "binary")
-
+	c.Header("Content-Type", "application/x-bittorrent")
+	c.Header("Content-Disposition", "attachment; filename="+filename)
+	c.Header("Content-Transfer-Encoding", "binary")
 	defer func() {
 		_ = rc.Close()
 	}()
-	_, _ = io.Copy(c.Writer, rc)
+	c.DataFromReader(200, 0, "application/x-bittorrent", rc, nil)
+	//_, _ = io.Copy(c.Writer, rc)
 }

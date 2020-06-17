@@ -7,8 +7,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer"
-	"github.com/sp0x/torrentd/server/rss"
-	"github.com/sp0x/torrentd/storage"
 	"net/http"
 	"net/url"
 	"os"
@@ -77,11 +75,6 @@ func (s *Server) Listen(tracker *indexer.Facade) error {
 }
 
 var hostname string
-
-func (s *Server) serveAllTorrents(c *gin.Context) {
-	torrents := storage.DefaultStorage().GetTorrentsInCategories([]int{})
-	rss.SendRssFeed(hostname, "torrents", torrents, c)
-}
 
 func (s *Server) baseURL(r *http.Request, appendPath string) (*url.URL, error) {
 	proto := "http"
