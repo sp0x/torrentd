@@ -3,7 +3,6 @@ package bots
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	. "github.com/onsi/gomega"
-	"github.com/sp0x/torrentd/storage"
 	"reflect"
 	"testing"
 )
@@ -95,33 +94,33 @@ func TestNewTelegram(t *testing.T) {
 //	})
 //	g.Expect(chats).ShouldNot(Equal(0))
 //}
-
-func TestTelegramRunner_Run(t *testing.T) {
-	g := NewGomegaWithT(t)
-	tgram, _ := NewTelegram("asd", MockedApiProvider)
-	//Here we need to run the bot and verify that it indeed receives a message
-	g.Expect(tgram).ShouldNot(BeNil())
-}
-
-func TestTelegramRunner_listenForUpdates(t1 *testing.T) {
-	type fields struct {
-		bot     *tgbotapi.BotAPI
-		updates tgbotapi.UpdatesChannel
-		bolts   *storage.BoltStorage
-	}
-	tests := []struct {
-		name   string
-		fields fields
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t1.Run(tt.name, func(t1 *testing.T) {
-			//t := &TelegramRunner{
-			//	bot:     tt.fields.bot,
-			//	updates: tt.fields.updates,
-			//	bolts:   tt.fields.bolts,
-			//}
-		})
-	}
-}
+//
+//func TestTelegramRunner_Run(t *testing.T) {
+//	g := NewGomegaWithT(t)
+//	tgram, _ := NewTelegram("asd", MockedApiProvider)
+//	//Here we need to run the bot and verify that it indeed receives a message
+//	g.Expect(tgram).ShouldNot(BeNil())
+//}
+//
+//func TestTelegramRunner_listenForUpdates(t1 *testing.T) {
+//	type fields struct {
+//		bot     *tgbotapi.BotAPI
+//		updates tgbotapi.UpdatesChannel
+//		bolts   *storage.BoltStorage
+//	}
+//	tests := []struct {
+//		name   string
+//		fields fields
+//	}{
+//		// TODO: Add test cases.
+//	}
+//	for _, tt := range tests {
+//		t1.Run(tt.name, func(t1 *testing.T) {
+//			//t := &TelegramRunner{
+//			//	bot:     tt.fields.bot,
+//			//	updates: tt.fields.updates,
+//			//	bolts:   tt.fields.bolts,
+//			//}
+//		})
+//	}
+//}
