@@ -49,14 +49,14 @@ func GetNewTorrents(client *indexer.Facade, fetchOptions *indexer.GenericSearchO
 			//isNew, isUpdate := HandleTorrentDiscovery(torrent)
 			if torrent.IsNew() || torrent.IsUpdate() {
 				if torrent.IsNew() && !torrent.IsUpdate() {
-					_, _ = fmt.Fprintf(tabWr, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
+					_, _ = fmt.Fprintf(tabWr, "Found new result #%s:\t%s\t[%s]:\t%s\n",
 						torrent.LocalId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Title)
 				} else {
-					_, _ = fmt.Fprintf(tabWr, "Updated torrent #%s:\t%s\t[%s]:\t%s\n",
+					_, _ = fmt.Fprintf(tabWr, "Updated result #%s:\t%s\t[%s]:\t%s\n",
 						torrent.LocalId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Title)
 				}
 			} else {
-				_, _ = fmt.Fprintf(tabWr, "Torrent #%s:\t%s\t[%s]:\t%s\n",
+				_, _ = fmt.Fprintf(tabWr, "Result #%s:\t%s\t[%s]:\t%s\n",
 					torrent.LocalId, torrent.AddedOnStr(), "#", torrent.Title)
 			}
 			_ = tabWr.Flush()

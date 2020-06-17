@@ -53,10 +53,10 @@ func Watch(helper *Facade, initialQuery torznab.Query, interval int) <-chan sear
 				if result.IsNew() || result.IsUpdate() {
 					if result.IsNew() && !result.IsUpdate() {
 						log.WithFields(log.Fields{"id": result.LocalId, "name": result.Title, "pub": result.PublishDate}).
-							Info("Found new torrent")
+							Info("Found new result")
 					} else {
 						log.WithFields(log.Fields{"id": result.LocalId, "name": result.Title, "pub": result.PublishDate}).
-							Info("Updated torrent")
+							Info("Updated result")
 					}
 
 				}

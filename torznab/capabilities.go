@@ -95,8 +95,8 @@ func (c Capabilities) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		})
 	}
 
-	e.Encode(cx)
-	return nil
+	err := e.Encode(cx)
+	return err
 }
 
 func (c Capabilities) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -107,5 +107,5 @@ func (c Capabilities) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/xml")
-	w.Write(x)
+	_, _ = w.Write(x)
 }

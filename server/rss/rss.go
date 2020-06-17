@@ -51,14 +51,14 @@ func SearchAndServe(ixr *indexer.Facade, options *indexer.GenericSearchOptions, 
 			//isNew, isUpdate := torrent.HandleTorrentDiscovery(tr)
 			if torrent.IsNew() || torrent.IsUpdate() {
 				if torrent.IsNew() && !torrent.IsUpdate() {
-					_, _ = fmt.Fprintf(tabWriter, "Found new torrent #%s:\t%s\t[%s]:\t%s\n",
+					_, _ = fmt.Fprintf(tabWriter, "Found new result #%s:\t%s\t[%s]:\t%s\n",
 						torrent.LocalId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Title)
 				} else {
-					_, _ = fmt.Fprintf(tabWriter, "Updated torrent #%s:\t%s\t[%s]:\t%s\n",
+					_, _ = fmt.Fprintf(tabWriter, "Updated result #%s:\t%s\t[%s]:\t%s\n",
 						torrent.LocalId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Title)
 				}
 			} else {
-				_, _ = fmt.Fprintf(tabWriter, "Torrent #%s:\t%s\t[%s]:\t%s\n",
+				_, _ = fmt.Fprintf(tabWriter, "Result #%s:\t%s\t[%s]:\t%s\n",
 					torrent.LocalId, torrent.AddedOnStr(), "#", torrent.Title)
 			}
 			items = append(items, torrent)
