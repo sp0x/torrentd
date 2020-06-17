@@ -10,11 +10,6 @@ import (
 //An indexer definition loader that uses embedded definitions.
 type DefinitionDataLoader func(key string) ([]byte, error)
 
-type EmbeddedDefinitionSource interface {
-	GetNames() []string
-	GetData(key string) ([]byte, error)
-}
-
 type AssetLoader struct {
 	Names    []string
 	Resolver DefinitionDataLoader
@@ -43,6 +38,7 @@ func GetDefaultEmbeddedDefinitionSource() DefinitionLoader {
 	return &src
 }
 
+//CreateEmbeddedDefinitionSource creates a new definition loader from a set of resource names and a loader.
 func CreateEmbeddedDefinitionSource(definitionNames []string, loader DefinitionDataLoader) DefinitionLoader {
 	defLoader := &AssetLoader{}
 	defLoader.Names = definitionNames
@@ -50,19 +46,10 @@ func CreateEmbeddedDefinitionSource(definitionNames []string, loader DefinitionD
 	return defLoader
 }
 
-func (l *AssetLoader) GetNames() []string {
-	return l.Names
-}
-
-func (l *AssetLoader) GetData(key string) ([]byte, error) {
-	return l.Resolver(key)
-}
-
 //List all the names of the embedded definitions
 func (l *AssetLoader) List() ([]string, error) {
-	names := definitions.GzipAssetNames()
 	var results []string
-	for _, name := range names {
+	for _, name := range l.Names {
 		fname := path.Base(name)
 		fname = strings.Replace(fname, ".yml", "", -1)
 		fname = strings.Replace(fname, ".yaml", "", -1)
@@ -73,20 +60,14 @@ func (l *AssetLoader) List() ([]string, error) {
 
 //Load a definition with a given name
 func (l *AssetLoader) Load(key string) (*IndexerDefinition, error) {
-	fullname := fmt.Sprintf("definitions/%s.yml", key)
-	data, err := definitions.GzipAsset(fullname)
+	data, err := l.Resolver(key)
 	if err != nil {
-		fullname = fmt.Sprintf("definitions/%s.yaml", key)
-		data, err = definitions.GzipAsset(fullname)
-		if err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
-	data, _ = definitions.UnzipData(data)
 	def, err := ParseDefinition(data)
 	if err != nil {
 		return def, err
 	}
-	def.stats.Source = "asset:" + fullname
+	def.stats.Source = "asset:" + key
 	return def, err
 }
