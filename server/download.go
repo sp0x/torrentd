@@ -13,7 +13,9 @@ func (s *Server) downloadHandler(c http.Context) {
 	}
 	token := c.Param("token")
 	filename := c.Param("filename")
-
+	if token == "" {
+		return
+	}
 	log.WithFields(log.Fields{"filename": filename}).Debugf("Processing download via handler")
 
 	apiKey := s.sharedKey()
