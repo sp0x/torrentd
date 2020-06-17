@@ -15,6 +15,7 @@ type Facade struct {
 	Indexer Indexer
 	//Configuration for the indexer.
 	Config config.Config
+	Scope  Scope
 }
 
 type GenericSearchOptions struct {
@@ -26,19 +27,20 @@ type GenericSearchOptions struct {
 
 //Creates a new facade using the configuration
 func NewFacadeFromConfiguration(config config.Config) *Facade {
-	rt := Facade{}
+	facade := Facade{}
+	facade.Scope = NewScope()
 	indexerName := config.GetString("Indexer")
 	if indexerName == "" {
 		indexerName = "rutracker.org"
 	}
-	ixrObj, err := Lookup(config, indexerName)
+	ixrObj, err := facade.Scope.Lookup(config, indexerName)
 	if err != nil {
 		log.Errorf("Could not find Indexer `%s`.\n", indexerName)
 		return nil
 	}
-	rt.Config = config
-	rt.Indexer = ixrObj
-	return &rt
+	facade.Config = config
+	facade.Indexer = ixrObj
+	return &facade
 }
 
 //NewFacade Creates a new facade for an indexer with the given name and config.
@@ -49,7 +51,8 @@ func NewFacade(name string, config config.Config, cats ...categories.Category) (
 		return NewAggregateIndexerHelperWithCategories(config, cats...), nil
 	}
 	facade := Facade{}
-	indexerObj, err := Lookup(config, name)
+	facade.Scope = NewScope()
+	indexerObj, err := facade.Scope.Lookup(config, name)
 	if err != nil {
 		log.Errorf("Could not find Indexer `%s`.\n", indexerObj)
 		return nil, errors.New("indexer wasn't found")
@@ -66,16 +69,17 @@ func NewFacade(name string, config config.Config, cats ...categories.Category) (
 
 //NewAggregateIndexerHelperWithCategories Finds an indexer from the config, that matches the given categories.
 func NewAggregateIndexerHelperWithCategories(config config.Config, cats ...categories.Category) *Facade {
-	rt := Facade{}
+	facade := Facade{}
+	facade.Scope = NewScope()
 	indexerName := config.GetString("Indexer")
-	ixrObj, err := CreateAggregateForCategories(config, cats)
+	ixrObj, err := facade.Scope.CreateAggregateForCategories(config, cats)
 	if err != nil {
 		log.Errorf("Could not find Indexer `%s`.\n", indexerName)
 		return nil
 	}
-	rt.Config = config
-	rt.Indexer = ixrObj
-	return &rt
+	facade.Config = config
+	facade.Indexer = ixrObj
+	return &facade
 }
 
 //Search using a given query

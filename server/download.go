@@ -3,7 +3,6 @@ package server
 import (
 	"errors"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/server/http"
 )
 
@@ -24,7 +23,7 @@ func (s *Server) downloadHandler(c http.Context) {
 		_ = c.Error(err)
 		return
 	}
-	ixr, err := indexer.Lookup(s.config, t.Site)
+	ixr, err := s.tracker.Scope.Lookup(s.config, t.Site)
 	if err != nil {
 		_ = c.Error(err)
 		return

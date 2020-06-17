@@ -14,7 +14,9 @@ import (
 //Gets torrent information from a given tracker and updates the torrent db
 func ResolveTorrents(client *indexer.Facade, hours int) {
 	gdb := db.GetOrmDb("")
-	defer gdb.Close()
+	defer func() {
+		_ = gdb.Close()
+	}()
 	torrents := storage.GetOlderThanHours(hours)
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
@@ -22,12 +24,13 @@ func ResolveTorrents(client *indexer.Facade, hours int) {
 		log.Errorf("Failed while checking indexer %s. Err: %s\n", reflect.TypeOf(client.Indexer), err)
 		return
 	}
+	scope := indexer.NewScope()
 	for i, t := range torrents {
 		//Skip already resolved torrents.
 		if t.Announce != "" {
 			continue
 		}
-		ixr, err := indexer.Lookup(client.Config, t.Site)
+		ixr, err := scope.Lookup(client.Config, t.Site)
 		if err != nil {
 			log.WithFields(log.Fields{"err": err, "site": t.Site}).
 				Warningf("Error while looking up indexer.")
@@ -45,6 +48,10 @@ func ResolveTorrents(client *indexer.Facade, hours int) {
 			continue
 		}
 		reader, err := ixr.Open(&t)
+		if err != nil {
+			log.Debugf("Couldn't open torrent [%v] %v", t.LocalId, t.Title)
+			continue
+		}
 		log.
 			WithFields(log.Fields{"link": t.SourceLink, "name": t.Title}).
 			Info("Resolving")
