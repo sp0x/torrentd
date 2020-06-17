@@ -10,7 +10,7 @@ import (
 func TestSendRssFeed(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	context := mocks.NewMockHttpContext(ctrl)
+	context := mocks.NewMockContext(ctrl)
 	var items []search.ExternalResultItem
 	items = append(items, search.ExternalResultItem{ResultItem: search.ResultItem{Title: "A"}})
 	items = append(items, search.ExternalResultItem{ResultItem: search.ResultItem{Title: "B"}})
