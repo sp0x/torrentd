@@ -27,7 +27,7 @@ func Watch(client *indexer.Facade, interval int) {
 	}
 	//client.clearSearch()
 	var currentSearch search.Instance
-	for true {
+	for {
 		var err error
 		if currentSearch == nil {
 			currentSearch, err = client.SearchKeywords(nil, "", page)
