@@ -553,7 +553,7 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 		return nil, err
 	}
 	dom := r.browser.Dom()
-	//html := r.browser.Body()
+	html := r.browser.Body()
 	r.logger.
 		WithFields(logrus.Fields{}).
 		Debugf("Fetched Indexer page.\n")
@@ -571,7 +571,7 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 	if remove := r.definition.Search.Rows.Remove; remove != "" {
 		matching := dom.Find(r.definition.Search.Rows.Selector).Filter(remove)
 		r.logger.
-			WithFields(logrus.Fields{"selector": remove}).
+			WithFields(logrus.Fields{"selector": remove, "html": html}).
 			Debugf("Applying remove to %d rows", matching.Length())
 		matching.Remove()
 	}
