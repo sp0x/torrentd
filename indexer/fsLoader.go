@@ -1,14 +1,35 @@
 package indexer
 
 import (
+	"fmt"
+	"github.com/mitchellh/go-homedir"
 	"github.com/sp0x/torrentd/config"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
 type FileIndexLoader struct {
 	Directories []string
+}
+
+//NewFsLoader creates a new file index loader which looks for definitions in ~/.#{appName}/indexes and ./indexes
+func NewFsLoader(appName string) *FileIndexLoader {
+	localDirectory := ""
+	entityName := "indexes"
+	if cwd, err := os.Getwd(); err == nil {
+		localDirectory = filepath.Join(cwd, entityName)
+	}
+	home, _ := homedir.Dir()
+	homeDefsDir := path.Join(home, fmt.Sprintf(".%s", appName), entityName)
+	x := &FileIndexLoader{
+		Directories: []string{
+			localDirectory,
+			homeDefsDir,
+		},
+	}
+	return x
 }
 
 func defaultFsLoader() DefinitionLoader {
