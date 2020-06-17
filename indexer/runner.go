@@ -639,7 +639,7 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 	}
 
 	r.logger.
-		WithFields(logrus.Fields{"Indexer": r.definition.Site, "q": query.Keywords(), "time": time.Now().Sub(timer)}).
+		WithFields(logrus.Fields{"Indexer": r.definition.Site, "q": query.Keywords(), "time": time.Since(timer)}).
 		Infof("Query returned %d results", len(extracted))
 
 	//var items []search.ExternalResultItem
