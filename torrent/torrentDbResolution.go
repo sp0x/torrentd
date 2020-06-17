@@ -49,7 +49,7 @@ func ResolveTorrents(client *indexer.Facade, hours int) {
 		}
 		reader, err := ixr.Open(&t)
 		if err != nil {
-			log.Debugf("Couldn't open torrent [%v] %v", t.LocalId, t.Title)
+			log.Debugf("Couldn't open result [%v] %v", t.LocalId, t.Title)
 			continue
 		}
 		log.
@@ -57,7 +57,7 @@ func ResolveTorrents(client *indexer.Facade, hours int) {
 			Info("Resolving")
 		def, err := ParseTorrentFromStream(reader)
 		if err != nil {
-			log.Debugf("Could not resolve torrent: [%v] %v", t.LocalId, t.Title)
+			log.Debugf("Could not resolve result: [%v] %v", t.LocalId, t.Title)
 			continue
 		}
 		t.Announce = def.Announce

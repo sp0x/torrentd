@@ -22,7 +22,7 @@ func init() {
 func resolveTorrents(_ *cobra.Command, _ []string) {
 	helper := indexer.NewFacadeFromConfiguration(&appConfig)
 	if helper == nil {
-		log.Error("Couldn't initialize torrent helper.")
+		log.Error("Couldn't initialize helper.")
 		return
 	}
 	torrent.ResolveTorrents(helper, resolutionHours)

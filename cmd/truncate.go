@@ -9,7 +9,7 @@ func init() {
 	cmdTruncate := &cobra.Command{
 		Use:     "truncate",
 		Aliases: []string{"t"},
-		Short:   "Truncates the torrent database",
+		Short:   "Truncates the database",
 		Run:     truncateTorrentDb,
 	}
 	rootCmd.AddCommand(cmdTruncate)
