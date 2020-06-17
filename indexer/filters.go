@@ -47,7 +47,7 @@ func invokeFilter(name string, args interface{}, value string) (string, error) {
 		}
 		return "", fmt.Errorf("Filter argument type %T was invalid", args)
 	case "bool":
-		value := formatting.ClearSpaces(value)
+		value := formatting.NormalizeSpace(value)
 		if value != "" {
 			value = "true"
 		} else {
@@ -90,7 +90,7 @@ func invokeFilter(name string, args interface{}, value string) (string, error) {
 		}
 		return strings.Trim(value, cutset), nil
 	case "whitespace":
-		return formatting.ClearSpaces(value), nil
+		return formatting.NormalizeSpace(value), nil
 	case "append":
 		str, ok := args.(string)
 		if !ok {
@@ -125,7 +125,7 @@ func invokeFilter(name string, args interface{}, value string) (string, error) {
 		value = fmt.Sprint(formatting.SizeStrToBytes(value))
 		return value, nil
 	case "number":
-		value = formatting.StripToNumber(formatting.ClearSpaces(value))
+		value = formatting.StripToNumber(formatting.NormalizeSpace(value))
 		return value, nil
 	case "mapreplace":
 		return filterMapReplace(value, args)

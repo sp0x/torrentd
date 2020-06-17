@@ -8,9 +8,9 @@ import (
 	"time"
 )
 
-func ClearSpaces(raw string) string {
+func NormalizeSpace(raw string) string {
 	txt := strings.Replace(raw, "\n", "", -1)
-	txt = strings.Replace(txt, "\t", "  ", -1)
+	txt = strings.Replace(txt, "\t", " ", -1)
 	txt = strings.Replace(txt, "  ", " ", -1)
 	return txt
 }
@@ -19,6 +19,7 @@ func fixMonths(str string) string {
 	months := map[string]string{
 		"Янв": "Jan",
 		"Фев": "Feb",
+		"Феб": "Feb",
 		"Мар": "Mar",
 		"Апр": "Apr",
 		"Май": "May",
@@ -50,7 +51,6 @@ func FormatTime(str string) time.Time {
 	} else {
 		t, err = time.Parse("2-Jan-06", str)
 	}
-	//t, err := time.Parse("2-Jan-20 17:35:00", str)
 	if err != nil {
 		log.Errorf("Error while parsing time string: %s\t %v\n", str, err)
 		return time.Now()
@@ -58,7 +58,7 @@ func FormatTime(str string) time.Time {
 	return t
 }
 
-func ExtractAttr(uri string, param string) string {
+func ExtractAttributeFromQuery(uri string, param string) string {
 	furl, err := url.Parse(uri)
 	if err != nil {
 		return ""
@@ -81,7 +81,7 @@ func StripToNumber(str string) string {
 
 func SizeStrToBytes(str string) uint64 {
 	str = strings.ToLower(str)
-	str = ClearSpaces(str)
+	str = NormalizeSpace(str)
 	multiplier := 1
 	if strings.Contains(str, "gb") {
 		multiplier = 1028 * 1028 * 1028
