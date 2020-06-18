@@ -29,15 +29,18 @@ type ExternalResultItem struct {
 	PublishedWith     string
 }
 
+//SetState sets the staleness state of this result.
 func (i *ExternalResultItem) SetState(isNew bool, update bool) {
 	i.isNew = isNew
 	i.isUpdate = update
 }
 
+//IsNew whether the result is new to us.
 func (i *ExternalResultItem) IsNew() bool {
 	return i.isNew
 }
 
+//IsUpdate whether the result is an update to an existing one.
 func (i *ExternalResultItem) IsUpdate() bool {
 	return i.isUpdate
 }
@@ -94,7 +97,8 @@ type ResultIndexer struct {
 	Name string `xml:",chardata"` //make the name the value
 }
 
-func (ri *ResultItem) AddedOnStr() interface{} {
+//AddedOnStr gets the publish date of this result as a string
+func (ri *ResultItem) AddedOnStr() string {
 	tm := time.Unix(ri.PublishDate, 0)
 	return tm.String()
 }
