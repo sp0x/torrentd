@@ -25,6 +25,14 @@ func (r *Runner) extractField(selection *goquery.Selection, field *fieldBlock) (
 
 //formatValues formats a field's value (singular or multiple)
 func formatValues(field *fieldBlock, value interface{}, values map[string]interface{}) interface{} {
+	if value == nil && field == nil {
+		return nil
+	} else if value == nil && field.Block.TextVal == "" {
+		return value
+	} else if value == nil && field.Block.TextVal != "" {
+		value = field.Block.TextVal
+	}
+
 	if _, ok := value.([]string); ok {
 		valueArray := value.([]string)
 		for ix, subValue := range valueArray {
@@ -34,22 +42,22 @@ func formatValues(field *fieldBlock, value interface{}, values map[string]interf
 		return value
 	}
 	strValue := value.(string)
-	if !strings.Contains(strValue, "{{") || (field != nil && field.Block.Pattern == "") {
-		return strValue
-	}
-	templateData := values
-	updated, err := applyTemplate("result_template", strValue, templateData)
-	if err != nil {
-		return strValue
-	}
-	if field != nil {
-		updated, err = field.Block.ApplyFilters(updated)
+	if strings.Contains(strValue, "{{") || (field != nil && field.Block.Pattern != "") {
+		templateData := values
+		updated, err := applyTemplate("result_template", strValue, templateData)
 		if err != nil {
 			return strValue
 		}
+		strValue = updated
 	}
-	value = updated
-	return value
+	if field != nil {
+		updated, err := field.Block.ApplyFilters(strValue)
+		if err != nil {
+			return strValue
+		}
+		strValue = updated
+	}
+	return strValue
 }
 
 //Extract the actual result item from it's row/col

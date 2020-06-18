@@ -16,7 +16,8 @@ type filterBlock struct {
 }
 
 type selectorBlock struct {
-	Selector     string            `yaml:"selector"`
+	Selector string `yaml:"selector"`
+	//
 	Pattern      string            `yaml:"pattern"`
 	TextVal      string            `yaml:"text"`
 	Attribute    string            `yaml:"attribute,omitempty"`

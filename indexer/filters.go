@@ -20,7 +20,7 @@ const (
 	filterTimeFormat = time.RFC1123Z
 )
 
-var filterLogger log.FieldLogger
+var filterLogger log.FieldLogger = log.New()
 
 func defaultFilterConfig() map[string]string {
 	return map[string]string{
@@ -228,8 +228,7 @@ var (
 )
 
 func normalizeNumber(s string) string {
-	normalized := normalizeSpace(s)
-	normalized = strings.Trim(s, "-")
+	normalized := normalizeSpace(strings.Trim(s, "-"))
 	normalized = strings.Replace(s, ",", "", -1)
 
 	if normalized == "" {

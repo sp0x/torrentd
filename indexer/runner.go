@@ -318,9 +318,7 @@ func (r *Runner) login() error {
 			defer r.releaseBrowser()
 		}
 	}
-
 	filterLogger = r.logger
-
 	loginUrl, err := r.resolveIndexerPath(r.definition.Login.Path)
 	if err != nil {
 		return err
