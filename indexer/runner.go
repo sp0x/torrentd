@@ -606,7 +606,7 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 			}
 			//The category doesn't match even 1 of the categories in the query.
 			if !matchCat {
-				storage.HandleTorrentDiscovery(&item)
+				storage.HandleResultDiscovery(&item)
 				r.logger.
 					WithFields(logrus.Fields{"category": item.LocalCategoryName, "categoryId": item.LocalCategoryID}).
 					Debugf("Skipping result because it's not contained in our needed categories.")
@@ -615,7 +615,7 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 		}
 		//Try to map the category from the Indexer to the global categories
 		r.resolveCategory(&item)
-		storage.HandleTorrentDiscovery(&item)
+		storage.HandleResultDiscovery(&item)
 		if query.Series != "" {
 			info, err := releaseinfo.Parse(item.Title)
 			if err != nil {

@@ -98,6 +98,7 @@ func (ts *DBStorage) GetOlderThanHours(h int) []search.ExternalResultItem {
 	return torrents
 }
 
+//GetNewest gets the CNT latest results.
 func (ts *DBStorage) GetNewest(cnt int) []search.ExternalResultItem {
 	gdb := db.GetOrmDb(ts.Path)
 	defer gdb.Close()
@@ -109,7 +110,8 @@ func (ts *DBStorage) GetNewest(cnt int) []search.ExternalResultItem {
 	return torrents
 }
 
-func (ts *DBStorage) FindNameAndIndexer(title string, indexerSite string) *search.ExternalResultItem {
+//FindByNameAndIndex finds an item by it's name and index.
+func (ts *DBStorage) FindByNameAndIndex(title string, indexerSite string) *search.ExternalResultItem {
 	gdb := db.GetOrmDb(ts.Path)
 	defer func() {
 		_ = gdb.Close()
@@ -130,34 +132,37 @@ func (ts *DBStorage) GetDb() *gorm.DB {
 
 var defaultStorage = DBStorage{}
 
+//DefaultStorage gets the default storage method for results.
 func DefaultStorage() *DBStorage {
 	return &defaultStorage
 }
 
+//GetOlderThanHours gets items that are at least H hours old.
 func GetOlderThanHours(h int) []search.ExternalResultItem {
 	return defaultStorage.GetOlderThanHours(h)
 }
 
-//Handles torrent discovery
-func HandleTorrentDiscovery(item *search.ExternalResultItem) (bool, bool) {
-	var existingTorrent *search.ExternalResultItem
+//HandleResultDiscovery handles the discovery of the result, adding additional information like staleness state.
+func HandleResultDiscovery(item *search.ExternalResultItem) (bool, bool) {
+	var existingResult *search.ExternalResultItem
 	if item.LocalId != "" {
-		existingTorrent = defaultStorage.FindByTorrentId(item.LocalId)
+		existingResult = defaultStorage.FindByTorrentId(item.LocalId)
 	} else {
-		existingTorrent = defaultStorage.FindNameAndIndexer(item.Title, item.Site)
+		existingResult = defaultStorage.FindByNameAndIndex(item.Title, item.Site)
 	}
 
-	isNew := existingTorrent == nil || existingTorrent.PublishDate != item.PublishDate
-	isUpdate := existingTorrent != nil && (existingTorrent.PublishDate != item.PublishDate)
+	isNew := existingResult == nil || existingResult.PublishDate != item.PublishDate
+	isUpdate := existingResult != nil && (existingResult.PublishDate != item.PublishDate)
 	if isNew {
-		if isUpdate && existingTorrent != nil {
-			item.Fingerprint = existingTorrent.Fingerprint
-			defaultStorage.UpdateTorrent(existingTorrent.ID, item)
+		if isUpdate && existingResult != nil {
+			item.Fingerprint = existingResult.Fingerprint
+			defaultStorage.UpdateTorrent(existingResult.ID, item)
 		} else {
-			item.Fingerprint = search.GetTorrentFingerprint(item)
+			item.Fingerprint = search.GetResultFingerprint(item)
 			defaultStorage.Create(item)
 		}
 	}
+	//We set the result's state so it's known later on whenever it's used.
 	item.SetState(isNew, isUpdate)
 	return isNew, isUpdate
 }

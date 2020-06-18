@@ -49,7 +49,6 @@ func Watch(helper *Facade, initialQuery torznab.Query, interval int) <-chan sear
 				if finished {
 					break
 				}
-				//isNew, isUpdate := HandleTorrentDiscovery(torrent)
 				if result.IsNew() || result.IsUpdate() {
 					if result.IsNew() && !result.IsUpdate() {
 						log.WithFields(log.Fields{"id": result.LocalId, "name": result.Title, "pub": result.PublishDate}).

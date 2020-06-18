@@ -48,7 +48,6 @@ func SearchAndServe(ixr *indexer.Facade, options *indexer.GenericSearchOptions, 
 			break
 		}
 		for _, torrent := range srch.GetResults() {
-			//isNew, isUpdate := torrent.HandleTorrentDiscovery(tr)
 			if torrent.IsNew() || torrent.IsUpdate() {
 				if torrent.IsNew() && !torrent.IsUpdate() {
 					_, _ = fmt.Fprintf(tabWriter, "Found new result #%s:\t%s\t[%s]:\t%s\n",
