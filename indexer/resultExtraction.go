@@ -41,6 +41,9 @@ func formatValues(field *fieldBlock, value interface{}, values map[string]interf
 		}
 		return value
 	}
+	if value == nil {
+		value = ""
+	}
 	strValue := value.(string)
 	if strings.Contains(strValue, "{{") || (field != nil && field.Block.Pattern != "") {
 		templateData := values
