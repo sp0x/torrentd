@@ -43,12 +43,12 @@ func (i *ExternalResultItem) IsUpdate() bool {
 }
 
 //SetField sets the value of an extra fields
-func (i *ExternalResultItem) SetField(key string, val string) {
+func (i *ExternalResultItem) SetField(key string, val interface{}) {
 	i.ExtraFields[key] = val
 }
 
 //GetField by a key, use this for extra fields.
-func (i *ExternalResultItem) GetField(key string) string {
+func (i *ExternalResultItem) GetField(key string) interface{} {
 	val, ok := i.ExtraFields[key]
 	if !ok {
 		return ""
@@ -86,7 +86,7 @@ type ResultItem struct {
 	Author               string
 	AuthorId             string
 	Indexer              *ResultIndexer
-	ExtraFields          map[string]string `gorm:"-"` // Ignored in gorm
+	ExtraFields          map[string]interface{} `gorm:"-"` // Ignored in gorm
 }
 
 type ResultIndexer struct {
@@ -99,7 +99,7 @@ func (ri *ResultItem) AddedOnStr() interface{} {
 	return tm.String()
 }
 
-func (ri ResultItem) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+func (ri ResultItem) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
 	//The info view enclosure
 	var enclosure = struct {
 		URL    string `xml:"url,attr,omitempty"`

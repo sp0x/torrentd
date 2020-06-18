@@ -361,7 +361,7 @@ func (r *Runner) login() error {
 	if err != nil {
 		return err
 	} else if !match {
-		return errors.New(fmt.Sprintf("Login check after login failed. No matches found."))
+		return errors.New("login check after login failed. no matches found")
 	}
 
 	r.logger.Debug("Successfully logged in")
@@ -442,7 +442,7 @@ func (r *Runner) resolveQuery(query torznab.Query) (torznab.Query, error) {
 		}
 		movie, err = imdbscraper.FindByID(imdbid)
 		if err != nil {
-			err = errors.New(fmt.Sprintf("imdb error. %s", err))
+			err = fmt.Errorf("imdb error. %s", err)
 		}
 		query.IMDBID = ""
 	}
@@ -478,7 +478,7 @@ func (r *Runner) GetEncoding() string {
 }
 
 func (r *Runner) Check() error {
-	verifiedSpan := time.Now().Sub(r.lastVerified)
+	verifiedSpan := time.Since(r.lastVerified)
 	if verifiedSpan < time.Minute*60*24 {
 		return nil
 	}
@@ -781,12 +781,12 @@ func (r *Runner) Ratio() (string, error) {
 		return "error", nil
 	}
 
-	ratio, err := r.definition.Ratio.MatchText(r.browser.Dom())
+	ratio, err := r.definition.Ratio.Match(r.browser.Dom())
 	if err != nil {
-		return ratio, err
+		return ratio.(string), err
 	}
 
-	return strings.Trim(ratio, "- "), nil
+	return strings.Trim(ratio.(string), "- "), nil
 }
 
 func (r *Runner) getIndexer() *search.ResultIndexer {

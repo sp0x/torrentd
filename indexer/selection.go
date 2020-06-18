@@ -24,14 +24,16 @@ type selectorBlock struct {
 	Filters      []filterBlock     `yaml:"filters,omitempty"`
 	Case         map[string]string `yaml:"case,omitempty"`
 	FilterConfig map[string]string `yaml:"filterconfig"`
+	//If we'll use all the values
+	All bool `yaml:"all"`
 }
 
-func (s *selectorBlock) Match(selection *goquery.Selection) bool {
+func (s *selectorBlock) IsMatching(selection *goquery.Selection) bool {
 	return !s.IsEmpty() && (selection.Find(s.Selector).Length() > 0 || s.TextVal != "")
 }
 
-//MatchText using the selector to get the text of that element
-func (s *selectorBlock) MatchText(from *goquery.Selection) (string, error) {
+//Match using the selector to get the text of that element
+func (s *selectorBlock) Match(from *goquery.Selection) (interface{}, error) {
 	if s.TextVal != "" {
 		return s.TextVal, nil
 	}
@@ -40,7 +42,11 @@ func (s *selectorBlock) MatchText(from *goquery.Selection) (string, error) {
 		if result.Length() == 0 {
 			return "", fmt.Errorf("Failed to match selector %q", s.Selector)
 		}
-		return s.Text(result)
+		if s.All {
+			return s.Texts(result)
+		} else {
+			return s.Text(result)
+		}
 	}
 	if s.Pattern != "" {
 		return s.Pattern, nil
@@ -94,6 +100,47 @@ func (s *selectorBlock) TextRaw(el *goquery.Selection) (string, error) {
 	return output, nil
 }
 
+func (s *selectorBlock) Texts(el *goquery.Selection) ([]string, error) {
+	if s.TextVal != "" {
+		filterResult, err := s.ApplyFilters(s.TextVal)
+		if err != nil {
+			return nil, err
+		}
+		return []string{filterResult}, nil
+	}
+	if s.Remove != "" {
+		el.Find(s.Remove).Remove()
+	}
+	if s.Case != nil {
+		filterLogger.WithFields(logrus.Fields{"case": s.Case}).
+			Debugf("Applying case to selection")
+		for pattern, value := range s.Case {
+			if el.Is(pattern) || el.Has(pattern).Length() >= 1 {
+				value, _ := s.ApplyFilters(value)
+				return []string{value}, nil
+			}
+		}
+		return []string{}, errors.New("none of the cases match")
+	}
+	matches := el.Map(func(i int, selection *goquery.Selection) string {
+		output := strings.TrimSpace(selection.Text())
+		output = spaceRx.ReplaceAllString(output, " ")
+		if s.Attribute != "" {
+			val, exists := selection.Attr(s.Attribute)
+			if !exists {
+				return ""
+			}
+			output = val
+		}
+		filteredResult, err := s.ApplyFilters(output)
+		if err != nil {
+			return ""
+		}
+		return filteredResult
+	})
+	return matches, nil
+}
+
 //Text extracts text from the selection, applying all filters
 func (s *selectorBlock) Text(el *goquery.Selection) (string, error) {
 	if s.TextVal != "" {
@@ -132,12 +179,11 @@ func (s *selectorBlock) ApplyFilters(val string) (string, error) {
 	prevFilterFailed := false
 	var prevFilter filterBlock
 	for _, f := range s.Filters {
-		shouldFilter := true
+		var shouldFilter bool
 		switch f.Name {
 		case "dateparseAlt":
 			//This is ran only if there has been a failure before.
 			shouldFilter = prevFilterFailed && prevFilter.Name == "dateparse"
-			break
 		default:
 			shouldFilter = true
 		}

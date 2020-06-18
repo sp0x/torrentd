@@ -29,12 +29,15 @@ func (r *Runner) Open(s *search.ExternalResultItem) (io.ReadCloser, error) {
 	if s.SourceLink == "" || r.downloadsNeedResolution() {
 		//Resolve the url
 		downloadItem := r.failingSearchFields["download"]
-		r.openPage(s.Link)
+		err := r.openPage(s.Link)
+		if err != nil {
+			return nil, err
+		}
 		downloadLink, err := r.extractField(r.browser.Dom(), &downloadItem)
 		if err != nil {
 			return nil, nil
 		}
-		sourceLink = downloadLink
+		sourceLink = firstString(downloadLink)
 	}
 	fullUrl, err := r.resolveIndexerPath(sourceLink)
 	if err != nil {
@@ -69,7 +72,9 @@ func (r *Runner) Open(s *search.ExternalResultItem) (io.ReadCloser, error) {
 	//ioutil.WriteFile("/tmp/rss.torrent", rawBytes, os.ModePerm)
 	pipeR, pipeW := io.Pipe()
 	go func() {
-		defer pipeW.Close()
+		defer func() {
+			_ = pipeW.Close()
+		}()
 		if !r.keepSessions {
 			defer r.releaseBrowser()
 		}

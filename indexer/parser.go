@@ -152,7 +152,8 @@ func (e *errorBlock) matchPage(browser browser.Browsable) bool {
 
 func (e *errorBlock) errorText(from *goquery.Selection) (string, error) {
 	if !e.Message.IsEmpty() {
-		return e.Message.MatchText(from)
+		matchError, err := e.Message.Match(from)
+		return matchError.(string), err
 	} else if e.Selector != "" {
 		return from.Find(e.Selector).Text(), nil
 	}
