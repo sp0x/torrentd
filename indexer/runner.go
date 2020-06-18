@@ -52,6 +52,7 @@ type Runner struct {
 	keepSessions        bool
 	failingSearchFields map[string]fieldBlock
 	lastVerified        time.Time
+	Storage             storage.ItemStorage
 }
 
 func (r *Runner) ProcessRequest(req *http.Request) (*http.Response, error) {
@@ -71,7 +72,7 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 	logger := logrus.New()
 	logger.Level = logrus.GetLevel()
 	connCache, _ := cache.NewConnectivityCache()
-	return &Runner{
+	runner := &Runner{
 		opts:                opts,
 		definition:          def,
 		logger:              logger.WithFields(logrus.Fields{"site": def.Site}),
@@ -79,7 +80,9 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 		state:               defaultIndexerState(),
 		keepSessions:        true,
 		failingSearchFields: make(map[string]fieldBlock),
+		Storage:             storage.NewKeyedStorage(),
 	}
+	return runner
 }
 
 // checks that the runner has the config values it needs
@@ -606,7 +609,7 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 			}
 			//The category doesn't match even 1 of the categories in the query.
 			if !matchCat {
-				storage.HandleResultDiscovery(&item)
+				r.Storage.Add(&item)
 				r.logger.
 					WithFields(logrus.Fields{"category": item.LocalCategoryName, "categoryId": item.LocalCategoryID}).
 					Debugf("Skipping result because it's not contained in our needed categories.")
@@ -615,7 +618,7 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 		}
 		//Try to map the category from the Indexer to the global categories
 		r.resolveCategory(&item)
-		storage.HandleResultDiscovery(&item)
+		r.Storage.Add(&item)
 		if query.Series != "" {
 			info, err := releaseinfo.Parse(item.Title)
 			if err != nil {

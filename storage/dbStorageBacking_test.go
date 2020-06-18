@@ -68,7 +68,7 @@ func TestDBStorage_FindByTorrentId(t *testing.T) {
 	})
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := storage.FindByTorrentId(tt.args.id)
+			got := storage.FindById(tt.args.id)
 			if tt.wantNotNil {
 				g.Expect(got).ShouldNot(gomega.BeNil())
 			}

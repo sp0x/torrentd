@@ -16,7 +16,7 @@ import (
 )
 
 func ServerAll(c http2.Context) {
-	torrents := storage.DefaultStorage().GetTorrentsInCategories([]int{})
+	torrents := storage.DefaultStorageBacking().GetTorrentsInCategories([]int{})
 	SendRssFeed("", "torrents", torrents, c)
 }
 
@@ -70,7 +70,7 @@ func SearchAndServe(ixr *indexer.Facade, options *indexer.GenericSearchOptions, 
 }
 
 func ServeShows(c http2.Context) {
-	torrents := storage.DefaultStorage().GetTorrentsInCategories([]int{
+	torrents := storage.DefaultStorageBacking().GetTorrentsInCategories([]int{
 		189,  //Foreign shows
 		2366, //Foreign shows in HD
 		2100, //Asian shows
@@ -79,7 +79,7 @@ func ServeShows(c http2.Context) {
 }
 
 func ServeMusic(c http2.Context) {
-	torrents := storage.DefaultStorage().GetTorrentsInCategories([]int{
+	torrents := storage.DefaultStorageBacking().GetTorrentsInCategories([]int{
 		409,  // Classical and modern academic music
 		1125, // Folklore, national and ethnical music
 		1849, //New age, relax, meditative and flamenco
@@ -93,14 +93,14 @@ func ServeMusic(c http2.Context) {
 }
 
 func ServeAnime(c http2.Context) {
-	torrents := storage.DefaultStorage().GetTorrentsInCategories([]int{
+	torrents := storage.DefaultStorageBacking().GetTorrentsInCategories([]int{
 		33, // Anime
 	})
 	SendRssFeed("", "anime", torrents, c)
 }
 
 func ServeMovies(c http2.Context) {
-	torrents := storage.DefaultStorage().GetTorrentsInCategories([]int{
+	torrents := storage.DefaultStorageBacking().GetTorrentsInCategories([]int{
 		7,    //foreign films
 		124,  //art-house and author movies
 		93,   //DVD
