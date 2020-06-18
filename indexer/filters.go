@@ -165,12 +165,14 @@ func filterQueryString(param string, value string) (string, error) {
 }
 
 func filterDateParse(layouts []string, value string) (string, error) {
+	var err error
 	for _, layout := range layouts {
-		if t, err := time.Parse(layout, value); err == nil {
+		var t time.Time
+		if t, err = time.Parse(layout, value); err == nil {
 			return t.Format(filterTimeFormat), nil
 		}
 	}
-	return "", fmt.Errorf("No matching date pattern for %s", value)
+	return "", fmt.Errorf("no matching date pattern for %s. %s", value, err)
 }
 
 func filterSplit(sep string, pos int, value string) (string, error) {
