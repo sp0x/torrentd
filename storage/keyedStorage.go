@@ -1,6 +1,9 @@
 package storage
 
-import "github.com/sp0x/torrentd/indexer/search"
+import (
+	"github.com/sp0x/torrentd/indexer/search"
+	"reflect"
+)
 
 type KeyedStorage struct {
 	//backing *DBStorage
@@ -39,7 +42,7 @@ func NewKeyedStorageWithBacking(key Key, storage ItemStorageBacking) *KeyedStora
 //Add handles the discovery of the result, adding additional information like staleness state.
 func (s *KeyedStorage) Add(item *search.ExternalResultItem) (bool, bool) {
 	var existingResult *search.ExternalResultItem
-	existingKey := s.GetKeyValue(item)
+	existingKey := s.GetKeyQueryFromItem(item)
 	if existingKey != nil {
 		existingResult = s.backing.Find(existingKey)
 	}
@@ -66,6 +69,17 @@ func (s *KeyedStorage) Add(item *search.ExternalResultItem) (bool, bool) {
 	return isNew, isUpdate
 }
 
-func (s *KeyedStorage) GetKeyValue(item *search.ExternalResultItem) interface{} {
-
+//GetKeyQueryFromItem gets the query that matches an item with the given key.
+func (s *KeyedStorage) GetKeyQueryFromItem(item *search.ExternalResultItem) Query {
+	output := Query{}
+	val := reflect.ValueOf(item).Elem()
+	for _, kfield := range s.key {
+		fld := val.FieldByName(kfield)
+		if !fld.IsValid() {
+			output[kfield] = item.GetField(kfield)
+		} else {
+			output[kfield] = fld.Interface()
+		}
+	}
+	return output
 }
