@@ -16,3 +16,11 @@ func TestKeyedStorage_Add(t *testing.T) {
 	storage.Add(item)
 	g.Expect(item.IsNew()).To(BeTrue())
 }
+
+func TestGetKeyNameFromQuery(t *testing.T) {
+	g := NewWithT(t)
+	query := Query{}
+	query["a"] = "b"
+	name := GetIndexNameFromQuery(query)
+	g.Expect(name).To(Equal("a"))
+}

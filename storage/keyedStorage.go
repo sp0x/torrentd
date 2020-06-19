@@ -1,14 +1,15 @@
 package storage
 
 import (
+	"github.com/prometheus/common/log"
 	"github.com/sp0x/torrentd/indexer/search"
 	"reflect"
 )
 
 type KeyedStorage struct {
 	//backing *DBStorage
-	backing ItemStorageBacking
-	key     Key
+	backing  ItemStorageBacking
+	keyParts Key
 }
 
 type Key []string
@@ -16,7 +17,7 @@ type Key []string
 //TODO: Add limit, reverse order
 type Query map[string]interface{}
 
-//NewKey creates a new key using an array of fields.
+//NewKey creates a new keyParts using an array of fields.
 func NewKey(fieldNames ...string) Key {
 	var key Key
 	for _, item := range fieldNames {
@@ -28,25 +29,28 @@ func NewKey(fieldNames ...string) Key {
 //NewKeyedStorage creates a new keyed storage with the default storage backing.
 func NewKeyedStorage(keyFields Key) *KeyedStorage {
 	return &KeyedStorage{
-		key:     keyFields,
-		backing: DefaultStorageBacking(),
+		keyParts: keyFields,
+		backing:  DefaultStorageBacking(),
 	}
 }
 
 //NewKeyedStorageWithBacking creates a new keyed storage with a custom storage backing.
 func NewKeyedStorageWithBacking(key Key, storage ItemStorageBacking) *KeyedStorage {
 	return &KeyedStorage{
-		key:     key,
-		backing: storage,
+		keyParts: key,
+		backing:  storage,
 	}
 }
 
 //Add handles the discovery of the result, adding additional information like staleness state.
 func (s *KeyedStorage) Add(item *search.ExternalResultItem) (bool, bool) {
 	var existingResult *search.ExternalResultItem
-	existingKey := s.GetKeyQueryFromItem(item)
+	existingKey := GetKeyQueryFromItem(s.keyParts, item)
 	if existingKey != nil {
-		existingResult = s.backing.Find(existingKey)
+		tmpResult := search.ExternalResultItem{}
+		if s.backing.Find(existingKey, &tmpResult) == nil {
+			existingResult = &tmpResult
+		}
 	}
 	//if item.LocalId != "" {
 	//	existingResult = defaultStorage.FindById(item.LocalId)
@@ -58,12 +62,16 @@ func (s *KeyedStorage) Add(item *search.ExternalResultItem) (bool, bool) {
 	if isNew {
 		if isUpdate && existingResult != nil {
 			item.Fingerprint = existingResult.Fingerprint
-			s.backing.Update(existingKey, item)
+			err := s.backing.Update(existingKey, item)
+			if err != nil {
+				log.Error(err)
+				return false, false
+			}
 			//defaultStorage.UpdateResult(existingResult.ID, item)
 		} else {
 			item.Fingerprint = search.GetResultFingerprint(item)
 			//defaultStorage.Create(item)
-			s.backing.Create(item)
+			s.backing.Create(s.keyParts, item)
 		}
 	}
 	//We set the result's state so it's known later on whenever it's used.
@@ -71,11 +79,11 @@ func (s *KeyedStorage) Add(item *search.ExternalResultItem) (bool, bool) {
 	return isNew, isUpdate
 }
 
-//GetKeyQueryFromItem gets the query that matches an item with the given key.
-func (s *KeyedStorage) GetKeyQueryFromItem(item *search.ExternalResultItem) Query {
+//GetKeyQueryFromItem gets the query that matches an item with the given keyParts.
+func GetKeyQueryFromItem(keyParts Key, item *search.ExternalResultItem) Query {
 	output := Query{}
 	val := reflect.ValueOf(item).Elem()
-	for _, kfield := range s.key {
+	for _, kfield := range keyParts {
 		fld := val.FieldByName(kfield)
 		if !fld.IsValid() {
 			output[kfield] = item.GetField(kfield)
@@ -84,4 +92,27 @@ func (s *KeyedStorage) GetKeyQueryFromItem(item *search.ExternalResultItem) Quer
 		}
 	}
 	return output
+}
+
+//GetIndexNameFromQuery gets the name of an index from a query.
+func GetIndexNameFromQuery(query Query) string {
+	name := ""
+	querySize := len(query)
+	ix := 0
+	for key, _ := range query {
+		name += key
+		if ix < querySize {
+			name += "_"
+		}
+	}
+	return name
+}
+
+func GetIndexValueFromItem(keyParts Key, item *search.ExternalResultItem) []byte {
+
+}
+
+//GetIndexValueFromQuery get the value of an index by a query.
+func GetIndexValueFromQuery(query Query) []byte {
+
 }

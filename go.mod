@@ -31,16 +31,19 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/onsi/ginkgo v1.12.0
 	github.com/onsi/gomega v1.7.1
+	github.com/prometheus/common v0.4.0
 	github.com/sirupsen/logrus v1.5.0
-	github.com/smartystreets/assertions v1.0.1 // indirect
+	github.com/smartystreets/assertions v1.0.1
 	github.com/sp0x/surf v0.0.0-20200427101727-f37e70cd344f
 	github.com/spf13/cobra v0.0.7
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.6.2
-	github.com/stretchr/testify v1.5.1 // indirect
+	github.com/stretchr/testify v1.5.1
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
+	go.etcd.io/bbolt v1.3.2
 	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
+	golang.org/x/tools v0.0.0-20200420001825-978e26b7c37c
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v2 v2.2.8
 )

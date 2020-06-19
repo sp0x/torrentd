@@ -7,6 +7,6 @@ type ItemStorage interface {
 }
 type ItemStorageBacking interface {
 	Find(query Query, result *search.ExternalResultItem) error
-	Update(query Query, item *search.ExternalResultItem)
-	Create(item *search.ExternalResultItem)
+	Update(query Query, item *search.ExternalResultItem) error
+	Create(parts Key, item *search.ExternalResultItem)
 }

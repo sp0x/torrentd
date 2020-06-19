@@ -3,13 +3,14 @@ package storage
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/boltdb/bolt"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/storage/serializers"
+	"github.com/sp0x/torrentd/storage/serializers/json"
 	"os"
 	"path"
 	"time"
@@ -18,6 +19,7 @@ import (
 type BoltStorage struct {
 	Database   *bolt.DB
 	rootBucket []string
+	marshaler  serializers.MarshalUnmarshaler
 }
 
 func NewBoltStorage(dbPath string) (*BoltStorage, error) {
@@ -29,7 +31,8 @@ func NewBoltStorage(dbPath string) (*BoltStorage, error) {
 		return nil, err
 	}
 	bls := &BoltStorage{
-		Database: dbx,
+		Database:  dbx,
+		marshaler: json.Serializer,
 	}
 	return bls, nil
 }
@@ -81,20 +84,116 @@ type Chat struct {
 	ChatId      int64
 }
 
-//
+const (
+	resultsBucket = "results"
+)
+
+//Find something by it's index keys.
 func (b *BoltStorage) Find(query Query, result *search.ExternalResultItem) error {
 	if query == nil {
 		return errors.New("query is required")
 	}
-	bucketName := "results"
 	return b.Database.View(func(tx *bolt.Tx) error {
-		bucket := b.GetBucket(tx, bucketName)
+		bucket := b.GetBucket(tx, resultsBucket)
 		//Ways to go about this:
-		//scan the entire bucket and filter by the query - this may be too slow
-		//
+		//-scan the entire bucket and filter by the query - this may be too slow
+		//-serialize the keyParts query and use it as the keyParts in the bucket, to search by it
+		//-use the query as an index, having a bucket with all the ids
+		//convert the query to a prefix, and seek to the start of that prefix in a cursor
+		//iterate until the end of the prefixed region in the cursor
 		//Todo: implement querying if we're not using primary keys.
-		serializedValue := toby
+		idx, err := getIndexFromQuery(bucket, query)
+		if err != nil {
+			return err
+		}
+		indexValue := GetIndexValueFromQuery(query)
+		ids := idx.All(indexValue, SingleItemCursor())
+		if len(ids) == 0 {
+			return nil
+		}
+		rawResult := bucket.Get(ids[0])
+		err = b.marshaler.Unmarshal(rawResult, result)
+		if err != nil {
+			return err
+		}
+		return nil
 	})
+}
+
+func (b *BoltStorage) Update(query Query, item *search.ExternalResultItem) error {
+	if query == nil {
+		return errors.New("query is required")
+	}
+	return b.Database.Update(func(tx *bolt.Tx) error {
+		bucket := b.GetBucket(tx, resultsBucket)
+		idx, err := getIndexFromQuery(bucket, query)
+		if err != nil {
+			return err
+		}
+		indexValue := GetIndexValueFromQuery(query)
+		ids := idx.All(indexValue, SingleItemCursor())
+		serializedValue, err := b.marshaler.Marshal(item)
+		if err != nil {
+			return err
+		}
+		return bucket.Put(ids[0], serializedValue)
+	})
+
+}
+
+//Create a new record for a result.
+func (b *BoltStorage) Create(keyParts Key, item *search.ExternalResultItem) error {
+	indexValue := GetIndexValueFromItem(keyParts, item)
+	return b.Database.Update(func(tx *bolt.Tx) error {
+		bucket := b.GetBucket(tx, resultsBucket)
+		//We get the index that we'll use
+		index, err := getIndexFromKeys(bucket, keyParts)
+		if err != nil {
+			return err
+		}
+		//We increment the ID
+		nextId, _ := bucket.NextSequence()
+		item.ID = uint(nextId)
+
+		//We serialize the ID
+		idBytes, err := toBytes(item.ID, b.marshaler)
+		if err != nil {
+			return err
+		}
+		//Save the index for the id of the result.
+		err = index.Add(indexValue, idBytes)
+		if err != nil {
+			return err
+		}
+
+		//Save the actual result
+		serializedValue, err := b.marshaler.Marshal(item)
+		if err != nil {
+			return err
+		}
+		return bucket.Put(idBytes, serializedValue)
+	})
+}
+
+//StoreChat stores a new chat.
+//The chat id is used as a keyParts.
+func (b *BoltStorage) StoreChat(chat *Chat) error {
+	//	defer db.Close()
+	err := b.Database.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("telegram_chats"))
+		key := i64tob(chat.ChatId)
+		val, err := b.marshaler.Marshal(chat)
+		if err != nil {
+			return err
+		}
+		return bucket.Put(key, val)
+	})
+	return err
+}
+
+func DefaultBoltPath() string {
+	cwd, _ := os.Getwd()
+	return path.Join(cwd, "db", "bolt.db")
 }
 
 // GetBucket returns the given bucket. You can use an array of strings for sub-buckets.
@@ -115,43 +214,13 @@ func (b *BoltStorage) GetBucket(tx *bolt.Tx, children ...string) *bolt.Bucket {
 	return bucket
 }
 
-func (b *BoltStorage) Update(query Query, item *search.ExternalResultItem) {
-	panic("implement me")
-}
-
-func (b *BoltStorage) Create(item *search.ExternalResultItem) {
-
-	panic("implement me")
-}
-
-//StoreChat stores a new chat.
-//The chat id is used as a key.
-func (b *BoltStorage) StoreChat(chat *Chat) error {
-	//	defer db.Close()
-	err := b.Database.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("telegram_chats"))
-		key := i64tob(chat.ChatId)
-		val, err := json.Marshal(chat)
-		if err != nil {
-			return err
-		}
-		return b.Put(key, val)
-	})
-	return err
-}
-
-func DefaultBoltPath() string {
-	cwd, _ := os.Getwd()
-	return path.Join(cwd, "db", "bolt.db")
-}
-
 //ForChat calls the callback for each chat, in an async way.
 func (b *BoltStorage) ForChat(callback func(chat *Chat)) error {
 	return b.Database.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("telegram_chats"))
-		return b.ForEach(func(k, v []byte) error {
+		bucket := tx.Bucket([]byte("telegram_chats"))
+		return bucket.ForEach(func(k, v []byte) error {
 			var chat = Chat{}
-			if err := json.Unmarshal(v, &chat); err != nil {
+			if err := b.marshaler.Unmarshal(v, &chat); err != nil {
 				return err
 			}
 			callback(&chat)
@@ -164,13 +233,13 @@ func (b *BoltStorage) GetChat(id int) (*Chat, error) {
 	var chat = Chat{}
 	found := false
 	err := b.Database.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("telegram_chats"))
-		buff := b.Get(itob(id))
+		bucket := tx.Bucket([]byte("telegram_chats"))
+		buff := bucket.Get(itob(id))
 		if buff == nil {
 			return nil
 		}
 		found = true
-		if err := json.Unmarshal(buff, &chat); err != nil {
+		if err := b.marshaler.Unmarshal(buff, &chat); err != nil {
 			return err
 		}
 		return nil
@@ -205,13 +274,13 @@ func (b *BoltStorage) GetSearchResults(categoryId int) ([]search.ExternalResultI
 			catName = categories.AllCategories[categoryId].Name
 		}
 
-		b := tx.Bucket([]byte("searchResults")).Bucket([]byte(catName))
-		if b == nil {
+		bucket := tx.Bucket([]byte("searchResults")).Bucket([]byte(catName))
+		if bucket == nil {
 			return nil
 		}
-		return b.ForEach(func(k, v []byte) error {
+		return bucket.ForEach(func(k, v []byte) error {
 			var newItem search.ExternalResultItem
-			err := json.Unmarshal(v, &newItem)
+			err := b.marshaler.Unmarshal(v, &newItem)
 			if err != nil {
 				return err
 			}
@@ -235,21 +304,21 @@ func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) erro
 			} else {
 				cgryKey = []byte(cgry.Name)
 			}
-			//Use the category as a key
-			b, _ := tx.CreateBucketIfNotExists([]byte("searchResults"))
-			b, _ = b.CreateBucketIfNotExists(cgryKey)
+			//Use the category as a keyParts
+			bucket, _ := tx.CreateBucketIfNotExists([]byte("searchResults"))
+			bucket, _ = bucket.CreateBucketIfNotExists(cgryKey)
 			key, err := getItemKey(item)
 			if err != nil {
 				return err
 			}
-			nextId, _ := b.NextSequence()
+			nextId, _ := bucket.NextSequence()
 			item.ID = uint(nextId)
-			buf, err := json.Marshal(item)
+			buf, err := b.marshaler.Marshal(item)
 			if err != nil {
 				return err
 			}
 			item.CreatedAt = time.Now()
-			err = b.Put(key, buf)
+			err = bucket.Put(key, buf)
 			if err != nil {
 				item.ID = 0
 				log.Error(fmt.Sprintf("Error while inserting %d-th item. %s", ix, err))
@@ -266,7 +335,7 @@ func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) erro
 
 func getItemKey(item search.ExternalResultItem) ([]byte, error) {
 	if item.GUID == "" {
-		return nil, errors.New("record has no key")
+		return nil, errors.New("record has no keyParts")
 	}
 	return []byte(item.GUID), nil
 }
@@ -288,7 +357,8 @@ func itob(v int) []byte {
 	return b
 }
 
-func toBytes(key interface{}, codec codec.MarshalUnmarshaler) ([]byte, error) {
+//toBytes is a helper function that converts any value to bytes
+func toBytes(key interface{}, codec serializers.MarshalUnmarshaler) ([]byte, error) {
 	if key == nil {
 		return nil, nil
 	}

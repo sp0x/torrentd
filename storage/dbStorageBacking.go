@@ -41,7 +41,7 @@ func (d *DBStorage) Find(query Query) *search.ExternalResultItem {
 	return &torrent
 }
 
-//Update a result with a matching key.
+//Update a result with a matching keyParts.
 func (d *DBStorage) Update(query Query, item *search.ExternalResultItem) {
 	gdb := db.GetOrmDb(d.Path)
 	defer func() {
