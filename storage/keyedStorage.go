@@ -4,6 +4,7 @@ import (
 	"github.com/prometheus/common/log"
 	"github.com/sp0x/torrentd/indexer/search"
 	"reflect"
+	"strings"
 )
 
 type KeyedStorage struct {
@@ -108,11 +109,40 @@ func GetIndexNameFromQuery(query Query) string {
 	return name
 }
 
+//GetIndexValueFromItem gets the index value from a key set and an item.
 func GetIndexValueFromItem(keyParts Key, item *search.ExternalResultItem) []byte {
-
+	val := reflect.ValueOf(item).Elem()
+	valueParts := make([]string, len(keyParts))
+	for ix, kfield := range keyParts {
+		fld := val.FieldByName(kfield)
+		if !fld.IsValid() {
+			valueParts[ix] = serializeKeyValue(item.GetField(kfield))
+		} else {
+			valueParts[ix] = serializeKeyValue(fld.Interface())
+		}
+	}
+	output := strings.Join(valueParts, "\000")
+	return []byte(output)
 }
 
 //GetIndexValueFromQuery get the value of an index by a query.
 func GetIndexValueFromQuery(query Query) []byte {
+	//indexValue := make([]byte, 0, 0)
+	valueParts := make([]string, len(query))
+	i := 0
+	for _, v := range query {
+		valueParts[i] = serializeKeyValue(v)
+	}
+	output := strings.Join(valueParts, "\000")
+	return []byte(output)
+}
 
+func serializeKeyValue(val interface{}) string {
+	switch castVal := val.(type) {
+	case string:
+		return castVal
+	default:
+		panic("non supported index value part")
+	}
+	return ""
 }

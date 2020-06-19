@@ -28,21 +28,20 @@ func createQueryArray(query Query) []interface{} {
 	return fullQuery
 }
 
-func (d *DBStorage) Find(query Query) *search.ExternalResultItem {
+func (d *DBStorage) Find(query Query, matchingItem *search.ExternalResultItem) error {
 	gdb := db.GetOrmDb(d.Path)
 	defer func() {
 		_ = gdb.Close()
 	}()
-	var torrent search.ExternalResultItem
 	fullQuery := createQueryArray(query)
-	if gdb.First(&torrent, fullQuery).RowsAffected == 0 {
+	if gdb.First(&matchingItem, fullQuery).RowsAffected == 0 {
 		return nil
 	}
-	return &torrent
+	return nil
 }
 
 //Update a result with a matching keyParts.
-func (d *DBStorage) Update(query Query, item *search.ExternalResultItem) {
+func (d *DBStorage) Update(query Query, item *search.ExternalResultItem) error {
 	gdb := db.GetOrmDb(d.Path)
 	defer func() {
 		_ = gdb.Close()
@@ -53,6 +52,7 @@ func (d *DBStorage) Update(query Query, item *search.ExternalResultItem) {
 		Limit(1).RowsAffected == 0 {
 		//Log maybe?
 	}
+	return nil
 }
 
 //Find a result by it's id
@@ -68,12 +68,15 @@ func (d *DBStorage) FindById(id string) *search.ExternalResultItem {
 	return &torrent
 }
 
-func (d *DBStorage) Create(tr *search.ExternalResultItem) {
+//Create a new result record.
+//In sqlite we're not using the key parts.
+func (d *DBStorage) Create(keyParts Key, tr *search.ExternalResultItem) error {
 	gdb := db.GetOrmDb(d.Path)
 	defer func() {
 		_ = gdb.Close()
 	}()
 	gdb.Create(tr)
+	return nil
 }
 
 func (d *DBStorage) Truncate() {

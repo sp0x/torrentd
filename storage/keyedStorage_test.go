@@ -8,7 +8,8 @@ import (
 
 func TestKeyedStorage_Add(t *testing.T) {
 	g := NewWithT(t)
-	storage := NewKeyedStorageWithBacking(NewKey("a"), BoltStorage{})
+	bolts, _ := NewBoltStorage(tempfile())
+	storage := NewKeyedStorageWithBacking(NewKey("a"), bolts)
 	//storage := NewKeyedStorage(NewKey("a"))
 	item := &search.ExternalResultItem{}
 	item.ExtraFields = make(map[string]interface{})
@@ -23,4 +24,12 @@ func TestGetKeyNameFromQuery(t *testing.T) {
 	query["a"] = "b"
 	name := GetIndexNameFromQuery(query)
 	g.Expect(name).To(Equal("a"))
+}
+
+func TestGetIndexValueFromQuery(t *testing.T) {
+	g := NewWithT(t)
+	query := Query{}
+	query["a"] = "b"
+	val := GetIndexValueFromQuery(query)
+	g.Expect(val).To(Equal("b"))
 }
