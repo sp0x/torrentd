@@ -223,3 +223,38 @@ func Test_getItemKey(t *testing.T) {
 		})
 	}
 }
+
+func TestBoltStorage_GetBucket(t *testing.T) {
+	g := NewGomegaWithT(t)
+	storage, err := NewBoltStorage(tempfile())
+	if err != nil {
+		t.Fatal(err)
+	}
+	db := storage.Database
+	tx, err := db.Begin(false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	g.Expect(storage.GetBucket(tx, "none")).To(BeNil())
+	bucket, err := tx.CreateBucketIfNotExists([]byte("newbucket"))
+	g.Expect(bucket).Should(BeNil())
+	g.Expect(err).ToNot(BeNil())
+	_ = tx.Rollback()
+	tx, err = db.Begin(true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	g.Expect(storage.GetBucket(tx, "none")).To(BeNil())
+	bucket, err = tx.CreateBucketIfNotExists([]byte("newbucket"))
+	g.Expect(bucket).ToNot(BeNil())
+	g.Expect(err).To(BeNil())
+	err = tx.Commit()
+	if err != nil {
+		t.Fatal(err)
+	}
+	tx, err = db.Begin(false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	g.Expect(storage.GetBucket(tx, "newbucket")).ToNot(BeNil())
+}

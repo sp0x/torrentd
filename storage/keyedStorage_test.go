@@ -8,8 +8,8 @@ import (
 
 func TestKeyedStorage_Add(t *testing.T) {
 	g := NewWithT(t)
-	//storage := NewKeyedStorageWithBacking(NewKey("a"), BoltStorage{})
-	storage := NewKeyedStorage(NewKey("a"))
+	storage := NewKeyedStorageWithBacking(NewKey("a"), BoltStorage{})
+	//storage := NewKeyedStorage(NewKey("a"))
 	item := &search.ExternalResultItem{}
 	item.ExtraFields = make(map[string]interface{})
 	item.ExtraFields["a"] = "b"

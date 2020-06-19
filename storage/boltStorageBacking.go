@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"bytes"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
@@ -15,7 +16,8 @@ import (
 )
 
 type BoltStorage struct {
-	Database *bolt.DB
+	Database   *bolt.DB
+	rootBucket []string
 }
 
 func NewBoltStorage(dbPath string) (*BoltStorage, error) {
@@ -77,6 +79,49 @@ type Chat struct {
 	Username    string
 	InitialText string
 	ChatId      int64
+}
+
+//
+func (b *BoltStorage) Find(query Query, result *search.ExternalResultItem) error {
+	if query == nil {
+		return errors.New("query is required")
+	}
+	bucketName := "results"
+	return b.Database.View(func(tx *bolt.Tx) error {
+		bucket := b.GetBucket(tx, bucketName)
+		//Ways to go about this:
+		//scan the entire bucket and filter by the query - this may be too slow
+		//
+		//Todo: implement querying if we're not using primary keys.
+		serializedValue := toby
+	})
+}
+
+// GetBucket returns the given bucket. You can use an array of strings for sub-buckets.
+func (b *BoltStorage) GetBucket(tx *bolt.Tx, children ...string) *bolt.Bucket {
+	var bucket *bolt.Bucket
+	bucketNames := append(b.rootBucket, children...)
+	for _, bucketName := range bucketNames {
+		if bucket != nil {
+			if bucket = bucket.Bucket([]byte(bucketName)); b == nil {
+				return nil
+			}
+		} else {
+			if bucket = tx.Bucket([]byte(bucketName)); b == nil {
+				return nil
+			}
+		}
+	}
+	return bucket
+}
+
+func (b *BoltStorage) Update(query Query, item *search.ExternalResultItem) {
+	panic("implement me")
+}
+
+func (b *BoltStorage) Create(item *search.ExternalResultItem) {
+
+	panic("implement me")
 }
 
 //StoreChat stores a new chat.
@@ -241,4 +286,33 @@ func itob(v int) []byte {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, uint64(v))
 	return b
+}
+
+func toBytes(key interface{}, codec codec.MarshalUnmarshaler) ([]byte, error) {
+	if key == nil {
+		return nil, nil
+	}
+	switch t := key.(type) {
+	case []byte:
+		return t, nil
+	case string:
+		return []byte(t), nil
+	case int:
+		return numbertob(int64(t))
+	case uint:
+		return numbertob(uint64(t))
+	case int8, int16, int32, int64, uint8, uint16, uint32, uint64:
+		return numbertob(t)
+	default:
+		return codec.Marshal(key)
+	}
+}
+
+func numbertob(v interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+	err := binary.Write(&buf, binary.BigEndian, v)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }

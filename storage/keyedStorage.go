@@ -12,6 +12,8 @@ type KeyedStorage struct {
 }
 
 type Key []string
+
+//TODO: Add limit, reverse order
 type Query map[string]interface{}
 
 //NewKey creates a new key using an array of fields.
