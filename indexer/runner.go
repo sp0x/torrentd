@@ -80,7 +80,8 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 		state:               defaultIndexerState(),
 		keepSessions:        true,
 		failingSearchFields: make(map[string]fieldBlock),
-		Storage:             storage.NewKeyedStorage(),
+		//Our root storage, which isn't indexed.
+		Storage: storage.NewKeyedStorage(nil),
 	}
 	return runner
 }
@@ -590,6 +591,8 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 		}).Debugf("Found %d rows", rows.Length())
 
 	var extracted []search.ExternalResultItem
+	entityType := r.definition.getSearchEntity()
+	entityStorage := r.Storage.NewWithKey(entityType.GetKey())
 
 	for i := 0; i < rows.Length(); i++ {
 		if query.Limit > 0 && len(extracted) >= query.Limit {
@@ -609,7 +612,7 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 			}
 			//The category doesn't match even 1 of the categories in the query.
 			if !matchCat {
-				r.Storage.Add(&item)
+				entityStorage.Add(&item)
 				r.logger.
 					WithFields(logrus.Fields{"category": item.LocalCategoryName, "categoryId": item.LocalCategoryID}).
 					Debugf("Skipping result because it's not contained in our needed categories.")
@@ -618,7 +621,7 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 		}
 		//Try to map the category from the Indexer to the global categories
 		r.resolveCategory(&item)
-		r.Storage.Add(&item)
+		entityStorage.Add(&item)
 		if query.Series != "" {
 			info, err := releaseinfo.Parse(item.Title)
 			if err != nil {

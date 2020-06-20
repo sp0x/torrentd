@@ -9,6 +9,9 @@ import (
 //NewUniqueIndex creates a new unique index bucket
 func NewUniqueIndex(parentBucket *bolt.Bucket, name []byte) (*UniqueIndex, error) {
 	var err error
+	if parentBucket == nil {
+		return nil, errors.New("parent bucket is required")
+	}
 	bucket := parentBucket.Bucket(name)
 	if bucket == nil {
 		if !parentBucket.Writable() {
@@ -73,7 +76,7 @@ func (ix *UniqueIndex) Get(indexValue []byte) []byte {
 
 //All returns all the IDs corresponding to the given index value.
 //For unique indexes this should be a single ID.
-func (ix *UniqueIndex) All(indexValue []byte, opts *CursorOptions) [][]byte {
+func (ix *UniqueIndex) All(indexValue []byte, _ *CursorOptions) [][]byte {
 	id := ix.IndexBucket.Get(indexValue)
 	if id != nil {
 		return [][]byte{id}
