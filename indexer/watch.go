@@ -55,7 +55,6 @@ func Watch(helper *Facade, initialQuery torznab.Query, intervalSec int) <-chan s
 						log.WithFields(log.Fields{"id": result.LocalId, "name": result.Title, "pub": result.PublishDate}).
 							Info("Updated result")
 					}
-
 				}
 				if !result.IsNew() {
 					hasReachedStaleItems = true
