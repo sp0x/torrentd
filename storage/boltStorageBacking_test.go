@@ -32,17 +32,17 @@ var _ = Describe("Bolt storage", func() {
 		bstore := &BoltStorage{}
 		//Init db
 		BeforeEach(func() {
-			tempDb, err := GetBoltDb(tempfile())
+			tmpBstore, err := NewBoltStorage(tempfile())
 			if err != nil {
 				Fail(fmt.Sprintf("Couldn't open a db: %v", err))
 				return
 			}
-			if tempDb == nil {
+			if tmpBstore == nil {
 				Fail(fmt.Sprintf("Nil db: %v", err))
 				return
 			}
-			db = tempDb
-			bstore.Database = tempDb
+			db = tmpBstore.Database
+			bstore = tmpBstore
 		})
 		//Teardown db
 		AfterEach(func() {
@@ -117,7 +117,7 @@ var _ = Describe("Bolt storage", func() {
 			}
 			itemsRestored, err := bstore.GetSearchResults(categories.CategoryBooks.ID)
 			if err != nil {
-				Fail(fmt.Sprintf("error while fetching stored items"))
+				Fail("error while fetching stored items")
 				return
 			}
 			if len(itemsRestored) != len(items) {
@@ -141,7 +141,7 @@ var _ = Describe("Bolt storage", func() {
 			}
 			itemsRestored, err := bstore.GetSearchResults(-100)
 			if err != nil {
-				Fail(fmt.Sprintf("error while fetching stored items"))
+				Fail("error while fetching stored items")
 				return
 			}
 			if len(itemsRestored) != len(items) {

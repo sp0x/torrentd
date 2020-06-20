@@ -189,7 +189,10 @@ func (b *BoltStorage) Create(keyParts Key, item *search.ExternalResultItem) erro
 func (b *BoltStorage) StoreChat(chat *Chat) error {
 	//	defer db.Close()
 	err := b.Database.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte("telegram_chats"))
+		bucket, err := b.createBucketIfItDoesntExist(tx, "telegram_chats")
+		if err != nil {
+			return err
+		}
 		key := i64tob(chat.ChatId)
 		val, err := b.marshaler.Marshal(chat)
 		if err != nil {
@@ -253,6 +256,9 @@ func (b *BoltStorage) GetBucket(tx *bolt.Tx, children ...string) *bolt.Bucket {
 func (b *BoltStorage) ForChat(callback func(chat *Chat)) error {
 	return b.Database.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte("telegram_chats"))
+		if bucket == nil {
+			return nil
+		}
 		return bucket.ForEach(func(k, v []byte) error {
 			var chat = Chat{}
 			if err := b.marshaler.Unmarshal(v, &chat); err != nil {
@@ -269,6 +275,9 @@ func (b *BoltStorage) GetChat(id int) (*Chat, error) {
 	found := false
 	err := b.Database.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte("telegram_chats"))
+		if bucket == nil {
+			return nil
+		}
 		buff := bucket.Get(itob(id))
 		if buff == nil {
 			return nil
