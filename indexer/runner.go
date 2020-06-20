@@ -527,7 +527,7 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 	context := RunContext{
 		Search: srch.(*search.Search),
 	}
-	target, err := r.extractSearchTarget(query, localCats, context, err)
+	target, err := r.extractSearchTarget(query, localCats, context)
 	if err != nil {
 		return nil, err
 	}
@@ -538,29 +538,14 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 		return nil, err
 	}
 	dom := r.browser.Dom()
-	html := r.browser.Body()
 	r.logger.
 		WithFields(logrus.Fields{}).
 		Debugf("Fetched Indexer page.\n")
 	setupContext(r, &context, dom)
 	// merge following rows for After selector
-	if after := r.definition.Search.Rows.After; after > 0 {
-		rows := dom.Find(r.definition.Search.Rows.Selector)
-		for i := 0; i < rows.Length(); i += 1 + after {
-			rows.Eq(i).AppendSelection(rows.Slice(i+1, i+1+after).Find("td"))
-			rows.Slice(i+1, i+1+after).Remove()
-		}
-	}
-	// apply Remove if it exists
-	if remove := r.definition.Search.Rows.Remove; remove != "" {
-		matching := dom.Find(r.definition.Search.Rows.Selector).Filter(remove)
-		r.logger.
-			WithFields(logrus.Fields{"selector": remove, "html": html}).
-			Debugf("Applying remove to %d rows", matching.Length())
-		matching.Remove()
-	}
-	if r.definition.Search.Rows.Selector == "" {
-		return nil, errors.New("no result item selector is given")
+	err = r.clearDom(dom)
+	if err != nil {
+		return nil, err
 	}
 	rows := dom.Find(r.definition.Search.Rows.Selector)
 
@@ -636,7 +621,30 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 	return context.Search, nil
 }
 
-func (r *Runner) extractSearchTarget(query torznab.Query, localCats []string, context RunContext, err error) (*SearchTarget, error) {
+func (r *Runner) clearDom(dom *goquery.Selection) error {
+	html := r.browser.Body()
+	if after := r.definition.Search.Rows.After; after > 0 {
+		rows := dom.Find(r.definition.Search.Rows.Selector)
+		for i := 0; i < rows.Length(); i += 1 + after {
+			rows.Eq(i).AppendSelection(rows.Slice(i+1, i+1+after).Find("td"))
+			rows.Slice(i+1, i+1+after).Remove()
+		}
+	}
+	// apply Remove if it exists
+	if remove := r.definition.Search.Rows.Remove; remove != "" {
+		matching := dom.Find(r.definition.Search.Rows.Selector).Filter(remove)
+		r.logger.
+			WithFields(logrus.Fields{"selector": remove, "html": html}).
+			Debugf("Applying remove to %d rows", matching.Length())
+		matching.Remove()
+	}
+	if r.definition.Search.Rows.Selector == "" {
+		return errors.New("no result item selector is given")
+	}
+	return nil
+}
+
+func (r *Runner) extractSearchTarget(query torznab.Query, localCats []string, context RunContext) (*SearchTarget, error) {
 	//Exposed fields to add:
 	templateCtx := r.getRunnerContext(query, localCats, context)
 	//Apply our context to the search path
