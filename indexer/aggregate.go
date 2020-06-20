@@ -33,6 +33,28 @@ func NewAggregate(indexers []Indexer) *Aggregate {
 	return ag
 }
 
+//MaxSearchPages returns the maximum number of pages that this aggregate can search, this is using the maximum paged index in the aggregate.
+func (ag *Aggregate) MaxSearchPages() uint {
+	maxValue := uint(0)
+	for _, index := range ag.Indexers {
+		if index.MaxSearchPages() > maxValue {
+			maxValue = index.MaxSearchPages()
+		}
+	}
+	return maxValue
+}
+
+//SearchIsSinglePaged this is true only if all indexes inside the aggregate are single paged.
+func (ag *Aggregate) SearchIsSinglePaged() bool {
+	//For this, all indexes must be single paged
+	for _, index := range ag.Indexers {
+		if !index.SearchIsSinglePaged() {
+			return false
+		}
+	}
+	return true
+}
+
 func (ag *Aggregate) ProcessRequest(req *http.Request) (*http.Response, error) {
 	for _, indexer := range ag.Indexers {
 		return indexer.ProcessRequest(req)

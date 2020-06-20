@@ -59,7 +59,7 @@ func GetNewTorrents(client *indexer.Facade, fetchOptions *indexer.GenericSearchO
 					torrent.LocalId, torrent.AddedOnStr(), "#", torrent.Title)
 			}
 			_ = tabWr.Flush()
-			if !torrent.IsNew() && fetchOptions.StopOnStaleTorrents {
+			if !torrent.IsNew() && fetchOptions.StopOnStaleResults {
 				finished = true
 				break
 			}

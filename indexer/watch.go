@@ -7,18 +7,16 @@ import (
 	"time"
 )
 
-//Watch tracks a tracker for any new torrents and records them.
+//Watch tracks an index for any new items and records them.
 //The interval is in seconds
-func Watch(helper *Facade, initialQuery torznab.Query, interval int) <-chan search.ExternalResultItem {
-	//Fetch pages until we don't see any new torrents
-
+func Watch(helper *Facade, initialQuery torznab.Query, intervalSec int) <-chan search.ExternalResultItem {
 	outputChan := make(chan search.ExternalResultItem)
 	go func() {
 		var currentSearch search.Instance
 		startingPage := uint(0)
-		maxPages := uint(10)
-		page := uint(0)
-		for true {
+		maxPages := helper.Indexer.MaxSearchPages()
+		currentPage := uint(0)
+		for {
 			var err error
 			if currentSearch == nil {
 				currentSearch, err = helper.Search(nil, initialQuery)
@@ -26,22 +24,22 @@ func Watch(helper *Facade, initialQuery torznab.Query, interval int) <-chan sear
 				currentSearch, err = helper.Search(currentSearch, initialQuery)
 			}
 			if err != nil {
-				time.Sleep(time.Second * time.Duration(interval))
+				time.Sleep(time.Second * time.Duration(intervalSec))
 				switch err.(type) {
 				case *LoginError:
 					return
 				}
 			}
 			if currentSearch == nil {
-				log.Warningf("Could not fetch torrent page: %d\n", page)
-				time.Sleep(time.Second * time.Duration(interval))
+				log.Warningf("Could not fetch torrent currentPage: %d\n", currentPage)
+				time.Sleep(time.Second * time.Duration(intervalSec))
 				continue
 			}
-			//Parse the page and see if there are any new torrents
-			//if there aren't any, sleep the interval
+			//Parse the currentPage and see if there are any new torrents
+			//if there aren't any, sleep the intervalSec
 			counter := uint(0)
 			finished := false
-			hasStaleTorrents := false
+			hasReachedStaleItems := false
 			for _, result := range currentSearch.GetResults() {
 				outputChan <- result
 			}
@@ -60,24 +58,24 @@ func Watch(helper *Facade, initialQuery torznab.Query, interval int) <-chan sear
 
 				}
 				if !result.IsNew() {
-					hasStaleTorrents = true
+					hasReachedStaleItems = true
 					finished = true
 					break
 				}
 				counter++
 			}
 			//If we have stale torrents we wait some time and try again
-			if hasStaleTorrents {
-				time.Sleep(time.Second * time.Duration(interval))
+			if hasReachedStaleItems {
+				time.Sleep(time.Second * time.Duration(intervalSec))
 				currentSearch = nil
-				page = startingPage
+				currentPage = startingPage
 				continue
 			}
-			//Otherwise we proceed to the next page if there's any
-			page += 1
+			//Otherwise we proceed to the next currentPage if there's any
+			currentPage += 1
 			//We've exceeded the pages, go to the start
-			if maxPages == page {
-				page = startingPage
+			if maxPages == currentPage {
+				currentPage = startingPage
 				currentSearch = nil
 			}
 		}

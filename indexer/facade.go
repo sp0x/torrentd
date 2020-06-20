@@ -19,10 +19,12 @@ type Facade struct {
 }
 
 type GenericSearchOptions struct {
-	PageCount            uint
+	//The count of pages we can fetch
+	PageCount uint
+	//The initial search page
 	StartingPage         uint
 	MaxRequestsPerSecond uint
-	StopOnStaleTorrents  bool
+	StopOnStaleResults   bool
 }
 
 //NewFacadeFromConfiguration Creates a new facade using the configuration
@@ -114,7 +116,7 @@ func (th *Facade) SearchKeywordsWithCategory(searchContext search.Instance, quer
 	return srch, nil
 }
 
-//
+//GetDefaultOptions gets the default search options
 func (th *Facade) GetDefaultOptions() *GenericSearchOptions {
 	return &GenericSearchOptions{
 		PageCount:            10,

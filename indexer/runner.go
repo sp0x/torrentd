@@ -55,6 +55,18 @@ type Runner struct {
 	Storage             storage.ItemStorage
 }
 
+func (r *Runner) MaxSearchPages() uint {
+	p := uint(r.definition.Search.MaxPages)
+	if r.SearchIsSinglePaged() {
+		return 1
+	}
+	return p
+}
+
+func (r *Runner) SearchIsSinglePaged() bool {
+	return r.definition.Search.IsSinglePage()
+}
+
 func (r *Runner) ProcessRequest(req *http.Request) (*http.Response, error) {
 	st := r.browser.State()
 	st.Request = req

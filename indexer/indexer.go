@@ -30,4 +30,7 @@ type Indexer interface {
 	//Check if the Indexer works ok.
 	//This might be needed to validate the search result extraction.
 	Check() error
+	//The maximum number of pages we can search
+	MaxSearchPages() uint
+	SearchIsSinglePaged() bool
 }

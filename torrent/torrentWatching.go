@@ -19,7 +19,7 @@ func Watch(client *indexer.Facade, interval int) {
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 	ops := client.GetDefaultOptions()
-	ops.StopOnStaleTorrents = true
+	ops.StopOnStaleResults = true
 	err := GetNewTorrents(client, ops)
 	if err != nil {
 		fmt.Println("Could not fetch initial torrents")
