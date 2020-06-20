@@ -73,10 +73,11 @@ func Watch(helper *Facade, initialQuery torznab.Query, intervalSec int) <-chan s
 			}
 			//Otherwise we proceed to the next currentPage if there's any
 			currentPage += 1
-			//We've exceeded the pages, go to the start
+			//We've exceeded the pages, sleep and go to the start
 			if maxPages == currentPage {
 				currentPage = startingPage
 				currentSearch = nil
+				time.Sleep(time.Second * time.Duration(intervalSec))
 			}
 		}
 	}()
