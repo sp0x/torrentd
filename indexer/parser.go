@@ -21,6 +21,10 @@ import (
 
 var defaultRateLimit = 500
 
+const (
+	searchEntity = "search"
+)
+
 type IndexerDefinition struct {
 	Site         string                 `yaml:"site"`
 	Settings     []settingsField        `yaml:"settings"`
@@ -34,6 +38,8 @@ type IndexerDefinition struct {
 	Search       searchBlock            `yaml:"search"`
 	stats        IndexerDefinitionStats `yaml:"-"`
 	Encoding     string                 `yaml:"encoding"`
+	//Entities that the index contains
+	Entities []entityBlock `yaml:"entities"`
 	//The ms to wait between each request.
 	RateLimit int `yaml:"ratelimit"`
 }
@@ -47,6 +53,14 @@ type IndexerDefinitionStats struct {
 
 func (id *IndexerDefinition) Stats() IndexerDefinitionStats {
 	return id.stats
+}
+
+//getSearchEntity gets the entity that's returned from a search.
+func (id *IndexerDefinition) getSearchEntity() *entityBlock {
+	entity := &entityBlock{}
+	entity.Name = searchEntity
+	entity.IndexKey = id.Search.Key
+	return entity
 }
 
 type settingsField struct {

@@ -1,5 +1,6 @@
 package indexer
 
+//searchBlock describes how search is done in an index.
 type searchBlock struct {
 	Path     string          `yaml:"path"`
 	Method   string          `yaml:"method"`
@@ -8,4 +9,6 @@ type searchBlock struct {
 	Rows     rowsBlock       `yaml:"rows"`
 	Fields   fieldsListBlock `yaml:"fields"`
 	Context  fieldsListBlock `yaml:"context"`
+	//Key for indexing the results
+	Key stringorslice `yaml:"key"`
 }
