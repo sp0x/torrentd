@@ -44,7 +44,9 @@ test:
 test-coverage:
 	@cd $(WORKDIR); \
 	echo "" > $(COVERAGE_REPORT); \
-	$(GOTEST) -coverprofile=$(COVERAGE_REPORT) -coverpkg=./... -covermode=$(COVERAGE_MODE) ./...
+	$(GOTEST) -failfast -coverprofile=$(COVERAGE_REPORT).tmp -coverpkg=./... -covermode=$(COVERAGE_MODE) ./...; \
+	cat $(COVERAGE_REPORT).tmp | grep -v "indexer/definitions/assets.go" > $(COVERAGE_REPORT); \
+	rm $(COVERAGE_REPORT).tmp
 
 build-image:
 	docker-compose build rss
