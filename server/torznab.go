@@ -139,25 +139,33 @@ func (s *Server) rewriteLinks(r *http.Request, items []search.ExternalResultItem
 		if strings.HasPrefix(item.Link, "magnet:") {
 			continue
 		}
-		sourceLink := item.SourceLink
-		if sourceLink == "" {
-			sourceLink = item.Link
-		}
-		//Encode the site and source of the torrent as a JWT token
-		t := &token{
-			Site: item.Site,
-			Link: sourceLink,
-		}
-
-		te, err := t.Encode(apiKey)
+		itemTmp := item
+		tokenValue, err := getTokenValue(&itemTmp, apiKey)
 		if err != nil {
-			log.Debugf("Error encoding token: %v", err)
 			return nil, err
 		}
-
 		filename := strings.Replace(item.Title, "/", "-", -1)
-		items[idx].Link = fmt.Sprintf("%s/%s/%s.torrent", baseURL.String(), te, url.QueryEscape(filename))
+		items[idx].Link = fmt.Sprintf("%s/%s/%s.torrent", baseURL.String(), tokenValue, url.QueryEscape(filename))
 	}
 
 	return items, nil
+}
+
+func getTokenValue(item *search.ExternalResultItem, apiKey []byte) (string, error) {
+	sourceLink := item.SourceLink
+	if sourceLink == "" {
+		sourceLink = item.Link
+	}
+	//Encode the site and source of the torrent as a JWT token
+	t := &token{
+		Site: item.Site,
+		Link: sourceLink,
+	}
+
+	te, err := t.Encode(apiKey)
+	if err != nil {
+		log.Debugf("Error encoding token: %v", err)
+		return "", err
+	}
+	return te, nil
 }

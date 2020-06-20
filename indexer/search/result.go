@@ -60,6 +60,7 @@ func (i *ExternalResultItem) GetField(key string) interface{} {
 }
 
 //Equals checks if this item matches the other one exactly(excluding the ID)
+//TODO: refactor this to reduce #complexity
 func (i *ExternalResultItem) Equals(item *ExternalResultItem) bool {
 	if (item.ExtraFields == nil && i.ExtraFields != nil) ||
 		(i.ExtraFields == nil && item.ExtraFields != nil) ||
