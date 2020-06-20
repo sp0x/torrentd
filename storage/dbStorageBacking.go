@@ -14,10 +14,12 @@ type DBStorage struct {
 	Path string
 }
 
+//Create a parameterized SQL query array. The first element is the query, all the following elements are parameters.
 func createQueryArray(query Query) []interface{} {
 	var searchParts []string
 	var searchValues []interface{}
-	for key, value := range query {
+	for _, key := range query.Keys() {
+		value, _ := query.Get(key)
 		searchParts = append(searchParts, fmt.Sprintf("%s = ?", key))
 		searchValues = append(searchValues, value)
 	}

@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"github.com/emirpasic/gods/maps/linkedhashmap"
 	"github.com/prometheus/common/log"
 	"github.com/sp0x/torrentd/indexer/search"
 	"reflect"
@@ -18,8 +19,21 @@ type KeyedStorage struct {
 
 type Key []string
 
-//TODO: Add limit, reverse order
-type Query map[string]interface{}
+//type Query map[string]interface{}
+//A query is a hashset (non-tree) with insertion order
+//type Query *linkedhashmap.Map
+type Query interface {
+	Put(k, v interface{})
+	Size() int
+	Keys() []interface{}
+	Values() []interface{}
+	Get(key interface{}) (value interface{}, found bool)
+}
+
+func NewQuery() Query {
+	query := linkedhashmap.New()
+	return query
+}
 
 //NewKey creates a new keyParts using an array of fields.
 func NewKey(fieldNames ...string) Key {
@@ -99,14 +113,16 @@ func (s *KeyedStorage) Add(item *search.ExternalResultItem) (bool, bool) {
 
 //GetKeyQueryFromItem gets the query that matches an item with the given keyParts.
 func GetKeyQueryFromItem(keyParts Key, item *search.ExternalResultItem) Query {
-	output := Query{}
+	output := NewQuery()
 	val := reflect.ValueOf(item).Elem()
 	for _, kfield := range keyParts {
 		fld := val.FieldByName(kfield)
 		if !fld.IsValid() {
-			output[kfield] = item.GetField(kfield)
+			output.Put(kfield, item.GetField(kfield))
+			//output[kfield] = item.GetField(kfield)
 		} else {
-			output[kfield] = fld.Interface()
+			output.Put(kfield, fld.Interface())
+			//output[kfield] = fld.Interface()
 		}
 	}
 	return output
@@ -115,10 +131,10 @@ func GetKeyQueryFromItem(keyParts Key, item *search.ExternalResultItem) Query {
 //GetIndexNameFromQuery gets the name of an index from a query.
 func GetIndexNameFromQuery(query Query) string {
 	name := ""
-	querySize := len(query)
+	querySize := query.Size()
 	ix := 0
-	for key := range query {
-		name += key
+	for _, key := range query.Keys() {
+		name += key.(string)
 		if ix < (querySize - 1) {
 			name += "_"
 		}
@@ -145,9 +161,9 @@ func GetIndexValueFromItem(keyParts Key, item *search.ExternalResultItem) []byte
 //GetIndexValueFromQuery get the value of an index by a query.
 func GetIndexValueFromQuery(query Query) []byte {
 	//indexValue := make([]byte, 0, 0)
-	valueParts := make([]string, len(query))
+	valueParts := make([]string, query.Size())
 	i := 0
-	for _, v := range query {
+	for _, v := range query.Values() {
 		valueParts[i] = serializeKeyValue(v)
 		i++
 	}

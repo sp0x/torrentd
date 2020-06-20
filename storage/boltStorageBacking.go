@@ -95,6 +95,9 @@ func (b *BoltStorage) Find(query Query, result *search.ExternalResultItem) error
 	}
 	return b.Database.View(func(tx *bolt.Tx) error {
 		bucket := b.GetBucket(tx, resultsBucket)
+		if bucket == nil {
+			return errors.New("not found")
+		}
 		//Ways to go about this:
 		//-scan the entire bucket and filter by the query - this may be too slow
 		//-serialize the keyParts query and use it as the keyParts in the bucket, to search by it
@@ -109,7 +112,7 @@ func (b *BoltStorage) Find(query Query, result *search.ExternalResultItem) error
 		indexValue := GetIndexValueFromQuery(query)
 		ids := idx.All(indexValue, SingleItemCursor())
 		if len(ids) == 0 {
-			return nil
+			return errors.New("not found")
 		}
 		rawResult := bucket.Get(ids[0])
 		err = b.marshaler.Unmarshal(rawResult, result)
@@ -125,7 +128,10 @@ func (b *BoltStorage) Update(query Query, item *search.ExternalResultItem) error
 		return errors.New("query is required")
 	}
 	return b.Database.Update(func(tx *bolt.Tx) error {
-		bucket := b.GetBucket(tx, resultsBucket)
+		bucket, err := b.createBucketIfItDoesntExist(tx, resultsBucket)
+		if err != nil {
+			return err
+		}
 		idx, err := getIndexFromQuery(bucket, query)
 		if err != nil {
 			return err
@@ -145,7 +151,10 @@ func (b *BoltStorage) Update(query Query, item *search.ExternalResultItem) error
 func (b *BoltStorage) Create(keyParts Key, item *search.ExternalResultItem) error {
 	indexValue := GetIndexValueFromItem(keyParts, item)
 	return b.Database.Update(func(tx *bolt.Tx) error {
-		bucket := b.GetBucket(tx, resultsBucket)
+		bucket, err := b.createBucketIfItDoesntExist(tx, resultsBucket)
+		if err != nil {
+			return err
+		}
 		//We get the index that we'll use
 		index, err := getIndexFromKeys(bucket, keyParts)
 		if err != nil {
@@ -194,6 +203,32 @@ func (b *BoltStorage) StoreChat(chat *Chat) error {
 func DefaultBoltPath() string {
 	cwd, _ := os.Getwd()
 	return path.Join(cwd, "db", "bolt.db")
+}
+
+//createBucketIfItDoesntExist creates a new bucket by it's name if it doesn't exist
+func (b *BoltStorage) createBucketIfItDoesntExist(tx *bolt.Tx, name string) (*bolt.Bucket, error) {
+	if tx == nil || !tx.Writable() {
+		return nil, errors.New("transaction is nil or not writable")
+	}
+	if name == "" {
+		return nil, errors.New("bucket name is required")
+	}
+	var bucket *bolt.Bucket
+	var err error
+	bucketNames := append(b.rootBucket, name)
+	//Make sure we keep our bucket structure correct.
+	for _, bucketName := range bucketNames {
+		if bucket != nil {
+			if bucket, err = bucket.CreateBucketIfNotExists([]byte(bucketName)); err != nil {
+				return nil, err
+			}
+		} else {
+			if bucket, err = tx.CreateBucketIfNotExists([]byte(bucketName)); err != nil {
+				return nil, err
+			}
+		}
+	}
+	return bucket, nil
 }
 
 // GetBucket returns the given bucket. You can use an array of strings for sub-buckets.
