@@ -19,9 +19,6 @@ type KeyedStorage struct {
 
 type Key []string
 
-//type Query map[string]interface{}
-//A query is a hashset (non-tree) with insertion order
-//type Query *linkedhashmap.Map
 type Query interface {
 	Put(k, v interface{})
 	Size() int
@@ -80,30 +77,24 @@ func (s *KeyedStorage) Add(item *search.ExternalResultItem) (bool, bool) {
 			existingResult = &tmpResult
 		}
 	}
-	//if item.LocalId != "" {
-	//	existingResult = defaultStorage.FindById(item.LocalId)
-	//} else {
-	//	existingResult = defaultStorage.FindByNameAndIndex(item.Title, item.Site)
-	//}
-	isNew := existingResult == nil || existingResult.PublishDate != item.PublishDate
-	isUpdate := existingResult != nil && (existingResult.PublishDate != item.PublishDate)
-	if isNew {
-		if isUpdate && existingResult != nil {
-			item.Fingerprint = existingResult.Fingerprint
-			err := s.backing.Update(existingKey, item)
-			if err != nil {
-				log.Error(err)
-				return false, false
-			}
-			//defaultStorage.UpdateResult(existingResult.ID, item)
-		} else {
-			item.Fingerprint = search.GetResultFingerprint(item)
-			//defaultStorage.Create(item)
-			err := s.backing.Create(s.keyParts, item)
-			if err != nil {
-				log.Error(err)
-				return false, false
-			}
+	isNew := false
+	isUpdate := false
+	if existingResult == nil {
+		isNew = true
+		item.Fingerprint = search.GetResultFingerprint(item)
+		err := s.backing.Create(s.keyParts, item)
+		if err != nil {
+			log.Error(err)
+			return false, false
+		}
+	} else if !existingResult.Equals(item) {
+		//This must be an update
+		isUpdate = true
+		item.Fingerprint = existingResult.Fingerprint
+		err := s.backing.Update(existingKey, item)
+		if err != nil {
+			log.Error(err)
+			return false, false
 		}
 	}
 	//We set the result's state so it's known later on whenever it's used.

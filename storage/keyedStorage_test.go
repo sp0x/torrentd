@@ -18,6 +18,14 @@ func TestKeyedStorage_Add(t *testing.T) {
 	item.ExtraFields["a"] = "b"
 	storage.Add(item)
 	g.Expect(item.IsNew()).To(BeTrue())
+
+	item = &search.ExternalResultItem{}
+	item.ExtraFields = make(map[string]interface{})
+	item.ExtraFields["a"] = "b"
+	item.ExtraFields["c"] = "b"
+	storage.Add(item)
+	g.Expect(item.IsNew()).To(BeFalse())
+	g.Expect(item.IsUpdate()).To(BeTrue())
 }
 
 func TestGetKeyNameFromQuery(t *testing.T) {
@@ -84,4 +92,13 @@ func TestGetIndexValueFromItem(t *testing.T) {
 	item.ExtraFields["55"] = time.Now().Unix()
 	indexValue := GetIndexValueFromItem(key, item)
 	g.Expect(string(indexValue)).To(Equal("asdasd123"))
+}
+
+func TestKeyedStorage_NewWithKey(t *testing.T) {
+	g := NewWithT(t)
+	bolts, _ := NewBoltStorage(tempfile())
+	storage := NewKeyedStorageWithBacking(NewKey("a"), bolts)
+	otherStorage := storage.NewWithKey(NewKey("keyb"))
+	//The storage backing in the second storage should be the same as in the first one.
+	g.Expect(otherStorage.(*KeyedStorage).backing).To(Equal(bolts))
 }

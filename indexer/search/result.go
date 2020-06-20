@@ -59,6 +59,88 @@ func (i *ExternalResultItem) GetField(key string) interface{} {
 	return val
 }
 
+//Equals checks if this item matches the other one exactly(excluding the ID)
+func (i *ExternalResultItem) Equals(item *ExternalResultItem) bool {
+	if (item.ExtraFields == nil && i.ExtraFields != nil) ||
+		(i.ExtraFields == nil && item.ExtraFields != nil) ||
+		(len(i.ExtraFields) != len(item.ExtraFields)) {
+		return false
+	}
+	//Check the extra fields
+	for key, val := range i.ExtraFields {
+		otherVal, contained := item.ExtraFields[key]
+		if !contained {
+			return false
+		}
+		if val != otherVal {
+			return false
+		}
+	}
+	//Doing this in this way because it's more performant
+	if i.IsMagnet != item.IsMagnet {
+		return false
+	} else if i.Size != item.Size {
+		return false
+	} else if i.Banner != item.Banner {
+		return false
+	} else if i.Site != item.Site {
+		return false
+	} else if i.Link != item.Link {
+		return false
+	} else if i.Category != item.Category {
+		return false
+	} else if i.Title != item.Title {
+		return false
+	} else if i.Seeders != item.Seeders {
+		return false
+	} else if i.PublishDate != item.PublishDate {
+		return false
+	} else if i.LocalId != item.LocalId {
+		return false
+	} else if i.GUID != item.GUID {
+		return false
+	} else if i.MagnetLink != item.MagnetLink {
+		return false
+	} else if i.SourceLink != item.SourceLink {
+		return false
+	} else if i.DownloadVolumeFactor != item.DownloadVolumeFactor {
+		return false
+	} else if i.ShortTitle != item.ShortTitle {
+		return false
+	} else if i.Author != item.Author {
+		return false
+	} else if i.AuthorId != item.AuthorId {
+		return false
+	} else if i.LocalCategoryID != item.LocalCategoryID {
+		return false
+	} else if i.LocalCategoryName != item.LocalCategoryName {
+		return false
+	} else if i.Grabs != item.Grabs {
+		return false
+	} else if i.OriginalTitle != item.OriginalTitle {
+		return false
+	} else if i.Fingerprint != item.Fingerprint {
+		return false
+	} else if i.Publisher != item.Publisher {
+		return false
+	} else if i.PublishedWith != item.PublishedWith {
+		return false
+	} else if i.Peers != item.Peers {
+		return false
+	} else if i.Comments != item.Comments {
+		return false
+	} else if i.MinimumSeedTime != item.MinimumSeedTime {
+		return false
+	} else if i.MinimumRatio != item.MinimumRatio {
+		return false
+	} else if i.Description != item.Description {
+		return false
+	} else if i.Files != item.Files {
+		return false
+	}
+	return true
+}
+
 type ResultItem struct {
 	Site          string
 	Title         string
