@@ -421,7 +421,7 @@ func (r *Runner) getLocalCategoriesMatchingQuery(query torznab.Query) []string {
 	return localCats
 }
 
-func (r *Runner) resolveQuery(query torznab.Query) (torznab.Query, error) {
+func (r *Runner) fillInAdditionalQueryParameters(query torznab.Query) (torznab.Query, error) {
 	var show *tvmaze.Show
 	var movie *imdbscraper.Movie
 	var err error
@@ -489,6 +489,11 @@ func (r *Runner) Check() error {
 	return err
 }
 
+type SearchTarget struct {
+	Url    string
+	Values url.Values
+}
+
 //SearchKeywords for a given torrent
 func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Instance, error) {
 	r.createBrowser()
@@ -496,12 +501,10 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 		defer r.releaseBrowser()
 	}
 	var err error
-	query, err = r.resolveQuery(query)
+	query, err = r.fillInAdditionalQueryParameters(query)
 	if err != nil {
 		return nil, err
 	}
-
-	// TODO: make this concurrency safe
 	filterLogger = r.logger
 	//Login if it's required
 	if required, err := r.isLoginRequired(); err != nil {
@@ -524,33 +527,13 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 	context := RunContext{
 		Search: srch.(*search.Search),
 	}
-
-	//Exposed fields to add:
-	templateCtx := r.getRunnerContext(query, localCats, context)
-	//Apply our context to the search path
-
-	searchURL, err := applyTemplate("search_path", r.definition.Search.Path, templateCtx)
+	target, err := r.extractSearchTarget(query, localCats, context, err)
 	if err != nil {
 		return nil, err
 	}
-	//Resolve the search url
-	searchURL, err = r.resolveIndexerPath(searchURL)
-	if err != nil {
-		return nil, err
-	}
-
-	r.logger.
-		WithFields(logrus.Fields{"query": query.Encode()}).
-		Debugf("Searching Indexer")
-	//Get our Indexer url values
-	vals, err := r.extractUrlValues(templateCtx)
-	if err != nil {
-		return nil, err
-	}
-
 	timer := time.Now()
 	//Get the content
-	err = r.requireContent(vals, searchURL)
+	err = r.requireContent(target)
 	if err != nil {
 		return nil, err
 	}
@@ -568,7 +551,6 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 			rows.Slice(i+1, i+1+after).Remove()
 		}
 	}
-
 	// apply Remove if it exists
 	if remove := r.definition.Search.Rows.Remove; remove != "" {
 		matching := dom.Find(r.definition.Search.Rows.Selector).Filter(remove)
@@ -654,6 +636,32 @@ func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Insta
 	return context.Search, nil
 }
 
+func (r *Runner) extractSearchTarget(query torznab.Query, localCats []string, context RunContext, err error) (*SearchTarget, error) {
+	//Exposed fields to add:
+	templateCtx := r.getRunnerContext(query, localCats, context)
+	//Apply our context to the search path
+	searchURL, err := applyTemplate("search_path", r.definition.Search.Path, templateCtx)
+	if err != nil {
+		return nil, err
+	}
+	//Resolve the search url
+	searchURL, err = r.resolveIndexerPath(searchURL)
+	if err != nil {
+		return nil, err
+	}
+	r.logger.
+		WithFields(logrus.Fields{"query": query.Encode()}).
+		Debugf("Searching Indexer")
+	//Get our Indexer url values
+	vals, err := r.extractUrlValues(templateCtx)
+	if err != nil {
+		return nil, err
+	}
+	target := &SearchTarget{Url: searchURL, Values: vals}
+	return target, nil
+	//return searchURL, err, vals, nil, nil
+}
+
 func (r *Runner) extractUrlValues(templateCtx RunnerPatternData) (url.Values, error) {
 	//Parse the values that will be used in the url for the search
 	vals := url.Values{}
@@ -706,7 +714,7 @@ func (r *Runner) getRunnerContext(query torznab.Query, localCats []string, conte
 }
 
 //Gets the content from which we'll extract the search results
-func (r *Runner) requireContent(urlVals url.Values, searchURL string) error {
+func (r *Runner) requireContent(target *SearchTarget) error {
 	defer func() {
 		//After we're done we'll cleanup the history of the browser.
 		r.browser.HistoryJar().Clear()
@@ -714,14 +722,14 @@ func (r *Runner) requireContent(urlVals url.Values, searchURL string) error {
 	var err error
 	switch r.definition.Search.Method {
 	case "", searchMethodGet:
-		if len(urlVals) > 0 {
-			searchURL = fmt.Sprintf("%s?%s", searchURL, urlVals.Encode())
+		if target != nil && len(target.Values) > 0 {
+			target.Url = fmt.Sprintf("%s?%s", target.Url, target.Values.Encode())
 		}
-		if err = r.openPage(searchURL); err != nil {
+		if err = r.openPage(target.Url); err != nil {
 			return err
 		}
 	case searchMethodPost:
-		if err = r.postToPage(searchURL, urlVals, true); err != nil {
+		if err = r.postToPage(target.Url, target.Values, true); err != nil {
 			return err
 		}
 
