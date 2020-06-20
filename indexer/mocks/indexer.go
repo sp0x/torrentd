@@ -231,3 +231,31 @@ func (mr *MockIndexerMockRecorder) Check() *gomock.Call {
 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockIndexer)(nil).Check))
 }
+
+// MaxSearchPages mocks base method
+func (m *MockIndexer) MaxSearchPages() uint {
+
+	ret := m.ctrl.Call(m, "MaxSearchPages")
+	ret0, _ := ret[0].(uint)
+	return ret0
+}
+
+// MaxSearchPages indicates an expected call of MaxSearchPages
+func (mr *MockIndexerMockRecorder) MaxSearchPages() *gomock.Call {
+
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaxSearchPages", reflect.TypeOf((*MockIndexer)(nil).MaxSearchPages))
+}
+
+// SearchIsSinglePaged mocks base method
+func (m *MockIndexer) SearchIsSinglePaged() bool {
+
+	ret := m.ctrl.Call(m, "SearchIsSinglePaged")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// SearchIsSinglePaged indicates an expected call of SearchIsSinglePaged
+func (mr *MockIndexerMockRecorder) SearchIsSinglePaged() *gomock.Call {
+
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchIsSinglePaged", reflect.TypeOf((*MockIndexer)(nil).SearchIsSinglePaged))
+}
