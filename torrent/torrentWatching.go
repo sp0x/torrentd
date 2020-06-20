@@ -11,28 +11,28 @@ import (
 )
 
 //Watch tracks a tracker for any new torrents and records them.
-func Watch(client *indexer.Facade, interval int) {
+func Watch(facade *indexer.Facade, interval int) {
 	//Fetch pages untill we don't see any new torrents
 	startingPage := uint(0)
-	maxPages := uint(10)
+	maxPages := facade.Indexer.MaxSearchPages()
 	page := uint(0)
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
-	ops := client.GetDefaultOptions()
+	ops := facade.GetDefaultOptions()
 	ops.StopOnStaleResults = true
-	err := GetNewTorrents(client, ops)
+	err := GetNewTorrents(facade, ops)
 	if err != nil {
 		fmt.Println("Could not fetch initial torrents")
 		os.Exit(1)
 	}
-	//client.clearSearch()
+	//facade.clearSearch()
 	var currentSearch search.Instance
 	for {
 		var err error
 		if currentSearch == nil {
-			currentSearch, err = client.SearchKeywords(nil, "", page)
+			currentSearch, err = facade.SearchKeywords(nil, "", page)
 		} else {
-			currentSearch, err = client.SearchKeywords(currentSearch, "", page)
+			currentSearch, err = facade.SearchKeywords(currentSearch, "", page)
 		}
 		if err != nil {
 			time.Sleep(time.Second * time.Duration(interval))
@@ -55,7 +55,7 @@ func Watch(client *indexer.Facade, interval int) {
 			if finished {
 				break
 			}
-			//torrentNumber := page*client.pageSize + counter + 1
+			//torrentNumber := page*facade.pageSize + counter + 1
 			//isNew, isUpdate := HandleTorrentDiscovery(torrent)
 			if torrent.IsNew() || torrent.IsUpdate() {
 				if torrent.IsNew() && !torrent.IsUpdate() {
