@@ -9,7 +9,7 @@ import (
 	"github.com/sp0x/torrentd/torznab"
 )
 
-//A facade for an indexer/aggregate.
+//Facade for an indexer/aggregate, helps manage the scope of the index, it's configuration and the index itself.
 type Facade struct {
 	//The indexer that we're using
 	Indexer Indexer
@@ -18,6 +18,7 @@ type Facade struct {
 	Scope  Scope
 }
 
+//GenericSearchOptions options for the search.
 type GenericSearchOptions struct {
 	//The count of pages we can fetch
 	PageCount uint
@@ -56,7 +57,7 @@ func NewEmptyFacade(config config.Config) *Facade {
 //If you don't provide a name or name is `all`, an aggregate is used.
 func NewFacade(indexerName string, config config.Config, cats ...categories.Category) (*Facade, error) {
 	if indexerName == "" || indexerName == "all" {
-		return NewAggregateIndexerHelperWithCategories(config, cats...), nil
+		return NewAggregateFacadeWithCategories(config, cats...), nil
 	}
 	facade := NewEmptyFacade(config)
 	indexerObj, err := facade.Scope.Lookup(config, indexerName)
@@ -73,8 +74,8 @@ func NewFacade(indexerName string, config config.Config, cats ...categories.Cate
 	return facade, nil
 }
 
-//NewAggregateIndexerHelperWithCategories Finds an indexer from the config, that matches the given categories.
-func NewAggregateIndexerHelperWithCategories(config config.Config, cats ...categories.Category) *Facade {
+//NewAggregateFacadeWithCategories Finds an indexer from the config, that matches the given categories.
+func NewAggregateFacadeWithCategories(config config.Config, cats ...categories.Category) *Facade {
 	facade := Facade{}
 	facade.Scope = NewScope()
 	indexerName := config.GetString("Indexer")
@@ -89,7 +90,7 @@ func NewAggregateIndexerHelperWithCategories(config config.Config, cats ...categ
 }
 
 //Search using a given query
-func (th *Facade) Search(searchContext search.Instance, query torznab.Query) (search.Instance, error) {
+func (th *Facade) Search(searchContext search.Instance, query *torznab.Query) (search.Instance, error) {
 	srch, err := th.Indexer.Search(query, searchContext)
 	if err != nil {
 		return nil, err
@@ -97,11 +98,11 @@ func (th *Facade) Search(searchContext search.Instance, query torznab.Query) (se
 	return srch, nil
 }
 
-//Open the search to a given page.
+//SearchKeywords performs a search for a given page
 func (th *Facade) SearchKeywords(searchContext search.Instance, query string, page uint) (search.Instance, error) {
 	qrobj := torznab.ParseQueryString(query)
 	qrobj.Page = page
-	return th.Search(searchContext, qrobj)
+	return th.Search(searchContext, &qrobj)
 }
 
 //SearchKeywordsWithCategory Search for *keywords* matching the needed category.
@@ -109,7 +110,7 @@ func (th *Facade) SearchKeywordsWithCategory(searchContext search.Instance, quer
 	qrobj := torznab.ParseQueryString(query)
 	qrobj.Page = page
 	qrobj.Categories = []int{cat.ID}
-	srch, err := th.Indexer.Search(qrobj, searchContext)
+	srch, err := th.Indexer.Search(&qrobj, searchContext)
 	if err != nil {
 		return nil, err
 	}

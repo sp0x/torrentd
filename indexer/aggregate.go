@@ -69,14 +69,14 @@ func (ag *Aggregate) GetEncoding() string {
 	return "utf-8"
 }
 
-//Check checks all indexers
+//Check checks all indexers, if they can be searched.
 func (ag *Aggregate) Check() error {
 	g := errgroup.Group{}
 	for _, ixr := range ag.Indexers {
 		indexerID := ixr.Info().GetId()
 		//Run the Indexer in a goroutine
 		g.Go(func() error {
-			_, err := ixr.Search(torznab.Query{}, nil)
+			_, err := ixr.Search(&torznab.Query{}, nil)
 			if err != nil {
 				log.Warnf("Indexer %q failed: %s", indexerID, err)
 				return nil
@@ -91,7 +91,7 @@ func (ag *Aggregate) Check() error {
 	return nil
 }
 
-func (ag *Aggregate) Search(query torznab.Query, srch search.Instance) (search.Instance, error) {
+func (ag *Aggregate) Search(query *torznab.Query, srch search.Instance) (search.Instance, error) {
 	g := errgroup.Group{}
 	allResults := make([][]search.ExternalResultItem, len(ag.Indexers))
 	maxLength := 0

@@ -5,9 +5,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/server"
-	"github.com/sp0x/torrentd/torrent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
+	"text/tabwriter"
 )
 
 var watchInterval int
@@ -26,20 +27,34 @@ func init() {
 }
 
 func watchTracker(_ *cobra.Command, _ []string) {
-	helper := indexer.NewFacadeFromConfiguration(&appConfig)
-	if helper == nil {
-		log.Error("Couldn't initialize torrent helper.")
+	facade := indexer.NewFacadeFromConfiguration(&appConfig)
+	if facade == nil {
+		log.Error("Couldn't initialize torrent facade.")
 		return
 	}
 	//Init the server
 	go func() {
 		rserver := server.NewServer(&appConfig)
-		err := rserver.Listen(helper)
+		err := rserver.Listen(facade)
 		if err != nil {
 			fmt.Print(err)
 		}
 	}()
 
 	//Start watching the torrent tracker.
-	torrent.Watch(helper, watchInterval)
+	resultChannel := indexer.Watch(facade, nil, watchInterval)
+	tabWr := new(tabwriter.Writer)
+	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
+	for item := range resultChannel {
+		if !item.IsNew() && !item.IsUpdate() {
+			continue
+		}
+		if item.IsNew() && !item.IsUpdate() {
+			_, _ = fmt.Fprintf(tabWr, "Found new result #%s:\t%s\t[%s]:\t%s\n",
+				item.LocalId, item.AddedOnStr(), item.Fingerprint, item.Title)
+		} else {
+			_, _ = fmt.Fprintf(tabWr, "Updated torrent #%s:\t%s\t[%s]:\t%s\n",
+				item.LocalId, item.AddedOnStr(), item.Fingerprint, item.Title)
+		}
+	}
 }

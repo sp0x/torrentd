@@ -9,19 +9,23 @@ import (
 
 //Watch tracks an index for any new items and records them.
 //The interval is in seconds
-func Watch(helper *Facade, initialQuery torznab.Query, intervalSec int) <-chan search.ExternalResultItem {
+func Watch(facade *Facade, initialQuery *torznab.Query, intervalSec int) <-chan search.ExternalResultItem {
 	outputChan := make(chan search.ExternalResultItem)
+	if initialQuery == nil {
+		initialQuery = &torznab.Query{}
+	}
 	go func() {
 		var currentSearch search.Instance
 		startingPage := uint(0)
-		maxPages := helper.Indexer.MaxSearchPages()
+		maxPages := facade.Indexer.MaxSearchPages()
 		currentPage := uint(0)
+		//Go over all pages
 		for {
 			var err error
 			if currentSearch == nil {
-				currentSearch, err = helper.Search(nil, initialQuery)
+				currentSearch, err = facade.Search(nil, initialQuery)
 			} else {
-				currentSearch, err = helper.Search(currentSearch, initialQuery)
+				currentSearch, err = facade.Search(currentSearch, initialQuery)
 			}
 			if err != nil {
 				time.Sleep(time.Second * time.Duration(intervalSec))
@@ -37,7 +41,6 @@ func Watch(helper *Facade, initialQuery torznab.Query, intervalSec int) <-chan s
 			}
 			//Parse the currentPage and see if there are any new torrents
 			//if there aren't any, sleep the intervalSec
-			counter := uint(0)
 			finished := false
 			hasReachedStaleItems := false
 			for _, result := range currentSearch.GetResults() {
@@ -61,7 +64,6 @@ func Watch(helper *Facade, initialQuery torznab.Query, intervalSec int) <-chan s
 					finished = true
 					break
 				}
-				counter++
 			}
 			//If we have stale torrents we wait some time and try again
 			if hasReachedStaleItems {

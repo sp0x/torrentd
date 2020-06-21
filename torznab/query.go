@@ -177,14 +177,14 @@ func ParseQueryString(query string) Query {
 }
 
 // ParseQuery takes the query string parameters for a torznab query and parses them
-func ParseQuery(v url.Values) (Query, error) {
-	query := Query{}
+func ParseQuery(v url.Values) (*Query, error) {
+	query := &Query{}
 
 	for k, vals := range v {
 		switch k {
 		case "t":
 			if len(vals) > 1 {
-				return query, errors.New("Multiple t parameters not allowed")
+				return query, errors.New("multiple t parameters not allowed")
 			}
 			query.Type = vals[0]
 		case "p":
@@ -258,7 +258,7 @@ func ParseQuery(v url.Values) (Query, error) {
 			for _, val := range vals {
 				ints, err := splitInts(val, ",")
 				if err != nil {
-					return Query{}, fmt.Errorf("Unable to parse cats %q", vals[0])
+					return nil, fmt.Errorf("unable to parse cats %q", vals[0])
 				}
 				query.Categories = append(query.Categories, ints...)
 			}

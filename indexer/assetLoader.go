@@ -16,10 +16,10 @@ type AssetLoader struct {
 }
 
 func embeddedLoader() DefinitionLoader {
-	return GetDefaultEmbeddedDefinitionSource()
+	return getDefaultEmbeddedDefinitionSource()
 }
 
-func GetDefaultEmbeddedDefinitionSource() DefinitionLoader {
+func getDefaultEmbeddedDefinitionSource() DefinitionLoader {
 	var src AssetLoader
 	src.Names = definitions.GzipAssetNames()
 	src.Resolver = func(key string) ([]byte, error) {

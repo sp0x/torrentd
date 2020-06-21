@@ -410,7 +410,7 @@ func (r *Runner) Capabilities() torznab.Capabilities {
 }
 
 // getLocalCategoriesMatchingQuery returns a slice of local categories that should be searched
-func (r *Runner) getLocalCategoriesMatchingQuery(query torznab.Query) []string {
+func (r *Runner) getLocalCategoriesMatchingQuery(query *torznab.Query) []string {
 	localCats := []string{}
 	set := make(map[string]struct{})
 	if len(query.Categories) > 0 {
@@ -433,7 +433,7 @@ func (r *Runner) getLocalCategoriesMatchingQuery(query torznab.Query) []string {
 	return localCats
 }
 
-func (r *Runner) fillInAdditionalQueryParameters(query torznab.Query) (torznab.Query, error) {
+func (r *Runner) fillInAdditionalQueryParameters(query *torznab.Query) (*torznab.Query, error) {
 	var show *tvmaze.Show
 	var movie *imdbscraper.Movie
 	var err error
@@ -487,17 +487,22 @@ func (r *Runner) fillInAdditionalQueryParameters(query torznab.Query) (torznab.Q
 	return query, nil
 }
 
+//GetEncoding returns the encoding that's set to be used in this index.
+//This can be changed in the index's definition.
 func (r *Runner) GetEncoding() string {
 	return r.definition.Encoding
 }
 
+//Check sees if the index can be searched
 func (r *Runner) Check() error {
 	verifiedSpan := time.Since(r.lastVerified)
 	if verifiedSpan < time.Minute*60*24 {
 		return nil
 	}
-	_, err := r.Search(torznab.Query{}, nil)
-	r.lastVerified = time.Now()
+	_, err := r.Search(&torznab.Query{}, nil)
+	if err != nil {
+		r.lastVerified = time.Now()
+	}
 	return err
 }
 
@@ -507,7 +512,7 @@ type SearchTarget struct {
 }
 
 //SearchKeywords for a given torrent
-func (r *Runner) Search(query torznab.Query, srch search.Instance) (search.Instance, error) {
+func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Instance, error) {
 	r.createBrowser()
 	if !r.keepSessions {
 		defer r.releaseBrowser()
@@ -656,7 +661,7 @@ func (r *Runner) clearDom(dom *goquery.Selection) error {
 	return nil
 }
 
-func (r *Runner) extractSearchTarget(query torznab.Query, localCats []string, context RunContext) (*SearchTarget, error) {
+func (r *Runner) extractSearchTarget(query *torznab.Query, localCats []string, context RunContext) (*SearchTarget, error) {
 	//Exposed fields to add:
 	templateCtx := r.getRunnerContext(query, localCats, context)
 	//Apply our context to the search path
@@ -715,14 +720,14 @@ func (r *Runner) extractUrlValues(templateCtx RunnerPatternData) (url.Values, er
 }
 
 type RunnerPatternData struct {
-	Query      torznab.Query
+	Query      *torznab.Query
 	Keywords   string
 	Categories []string
 	Context    RunContext
 }
 
 //Get the default run context
-func (r *Runner) getRunnerContext(query torznab.Query, localCats []string, context RunContext) RunnerPatternData {
+func (r *Runner) getRunnerContext(query *torznab.Query, localCats []string, context RunContext) RunnerPatternData {
 	context.Search.SetStartIndex(r, int(query.Page)*r.definition.Search.PageSize)
 	templateCtx := RunnerPatternData{
 		query,
@@ -735,6 +740,9 @@ func (r *Runner) getRunnerContext(query torznab.Query, localCats []string, conte
 
 //Gets the content from which we'll extract the search results
 func (r *Runner) requireContent(target *SearchTarget) error {
+	if target == nil {
+		return errors.New("target is required for searching")
+	}
 	defer func() {
 		//After we're done we'll cleanup the history of the browser.
 		r.browser.HistoryJar().Clear()

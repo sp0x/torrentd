@@ -40,7 +40,7 @@ func TestAssetLoader_Load(t *testing.T) {
 
 func TestGetDefaultEmbeddedDefinitionSource(t *testing.T) {
 	g := NewWithT(t)
-	src := GetDefaultEmbeddedDefinitionSource()
+	src := getDefaultEmbeddedDefinitionSource()
 	names, err := src.List()
 	g.Expect(err).To(BeNil())
 	g.Expect(len(names) > 10).To(BeTrue())

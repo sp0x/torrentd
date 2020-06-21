@@ -25,7 +25,6 @@ func Watch(facade *indexer.Facade, interval int) {
 		fmt.Println("Could not fetch initial torrents")
 		os.Exit(1)
 	}
-	//facade.clearSearch()
 	var currentSearch search.Instance
 	for {
 		var err error
