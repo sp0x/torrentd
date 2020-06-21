@@ -1,9 +1,10 @@
-package storage
+package bolt
 
 import (
 	"bytes"
 	"errors"
 	"github.com/boltdb/bolt"
+	"github.com/sp0x/torrentd/storage/indexing"
 )
 
 //NewUniqueIndex creates a new unique index bucket
@@ -76,7 +77,7 @@ func (ix *UniqueIndex) Get(indexValue []byte) []byte {
 
 //All returns all the IDs corresponding to the given index value.
 //For unique indexes this should be a single ID.
-func (ix *UniqueIndex) All(indexValue []byte, _ *CursorOptions) [][]byte {
+func (ix *UniqueIndex) All(indexValue []byte, _ *indexing.CursorOptions) [][]byte {
 	id := ix.IndexBucket.Get(indexValue)
 	if id != nil {
 		return [][]byte{id}
@@ -85,7 +86,7 @@ func (ix *UniqueIndex) All(indexValue []byte, _ *CursorOptions) [][]byte {
 }
 
 //AllRecords returns all the IDs.
-func (ix *UniqueIndex) AllRecords(ops *CursorOptions) [][]byte {
+func (ix *UniqueIndex) AllRecords(ops *indexing.CursorOptions) [][]byte {
 	shouldReverse := ops != nil && ops.Reverse
 	c := &ReversibleCursor{
 		C:       ix.IndexBucket.Cursor(),
@@ -95,7 +96,7 @@ func (ix *UniqueIndex) AllRecords(ops *CursorOptions) [][]byte {
 }
 
 //Range gets the IDs in the given range.
-func (ix *UniqueIndex) Range(min []byte, max []byte, ops *CursorOptions) [][]byte {
+func (ix *UniqueIndex) Range(min []byte, max []byte, ops *indexing.CursorOptions) [][]byte {
 	shouldReverse := ops != nil && ops.Reverse
 	c := &RangeCursor{
 		C:       ix.IndexBucket.Cursor(),
@@ -110,7 +111,7 @@ func (ix *UniqueIndex) Range(min []byte, max []byte, ops *CursorOptions) [][]byt
 }
 
 //AllWithPrefix finds all the IDs that are prefixed with a given byte array
-func (ix *UniqueIndex) AllWithPrefix(prefix []byte, ops *CursorOptions) [][]byte {
+func (ix *UniqueIndex) AllWithPrefix(prefix []byte, ops *indexing.CursorOptions) [][]byte {
 	c := &PrefixCursor{
 		C:       ix.IndexBucket.Cursor(),
 		Reverse: ops != nil && ops.Reverse,
@@ -119,7 +120,7 @@ func (ix *UniqueIndex) AllWithPrefix(prefix []byte, ops *CursorOptions) [][]byte
 	return scanCursor(c, ops)
 }
 
-func scanCursor(c Cursor, ops *CursorOptions) [][]byte {
+func scanCursor(c indexing.Cursor, ops *indexing.CursorOptions) [][]byte {
 	var results [][]byte
 	for value, id := c.First(); value != nil && c.CanContinue(value); value, id = c.Next() {
 		if ops != nil && ops.Skip > 0 {

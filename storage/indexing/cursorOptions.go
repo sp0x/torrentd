@@ -1,4 +1,4 @@
-package storage
+package indexing
 
 func NewCursorOptions() *CursorOptions {
 	return &CursorOptions{
@@ -14,4 +14,10 @@ type CursorOptions struct {
 	Limit   int
 	Skip    int
 	Reverse bool
+}
+
+type Cursor interface {
+	First() ([]byte, []byte)
+	Next() ([]byte, []byte)
+	CanContinue(val []byte) bool
 }

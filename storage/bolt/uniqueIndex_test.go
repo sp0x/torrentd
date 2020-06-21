@@ -1,9 +1,10 @@
-package storage
+package bolt
 
 import (
 	"fmt"
 	"github.com/boltdb/bolt"
 	. "github.com/onsi/gomega"
+	"github.com/sp0x/torrentd/storage/indexing"
 	"github.com/sp0x/torrentd/storage/serializers/gob"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -12,7 +13,9 @@ import (
 func TestUniqueIndex(t *testing.T) {
 	g := NewWithT(t)
 	db, _ := GetBoltDb(tempfile())
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	err := db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucket([]byte("test"))
@@ -67,20 +70,20 @@ func TestUniqueIndex(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, list, 3)
 
-		opts := NewCursorOptions()
+		opts := indexing.NewCursorOptions()
 		opts.Limit = 2
 		list = idx.AllRecords(opts)
 		require.NoError(t, err)
 		require.Len(t, list, 2)
 
-		opts = NewCursorOptions()
+		opts = indexing.NewCursorOptions()
 		opts.Skip = 2
 		list = idx.AllRecords(opts)
 		require.NoError(t, err)
 		require.Len(t, list, 1)
 		require.Equal(t, []byte("id3"), list[0])
 
-		opts = NewCursorOptions()
+		opts = indexing.NewCursorOptions()
 		opts.Skip = 2
 		opts.Limit = 1
 		opts.Reverse = true
@@ -115,10 +118,12 @@ func TestUniqueIndex(t *testing.T) {
 
 func TestUniqueIndexRange(t *testing.T) {
 	db, _ := GetBoltDb(tempfile())
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	gobs := gob.Serializer
 
-	db.Update(func(tx *bolt.Tx) error {
+	_ = db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucket([]byte("test"))
 		require.NoError(t, err)
 
@@ -158,21 +163,21 @@ func TestUniqueIndexRange(t *testing.T) {
 
 		min, _ = gobs.Marshal(3)
 		max, _ = gobs.Marshal(7)
-		opts := NewCursorOptions()
+		opts := indexing.NewCursorOptions()
 		opts.Skip = 2
 		list = idx.Range(min, max, opts)
 		require.Len(t, list, 3)
 		require.NoError(t, err)
 		assertEncodedIntListEqual(t, []int{5, 6, 7}, list)
 
-		opts = NewCursorOptions()
+		opts = indexing.NewCursorOptions()
 		opts.Limit = 2
 		list = idx.Range(min, max, opts)
 		require.Len(t, list, 2)
 		require.NoError(t, err)
 		assertEncodedIntListEqual(t, []int{3, 4}, list)
 
-		opts = NewCursorOptions()
+		opts = indexing.NewCursorOptions()
 		opts.Reverse = true
 		opts.Skip = 2
 		opts.Limit = 2
@@ -186,9 +191,11 @@ func TestUniqueIndexRange(t *testing.T) {
 
 func TestUniqueIndexPrefix(t *testing.T) {
 	db, _ := GetBoltDb(tempfile())
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
-	db.Update(func(tx *bolt.Tx) error {
+	_ = db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucket([]byte("test"))
 		require.NoError(t, err)
 
@@ -217,7 +224,7 @@ func TestUniqueIndexPrefix(t *testing.T) {
 		require.Equal(t, []byte("b0"), list[0])
 		require.Equal(t, []byte("b9"), list[9])
 
-		opts := NewCursorOptions()
+		opts := indexing.NewCursorOptions()
 		opts.Reverse = true
 		list = idx.AllWithPrefix([]byte("a"), opts)
 		require.Len(t, list, 10)
@@ -225,7 +232,7 @@ func TestUniqueIndexPrefix(t *testing.T) {
 		require.Equal(t, []byte("a9"), list[0])
 		require.Equal(t, []byte("a0"), list[9])
 
-		opts = NewCursorOptions()
+		opts = indexing.NewCursorOptions()
 		opts.Reverse = true
 		list = idx.AllWithPrefix([]byte("b"), opts)
 		require.Len(t, list, 10)
@@ -233,7 +240,7 @@ func TestUniqueIndexPrefix(t *testing.T) {
 		require.Equal(t, []byte("b9"), list[0])
 		require.Equal(t, []byte("b0"), list[9])
 
-		opts = NewCursorOptions()
+		opts = indexing.NewCursorOptions()
 		opts.Skip = 9
 		opts.Limit = 5
 		list = idx.AllWithPrefix([]byte("a"), opts)
@@ -241,7 +248,7 @@ func TestUniqueIndexPrefix(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, []byte("a9"), list[0])
 
-		opts = NewCursorOptions()
+		opts = indexing.NewCursorOptions()
 		opts.Reverse = true
 		opts.Skip = 9
 		opts.Limit = 5

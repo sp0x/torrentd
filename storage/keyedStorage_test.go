@@ -4,14 +4,16 @@ import (
 	"fmt"
 	. "github.com/onsi/gomega"
 	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/storage/bolt"
+	"github.com/sp0x/torrentd/storage/indexing"
 	"testing"
 	"time"
 )
 
 func TestKeyedStorage_Add(t *testing.T) {
 	g := NewWithT(t)
-	bolts, _ := NewBoltStorage(tempfile())
-	storage := NewKeyedStorageWithBacking(NewKey("a"), bolts)
+	bolts, _ := bolt.NewBoltStorage(tempfile())
+	storage := NewKeyedStorageWithBacking(indexing.NewKey("a"), bolts)
 	//storage := NewKeyedStorage(NewKey("a"))
 	item := &search.ExternalResultItem{}
 	item.ExtraFields = make(map[string]interface{})
@@ -30,59 +32,59 @@ func TestKeyedStorage_Add(t *testing.T) {
 
 func TestGetKeyNameFromQuery(t *testing.T) {
 	g := NewWithT(t)
-	query := NewQuery()
+	query := indexing.NewQuery()
 	query.Put("a", "b")
-	name := GetIndexNameFromQuery(query)
+	name := indexing.GetIndexNameFromQuery(query)
 	g.Expect(name).To(Equal("a"))
 }
 
 func TestGetIndexValueFromQuery(t *testing.T) {
 	g := NewWithT(t)
-	query := NewQuery()
+	query := indexing.NewQuery()
 	query.Put("a", "b")
-	val := GetIndexValueFromQuery(query)
+	val := indexing.GetIndexValueFromQuery(query)
 	g.Expect(string(val)).To(Equal("b"))
 	//Should work with multiple query fields
-	query = NewQuery()
+	query = indexing.NewQuery()
 	query.Put("a", "b")
 	query.Put("d", "x")
-	val = GetIndexValueFromQuery(query)
+	val = indexing.GetIndexValueFromQuery(query)
 	g.Expect(string(val)).To(Equal("b\000x"))
 
 	//Should work with ints
-	query = NewQuery()
+	query = indexing.NewQuery()
 	query.Put("a", "b")
 	query.Put("d", 3)
-	val = GetIndexValueFromQuery(query)
+	val = indexing.GetIndexValueFromQuery(query)
 	g.Expect(string(val)).To(Equal("b\0003"))
 
 	//Should work with floats
-	query = NewQuery()
+	query = indexing.NewQuery()
 	query.Put("a", "b")
 	query.Put("d", 3.5)
-	val = GetIndexValueFromQuery(query)
+	val = indexing.GetIndexValueFromQuery(query)
 	g.Expect(string(val)).To(Equal("b\0003.5"))
 
 	//Should work with dates
 	tm := time.Now()
-	query = NewQuery()
+	query = indexing.NewQuery()
 	query.Put("a", "b")
 	query.Put("d", tm)
-	val = GetIndexValueFromQuery(query)
+	val = indexing.GetIndexValueFromQuery(query)
 	g.Expect(string(val)).To(Equal(fmt.Sprintf("b\000%v", tm.Unix())))
 
 	//Should work with dates
-	query = NewQuery()
+	query = indexing.NewQuery()
 	query.Put("a", "b")
 	query.Put("d", true)
-	val = GetIndexValueFromQuery(query)
+	val = indexing.GetIndexValueFromQuery(query)
 	g.Expect(string(val)).To(Equal(fmt.Sprintf("b\000%v", true)))
 }
 
 func TestGetIndexValueFromItem(t *testing.T) {
 	g := NewWithT(t)
 	//Should use key values only, when generating the index value
-	key := Key{}
+	key := indexing.Key{}
 	key = append(key, "a")
 	item := &search.ExternalResultItem{}
 	item.ExtraFields = make(map[string]interface{})
@@ -90,15 +92,15 @@ func TestGetIndexValueFromItem(t *testing.T) {
 	item.ExtraFields["ab"] = "2"
 	item.ExtraFields["ax"] = time.Now()
 	item.ExtraFields["55"] = time.Now().Unix()
-	indexValue := GetIndexValueFromItem(key, item)
+	indexValue := indexing.GetIndexValueFromItem(key, item)
 	g.Expect(string(indexValue)).To(Equal("asdasd123"))
 }
 
 func TestKeyedStorage_NewWithKey(t *testing.T) {
 	g := NewWithT(t)
-	bolts, _ := NewBoltStorage(tempfile())
-	storage := NewKeyedStorageWithBacking(NewKey("a"), bolts)
-	otherStorage := storage.NewWithKey(NewKey("keyb"))
+	bolts, _ := bolt.NewBoltStorage(tempfile())
+	storage := NewKeyedStorageWithBacking(indexing.NewKey("a"), bolts)
+	otherStorage := storage.NewWithKey(indexing.NewKey("keyb"))
 	//The storage backing in the second storage should be the same as in the first one.
 	g.Expect(otherStorage.(*KeyedStorage).backing).To(Equal(bolts))
 }

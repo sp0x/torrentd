@@ -1,4 +1,4 @@
-package storage
+package bolt
 
 import (
 	"bytes"
@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/storage/indexing"
 	"github.com/sp0x/torrentd/storage/serializers"
 	"github.com/sp0x/torrentd/storage/serializers/json"
 	"os"
@@ -89,7 +90,7 @@ const (
 )
 
 //Find something by it's index keys.
-func (b *BoltStorage) Find(query Query, result *search.ExternalResultItem) error {
+func (b *BoltStorage) Find(query indexing.Query, result *search.ExternalResultItem) error {
 	if query == nil {
 		return errors.New("query is required")
 	}
@@ -105,12 +106,12 @@ func (b *BoltStorage) Find(query Query, result *search.ExternalResultItem) error
 		//convert the query to a prefix, and seek to the start of that prefix in a cursor
 		//iterate until the end of the prefixed region in the cursor
 		//Todo: implement querying if we're not using primary keys.
-		idx, err := getIndexFromQuery(bucket, query)
+		idx, err := GetIndexFromQuery(bucket, query)
 		if err != nil {
 			return err
 		}
-		indexValue := GetIndexValueFromQuery(query)
-		ids := idx.All(indexValue, SingleItemCursor())
+		indexValue := indexing.GetIndexValueFromQuery(query)
+		ids := idx.All(indexValue, indexing.SingleItemCursor())
 		if len(ids) == 0 {
 			return errors.New("not found")
 		}
@@ -123,7 +124,7 @@ func (b *BoltStorage) Find(query Query, result *search.ExternalResultItem) error
 	})
 }
 
-func (b *BoltStorage) Update(query Query, item *search.ExternalResultItem) error {
+func (b *BoltStorage) Update(query indexing.Query, item *search.ExternalResultItem) error {
 	if query == nil {
 		return errors.New("query is required")
 	}
@@ -132,12 +133,12 @@ func (b *BoltStorage) Update(query Query, item *search.ExternalResultItem) error
 		if err != nil {
 			return err
 		}
-		idx, err := getIndexFromQuery(bucket, query)
+		idx, err := GetIndexFromQuery(bucket, query)
 		if err != nil {
 			return err
 		}
-		indexValue := GetIndexValueFromQuery(query)
-		ids := idx.All(indexValue, SingleItemCursor())
+		indexValue := indexing.GetIndexValueFromQuery(query)
+		ids := idx.All(indexValue, indexing.SingleItemCursor())
 		serializedValue, err := b.marshaler.Marshal(item)
 		if err != nil {
 			return err
@@ -148,15 +149,15 @@ func (b *BoltStorage) Update(query Query, item *search.ExternalResultItem) error
 }
 
 //Create a new record for a result.
-func (b *BoltStorage) Create(keyParts Key, item *search.ExternalResultItem) error {
-	indexValue := GetIndexValueFromItem(keyParts, item)
+func (b *BoltStorage) Create(keyParts indexing.Key, item *search.ExternalResultItem) error {
+	indexValue := indexing.GetIndexValueFromItem(keyParts, item)
 	return b.Database.Update(func(tx *bolt.Tx) error {
 		bucket, err := b.createBucketIfItDoesntExist(tx, resultsBucket)
 		if err != nil {
 			return err
 		}
 		//We get the index that we'll use
-		index, err := getIndexFromKeys(bucket, keyParts)
+		index, err := GetIndexFromKeys(bucket, keyParts)
 		if err != nil {
 			return err
 		}
@@ -385,11 +386,11 @@ func getItemKey(item search.ExternalResultItem) ([]byte, error) {
 }
 
 // itob returns an 8-byte big endian representation of v.
-func uitob(v uint) []byte {
-	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, uint64(v))
-	return b
-}
+//func uitob(v uint) []byte {
+//	b := make([]byte, 8)
+//	binary.BigEndian.PutUint64(b, uint64(v))
+//	return b
+//}
 func i64tob(v int64) []byte {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, uint64(v))

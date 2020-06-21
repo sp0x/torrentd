@@ -1,15 +1,9 @@
-package storage
+package bolt
 
 import (
 	"bytes"
 	"github.com/boltdb/bolt"
 )
-
-type Cursor interface {
-	First() ([]byte, []byte)
-	Next() ([]byte, []byte)
-	CanContinue(val []byte) bool
-}
 
 type ReversibleCursor struct {
 	C       *bolt.Cursor

@@ -1,4 +1,4 @@
-package storage
+package bolt
 
 import (
 	. "github.com/onsi/ginkgo"

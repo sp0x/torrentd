@@ -5,13 +5,13 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/storage"
+	"github.com/sp0x/torrentd/storage/bolt"
 )
 
 type TelegramRunner struct {
 	bot     *tgbotapi.BotAPI
 	updates tgbotapi.UpdatesChannel
-	bolts   *storage.BoltStorage
+	bolts   *bolt.BoltStorage
 }
 
 type TelegramProvider func(token string) (*tgbotapi.BotAPI, error)
@@ -32,7 +32,7 @@ func NewTelegram(token string, provider TelegramProvider) (*TelegramRunner, erro
 	telegram.bot = bot
 	//bot.Debug = true
 	log.Printf("Authorized on account %s", bot.Self.UserName)
-	bolts, _ := storage.NewBoltStorage("")
+	bolts, _ := bolt.NewBoltStorage("")
 	telegram.bolts = bolts
 	return telegram, nil
 }
@@ -46,7 +46,7 @@ func (t *TelegramRunner) listenForUpdates() {
 				continue
 			}
 			//We create our chat
-			_ = t.bolts.StoreChat(&storage.Chat{
+			_ = t.bolts.StoreChat(&bolt.Chat{
 				Username:    update.Message.From.UserName,
 				InitialText: update.Message.Text,
 				ChatId:      update.Message.Chat.ID,
@@ -76,7 +76,7 @@ func (t *TelegramRunner) Run() error {
 }
 
 //ForEachChat goes over all the persisted chats and invokes the callback on them.
-func (t *TelegramRunner) ForEachChat(callback func(chat *storage.Chat)) {
+func (t *TelegramRunner) ForEachChat(callback func(chat *bolt.Chat)) {
 	_ = t.bolts.ForChat(callback)
 }
 
@@ -91,7 +91,7 @@ func (t *TelegramRunner) FeedBroadcast(messageChannel <-chan ChatMessage) error 
 		return fmt.Errorf("message channel is required")
 	}
 	for chatMsg := range messageChannel {
-		t.ForEachChat(func(chat *storage.Chat) {
+		t.ForEachChat(func(chat *bolt.Chat) {
 			msg := tgbotapi.NewMessage(chat.ChatId, chatMsg.Text)
 			msg.DisableWebPagePreview = false
 			msg.ParseMode = "markdown"

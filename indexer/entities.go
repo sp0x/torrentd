@@ -1,6 +1,8 @@
 package indexer
 
-import "github.com/sp0x/torrentd/storage"
+import (
+	"github.com/sp0x/torrentd/storage/indexing"
+)
 
 //entityBlock describes an entity data type that's present in an index.
 type entityBlock struct {
@@ -9,8 +11,8 @@ type entityBlock struct {
 }
 
 //GetKey gets the indexing key for this entity.
-func (b entityBlock) GetKey() storage.Key {
-	key := storage.Key{}
+func (b entityBlock) GetKey() indexing.Key {
+	key := indexing.Key{}
 	for _, s := range b.IndexKey {
 		key = append(key, s)
 	}

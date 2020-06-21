@@ -5,6 +5,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/sp0x/torrentd/db"
 	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/storage/indexing"
 	"strconv"
 	"strings"
 	"time"
@@ -15,7 +16,7 @@ type DBStorage struct {
 }
 
 //Create a parameterized SQL query array. The first element is the query, all the following elements are parameters.
-func createQueryArray(query Query) []interface{} {
+func createQueryArray(query indexing.Query) []interface{} {
 	var searchParts []string
 	var searchValues []interface{}
 	for _, key := range query.Keys() {
@@ -25,12 +26,10 @@ func createQueryArray(query Query) []interface{} {
 	}
 	fullQuery := []interface{}{strings.Join(searchParts, " AND ")}
 	fullQuery = append(fullQuery, searchValues...)
-	searchParts = nil
-	searchValues = nil
 	return fullQuery
 }
 
-func (d *DBStorage) Find(query Query, matchingItem *search.ExternalResultItem) error {
+func (d *DBStorage) Find(query indexing.Query, matchingItem *search.ExternalResultItem) error {
 	gdb := db.GetOrmDb(d.Path)
 	defer func() {
 		_ = gdb.Close()
@@ -43,7 +42,7 @@ func (d *DBStorage) Find(query Query, matchingItem *search.ExternalResultItem) e
 }
 
 //Update a result with a matching keyParts.
-func (d *DBStorage) Update(query Query, item *search.ExternalResultItem) error {
+func (d *DBStorage) Update(query indexing.Query, item *search.ExternalResultItem) error {
 	gdb := db.GetOrmDb(d.Path)
 	defer func() {
 		_ = gdb.Close()
@@ -72,7 +71,7 @@ func (d *DBStorage) FindById(id string) *search.ExternalResultItem {
 
 //Create a new result record.
 //In sqlite we're not using the key parts.
-func (d *DBStorage) Create(keyParts Key, tr *search.ExternalResultItem) error {
+func (d *DBStorage) Create(keyParts indexing.Key, tr *search.ExternalResultItem) error {
 	gdb := db.GetOrmDb(d.Path)
 	defer func() {
 		_ = gdb.Close()

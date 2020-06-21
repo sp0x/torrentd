@@ -1,9 +1,10 @@
-package storage
+package bolt
 
 import (
 	"bytes"
 	"errors"
 	"github.com/boltdb/bolt"
+	"github.com/sp0x/torrentd/storage/indexing"
 )
 
 const (
@@ -130,7 +131,7 @@ func (ix *ListIndex) Get(indexValue []byte) []byte {
 }
 
 // All the IDs corresponding to the given value
-func (ix *ListIndex) All(indexValue []byte, opts *CursorOptions) [][]byte {
+func (ix *ListIndex) All(indexValue []byte, opts *indexing.CursorOptions) [][]byte {
 	var results [][]byte
 	indexCursor := ix.IndexBucket.Cursor()
 	cur := ReversibleCursor{
@@ -172,7 +173,7 @@ func (ix *ListIndex) All(indexValue []byte, opts *CursorOptions) [][]byte {
 }
 
 // AllRecords returns all the IDs of this index
-func (ix *ListIndex) AllRecords(opts *CursorOptions) [][]byte {
+func (ix *ListIndex) AllRecords(opts *indexing.CursorOptions) [][]byte {
 	var list [][]byte
 
 	c := ReversibleCursor{C: ix.IndexBucket.Cursor(), Reverse: opts != nil && opts.Reverse}
@@ -198,7 +199,7 @@ func (ix *ListIndex) AllRecords(opts *CursorOptions) [][]byte {
 }
 
 // Range returns the ids corresponding to the given range of values
-func (ix *ListIndex) Range(min []byte, max []byte, opts *CursorOptions) [][]byte {
+func (ix *ListIndex) Range(min []byte, max []byte, opts *indexing.CursorOptions) [][]byte {
 	var list [][]byte
 
 	c := RangeCursor{
@@ -233,7 +234,7 @@ func (ix *ListIndex) Range(min []byte, max []byte, opts *CursorOptions) [][]byte
 }
 
 // Prefix returns the ids whose values have the given prefix.
-func (ix *ListIndex) Prefix(prefix []byte, opts *CursorOptions) [][]byte {
+func (ix *ListIndex) Prefix(prefix []byte, opts *indexing.CursorOptions) [][]byte {
 	var list [][]byte
 
 	c := PrefixCursor{
