@@ -16,9 +16,8 @@ func Watch(facade *Facade, initialQuery *torznab.Query, intervalSec int) <-chan 
 	}
 	go func() {
 		var currentSearch search.Instance
-		startingPage := uint(0)
+		startingPage := initialQuery.Page
 		maxPages := facade.Indexer.MaxSearchPages()
-		currentPage := uint(0)
 		//Go over all pages
 		for {
 			var err error
@@ -35,17 +34,17 @@ func Watch(facade *Facade, initialQuery *torznab.Query, intervalSec int) <-chan 
 				}
 			}
 			if currentSearch == nil {
-				log.Warningf("Could not fetch torrent currentPage: %d\n", currentPage)
+				log.Warningf("Could not fetch torrent currentPage: %d\n", initialQuery.Page)
 				time.Sleep(time.Second * time.Duration(intervalSec))
 				continue
+			}
+			for _, result := range currentSearch.GetResults() {
+				outputChan <- result
 			}
 			//Parse the currentPage and see if there are any new torrents
 			//if there aren't any, sleep the intervalSec
 			finished := false
 			hasReachedStaleItems := false
-			for _, result := range currentSearch.GetResults() {
-				outputChan <- result
-			}
 			for _, result := range currentSearch.GetResults() {
 				if finished {
 					break
@@ -69,14 +68,14 @@ func Watch(facade *Facade, initialQuery *torznab.Query, intervalSec int) <-chan 
 			if hasReachedStaleItems {
 				time.Sleep(time.Second * time.Duration(intervalSec))
 				currentSearch = nil
-				currentPage = startingPage
+				initialQuery.Page = startingPage
 				continue
 			}
 			//Otherwise we proceed to the next currentPage if there's any
-			currentPage += 1
+			initialQuery.Page += 1
 			//We've exceeded the pages, sleep and go to the start
-			if maxPages == currentPage {
-				currentPage = startingPage
+			if maxPages == initialQuery.Page {
+				initialQuery.Page = startingPage
 				currentSearch = nil
 				time.Sleep(time.Second * time.Duration(intervalSec))
 			}
