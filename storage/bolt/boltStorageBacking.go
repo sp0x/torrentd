@@ -185,6 +185,48 @@ func (b *BoltStorage) Create(keyParts indexing.Key, item *search.ExternalResultI
 	})
 }
 
+func (b *BoltStorage) Size() int64 {
+	var count *int
+	count = new(int)
+	*count = 0
+	_ = b.Database.View(func(tx *bolt.Tx) error {
+		bucket, err := b.createBucketIfItDoesntExist(tx, resultsBucket)
+		if err != nil {
+			return err
+		}
+		stats := bucket.Stats()
+		count = &stats.InlineBucketN
+		return nil
+	})
+	return int64(*count)
+}
+
+func (b *BoltStorage) GetNewest(count int) []*search.ExternalResultItem {
+	var output []*search.ExternalResultItem
+	_ = b.Database.View(func(tx *bolt.Tx) error {
+		bucket, err := b.createBucketIfItDoesntExist(tx, resultsBucket)
+		if err != nil {
+			return err
+		}
+		cursor := ReversibleCursor{C: bucket.Cursor(), Reverse: true}
+		itemsFetched := 0
+		for _, val := cursor.First(); cursor.CanContinue(val); _, val = cursor.Next() {
+			if itemsFetched == count {
+				break
+			}
+			newItem := search.ExternalResultItem{}
+			if err := b.marshaler.Unmarshal(val, &newItem); err != nil {
+				log.Warning("Couldn't deserialize item from bolt storage.")
+				continue
+			}
+			output = append(output, &newItem)
+			itemsFetched++
+		}
+		return nil
+	})
+	return output
+}
+
 //StoreChat stores a new chat.
 //The chat id is used as a keyParts.
 func (b *BoltStorage) StoreChat(chat *Chat) error {

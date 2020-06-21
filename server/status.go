@@ -13,9 +13,9 @@ func (s *Server) status(c *gin.Context) {
 	var statusObj interface{}
 	//If we don't have it in the cache
 	if !statusCache.Contains("status") {
-		strg := storage.DefaultStorageBacking()
-		latest := strg.GetNewest(10)
-		var latestNames = []string{}
+		store := storage.NewKeyedStorage(nil)
+		latest := store.GetNewest(10)
+		var latestNames []string
 		for _, late := range latest {
 			latestNames = append(latestNames, late.Title)
 		}
@@ -23,7 +23,7 @@ func (s *Server) status(c *gin.Context) {
 			Torrents int64    `json:"total_count"`
 			Latest   []string `json:"latest"`
 		}{
-			Torrents: strg.GetTorrentCount(),
+			Torrents: store.Size(),
 			Latest:   latestNames,
 		}
 		statusCache.Add("status", statusObj)

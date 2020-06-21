@@ -1,4 +1,4 @@
-package storage
+package sqlite
 
 import (
 	"github.com/onsi/gomega"

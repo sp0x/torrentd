@@ -3,9 +3,8 @@ package torrent
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/db"
 	"github.com/sp0x/torrentd/indexer"
-	"github.com/sp0x/torrentd/storage"
+	"github.com/sp0x/torrentd/storage/sqlite"
 	"os"
 	"reflect"
 	"text/tabwriter"
@@ -13,11 +12,8 @@ import (
 
 //Gets torrent information from a given tracker and updates the torrent db
 func ResolveTorrents(client *indexer.Facade, hours int) {
-	gdb := db.GetOrmDb("")
-	defer func() {
-		_ = gdb.Close()
-	}()
-	torrents := storage.GetOlderThanHours(hours)
+	dbStorage := sqlite.DBStorage{}
+	torrents := dbStorage.GetOlderThanHours(hours)
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 	if err := client.Indexer.Check(); err != nil {
@@ -67,7 +63,10 @@ func ResolveTorrents(client *indexer.Facade, hours int) {
 		t.PublishedWith = def.CreatedBy
 		perc := (float32(i) / float32(len(torrents))) * 100
 		_, _ = fmt.Fprintf(tabWr, "%f%% Resolved [%s]\t%s\n", perc, t.LocalId, t.Title)
-		gdb.Save(t)
+		err = dbStorage.Create(nil, &t)
+		if err != nil {
+			log.Errorf("Could not save result: %v", err)
+		}
 		_ = tabWr.Flush()
 	}
 }

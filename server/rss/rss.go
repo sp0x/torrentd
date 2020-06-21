@@ -7,7 +7,7 @@ import (
 	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/indexer/search"
 	http2 "github.com/sp0x/torrentd/server/http"
-	"github.com/sp0x/torrentd/storage"
+
 	"net/http"
 	"net/url"
 	"os"
@@ -16,8 +16,9 @@ import (
 )
 
 func ServerAll(c http2.Context) {
-	torrents := storage.DefaultStorageBacking().GetTorrentsInCategories([]int{})
-	SendRssFeed("", "torrents", torrents, c)
+	//keyedStorage := storage.NewKeyedStorage(nil)
+	//torrents := sqlite.DefaultStorageBacking().GetTorrentsInCategories([]int{})
+	//SendRssFeed("", "torrents", torrents, c)
 }
 
 func SearchAndServe(ixr *indexer.Facade, options *indexer.GenericSearchOptions, c http2.Context) {
@@ -70,45 +71,45 @@ func SearchAndServe(ixr *indexer.Facade, options *indexer.GenericSearchOptions, 
 }
 
 func ServeShows(c http2.Context) {
-	torrents := storage.DefaultStorageBacking().GetTorrentsInCategories([]int{
-		189,  //Foreign shows
-		2366, //Foreign shows in HD
-		2100, //Asian shows
-	})
-	SendRssFeed("", "shows", torrents, c)
+	//torrents := sqlite.DefaultStorageBacking().GetTorrentsInCategories([]int{
+	//	189,  //Foreign shows
+	//	2366, //Foreign shows in HD
+	//	2100, //Asian shows
+	//})
+	//SendRssFeed("", "shows", torrents, c)
 }
 
 func ServeMusic(c http2.Context) {
-	torrents := storage.DefaultStorageBacking().GetTorrentsInCategories([]int{
-		409,  // Classical and modern academic music
-		1125, // Folklore, national and ethnical music
-		1849, //New age, relax, meditative and flamenco
-		408,  //Rap, hip-hop and rnb
-		1760, //Raggae, ska, dub
-		416,  // OST, karaoke and musicals
-		413,  //Other music
-		2497, //Popular foreign music
-	})
-	SendRssFeed("", "music", torrents, c)
+	//torrents := sqlite.DefaultStorageBacking().GetTorrentsInCategories([]int{
+	//	409,  // Classical and modern academic music
+	//	1125, // Folklore, national and ethnical music
+	//	1849, //New age, relax, meditative and flamenco
+	//	408,  //Rap, hip-hop and rnb
+	//	1760, //Raggae, ska, dub
+	//	416,  // OST, karaoke and musicals
+	//	413,  //Other music
+	//	2497, //Popular foreign music
+	//})
+	//SendRssFeed("", "music", torrents, c)
 }
 
 func ServeAnime(c http2.Context) {
-	torrents := storage.DefaultStorageBacking().GetTorrentsInCategories([]int{
-		33, // Anime
-	})
-	SendRssFeed("", "anime", torrents, c)
+	//torrents := sqlite.DefaultStorageBacking().GetTorrentsInCategories([]int{
+	//	33, // Anime
+	//})
+	//SendRssFeed("", "anime", torrents, c)
 }
 
 func ServeMovies(c http2.Context) {
-	torrents := storage.DefaultStorageBacking().GetTorrentsInCategories([]int{
-		7,    //foreign films
-		124,  //art-house and author movies
-		93,   //DVD
-		2198, //HD Video
-		4,    //Multifilms
-		352,  //3d/stereo movies, video, tv and sports
-	})
-	SendRssFeed("", "movies", torrents, c)
+	//torrents := sqlite.DefaultStorageBacking().GetTorrentsInCategories([]int{
+	//	7,    //foreign films
+	//	124,  //art-house and author movies
+	//	93,   //DVD
+	//	2198, //HD Video
+	//	4,    //Multifilms
+	//	352,  //3d/stereo movies, video, tv and sports
+	//})
+	//SendRssFeed("", "movies", torrents, c)
 }
 
 func SendRssFeed(hostname, name string, torrents []search.ExternalResultItem, c http2.Context) {

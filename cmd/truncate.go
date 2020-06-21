@@ -1,7 +1,7 @@
 package main
 
 import (
-	storage2 "github.com/sp0x/torrentd/storage"
+	"github.com/sp0x/torrentd/storage/sqlite"
 	"github.com/spf13/cobra"
 )
 
@@ -16,6 +16,6 @@ func init() {
 }
 
 func truncateTorrentDb(cmd *cobra.Command, args []string) {
-	storage := storage2.DBStorage{}
+	storage := sqlite.DBStorage{}
 	storage.Truncate()
 }

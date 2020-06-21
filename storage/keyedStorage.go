@@ -3,6 +3,7 @@ package storage
 import (
 	"github.com/prometheus/common/log"
 	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/storage/bolt"
 	"github.com/sp0x/torrentd/storage/indexing"
 )
 
@@ -18,6 +19,15 @@ func NewKeyedStorage(keyFields indexing.Key) *KeyedStorage {
 		keyParts: keyFields,
 		backing:  DefaultStorageBacking(),
 	}
+}
+
+//DefaultStorageBacking gets the default storage method for results.
+func DefaultStorageBacking() ItemStorageBacking {
+	backing, err := bolt.NewBoltStorage("")
+	if err != nil {
+		panic(err)
+	}
+	return backing
 }
 
 //NewKeyedStorageWithBacking creates a new keyed storage with a custom storage backing.
@@ -36,6 +46,14 @@ func (s *KeyedStorage) NewWithKey(key indexing.Key) ItemStorage {
 		keyParts: key,
 		backing:  storage,
 	}
+}
+
+func (s *KeyedStorage) GetNewest(count int) []*search.ExternalResultItem {
+	return s.backing.GetNewest(count)
+}
+
+func (s *KeyedStorage) Size() int64 {
+	return s.backing.Size()
 }
 
 //Add handles the discovery of the result, adding additional information like staleness state.

@@ -41,7 +41,7 @@ func TestNewTelegram(t *testing.T) {
 	g.Expect(err).Should(BeNil())
 	g.Expect(tgram).ShouldNot(BeNil())
 
-	g.Expect(tgram.bolts).ShouldNot(BeNil())
+	//	g.Expect(tgram.bolts).ShouldNot(BeNil())
 	g.Expect(tgram.updates).Should(BeNil())
 	g.Expect(tgram.bot).ShouldNot(BeNil())
 }

@@ -14,4 +14,8 @@ type ItemStorageBacking interface {
 	Find(query indexing.Query, result *search.ExternalResultItem) error
 	Update(query indexing.Query, item *search.ExternalResultItem) error
 	Create(parts indexing.Key, item *search.ExternalResultItem) error
+	//Size is the size of the storage, as in records count
+	Size() int64
+	//GetNewest returns the latest `count` of records.
+	GetNewest(count int) []*search.ExternalResultItem
 }

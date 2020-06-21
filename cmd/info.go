@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	storage2 "github.com/sp0x/torrentd/storage"
+	"github.com/sp0x/torrentd/storage/sqlite"
 	"github.com/spf13/cobra"
 	"os"
 	"text/tabwriter"
@@ -19,7 +19,7 @@ func init() {
 }
 
 func getInfo(cmd *cobra.Command, args []string) {
-	storage := storage2.DBStorage{}
+	storage := sqlite.DBStorage{}
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 

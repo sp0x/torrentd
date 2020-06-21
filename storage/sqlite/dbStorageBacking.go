@@ -1,4 +1,4 @@
-package storage
+package sqlite
 
 import (
 	"fmt"
@@ -193,14 +193,14 @@ func (d *DBStorage) GetDb() *gorm.DB {
 	return db.GetOrmDb(d.Path)
 }
 
-var defaultStorage = DBStorage{}
-
-//DefaultStorageBacking gets the default storage method for results.
-func DefaultStorageBacking() *DBStorage {
-	return &defaultStorage
-}
+//var defaultStorage = DBStorage{}
+//
+////DefaultStorageBacking gets the default storage method for results.
+//func DefaultStorageBacking() *DBStorage {
+//	return &defaultStorage
+//}
 
 //GetOlderThanHours gets items that are at least H hours old.
-func GetOlderThanHours(h int) []search.ExternalResultItem {
-	return defaultStorage.GetOlderThanHours(h)
-}
+//func GetOlderThanHours(h int) []search.ExternalResultItem {
+//	return defaultStorage.GetOlderThanHours(h)
+//}
