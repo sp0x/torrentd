@@ -728,7 +728,8 @@ type RunnerPatternData struct {
 
 //Get the default run context
 func (r *Runner) getRunnerContext(query *torznab.Query, localCats []string, context RunContext) RunnerPatternData {
-	context.Search.SetStartIndex(r, int(query.Page)*r.definition.Search.PageSize)
+	startIndex := int(query.Page) * r.definition.Search.PageSize
+	context.Search.SetStartIndex(r, startIndex)
 	templateCtx := RunnerPatternData{
 		query,
 		query.Keywords(),

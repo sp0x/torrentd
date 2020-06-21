@@ -89,7 +89,7 @@ func NewAggregateFacadeWithCategories(config config.Config, cats ...categories.C
 	return &facade
 }
 
-//Search using a given query
+//Search using a given query. The search covers only 1 page.
 func (th *Facade) Search(searchContext search.Instance, query *torznab.Query) (search.Instance, error) {
 	srch, err := th.Indexer.Search(query, searchContext)
 	if err != nil {
