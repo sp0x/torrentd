@@ -131,7 +131,7 @@ func (mr *MockIndexerMockRecorder) Info() *gomock.Call {
 }
 
 // Search mocks base method
-func (m *MockIndexer) Search(query torznab.Query, srch search.Instance) (search.Instance, error) {
+func (m *MockIndexer) Search(query *torznab.Query, srch search.Instance) (search.Instance, error) {
 
 	ret := m.ctrl.Call(m, "Search", query, srch)
 	ret0, _ := ret[0].(search.Instance)
