@@ -17,10 +17,6 @@ var configFile = ""
 
 func init() {
 	//Init our db
-	_ = os.MkdirAll("./db", os.ModePerm)
-	gormDb := db.GetOrmDb("")
-	defer gormDb.Close()
-	gormDb.AutoMigrate(&search.ExternalResultItem{})
 	cobra.OnInitialize(initConfig)
 	flags := rootCmd.PersistentFlags()
 	var verbose bool
@@ -32,6 +28,12 @@ func init() {
 }
 
 func main() {
+	_ = os.MkdirAll("./db", os.ModePerm)
+	gormDb := db.GetOrmDb("")
+	defer func() {
+		_ = gormDb.Close()
+	}()
+	gormDb.AutoMigrate(&search.ExternalResultItem{})
 	err := rootCmd.Execute()
 	if err != nil {
 		fmt.Println(err)
