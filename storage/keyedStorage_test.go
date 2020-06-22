@@ -13,21 +13,51 @@ import (
 func TestKeyedStorage_Add(t *testing.T) {
 	g := NewWithT(t)
 	bolts, _ := bolt.NewBoltStorage(tempfile())
+	//We'll use `a` as a primary key
 	storage := NewKeyedStorageWithBacking(indexing.NewKey("a"), bolts)
-	//storage := NewKeyedStorage(NewKey("a"))
+	//We'll also define an index `ix`
+	storage.AddUniqueIndex(indexing.NewKey("ix"))
 	item := &search.ExternalResultItem{}
 	item.ExtraFields = make(map[string]interface{})
 	item.ExtraFields["a"] = "b"
-	storage.Add(item)
+	err := storage.Add(item)
 	g.Expect(item.IsNew()).To(BeTrue())
+	//Since we're using a custom key, GUID should be nil
+	g.Expect(item.GUID != "").To(BeFalse())
 
+	//Shouldn't be able to add a new record since IX is a unique index and we'll be breaking that rule
 	item = &search.ExternalResultItem{}
 	item.ExtraFields = make(map[string]interface{})
-	item.ExtraFields["a"] = "b"
+	item.ExtraFields["a"] = "bx"
 	item.ExtraFields["c"] = "b"
-	storage.Add(item)
+	err = storage.Add(item)
 	g.Expect(item.IsNew()).To(BeFalse())
-	g.Expect(item.IsUpdate()).To(BeTrue())
+	g.Expect(item.IsUpdate()).To(BeFalse())
+	g.Expect(item.GUID != "").To(BeFalse())
+	g.Expect(err).ToNot(BeNil())
+
+	//Should be able to add a new record with an unique IX
+	item = &search.ExternalResultItem{}
+	item.ExtraFields = make(map[string]interface{})
+	item.ExtraFields["a"] = "bx"
+	item.ExtraFields["c"] = "b"
+	item.ExtraFields["ix"] = "bbbb"
+	err = storage.Add(item)
+	g.Expect(item.IsNew()).To(BeTrue())
+	g.Expect(item.IsUpdate()).To(BeFalse())
+	g.Expect(item.GUID != "").To(BeFalse())
+	g.Expect(err).To(BeNil())
+
+	//Should create a new item if the key field is not set.
+	item = &search.ExternalResultItem{}
+	item.ExtraFields = make(map[string]interface{})
+	item.ExtraFields["c"] = "b"
+	item.ExtraFields["ix"] = "1"
+	err = storage.Add(item)
+	g.Expect(item.IsNew()).To(BeTrue())
+	g.Expect(item.IsUpdate()).To(BeFalse())
+	g.Expect(item.GUID != "").To(BeTrue())
+	g.Expect(err).To(BeNil())
 }
 
 func TestGetKeyNameFromQuery(t *testing.T) {

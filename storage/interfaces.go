@@ -6,17 +6,17 @@ import (
 )
 
 type ItemStorage interface {
-	Add(item *search.ExternalResultItem) (bool, bool)
+	Add(item *search.ExternalResultItem) error
 	NewWithKey(key indexing.Key) ItemStorage
 }
 type ItemStorageBacking interface {
 	//Tries to find a single record matching the query.
 	Find(query indexing.Query, result *search.ExternalResultItem) error
 	Update(query indexing.Query, item *search.ExternalResultItem) error
-	//CreateWithKey creates a new record using a custom key
-	CreateWithKey(parts indexing.Key, item *search.ExternalResultItem) error
+	//CreateWithId creates a new record using a custom key
+	CreateWithId(parts indexing.Key, item *search.ExternalResultItem, uniqueIndexKeys indexing.Key) error
 	//Create a new record with the default key (GUID)
-	Create(item *search.ExternalResultItem) error
+	Create(item *search.ExternalResultItem, additionalPK indexing.Key) error
 	//Size is the size of the storage, as in records count
 	Size() int64
 	//GetNewest returns the latest `count` of records.

@@ -510,16 +510,21 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 			}
 			//The category doesn't match even 1 of the categories in the query.
 			if !matchCat {
-				entityStorage.Add(&item)
+				storageErr := entityStorage.Add(&item)
 				r.logger.
 					WithFields(logrus.Fields{"category": item.LocalCategoryName, "categoryId": item.LocalCategoryID}).
 					Debugf("Skipping result because it's not contained in our needed categories.")
+				if storageErr != nil {
+					r.logger.Errorf("Couldn't save item: %s\n", storageErr)
+				}
 				continue
 			}
 		}
 		//Try to map the category from the Indexer to the global categories
 		r.resolveCategory(&item)
-		entityStorage.Add(&item)
+		storageErr := entityStorage.Add(&item)
+		r.logger.Errorf("Couldn't save item: %s\n", storageErr)
+
 		if query.Series != "" {
 			info, err := releaseinfo.Parse(item.Title)
 			if err != nil {

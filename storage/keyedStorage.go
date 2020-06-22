@@ -12,15 +12,16 @@ import (
 
 type KeyedStorage struct {
 	//backing *DBStorage
-	backing  ItemStorageBacking
-	keyParts indexing.Key
+	backing    ItemStorageBacking
+	primaryKey indexing.Key
+	indexKeys  indexing.Key
 }
 
 //NewKeyedStorage creates a new keyed storage with the default storage backing.
 func NewKeyedStorage(keyFields indexing.Key) *KeyedStorage {
 	return &KeyedStorage{
-		keyParts: keyFields,
-		backing:  DefaultStorageBacking(),
+		primaryKey: keyFields,
+		backing:    DefaultStorageBacking(),
 	}
 }
 
@@ -36,8 +37,8 @@ func DefaultStorageBacking() ItemStorageBacking {
 //NewKeyedStorageWithBacking creates a new keyed storage with a custom storage backing.
 func NewKeyedStorageWithBacking(key indexing.Key, storage ItemStorageBacking) *KeyedStorage {
 	return &KeyedStorage{
-		keyParts: key,
-		backing:  storage,
+		primaryKey: key,
+		backing:    storage,
 	}
 }
 
@@ -83,8 +84,8 @@ func (s *KeyedStorage) NewWithKey(key indexing.Key) ItemStorage {
 	storage := s.backing
 
 	return &KeyedStorage{
-		keyParts: key,
-		backing:  storage,
+		primaryKey: key,
+		backing:    storage,
 	}
 }
 
@@ -104,10 +105,11 @@ func (s *KeyedStorage) getDefaultKey() indexing.Key {
 }
 
 //Add handles the discovery of the result, adding additional information like staleness state.
-func (s *KeyedStorage) Add(item *search.ExternalResultItem) (bool, bool) {
+func (s *KeyedStorage) Add(item *search.ExternalResultItem) error {
 	var existingResult *search.ExternalResultItem
 	var existingQuery indexing.Query
-	key := s.keyParts
+	//The key is what makes each result unique. If no key is provided you might end up with doubles, since GUID is used.
+	key := s.primaryKey
 	if key == nil || len(key) == 0 {
 		key = s.getDefaultKey()
 	}
@@ -128,13 +130,12 @@ func (s *KeyedStorage) Add(item *search.ExternalResultItem) (bool, bool) {
 		item.Fingerprint = search.GetResultFingerprint(item)
 		var err error
 		if keyHasValue {
-			err = s.backing.CreateWithKey(key, item)
+			err = s.backing.CreateWithId(key, item, s.indexKeys)
 		} else {
-			err = s.backing.Create(item)
+			err = s.backing.Create(item, s.indexKeys)
 		}
 		if err != nil {
-			log.Error(err)
-			return false, false
+			return err
 		}
 	} else if !existingResult.Equals(item) {
 		//This must be an update
@@ -142,11 +143,14 @@ func (s *KeyedStorage) Add(item *search.ExternalResultItem) (bool, bool) {
 		item.Fingerprint = existingResult.Fingerprint
 		err := s.backing.Update(existingQuery, item)
 		if err != nil {
-			log.Error(err)
-			return false, false
+			return err
 		}
 	}
 	//We set the result's state so it's known later on whenever it's used.
 	item.SetState(isNew, isUpdate)
-	return isNew, isUpdate
+	return nil
+}
+
+func (s *KeyedStorage) AddUniqueIndex(key indexing.Key) {
+	s.indexKeys = append(s.indexKeys, key...)
 }

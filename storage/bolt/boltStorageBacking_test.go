@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/storage/indexing"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -257,4 +258,75 @@ func TestBoltStorage_GetBucket(t *testing.T) {
 		t.Fatal(err)
 	}
 	g.Expect(storage.GetBucket(tx, "newbucket")).ToNot(BeNil())
+}
+
+func TestBoltStorage_Find(t *testing.T) {
+	g := NewGomegaWithT(t)
+	storage, err := NewBoltStorage(tempfile())
+	if err != nil {
+		t.Fatal(err)
+	}
+	item := &search.ExternalResultItem{}
+	item.ExtraFields = make(map[string]interface{})
+	item.ExtraFields["a"] = "b"
+	item.ExtraFields["c"] = "b"
+	//We create an item that would be indexed only by GUID
+	err = storage.Create(item, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	g.Expect(item.GUID != "").To(BeTrue())
+
+	query := indexing.NewQuery()
+	searchResult := search.ExternalResultItem{}
+
+	//Should be able to find it by GUID, since it's the ID.
+	query.Put("GUID", item.GUID)
+	g.Expect(storage.Find(query, &searchResult)).To(BeNil())
+
+	//Should not find an item that's not indexed in that way.
+	query = indexing.NewQuery()
+	query.Put("a", "b")
+	g.Expect(storage.Find(query, &searchResult)).ToNot(BeNil())
+
+	//Should be able to create a new item with a custom ID
+	item = &search.ExternalResultItem{}
+	item.ExtraFields = make(map[string]interface{})
+	item.ExtraFields["a"] = "b"
+	item.ExtraFields["c"] = "b"
+	err = storage.CreateWithId(indexing.NewKey("a"), item, nil)
+	g.Expect(err).To(BeNil())
+	//it shouldn't use the GUID
+	g.Expect(item.GUID != "").To(BeFalse())
+	//and find it after that, using that custom ID
+	query = indexing.NewQuery()
+	query.Put("a", "b")
+	g.Expect(storage.Find(query, &searchResult)).To(BeNil())
+	g.Expect(len(searchResult.ExtraFields)).To(Equal(2))
+
+	//Should be able to create records by GUID
+	//and index them with another key field
+	item = &search.ExternalResultItem{}
+	item.ExtraFields = make(map[string]interface{})
+	item.ExtraFields["x"] = "b"
+	item.ExtraFields["c"] = "b"
+	err = storage.Create(item, indexing.NewKey("x")) // Create it with GUID
+	g.Expect(err).To(BeNil())
+	query = indexing.NewQuery()
+	query.Put("x", "b")
+	g.Expect(storage.Find(query, &searchResult)).ToNot(BeNil())
+	g.Expect(len(searchResult.ExtraFields)).To(Equal(2))
+
+	//Should be able to update records with a custom key as an additional index
+	query = indexing.NewQuery()
+	query.Put("x", "b")
+	updateItem := &search.ExternalResultItem{}
+	updateItem.ExtraFields = make(map[string]interface{})
+	updateItem.ExtraFields["x"] = "b"
+	updateItem.ExtraFields["c"] = "b"
+	updateItem.ExtraFields["d"] = "ddb"
+	searchResult = search.ExternalResultItem{}
+	g.Expect(storage.Update(query, updateItem)).To(BeNil())
+	g.Expect(storage.Find(query, &searchResult)).To(BeNil())
+	g.Expect(len(searchResult.ExtraFields)).To(Equal(3))
 }

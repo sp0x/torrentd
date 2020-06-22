@@ -16,7 +16,7 @@ type DBStorage struct {
 	Path string
 }
 
-//CreateWithKey a parameterized SQL query array. The first element is the query, all the following elements are parameters.
+//CreateWithId a parameterized SQL query array. The first element is the query, all the following elements are parameters.
 func createQueryArray(query indexing.Query) []interface{} {
 	var searchParts []string
 	var searchValues []interface{}
@@ -70,14 +70,14 @@ func (d *DBStorage) FindById(id string) *search.ExternalResultItem {
 	return &torrent
 }
 
-func (d *DBStorage) Create(item *search.ExternalResultItem) error {
+func (d *DBStorage) Create(item *search.ExternalResultItem, additionalIndexKey indexing.Key) error {
 	item.GUID = uuid.New().String()
-	return d.CreateWithKey(nil, item)
+	return d.CreateWithId(nil, item, nil)
 }
 
-//CreateWithKey a new result record.
+//CreateWithId a new result record.
 //In sqlite we're not using the key parts.
-func (d *DBStorage) CreateWithKey(keyParts indexing.Key, tr *search.ExternalResultItem) error {
+func (d *DBStorage) CreateWithId(keyParts indexing.Key, tr *search.ExternalResultItem, uniqueIndexKeys indexing.Key) error {
 	gdb := db.GetOrmDb(d.Path)
 	defer func() {
 		_ = gdb.Close()

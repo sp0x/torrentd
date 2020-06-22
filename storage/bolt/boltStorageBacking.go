@@ -56,7 +56,7 @@ func GetBoltDb(file string) (*bolt.DB, error) {
 		if err != nil {
 			return err
 		}
-		//CreateWithKey all of our categories
+		//CreateWithId all of our categories
 		if !categoriesInitialized {
 			for _, cat := range categories.AllCategories {
 				catKey := []byte(cat.Name)
@@ -139,37 +139,80 @@ func (b *BoltStorage) Update(query indexing.Query, item *search.ExternalResultIt
 			return err
 		}
 		indexValue := indexing.GetIndexValueFromQuery(query)
+		//Fetch the ID from the index
 		ids := idx.All(indexValue, indexing.SingleItemCursor())
+		//Serialize the item
 		serializedValue, err := b.marshaler.Marshal(item)
 		if err != nil {
 			return err
 		}
+		//Put the serialized value in that place
 		return bucket.Put(ids[0], serializedValue)
 	})
 
 }
 
 //Create a new record. This uses a new random UUID in order to identify the record.
-func (b *BoltStorage) Create(item *search.ExternalResultItem) error {
+func (b *BoltStorage) Create(item *search.ExternalResultItem, additionalPK indexing.Key) error {
 	item.GUID = uuid.New().String()
 	key := indexing.NewKey("GUID")
-	return b.CreateWithKey(key, item)
-}
-
-//CreateWithKey a new record for a result.
-//The key is used if you have a custom object that uses a different key, not the GUID
-func (b *BoltStorage) CreateWithKey(keyParts indexing.Key, item *search.ExternalResultItem) error {
-	indexValue := indexing.GetIndexValueFromItem(keyParts, item)
+	err := b.CreateWithId(key, item, nil)
+	if err != nil {
+		return err
+	}
+	//If we don't have an unique index, we can stop here.
+	if len(additionalPK) == 0 {
+		return nil
+	}
+	indexValue := indexing.GetIndexValueFromItem(additionalPK, item)
+	//We need add a new index: additionalPK -> GUID
 	return b.Database.Update(func(tx *bolt.Tx) error {
 		bucket, err := b.createBucketIfItDoesntExist(tx, resultsBucket)
 		if err != nil {
 			return err
 		}
-		//We get the index that we'll use
-		index, err := GetIndexFromKeys(bucket, keyParts)
+		//We get the keyIndex that we'll use
+		keyToGuidIndex, err := GetUniqueIndexFromKeys(bucket, additionalPK)
 		if err != nil {
 			return err
 		}
+		guidBytes := []byte(item.GUID)
+		//Save the keyIndex for the id of the result.
+		err = keyToGuidIndex.Add(indexValue, guidBytes)
+		return err
+	})
+}
+
+//CreateWithId a new record for a result.
+//The key is used if you have a custom object that uses a different key, not the GUID
+func (b *BoltStorage) CreateWithId(keyParts indexing.Key, item *search.ExternalResultItem, uniqueIndexKeys indexing.Key) error {
+	indexValue := indexing.GetIndexValueFromItem(keyParts, item)
+	uniqueIndexValue := indexing.GetIndexValueFromItem(uniqueIndexKeys, item)
+	if len(uniqueIndexValue) == 0 {
+		uniqueIndexValue = []byte("\000;\000")
+	}
+	return b.Database.Update(func(tx *bolt.Tx) error {
+		bucket, err := b.createBucketIfItDoesntExist(tx, resultsBucket)
+		if err != nil {
+			return err
+		}
+		//We get the pkIndex that we'll use
+		pkIndex, err := GetUniqueIndexFromKeys(bucket, keyParts)
+		if err != nil {
+			return err
+		}
+		var uniqueIndex indexing.Index
+		if len(uniqueIndexKeys) > 0 {
+			uniqueIndex, err = GetUniqueIndexFromKeys(bucket, uniqueIndexKeys)
+			if err != nil {
+				return err
+			}
+			existingUniqueVal := uniqueIndex.Get(uniqueIndexValue)
+			if existingUniqueVal != nil {
+				return fmt.Errorf("can't add record, this would break unique index: %s", uniqueIndexKeys)
+			}
+		}
+
 		//We increment the ID
 		nextId, _ := bucket.NextSequence()
 		item.ID = uint32(nextId)
@@ -179,18 +222,25 @@ func (b *BoltStorage) CreateWithKey(keyParts indexing.Key, item *search.External
 		if err != nil {
 			return err
 		}
-		//Save the index for the id of the result.
-		err = index.Add(indexValue, idBytes)
+		//Save the pkIndex for the id of the result.
+		err = pkIndex.Add(indexValue, idBytes)
 		if err != nil {
 			return err
 		}
 
-		//Save the actual result
+		//Save the actual result, using the ID, not the key. The key is indexed so you can easily look up the ID
 		serializedValue, err := b.marshaler.Marshal(item)
 		if err != nil {
 			return err
 		}
-		return bucket.Put(idBytes, serializedValue)
+		err = bucket.Put(idBytes, serializedValue)
+		if err != nil {
+			return err
+		}
+		if uniqueIndex != nil {
+			err = uniqueIndex.Add(uniqueIndexValue, idBytes)
+		}
+		return err
 	})
 }
 

@@ -42,7 +42,7 @@ func TestDBStorage_Create(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_ = storage.CreateWithKey(nil, tt.args.tr)
+			_ = storage.CreateWithId(nil, tt.args.tr, nil)
 		})
 	}
 	shutdown()
@@ -62,10 +62,10 @@ func TestDBStorage_FindByTorrentId(t *testing.T) {
 	}{
 		{name: tempfile(), args: args{id: "1"}, wantNotNil: true},
 	}
-	_ = storage.CreateWithKey(nil, &search.ExternalResultItem{
+	_ = storage.CreateWithId(nil, &search.ExternalResultItem{
 		LocalId:    "1",
 		ResultItem: search.ResultItem{Title: "a"},
-	})
+	}, nil)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := storage.FindById(tt.args.id)
@@ -95,12 +95,12 @@ func TestDBStorage_FindNameAndIndexer(t *testing.T) {
 			indexerSite: "sitea",
 		}, wantNotNil: true},
 	}
-	_ = storage.CreateWithKey(nil, &search.ExternalResultItem{
+	_ = storage.CreateWithId(nil, &search.ExternalResultItem{
 		ResultItem: search.ResultItem{
 			Site:  "sitea",
 			Title: "a",
 		},
-	})
+	}, nil)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := storage.FindByNameAndIndex(tt.args.title, tt.args.indexerSite)
@@ -124,14 +124,14 @@ func TestDBStorage_GetCategories(t *testing.T) {
 			CategoryName: "Localcat",
 		}}},
 	}
-	_ = storage.CreateWithKey(nil, &search.ExternalResultItem{
+	_ = storage.CreateWithId(nil, &search.ExternalResultItem{
 		ResultItem: search.ResultItem{
 			Site:     "sitea",
 			Title:    "a",
 			Category: 12,
 		},
 		LocalCategoryName: "Localcat",
-	})
+	}, nil)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := storage.GetCategories()
