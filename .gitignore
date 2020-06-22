@@ -3,3 +3,4 @@
 **/*.db-journal
 .env
 /db/bolt.db
+keys

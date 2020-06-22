@@ -45,7 +45,6 @@ func NewKeyedStorageWithBackingType(key indexing.Key, storageType string) *Keyed
 	bfn, ok := storageBackingMap[storageType]
 	if !ok {
 		panic("Unsupported storage backing type")
-		return nil
 	}
 	b := bfn()
 	return NewKeyedStorageWithBacking(key, b)
@@ -64,7 +63,7 @@ func init() {
 	}
 	storageBackingMap["firebase"] = func() ItemStorageBacking {
 		conf := &firebase.FirestoreConfig{}
-		conf.ProjectId = viper.Get("firebase_project_id").(string)
+		conf.ProjectId = viper.Get("firebase_project").(string)
 		conf.CredentialsFile = viper.Get("firebase_credentials_file").(string)
 		b, err := firebase.NewFirestoreStorage(conf)
 		if err != nil {
