@@ -7,7 +7,7 @@ import (
 
 type ItemStorage interface {
 	Add(item *search.ExternalResultItem) error
-	NewWithKey(key indexing.Key) ItemStorage
+	NewWithKey(pk indexing.Key) ItemStorage
 }
 type ItemStorageBacking interface {
 	//Tries to find a single record matching the query.

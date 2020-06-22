@@ -93,9 +93,12 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 		state:               defaultIndexerState(),
 		keepSessions:        true,
 		failingSearchFields: make(map[string]fieldBlock),
-		//Our root storage, which isn't indexed.
-		Storage: storage.NewKeyedStorageWithBackingType(nil, viper.Get("storage").(string)),
 	}
+	//Our root storage, which isn't indexed.
+	entityType := runner.definition.getSearchEntity()
+	runner.Storage = storage.NewKeyedStorageWithBackingType(entityType.GetKey(), viper.Get("storage").(string))
+	//runner.Storage.(*storage.KeyedStorage).AddUniqueIndex(runner.getUniqueIndexKey())
+	//Add our unique indexes if needed
 	return runner
 }
 
@@ -489,9 +492,6 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 		}).Debugf("Found %d rows", rows.Length())
 
 	var extracted []search.ExternalResultItem
-	entityType := r.definition.getSearchEntity()
-	entityStorage := r.Storage.NewWithKey(entityType.GetKey())
-
 	for i := 0; i < rows.Length(); i++ {
 		if query.Limit > 0 && len(extracted) >= query.Limit {
 			break
@@ -510,7 +510,7 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 			}
 			//The category doesn't match even 1 of the categories in the query.
 			if !matchCat {
-				storageErr := entityStorage.Add(&item)
+				storageErr := r.Storage.Add(&item)
 				r.logger.
 					WithFields(logrus.Fields{"category": item.LocalCategoryName, "categoryId": item.LocalCategoryID}).
 					Debugf("Skipping result because it's not contained in our needed categories.")
@@ -522,7 +522,7 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 		}
 		//Try to map the category from the Indexer to the global categories
 		r.resolveCategory(&item)
-		storageErr := entityStorage.Add(&item)
+		storageErr := r.Storage.Add(&item)
 		r.logger.Errorf("Couldn't save item: %s\n", storageErr)
 
 		if query.Series != "" {
