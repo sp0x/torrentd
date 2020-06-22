@@ -9,6 +9,7 @@ import (
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage"
 	"github.com/sp0x/torrentd/torznab"
+	"github.com/spf13/viper"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -93,7 +94,7 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 		keepSessions:        true,
 		failingSearchFields: make(map[string]fieldBlock),
 		//Our root storage, which isn't indexed.
-		Storage: storage.NewKeyedStorage(nil),
+		Storage: storage.NewKeyedStorageWithBackingType(nil, viper.Get("storage").(string)),
 	}
 	return runner
 }

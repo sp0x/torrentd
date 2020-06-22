@@ -4,7 +4,10 @@ import (
 	"github.com/prometheus/common/log"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/bolt"
+	"github.com/sp0x/torrentd/storage/firebase"
 	"github.com/sp0x/torrentd/storage/indexing"
+	"github.com/sp0x/torrentd/storage/sqlite"
+	"github.com/spf13/viper"
 )
 
 type KeyedStorage struct {
@@ -38,6 +41,44 @@ func NewKeyedStorageWithBacking(key indexing.Key, storage ItemStorageBacking) *K
 	}
 }
 
+func NewKeyedStorageWithBackingType(key indexing.Key, storageType string) *KeyedStorage {
+	bfn, ok := storageBackingMap[storageType]
+	if !ok {
+		panic("Unsupported storage backing type")
+		return nil
+	}
+	b := bfn()
+	return NewKeyedStorageWithBacking(key, b)
+}
+
+var storageBackingMap = make(map[string]func() ItemStorageBacking)
+
+func init() {
+	storageBackingMap["boltdb"] = func() ItemStorageBacking {
+		b, err := bolt.NewBoltStorage("")
+		if err != nil {
+			log.Error(err)
+			return nil
+		}
+		return b
+	}
+	storageBackingMap["firebase"] = func() ItemStorageBacking {
+		conf := &firebase.FirestoreConfig{}
+		conf.ProjectId = viper.Get("firebase_project_id").(string)
+		conf.CredentialsFile = viper.Get("firebase_credentials_file").(string)
+		b, err := firebase.NewFirestoreStorage(conf)
+		if err != nil {
+			log.Error(err)
+			return nil
+		}
+		return b
+	}
+	storageBackingMap["sqlite"] = func() ItemStorageBacking {
+		b := &sqlite.DBStorage{}
+		return b
+	}
+}
+
 //NewWithKey gets a storage backed in the same way, with a different key.
 func (s *KeyedStorage) NewWithKey(key indexing.Key) ItemStorage {
 	storage := s.backing
@@ -48,7 +89,7 @@ func (s *KeyedStorage) NewWithKey(key indexing.Key) ItemStorage {
 	}
 }
 
-func (s *KeyedStorage) GetNewest(count int) []*search.ExternalResultItem {
+func (s *KeyedStorage) GetNewest(count int) []search.ExternalResultItem {
 	return s.backing.GetNewest(count)
 }
 

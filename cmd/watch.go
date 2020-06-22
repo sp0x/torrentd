@@ -19,10 +19,16 @@ func init() {
 		Short: "Watches the torrent tracker for new torrents.",
 		Run:   watchTracker,
 	}
-	cmdWatch.Flags().IntVarP(&watchInterval, "interval", "i", 10, "Interval between checks.")
+	storage := ""
+	cmdFlags := cmdWatch.Flags()
+	cmdFlags.IntVarP(&watchInterval, "interval", "i", 10, "Interval between checks.")
+	cmdFlags.StringVarP(&storage, "storage", "o", "boltdb", `The storage backing to use.
+Currently supported storage backings: boltdb, firestore, sqlite`)
 	viper.SetDefault("port", 5000)
 	_ = viper.BindEnv("port")
 	_ = viper.BindEnv("api_key")
+	_ = viper.BindPFlag("storage", cmdFlags.Lookup("storage"))
+	_ = viper.BindEnv("storage")
 	rootCmd.AddCommand(cmdWatch)
 }
 

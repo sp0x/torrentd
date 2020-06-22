@@ -17,10 +17,14 @@ This project also carries it's embedded definitions with which it was built.
 The definition that's loaded is the latest one.
 
 ## Storage
-This project stores all the discovered torrents in a SQLite database in `./db/main.db`.
+You'll also need to store your results somehow. Depending on the way you run this project there are a few ways you could do that.  
+The supported databases are:
+ - SQLite
+ - BoltDB
+ - Firebase
 
 ## Caching
-By default the server caches the following data:
+By default, the server caches the following data:
 - Connectivity checks (LRU with Timeout)
 - Search results (LRU with Timeout)
 

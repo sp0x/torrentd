@@ -88,17 +88,7 @@ func (d *DBStorage) Truncate() {
 	gdb.Unscoped().Delete(&search.ExternalResultItem{})
 }
 
-func (d *DBStorage) GetLatest(cnt int) []search.ExternalResultItem {
-	gdb := db.GetOrmDb(d.Path)
-	defer func() {
-		_ = gdb.Close()
-	}()
-	var items []search.ExternalResultItem
-	gdb.Model(&search.ExternalResultItem{}).Find(&items).Order("added_on").Limit(cnt)
-	return items
-}
-
-func (d *DBStorage) GetTorrentCount() int64 {
+func (d *DBStorage) Size() int64 {
 	gdb := db.GetOrmDb(d.Path)
 	defer func() {
 		_ = gdb.Close()

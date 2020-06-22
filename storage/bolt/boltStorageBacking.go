@@ -201,8 +201,8 @@ func (b *BoltStorage) Size() int64 {
 	return int64(*count)
 }
 
-func (b *BoltStorage) GetNewest(count int) []*search.ExternalResultItem {
-	var output []*search.ExternalResultItem
+func (b *BoltStorage) GetNewest(count int) []search.ExternalResultItem {
+	var output []search.ExternalResultItem
 	_ = b.Database.View(func(tx *bolt.Tx) error {
 		bucket, err := b.createBucketIfItDoesntExist(tx, resultsBucket)
 		if err != nil {
@@ -219,7 +219,7 @@ func (b *BoltStorage) GetNewest(count int) []*search.ExternalResultItem {
 				log.Warning("Couldn't deserialize item from bolt storage.")
 				continue
 			}
-			output = append(output, &newItem)
+			output = append(output, newItem)
 			itemsFetched++
 		}
 		return nil

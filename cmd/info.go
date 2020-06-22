@@ -23,7 +23,7 @@ func getInfo(cmd *cobra.Command, args []string) {
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 
-	tc := storage.GetTorrentCount()
+	tc := storage.Size()
 	tCategories := storage.GetCategories()
 	fmt.Printf("Torrent count: %d\n", tc)
 	fmt.Printf("Categories: \n")

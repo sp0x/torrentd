@@ -17,5 +17,5 @@ type ItemStorageBacking interface {
 	//Size is the size of the storage, as in records count
 	Size() int64
 	//GetNewest returns the latest `count` of records.
-	GetNewest(count int) []*search.ExternalResultItem
+	GetNewest(count int) []search.ExternalResultItem
 }

@@ -26,15 +26,15 @@ const (
 )
 
 //NewFirestoreStorage creates a new firestore backed storage
-func NewFirestoreStorage(opts *FirestoreConfig) (*FirestoreStorage, error) {
+func NewFirestoreStorage(conf *FirestoreConfig) (*FirestoreStorage, error) {
 	ctx := context.Background()
 	var options []option.ClientOption
-	if opts.CredentialsFile != "" {
-		options = append(options, option.WithCredentialsFile(opts.CredentialsFile))
+	if conf.CredentialsFile != "" {
+		options = append(options, option.WithCredentialsFile(conf.CredentialsFile))
 	}
 	// credentials file option is optional, by default it will use GOOGLE_APPLICATION_CREDENTIALS
 	// environment variable, this is a default method to connect to Google services
-	client, err := firestore.NewClient(ctx, opts.ProjectId, options...)
+	client, err := firestore.NewClient(ctx, conf.ProjectId, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -122,8 +122,8 @@ func (f *FirestoreStorage) Size() int64 {
 }
 
 //GetNewest returns the latest `count` of records.
-func (f *FirestoreStorage) GetNewest(count int) []*search.ExternalResultItem {
-	var output []*search.ExternalResultItem
+func (f *FirestoreStorage) GetNewest(count int) []search.ExternalResultItem {
+	var output []search.ExternalResultItem
 	collection := f.client.Collection(metaCollection)
 	iter := collection.OrderBy("ID", firestore.Desc).Limit(count).Documents(f.context)
 	for {
@@ -139,7 +139,7 @@ func (f *FirestoreStorage) GetNewest(count int) []*search.ExternalResultItem {
 		if err != nil {
 			continue
 		}
-		output = append(output, &newItem)
+		output = append(output, newItem)
 	}
 	return output
 }

@@ -26,7 +26,7 @@ func listLatestTorrents(cmd *cobra.Command, args []string) {
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 
-	torrents := st.GetLatest(torrentCount)
+	torrents := st.GetNewest(torrentCount)
 	for _, tr := range torrents {
 		_, _ = fmt.Fprintf(tabWr, "%s\t%s\t%s", tr.LocalCategoryID, tr.Title, tr.AddedOnStr())
 		_ = tabWr.Flush()
