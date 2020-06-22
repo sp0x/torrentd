@@ -17,12 +17,14 @@ type FirestoreConfig struct {
 type FirestoreStorage struct {
 	client  *firestore.Client
 	context context.Context
+	counter counter
 }
 
 const (
 	resultsCollection = "results"
-	metaCollection    = "meta"
-	metaDocId         = "__meta"
+	//metaCollection    = "meta"
+	metaDocId  = "__meta"
+	counterDoc = "__count"
 )
 
 //NewFirestoreStorage creates a new firestore backed storage
@@ -38,13 +40,23 @@ func NewFirestoreStorage(conf *FirestoreConfig) (*FirestoreStorage, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &FirestoreStorage{
+	f := &FirestoreStorage{
 		context: ctx,
 		client:  client,
-	}, nil
+		counter: counter{20},
+	}
+	err = f.counter.initCounterIfNeeded(client.Collection(resultsCollection), f.context, counterDoc)
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
 }
 
 func (f *FirestoreStorage) Find(query indexing.Query, result *search.ExternalResultItem) error {
+	//if query.Size()==0 || query==nil{
+	//	query = indexing.NewQuery()
+	//	query.Put("GUID", result.GUID)
+	//}
 	fireQuery := f.transformIndexQueryToFirestoreQuery(query, 1)
 	documentIterator := fireQuery.Limit(1).Documents(f.context)
 	document, err := documentIterator.Next()
@@ -85,34 +97,32 @@ func (f *FirestoreStorage) Update(query indexing.Query, item *search.ExternalRes
 	return err
 }
 
-func (f *FirestoreStorage) Create(parts indexing.Key, item *search.ExternalResultItem) error {
-	collection := f.client.Collection(metaCollection)
-	indexValue := indexing.GetIndexValueFromItem(parts, item)
-	_, err := collection.Doc(string(indexValue)).Create(f.context, item)
+func (f *FirestoreStorage) Create(key indexing.Key, item *search.ExternalResultItem) error {
+	collection := f.client.Collection(resultsCollection)
+	indexValue := ""
+	var doc *firestore.DocumentRef
+	if len(key) == 0 {
+		doc = collection.NewDoc()
+	} else {
+		indexValue = string(indexing.GetIndexValueFromItem(key, item))
+		doc = collection.Doc(string(indexValue))
+	}
+	if len(key) == 0 {
+		//Since this is a new item we'll need to create a new ID, if there's no key.
+		item.GUID = doc.ID
+	}
+	_, err := doc.Create(f.context, item)
 	if err != nil {
 		return err
 	}
-	//Update the meta, incrementing t he count
-	doc, err := collection.Doc(metaDocId).Get(f.context)
-	if err != nil && err != iterator.Done {
-		return err
-	}
-	if doc == nil {
-		metaDocItem := make(map[string]interface{})
-		metaDocItem["count"] = 1
-		_, _ = collection.Doc(metaDocId).Create(f.context, metaDocItem)
-	} else {
-		size := doc.Data()["count"].(int)
-		_, err = collection.Doc(metaDocId).Update(f.context, []firestore.Update{
-			{Path: "count", Value: size + 1},
-		})
-	}
+	//Update the meta, incrementing the count
+	_, err = f.counter.incrementCounter(f.context, collection.Doc(counterDoc))
 	return err
 }
 
 //Size is the size of the storage, as in records count
 func (f *FirestoreStorage) Size() int64 {
-	collection := f.client.Collection(metaCollection)
+	collection := f.client.Collection(resultsCollection)
 	doc, err := collection.Doc(metaDocId).Get(f.context)
 	if err != nil {
 		return -1
@@ -124,7 +134,7 @@ func (f *FirestoreStorage) Size() int64 {
 //GetNewest returns the latest `count` of records.
 func (f *FirestoreStorage) GetNewest(count int) []search.ExternalResultItem {
 	var output []search.ExternalResultItem
-	collection := f.client.Collection(metaCollection)
+	collection := f.client.Collection(resultsCollection)
 	iter := collection.OrderBy("ID", firestore.Desc).Limit(count).Documents(f.context)
 	for {
 		doc, err := iter.Next()

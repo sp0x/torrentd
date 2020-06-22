@@ -192,7 +192,7 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 				continue
 			}
 			//r.logger.Debugf("After parsing, size is %v", bytes)
-			item.Size = bytes
+			item.Size = uint32(bytes)
 		case "leechers":
 			leechers, err := strconv.Atoi(normalizeNumber(firstString(val)))
 			if err != nil {

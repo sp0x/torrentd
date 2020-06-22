@@ -163,7 +163,7 @@ func (b *BoltStorage) Create(keyParts indexing.Key, item *search.ExternalResultI
 		}
 		//We increment the ID
 		nextId, _ := bucket.NextSequence()
-		item.ID = uint(nextId)
+		item.ID = uint32(nextId)
 
 		//We serialize the ID
 		idBytes, err := toBytes(item.ID, b.marshaler)
@@ -399,7 +399,7 @@ func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) erro
 				return err
 			}
 			nextId, _ := bucket.NextSequence()
-			item.ID = uint(nextId)
+			item.ID = uint32(nextId)
 			buf, err := b.marshaler.Marshal(item)
 			if err != nil {
 				return err

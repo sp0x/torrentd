@@ -23,6 +23,38 @@ The supported databases are:
  - BoltDB
  - Firebase
 
+## Configuration
+The configuration is stored in: ~/.torrentd/torrentd.yml   
+Here's a brief overview of what you can configure:
+```yaml
+# The key for accessing the API.
+api_key: hsreth45hgertdf
+# Places where index definitions are stored.
+definition:
+  dirs:
+  - ./definitions
+  - ~/.torrentd/definitions
+# The port on which the API runs.
+port: 5000
+# Whether to print more logs.
+verbose: false
+
+# Index config:
+indexers:
+    # We'll configure the zamunda index
+    zamunda:
+      username: deter
+      password: koftara
+      #To use the the login creds in the index definition you just need to use them as a template in the login block.
+      #Like this:
+      #login:
+      #  path: takelogin.php
+      #  method: post
+      #  inputs:
+      #    username: "{{ .Config.username }}"
+      #    password: "{{ .Config.password }}" 
+```
+
 ## Caching
 By default, the server caches the following data:
 - Connectivity checks (LRU with Timeout)

@@ -96,10 +96,22 @@ func (s *KeyedStorage) Size() int64 {
 	return s.backing.Size()
 }
 
+func (s *KeyedStorage) getDefaultKey() indexing.Key {
+	//Use the ID from the result as a key
+	key := indexing.Key{}
+	key = append(key, "ID")
+	return key
+}
+
 //Add handles the discovery of the result, adding additional information like staleness state.
 func (s *KeyedStorage) Add(item *search.ExternalResultItem) (bool, bool) {
 	var existingResult *search.ExternalResultItem
-	existingKey := indexing.GetKeyQueryFromItem(s.keyParts, item)
+	key := s.keyParts
+	//We let the backing deal with the ID/GUID
+	//if key == nil {
+	//	key = s.getDefaultKey()
+	//}
+	existingKey := indexing.GetKeyQueryFromItem(key, item)
 	if existingKey != nil {
 		tmpResult := search.ExternalResultItem{}
 		if s.backing.Find(existingKey, &tmpResult) == nil {
@@ -111,7 +123,7 @@ func (s *KeyedStorage) Add(item *search.ExternalResultItem) (bool, bool) {
 	if existingResult == nil {
 		isNew = true
 		item.Fingerprint = search.GetResultFingerprint(item)
-		err := s.backing.Create(s.keyParts, item)
+		err := s.backing.Create(key, item)
 		if err != nil {
 			log.Error(err)
 			return false, false

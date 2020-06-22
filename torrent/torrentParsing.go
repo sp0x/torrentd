@@ -131,11 +131,11 @@ func (d *Definition) ToMagnetUrl() string {
 	return fmt.Sprintf("magnet:?xt=urn:btih:%s", d.InfoHash)
 }
 
-func (d *Definition) GetTotalFileSize() uint64 {
+func (d *Definition) GetTotalFileSize() uint32 {
 	files := d.Info.Files
-	total := uint64(0)
+	total := uint32(0)
 	for _, f := range files {
-		total += f.Length
+		total += uint32(f.Length)
 	}
 	return total
 }

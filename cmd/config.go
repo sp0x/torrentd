@@ -21,7 +21,7 @@ func initConfig() {
 		_ = os.MkdirAll(defaultConfigPath, os.ModePerm)
 		viper.AddConfigPath(defaultConfigPath)
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".torrentd")
+		viper.SetConfigName("torrentd")
 	}
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {

@@ -3,7 +3,6 @@ package search
 import (
 	"encoding/xml"
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"strconv"
 	"time"
 )
@@ -16,8 +15,15 @@ type torznabAttribute struct {
 	Value   string   `xml:"value,attr"`
 }
 
+type Model struct {
+	ID        uint32 `gorm:"primary_key"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time `sql:"index"`
+}
+
 type ExternalResultItem struct {
-	gorm.Model
+	Model
 	ResultItem
 	LocalCategoryID   string
 	LocalCategoryName string
@@ -158,7 +164,7 @@ type ResultItem struct {
 	SourceLink  string
 	MagnetLink  string
 	Category    int
-	Size        uint64
+	Size        uint32
 	Files       int
 	Grabs       int
 	PublishDate int64
@@ -190,7 +196,7 @@ func (ri ResultItem) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
 	//The info view enclosure
 	var enclosure = struct {
 		URL    string `xml:"url,attr,omitempty"`
-		Length uint64 `xml:"length,attr,omitempty"`
+		Length uint32 `xml:"length,attr,omitempty"`
 		Type   string `xml:"type,attr,omitempty"`
 	}{
 		URL:    ri.Link,
@@ -220,7 +226,7 @@ func (ri ResultItem) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
 		Grabs             int            `xml:"grabs,omitempty"`
 		PublishDate       string         `xml:"pubDate,omitempty"`
 		Enclosure         interface{}    `xml:"enclosure,omitempty"`
-		Size              uint64         `xml:"size"`
+		Size              uint32         `xml:"size"`
 		Banner            string         `xml:"banner"`
 		TorznabAttributes []torznabAttribute
 	}{
