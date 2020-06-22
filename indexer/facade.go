@@ -2,11 +2,17 @@ package indexer
 
 import (
 	"errors"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/torznab"
+	"os"
+)
+
+const (
+	noIndexError = "no index configured"
 )
 
 //Facade for an indexer/aggregate, helps manage the scope of the index, it's configuration and the index itself.
@@ -31,9 +37,11 @@ type GenericSearchOptions struct {
 //NewFacadeFromConfiguration Creates a new facade using the configuration
 func NewFacadeFromConfiguration(config config.Config) *Facade {
 	facade := NewEmptyFacade(config)
-	indexerName := config.GetString("Indexer")
+	indexerName := config.GetString("index")
 	if indexerName == "" {
-		indexerName = "rutracker.org"
+		fmt.Printf(noIndexError)
+		os.Exit(1)
+		//indexerName = "rutracker.org"
 	}
 	ixrObj, err := facade.Scope.Lookup(config, indexerName)
 	if err != nil {
@@ -78,7 +86,11 @@ func NewFacade(indexerName string, config config.Config, cats ...categories.Cate
 func NewAggregateFacadeWithCategories(config config.Config, cats ...categories.Category) *Facade {
 	facade := Facade{}
 	facade.Scope = NewScope()
-	indexerName := config.GetString("Indexer")
+	indexerName := config.GetString("index")
+	if indexerName == "" {
+		fmt.Printf(noIndexError)
+		os.Exit(1)
+	}
 	ixrObj, err := facade.Scope.CreateAggregateForCategories(config, cats)
 	if err != nil {
 		log.Errorf("Could not find Indexer `%s`.\n", indexerName)
