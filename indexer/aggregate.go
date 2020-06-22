@@ -26,7 +26,7 @@ func (ag *Aggregate) Open(s *search.ExternalResultItem) (io.ReadCloser, error) {
 	return nil, errors.New("couldn't find Indexer")
 }
 
-//Create a new aggregate from the given indexers
+//CreateWithKey a new aggregate from the given indexers
 func NewAggregate(indexers []Indexer) *Aggregate {
 	ag := &Aggregate{}
 	ag.Indexers = indexers

@@ -63,7 +63,7 @@ func ResolveTorrents(client *indexer.Facade, hours int) {
 		t.PublishedWith = def.CreatedBy
 		perc := (float32(i) / float32(len(torrents))) * 100
 		_, _ = fmt.Fprintf(tabWr, "%f%% Resolved [%s]\t%s\n", perc, t.LocalId, t.Title)
-		err = dbStorage.Create(nil, &t)
+		err = dbStorage.CreateWithKey(nil, &t)
 		if err != nil {
 			log.Errorf("Could not save result: %v", err)
 		}

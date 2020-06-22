@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	"github.com/sp0x/torrentd/db"
 	"github.com/sp0x/torrentd/indexer/search"
@@ -15,7 +16,7 @@ type DBStorage struct {
 	Path string
 }
 
-//Create a parameterized SQL query array. The first element is the query, all the following elements are parameters.
+//CreateWithKey a parameterized SQL query array. The first element is the query, all the following elements are parameters.
 func createQueryArray(query indexing.Query) []interface{} {
 	var searchParts []string
 	var searchValues []interface{}
@@ -69,9 +70,14 @@ func (d *DBStorage) FindById(id string) *search.ExternalResultItem {
 	return &torrent
 }
 
-//Create a new result record.
+func (d *DBStorage) Create(item *search.ExternalResultItem) error {
+	item.GUID = uuid.New().String()
+	return d.CreateWithKey(nil, item)
+}
+
+//CreateWithKey a new result record.
 //In sqlite we're not using the key parts.
-func (d *DBStorage) Create(keyParts indexing.Key, tr *search.ExternalResultItem) error {
+func (d *DBStorage) CreateWithKey(keyParts indexing.Key, tr *search.ExternalResultItem) error {
 	gdb := db.GetOrmDb(d.Path)
 	defer func() {
 		_ = gdb.Close()

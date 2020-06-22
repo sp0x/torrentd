@@ -145,7 +145,8 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 				r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 				continue
 			}
-			item.GUID = u
+			//item.GUID = u
+			item.Description = u
 			// comments is used by Sonarr for linking to
 			if item.Comments == "" {
 				item.Comments = u
@@ -271,11 +272,9 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 			item.SetField(key, val)
 		}
 	}
-
-	if item.GUID == "" && item.Link != "" {
-		item.GUID = item.Link
-	}
-
+	//if item.GUID == "" && item.Link != "" {
+	//	item.GUID = item.Link
+	//}
 	if r.hasDateHeader() {
 		date, err := r.extractDateHeader(selection)
 		if err != nil {

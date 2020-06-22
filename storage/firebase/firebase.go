@@ -97,7 +97,15 @@ func (f *FirestoreStorage) Update(query indexing.Query, item *search.ExternalRes
 	return err
 }
 
-func (f *FirestoreStorage) Create(key indexing.Key, item *search.ExternalResultItem) error {
+//Create a new record.
+//This uses the GUID for identifying records, upon creation a new UUID is generated.
+func (f *FirestoreStorage) Create(item *search.ExternalResultItem) error {
+	return f.CreateWithKey(nil, item)
+}
+
+//CreateWithKey creates a new record using a custom key.
+//If a key isn't provided, a random uuid is generated in it's place, and stored in the GUID field.
+func (f *FirestoreStorage) CreateWithKey(key indexing.Key, item *search.ExternalResultItem) error {
 	collection := f.client.Collection(resultsCollection)
 	indexValue := ""
 	var doc *firestore.DocumentRef

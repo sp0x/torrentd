@@ -42,7 +42,7 @@ func TestDBStorage_Create(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_ = storage.Create(nil, tt.args.tr)
+			_ = storage.CreateWithKey(nil, tt.args.tr)
 		})
 	}
 	shutdown()
@@ -62,7 +62,7 @@ func TestDBStorage_FindByTorrentId(t *testing.T) {
 	}{
 		{name: tempfile(), args: args{id: "1"}, wantNotNil: true},
 	}
-	_ = storage.Create(nil, &search.ExternalResultItem{
+	_ = storage.CreateWithKey(nil, &search.ExternalResultItem{
 		LocalId:    "1",
 		ResultItem: search.ResultItem{Title: "a"},
 	})
@@ -95,7 +95,7 @@ func TestDBStorage_FindNameAndIndexer(t *testing.T) {
 			indexerSite: "sitea",
 		}, wantNotNil: true},
 	}
-	_ = storage.Create(nil, &search.ExternalResultItem{
+	_ = storage.CreateWithKey(nil, &search.ExternalResultItem{
 		ResultItem: search.ResultItem{
 			Site:  "sitea",
 			Title: "a",
@@ -124,7 +124,7 @@ func TestDBStorage_GetCategories(t *testing.T) {
 			CategoryName: "Localcat",
 		}}},
 	}
-	_ = storage.Create(nil, &search.ExternalResultItem{
+	_ = storage.CreateWithKey(nil, &search.ExternalResultItem{
 		ResultItem: search.ResultItem{
 			Site:     "sitea",
 			Title:    "a",

@@ -104,8 +104,6 @@ func (i *ExternalResultItem) Equals(item *ExternalResultItem) bool {
 		return false
 	} else if i.LocalId != item.LocalId {
 		return false
-	} else if i.GUID != item.GUID {
-		return false
 	} else if i.MagnetLink != item.MagnetLink {
 		return false
 	} else if i.SourceLink != item.SourceLink {

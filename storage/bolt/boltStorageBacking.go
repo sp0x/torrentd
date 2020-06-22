@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/boltdb/bolt"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
@@ -55,7 +56,7 @@ func GetBoltDb(file string) (*bolt.DB, error) {
 		if err != nil {
 			return err
 		}
-		//Create all of our categories
+		//CreateWithKey all of our categories
 		if !categoriesInitialized {
 			for _, cat := range categories.AllCategories {
 				catKey := []byte(cat.Name)
@@ -148,8 +149,16 @@ func (b *BoltStorage) Update(query indexing.Query, item *search.ExternalResultIt
 
 }
 
-//Create a new record for a result.
-func (b *BoltStorage) Create(keyParts indexing.Key, item *search.ExternalResultItem) error {
+//Create a new record. This uses a new random UUID in order to identify the record.
+func (b *BoltStorage) Create(item *search.ExternalResultItem) error {
+	item.GUID = uuid.New().String()
+	key := indexing.NewKey("GUID")
+	return b.CreateWithKey(key, item)
+}
+
+//CreateWithKey a new record for a result.
+//The key is used if you have a custom object that uses a different key, not the GUID
+func (b *BoltStorage) CreateWithKey(keyParts indexing.Key, item *search.ExternalResultItem) error {
 	indexValue := indexing.GetIndexValueFromItem(keyParts, item)
 	return b.Database.Update(func(tx *bolt.Tx) error {
 		bucket, err := b.createBucketIfItDoesntExist(tx, resultsBucket)

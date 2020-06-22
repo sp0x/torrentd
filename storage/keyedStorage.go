@@ -99,23 +99,26 @@ func (s *KeyedStorage) Size() int64 {
 func (s *KeyedStorage) getDefaultKey() indexing.Key {
 	//Use the ID from the result as a key
 	key := indexing.Key{}
-	key = append(key, "ID")
+	key = append(key, "GUID")
 	return key
 }
 
 //Add handles the discovery of the result, adding additional information like staleness state.
 func (s *KeyedStorage) Add(item *search.ExternalResultItem) (bool, bool) {
 	var existingResult *search.ExternalResultItem
+	var existingQuery indexing.Query
 	key := s.keyParts
-	//We let the backing deal with the ID/GUID
-	//if key == nil {
-	//	key = s.getDefaultKey()
-	//}
-	existingKey := indexing.GetKeyQueryFromItem(key, item)
-	if existingKey != nil {
-		tmpResult := search.ExternalResultItem{}
-		if s.backing.Find(existingKey, &tmpResult) == nil {
-			existingResult = &tmpResult
+	if key == nil || len(key) == 0 {
+		key = s.getDefaultKey()
+	}
+	keyHasValue := indexing.KeyHasValue(key, item)
+	if keyHasValue {
+		existingQuery = indexing.GetKeyQueryFromItem(key, item)
+		if existingQuery != nil {
+			tmpResult := search.ExternalResultItem{}
+			if s.backing.Find(existingQuery, &tmpResult) == nil {
+				existingResult = &tmpResult
+			}
 		}
 	}
 	isNew := false
@@ -123,7 +126,12 @@ func (s *KeyedStorage) Add(item *search.ExternalResultItem) (bool, bool) {
 	if existingResult == nil {
 		isNew = true
 		item.Fingerprint = search.GetResultFingerprint(item)
-		err := s.backing.Create(key, item)
+		var err error
+		if keyHasValue {
+			err = s.backing.CreateWithKey(key, item)
+		} else {
+			err = s.backing.Create(item)
+		}
 		if err != nil {
 			log.Error(err)
 			return false, false
@@ -132,7 +140,7 @@ func (s *KeyedStorage) Add(item *search.ExternalResultItem) (bool, bool) {
 		//This must be an update
 		isUpdate = true
 		item.Fingerprint = existingResult.Fingerprint
-		err := s.backing.Update(existingKey, item)
+		err := s.backing.Update(existingQuery, item)
 		if err != nil {
 			log.Error(err)
 			return false, false
