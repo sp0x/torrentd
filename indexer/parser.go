@@ -185,7 +185,6 @@ func (t *pageTestBlock) IsEmpty() bool {
 
 const (
 	loginMethodPost   = "post"
-	loginMethodGet    = "get"
 	loginMethodForm   = "form"
 	loginMethodCookie = "cookie"
 )
@@ -281,11 +280,6 @@ func (r *rowsBlock) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	r.Remove = rb.Remove
 	return nil
 }
-
-const (
-	searchMethodPost = "post"
-	searchMethodGet  = "get"
-)
 
 type capabilitiesBlock struct {
 	CategoryMap categoryMap

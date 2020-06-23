@@ -1,12 +1,15 @@
 package storage
 
 import (
-	"github.com/prometheus/common/log"
+	"fmt"
+	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/bolt"
 	"github.com/sp0x/torrentd/storage/firebase"
 	"github.com/sp0x/torrentd/storage/indexing"
 	"github.com/spf13/viper"
+	"os"
 )
 
 type KeyedStorage struct {
@@ -15,6 +18,40 @@ type KeyedStorage struct {
 	primaryKey     indexing.Key
 	indexKeys      indexing.Key
 	indexKeysCache map[string]interface{}
+}
+
+var storageBackingMap = make(map[string]func(ns string, config config.Config) ItemStorageBacking)
+
+func init() {
+	storageBackingMap["boltdb"] = func(ns string, config config.Config) ItemStorageBacking {
+		b, err := bolt.NewBoltStorage(config.GetString("db"))
+		if err != nil {
+			fmt.Printf("Error while constructing boltdb storage: %v", err)
+			os.Exit(1)
+		}
+		if b == nil {
+			fmt.Printf("Couldn't construct boltdb storage.")
+			os.Exit(1)
+		}
+		b.SetNamespace(ns)
+		return b
+	}
+	storageBackingMap["firebase"] = func(ns string, config config.Config) ItemStorageBacking {
+		conf := &firebase.FirestoreConfig{Namespace: ns}
+		conf.ProjectId = viper.Get("firebase_project").(string)
+		conf.CredentialsFile = viper.Get("firebase_credentials_file").(string)
+		b, err := firebase.NewFirestoreStorage(conf)
+		if err != nil {
+			log.Error(err)
+			return nil
+		}
+		return b
+	}
+	storageBackingMap["sqlite"] = func(ns string, config config.Config) ItemStorageBacking {
+		panic("Deprecated")
+		//b := &sqlite.DBStorage{}
+		//return b
+	}
 }
 
 //NewKeyedStorage creates a new keyed storage with the default storage backing.
@@ -44,43 +81,13 @@ func NewKeyedStorageWithBacking(key *indexing.Key, storage ItemStorageBacking) *
 	}
 }
 
-func NewKeyedStorageWithBackingType(namespace string, key *indexing.Key, storageType string) *KeyedStorage {
+func NewKeyedStorageWithBackingType(namespace string, config config.Config, key *indexing.Key, storageType string) *KeyedStorage {
 	bfn, ok := storageBackingMap[storageType]
 	if !ok {
 		panic("Unsupported storage backing type")
 	}
-	b := bfn(namespace)
+	b := bfn(namespace, config)
 	return NewKeyedStorageWithBacking(key, b)
-}
-
-var storageBackingMap = make(map[string]func(ns string) ItemStorageBacking)
-
-func init() {
-	storageBackingMap["boltdb"] = func(ns string) ItemStorageBacking {
-		b, err := bolt.NewBoltStorage("")
-		b.SetNamespace(ns)
-		if err != nil {
-			log.Error(err)
-			return nil
-		}
-		return b
-	}
-	storageBackingMap["firebase"] = func(ns string) ItemStorageBacking {
-		conf := &firebase.FirestoreConfig{Namespace: ns}
-		conf.ProjectId = viper.Get("firebase_project").(string)
-		conf.CredentialsFile = viper.Get("firebase_credentials_file").(string)
-		b, err := firebase.NewFirestoreStorage(conf)
-		if err != nil {
-			log.Error(err)
-			return nil
-		}
-		return b
-	}
-	storageBackingMap["sqlite"] = func(ns string) ItemStorageBacking {
-		panic("Deprecated")
-		//b := &sqlite.DBStorage{}
-		//return b
-	}
 }
 
 //NewWithKey gets a storage backed in the same way, with a different key.

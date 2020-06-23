@@ -3,24 +3,24 @@ package indexer
 import (
 	"errors"
 	"fmt"
+	"github.com/cardigann/releaseinfo"
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/indexer/source"
 	"github.com/sp0x/torrentd/storage"
 	"github.com/sp0x/torrentd/storage/indexing"
 	"github.com/sp0x/torrentd/torznab"
 	"github.com/spf13/viper"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	imdbscraper "github.com/cardigann/go-imdb-scraper"
-	"github.com/cardigann/releaseinfo"
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/browser"
 	"github.com/sp0x/surf/jar"
@@ -40,7 +40,7 @@ type RunnerOpts struct {
 	Transport  http.RoundTripper
 }
 
-//Runner works with indexers and their definitions
+//Runner works index definitions in order to extract data.
 type Runner struct {
 	definition          *IndexerDefinition
 	browser             browser.Browsable
@@ -49,12 +49,13 @@ type Runner struct {
 	logger              logrus.FieldLogger
 	caps                torznab.Capabilities
 	browserLock         sync.Mutex
-	connectivityCache   *cache.ConnectivityCache
+	connectivityTester  cache.ConnectivityTester
 	state               *IndexerState
 	keepSessions        bool
 	failingSearchFields map[string]fieldBlock
 	lastVerified        time.Time
 	Storage             storage.ItemStorage
+	contentFetcher      source.ContentFetcher
 }
 
 func (r *Runner) MaxSearchPages() uint {
@@ -86,20 +87,29 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 	logger := logrus.New()
 	logger.Level = logrus.GetLevel()
 	connCache, _ := cache.NewConnectivityCache()
+	runnerConfig := opts.Config
 	runner := &Runner{
 		opts:                opts,
 		definition:          def,
 		logger:              logger.WithFields(logrus.Fields{"site": def.Site}),
-		connectivityCache:   connCache,
+		connectivityTester:  connCache,
 		state:               defaultIndexerState(),
 		keepSessions:        true,
 		failingSearchFields: make(map[string]fieldBlock),
 	}
-	//Our root storage, which isn't indexed.
 	entityType := runner.definition.getSearchEntity()
-	runner.Storage = storage.NewKeyedStorageWithBackingType(def.Name, entityType.GetKey(), viper.Get("storage").(string))
-	//runner.Storage.(*storage.KeyedStorage).AddUniqueIndex(runner.getUniqueIndexKey())
-	//Add our unique indexes if needed
+	storageType := viper.Get("storage")
+	if storageType == nil {
+		storageType = "boltdb"
+	}
+	if entityType != nil {
+		//All the results will be stored in a collection with the same name as the index.
+		runner.Storage = storage.NewKeyedStorageWithBackingType(def.Name, runnerConfig, entityType.GetKey(), storageType.(string))
+	} else {
+		//All the results will be stored in a collection with the same name as the index.
+		runner.Storage = storage.NewKeyedStorageWithBackingType(def.Name, runnerConfig, indexing.NewKey(), storageType.(string))
+	}
+
 	return runner
 }
 
@@ -122,29 +132,26 @@ func (r *Runner) currentURL() (*url.URL, error) {
 	if u := r.browser.Url(); u != nil {
 		return u, nil
 	}
-
 	configURL, ok, _ := r.opts.Config.GetSiteOption(r.definition.Site, "url")
 	if ok && r.testURLWorks(configURL) {
 		return url.Parse(configURL)
 	}
-
 	for _, u := range r.definition.Links {
 		if u != configURL && r.testURLWorks(u) {
 			return url.Parse(u)
 		}
 	}
-
 	return nil, errors.New("No working urls found")
 }
 
 func (r *Runner) testURLWorks(u string) bool {
 	var ok bool
 	//Do this like that so it's locked.
-	if ok = r.connectivityCache.IsOkAndSet(u, func() bool {
+	if ok = r.connectivityTester.IsOkAndSet(u, func() bool {
 		urlx := u
 		r.logger.WithField("url", u).
 			Info("Checking connectivity to url")
-		err := r.connectivityCache.Test(urlx)
+		err := r.connectivityTester.Test(urlx)
 		if err != nil {
 			r.logger.WithError(err).Warn("URL check failed")
 			return false
@@ -176,32 +183,7 @@ func (r *Runner) resolveIndexerPath(urlPath string) (string, error) {
 	}
 	//Resolve the url
 	resolved := base.ResolveReference(u)
-	//r.logger.
-	//	WithFields(logrus.Fields{"base": base.String(), "u": resolved.String()}).
-	//	Debugf("Resolving url")
-
 	return resolved.String(), nil
-}
-
-// this should eventually upstream into surf browser
-func (r *Runner) handleMetaRefreshHeader() error {
-	h := r.browser.ResponseHeaders()
-
-	if refresh := h.Get("Refresh"); refresh != "" {
-		if s := regexp.MustCompile(`\s*;\s*`).Split(refresh, 2); len(s) == 2 {
-			r.logger.
-				WithField("fields", s).
-				Debug("Found refresh header")
-
-			u, err := r.resolveIndexerPath(strings.TrimPrefix(s[1], "url="))
-			if err != nil {
-				return err
-			}
-
-			return r.openPage(u)
-		}
-	}
-	return nil
 }
 
 func parseCookieString(cookie string) []*http.Cookie {
@@ -248,7 +230,7 @@ func (r *Runner) matchPageTestBlock(p pageTestBlock) (bool, error) {
 			return false, err
 		}
 
-		err = r.openPage(testUrl)
+		err = r.contentFetcher.Fetch(source.NewTarget(testUrl))
 		if err != nil {
 			r.logger.WithError(err).Warn("Failed to open page")
 			return false, nil
@@ -329,11 +311,10 @@ func (r *Runner) Capabilities() torznab.Capabilities {
 
 // getLocalCategoriesMatchingQuery returns a slice of local categories that should be searched
 func (r *Runner) getLocalCategoriesMatchingQuery(query *torznab.Query) []string {
-	localCats := []string{}
+	var localCats []string
 	set := make(map[string]struct{})
 	if len(query.Categories) > 0 {
 		queryCats := categories.AllCategories.Subset(query.Categories...)
-
 		// resolve query categories to the exact local, or the local based on parent cat
 		for _, id := range r.definition.Capabilities.CategoryMap.ResolveAll(queryCats.Items()...) {
 			//Add only if it doesn't exist
@@ -424,11 +405,6 @@ func (r *Runner) Check() error {
 	return err
 }
 
-type SearchTarget struct {
-	Url    string
-	Values url.Values
-}
-
 func (r *Runner) getUniqueIndex(item *search.ExternalResultItem) *indexing.Key {
 	if item == nil {
 		return nil
@@ -465,8 +441,6 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 	//Get the categories for this query based on the Indexer
 	localCats := r.getLocalCategoriesMatchingQuery(query)
 
-	//r.logger.Debugf("Query is %v\n", query)
-	//r.logger.Debugf("Keywords are %q\n", query.Keywords())
 	//Context about the search
 	if srch == nil {
 		srch = &search.Search{}
@@ -480,7 +454,7 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 	}
 	timer := time.Now()
 	//Get the content
-	err = r.requireContent(target)
+	err = r.contentFetcher.Fetch(target)
 	if err != nil {
 		return nil, err
 	}
@@ -495,7 +469,6 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 		return nil, err
 	}
 	rows := dom.Find(r.definition.Search.Rows.Selector)
-
 	r.logger.
 		WithFields(logrus.Fields{
 			"rows":     rows.Length(),
@@ -504,72 +477,82 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 			"offset":   query.Offset,
 		}).Debugf("Found %d rows", rows.Length())
 
-	var extracted []search.ExternalResultItem
+	var results []search.ExternalResultItem
 	for i := 0; i < rows.Length(); i++ {
-		if query.Limit > 0 && len(extracted) >= query.Limit {
+		if query.Limit > 0 && len(results) >= query.Limit {
 			break
 		}
 		//Get the result from the row
 		item, err := r.extractItem(i+1, rows.Eq(i))
 		if err != nil {
-			return nil, err
+			continue
 		}
-		var matchCat bool
-		if len(localCats) > 0 {
-			for _, catId := range localCats {
-				if catId == item.LocalCategoryID {
-					matchCat = true
-				}
-			}
-			//The category doesn't match even 1 of the categories in the query.
-			if !matchCat {
-				r.Storage.AddUniqueIndex(r.getUniqueIndex(&item))
-				storageErr := r.Storage.Add(&item)
-				r.logger.
-					WithFields(logrus.Fields{"category": item.LocalCategoryName, "categoryId": item.LocalCategoryID}).
-					Debugf("Skipping result because it's not contained in our needed categories.")
-				if storageErr != nil {
-					r.logger.Errorf("Couldn't save item: %s\n", storageErr)
-				}
-				continue
-			}
-		}
-		//Try to map the category from the Indexer to the global categories
-		r.resolveCategory(&item)
-		r.Storage.AddUniqueIndex(r.getUniqueIndex(&item))
-		storageErr := r.Storage.Add(&item)
-		r.logger.Errorf("Couldn't save item: %s\n", storageErr)
-
-		if query.Series != "" {
-			info, err := releaseinfo.Parse(item.Title)
+		if !r.validateAndStoreItem(query, localCats, &item) {
+			r.Storage.AddUniqueIndex(r.getUniqueIndex(&item))
+			err = r.Storage.Add(&item)
 			if err != nil {
-				r.logger.
-					WithFields(logrus.Fields{"title": item.Title}).
-					WithError(err).
-					Warn("Failed to parse show title, skipping")
-				continue
+				r.logger.Errorf("Found an item that doesn't match our search categories: %s\n", err)
 			}
-
-			if info != nil && !info.SeriesTitleInfo.Equal(query.Series) {
-				r.logger.
-					WithFields(logrus.Fields{"got": info.SeriesTitleInfo.TitleWithoutYear, "expected": query.Series}).
-					Debugf("Series search skipping non-matching series")
-				continue
-			}
+			continue
 		}
-		extracted = append(extracted, item)
+		r.Storage.AddUniqueIndex(r.getUniqueIndex(&item))
+		err = r.Storage.Add(&item)
+		if err != nil {
+			r.logger.Errorf("Found an item that doesn't match our search categories: %s\n", err)
+		}
+		results = append(results, item)
 	}
-
 	r.logger.
 		WithFields(logrus.Fields{"Indexer": r.definition.Site, "q": query.Keywords(), "time": time.Since(timer)}).
-		Infof("Query returned %d results", len(extracted))
-
-	//var items []search.ExternalResultItem
-	//for _, item := range extracted {
-	//	items = append(items, item)
-	//}
-	context.Search.SetResults(extracted)
+		Infof("Query returned %d results", len(results))
+	context.Search.SetResults(results)
 	return context.Search, nil
+}
+
+func (r *Runner) validateAndStoreItem(query *torznab.Query, localCats []string, item *search.ExternalResultItem) bool {
+	if len(localCats) > 0 {
+		//The category doesn't match even 1 of the categories in the query.
+		if !r.itemMatchesLocalCategories(localCats, item) {
+			r.logger.
+				WithFields(logrus.Fields{"category": item.LocalCategoryName, "categoryId": item.LocalCategoryID}).
+				Debugf("Skipping result because it's not contained in our needed categories.")
+			return false
+		}
+	}
+	//Try to map the category from the Indexer to the global categories
+	r.resolveCategory(item)
+	return !r.isSeriesAndNotMatching(query, item)
+}
+
+//Checks if the result is a series result, and ignores it if the title of the series is different.
+func (r *Runner) isSeriesAndNotMatching(query *torznab.Query, item *search.ExternalResultItem) bool {
+	if query.Series != "" {
+		info, err := releaseinfo.Parse(item.Title)
+		if err != nil {
+			r.logger.
+				WithFields(logrus.Fields{"title": item.Title}).
+				WithError(err).
+				Warn("Failed to parse show title, skipping")
+			return true
+		}
+
+		if info != nil && !info.SeriesTitleInfo.Equal(query.Series) {
+			r.logger.
+				WithFields(logrus.Fields{"got": info.SeriesTitleInfo.TitleWithoutYear, "expected": query.Series}).
+				Debugf("Series search skipping non-matching series")
+			return true
+		}
+	}
+	return false
+}
+
+func (r *Runner) itemMatchesLocalCategories(localCats []string, item *search.ExternalResultItem) bool {
+	for _, catId := range localCats {
+		if catId == item.LocalCategoryID {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *Runner) clearDom(dom *goquery.Selection) error {
@@ -595,7 +578,7 @@ func (r *Runner) clearDom(dom *goquery.Selection) error {
 	return nil
 }
 
-func (r *Runner) extractSearchTarget(query *torznab.Query, localCats []string, context RunContext) (*SearchTarget, error) {
+func (r *Runner) extractSearchTarget(query *torznab.Query, localCats []string, context RunContext) (*source.SearchTarget, error) {
 	//Exposed fields to add:
 	templateCtx := r.getRunnerContext(query, localCats, context)
 	//Apply our context to the search path
@@ -616,9 +599,8 @@ func (r *Runner) extractSearchTarget(query *torznab.Query, localCats []string, c
 	if err != nil {
 		return nil, err
 	}
-	target := &SearchTarget{Url: searchURL, Values: vals}
+	target := &source.SearchTarget{Url: searchURL, Values: vals}
 	return target, nil
-	//return searchURL, err, vals, nil, nil
 }
 
 func (r *Runner) extractUrlValues(templateCtx RunnerPatternData) (url.Values, error) {
@@ -673,35 +655,6 @@ func (r *Runner) getRunnerContext(query *torznab.Query, localCats []string, cont
 	return templateCtx
 }
 
-//Gets the content from which we'll extract the search results
-func (r *Runner) requireContent(target *SearchTarget) error {
-	if target == nil {
-		return errors.New("target is required for searching")
-	}
-	defer func() {
-		//After we're done we'll cleanup the history of the browser.
-		r.browser.HistoryJar().Clear()
-	}()
-	var err error
-	switch r.definition.Search.Method {
-	case "", searchMethodGet:
-		if target != nil && len(target.Values) > 0 {
-			target.Url = fmt.Sprintf("%s?%s", target.Url, target.Values.Encode())
-		}
-		if err = r.openPage(target.Url); err != nil {
-			return err
-		}
-	case searchMethodPost:
-		if err = r.postToPage(target.Url, target.Values, true); err != nil {
-			return err
-		}
-
-	default:
-		return fmt.Errorf("unknown search method %q", r.definition.Search.Method)
-	}
-	return nil
-}
-
 func (r *Runner) hasDateHeader() bool {
 	return !r.definition.Search.Rows.DateHeaders.IsEmpty()
 }
@@ -750,7 +703,7 @@ func (r *Runner) Ratio() (string, error) {
 		return "error", err
 	}
 
-	err = r.openPage(ratioUrl)
+	err = r.contentFetcher.Fetch(source.NewTarget(ratioUrl))
 	if err != nil {
 		r.logger.WithError(err).Warn("Failed to open page")
 		return "error", nil

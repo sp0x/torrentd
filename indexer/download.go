@@ -29,7 +29,7 @@ func (r *Runner) Open(s *search.ExternalResultItem) (io.ReadCloser, error) {
 	if s.SourceLink == "" || r.downloadsNeedResolution() {
 		//Resolve the url
 		downloadItem := r.failingSearchFields["download"]
-		err := r.openPage(s.Link)
+		err := r.contentFetcher.FetchUrl(s.Link)
 		if err != nil {
 			return nil, err
 		}

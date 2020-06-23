@@ -11,6 +11,17 @@ type CacheInfo struct {
 	added time.Time
 }
 
+//go:generate mockgen -source connectivityCaching.go -destination=mocks/connectivityCaching.go -package=mocks
+type ConnectivityTester interface {
+	//IsOkAndSet checks if the `u` value is contained, if it's not it checks it.
+	//This operation should be thread safe, you can use it to modify the cache state in the function.
+	IsOkAndSet(u string, f func() bool) bool
+	//Test if the operation can be completed with success. If so, cache that.
+	Test(u string) error
+	SetBrowser(bow *browser.Browser)
+	ClearBrowser()
+}
+
 type ConnectivityCache struct {
 	browser *browser.Browser
 	lock    sync.RWMutex
@@ -36,6 +47,8 @@ func (c *ConnectivityCache) IsOk(url string) bool {
 	return ok
 }
 
+//IsOkAndSet checks if the `u` value is contained, if it's not it checks it.
+//This operation is thread safe, you can use it to modify the cache state in the function.
 func (c *ConnectivityCache) IsOkAndSet(u string, f func() bool) bool {
 	c.lock.RLock()
 	defer c.lock.RUnlock()

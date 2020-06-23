@@ -18,12 +18,14 @@ func TestKeyedStorage_Add(t *testing.T) {
 	//We'll also define an index `ix`
 	storage.AddUniqueIndex(indexing.NewKey("ix"))
 	item := &search.ExternalResultItem{}
+
 	item.ExtraFields = make(map[string]interface{})
 	item.ExtraFields["a"] = "b"
 	err := storage.Add(item)
 	g.Expect(item.IsNew()).To(BeTrue())
 	//Since we're using a custom key, GUID should be nil
 	g.Expect(item.GUID != "").To(BeFalse())
+	g.Expect(err).To(BeNil())
 
 	//Shouldn't be able to add a new record since IX is a unique index and we'll be breaking that rule
 	item = &search.ExternalResultItem{}
@@ -58,6 +60,7 @@ func TestKeyedStorage_Add(t *testing.T) {
 	g.Expect(item.IsUpdate()).To(BeFalse())
 	g.Expect(item.GUID != "").To(BeTrue())
 	g.Expect(err).To(BeNil())
+
 }
 
 func TestGetKeyNameFromQuery(t *testing.T) {

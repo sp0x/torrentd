@@ -6,17 +6,16 @@ import (
 	"github.com/f2prateek/train"
 	trainlog "github.com/f2prateek/train/log"
 	"github.com/sirupsen/logrus"
-	"github.com/sp0x/surf/jar"
-	"golang.org/x/net/proxy"
-	"net"
-	"net/http"
-	"net/url"
-	"time"
-
 	"github.com/sp0x/surf"
 	"github.com/sp0x/surf/agent"
 	"github.com/sp0x/surf/browser"
+	"github.com/sp0x/surf/jar"
+	"github.com/sp0x/torrentd/indexer/source/web"
+	"golang.org/x/net/proxy"
+	"net"
+	"net/http"
 	"os"
+	"time"
 )
 
 func (r *Runner) createTransport() (http.RoundTripper, error) {
@@ -95,54 +94,22 @@ func (r *Runner) createBrowser() *browser.Browser {
 	default:
 		panic("Unknown value for DEBUG_HTTP")
 	}
-	r.connectivityCache.SetBrowser(bow)
+	r.connectivityTester.SetBrowser(bow)
+	r.contentFetcher = &web.ContentFetcher{
+		Browser: bow,
+		//We'll use the indexer to cache content.
+		Cacher: r,
+	}
 	r.browser = bow
 	return bow
 }
 
 func (r *Runner) releaseBrowser() {
 	r.browser = nil
-	r.connectivityCache.ClearBrowser()
+	if r.contentFetcher != nil {
+		r.contentFetcher.Cleanup()
+	}
+	r.contentFetcher = nil
+	r.connectivityTester.ClearBrowser()
 	r.browserLock.Unlock()
-}
-
-func (r *Runner) postToPage(u string, vals url.Values, log bool) error {
-	if log {
-		r.logger.
-			WithFields(logrus.Fields{"url": u, "vals": vals.Encode()}).
-			Debugf("Posting to page")
-	}
-	if err := r.browser.PostForm(u, vals); err != nil {
-		return err
-	}
-	_ = r.cachePage()
-
-	r.logger.
-		WithFields(logrus.Fields{"code": r.browser.StatusCode(), "page": r.browser.Url()}).
-		Debugf("Finished request")
-
-	if err := r.handleMetaRefreshHeader(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-//Open a desired url
-func (r *Runner) openPage(u string) error {
-	r.logger.WithField("url", u).
-		Debug("Opening page")
-	err := r.browser.Open(u)
-	if err != nil {
-		return err
-	}
-	_ = r.cachePage()
-	r.logger.
-		WithFields(logrus.Fields{"code": r.browser.StatusCode(), "page": r.browser.Url()}).
-		Debugf("Finished request")
-	if err = r.handleMetaRefreshHeader(); err != nil {
-		return err
-	}
-
-	return nil
 }
