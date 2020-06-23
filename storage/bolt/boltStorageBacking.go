@@ -90,6 +90,13 @@ const (
 	resultsBucket = "results"
 )
 
+func (b *BoltStorage) Close() {
+	if b.Database == nil {
+		return
+	}
+	_ = b.Database.Close()
+}
+
 //Find something by it's index keys.
 func (b *BoltStorage) Find(query indexing.Query, result *search.ExternalResultItem) error {
 	if query == nil {

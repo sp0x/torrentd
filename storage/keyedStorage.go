@@ -101,6 +101,10 @@ func (s *KeyedStorage) NewWithKey(key *indexing.Key) ItemStorage {
 	}
 }
 
+func (s *KeyedStorage) Close() {
+	s.backing.Close()
+}
+
 func (s *KeyedStorage) GetNewest(count int) []search.ExternalResultItem {
 	return s.backing.GetNewest(count)
 }

@@ -10,6 +10,7 @@ type ItemStorage interface {
 	Add(item *search.ExternalResultItem) error
 	AddUniqueIndex(key *indexing.Key)
 	NewWithKey(pk *indexing.Key) ItemStorage
+	Close()
 }
 type ItemStorageBacking interface {
 	//Tries to find a single record matching the query.
@@ -23,4 +24,5 @@ type ItemStorageBacking interface {
 	Size() int64
 	//GetNewest returns the latest `count` of records.
 	GetNewest(count int) []search.ExternalResultItem
+	Close()
 }

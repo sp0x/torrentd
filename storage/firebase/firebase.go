@@ -63,6 +63,10 @@ func (f *FirestoreStorage) getCollection() *firestore.CollectionRef {
 	return f.client.Collection(f.namespace)
 }
 
+func (f *FirestoreStorage) Close() {
+	//This is just a stub
+}
+
 func (f *FirestoreStorage) Find(query indexing.Query, result *search.ExternalResultItem) error {
 	//if query.Size()==0 || query==nil{
 	//	query = indexing.NewQuery()

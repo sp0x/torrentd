@@ -75,19 +75,77 @@ func TestRunner_Search(t *testing.T) {
 		Return(nil).
 		Do(func(target *source.SearchTarget) {
 			dom, _ := goquery.NewDocumentFromReader(strings.NewReader(`
-<div>b<div class="a">d<a href="/lol">sd</a></div></div>`))
+<div>b<div class="a">d<a href="/lol">sd</a></div></div>
+<div class="b"><a>val1</a><p>parrot</p></div>`))
 			fakeState := &jar.State{Dom: dom}
 			runner.browser.SetState(fakeState)
 		})
 	srch, err := runner.Search(query, nil)
 	g.Expect(err).To(gomega.BeNil())
 	g.Expect(srch).ToNot(gomega.BeNil())
-	g.Expect(len(srch.GetResults())).To(gomega.Equal(1))
+	g.Expect(len(srch.GetResults()) > 0).To(gomega.BeTrue())
 	firstDoc := srch.GetResults()[0]
 	g.Expect(firstDoc.GUID != "").To(gomega.BeTrue())
 	var foundDoc search.ExternalResultItem
 	guidQuery := indexing.NewQuery()
 	guidQuery.Put("GUID", firstDoc.GUID)
 	g.Expect(runner.Storage.Find(guidQuery, &foundDoc)).To(gomega.BeNil())
+	g.Expect(foundDoc.GUID).To(gomega.Equal(firstDoc.GUID))
+	g.Expect(foundDoc.ExtraFields["fieldA"]).To(gomega.Equal("sd"))
 
+	//-------Should be able to use unique indexes
+	index.Name = "other"
+	index.Search = searchBlock{
+		Path: "/",
+		Key:  []string{"fieldB"},
+		Rows: rowsBlock{
+			selectorBlock: selectorBlock{
+				Selector: "div.b",
+			},
+		},
+		Fields: fieldsListBlock{
+			fieldBlock{
+				Field: "id",
+				Block: selectorBlock{
+					Selector: "a",
+				},
+			},
+			fieldBlock{
+				Field: "fieldC",
+				Block: selectorBlock{
+					Selector: "p",
+				},
+			},
+		},
+	}
+	runner.Storage.Close()
+	runner = NewRunner(index, RunnerOpts{
+		Config:     cfg,
+		CachePages: false,
+		Transport:  nil,
+	})
+	//Patch with our mocks
+	runner.connectivityTester = connectivityTester
+	runner.createBrowser()
+	runner.contentFetcher = contentFetcher
+	//We need to mock our content fetching also
+	contentFetcher.EXPECT().Fetch(gomock.Any()).
+		Return(nil).
+		Do(func(target *source.SearchTarget) {
+			dom, _ := goquery.NewDocumentFromReader(strings.NewReader(`
+<div>b<div class="a">d<a href="/lol">sd</a></div></div>
+<div class="b"><a>val1</a><p>parrot</p></div>`))
+			fakeState := &jar.State{Dom: dom}
+			runner.browser.SetState(fakeState)
+		})
+	srch, err = runner.Search(query, nil)
+	g.Expect(err).To(gomega.BeNil())
+	g.Expect(srch).ToNot(gomega.BeNil())
+	g.Expect(len(srch.GetResults()) == 1).To(gomega.BeTrue())
+	//result := srch.GetResults()[0]
+	//g.Expect(result.GUID!="").To(gomega.BeTrue())
+	//g.Expect(result.LocalId=="val1").To(gomega.BeTrue())
+	//guidQuery = indexing.NewQuery()
+	//guidQuery.Put("LocalId", "val1")
+	//g.Expect(runner.Storage.Find(guidQuery, &foundDoc)).To(gomega.BeNil())
 }

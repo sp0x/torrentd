@@ -45,7 +45,7 @@ test-coverage:
 	@cd $(WORKDIR); \
 	echo "" > $(COVERAGE_REPORT); \
 	$(GOTEST) -failfast -coverprofile=$(COVERAGE_REPORT).tmp -coverpkg=./... -covermode=$(COVERAGE_MODE) ./...; \
-	cat $(COVERAGE_REPORT).tmp | grep -v "indexer/definitions/assets.go" > $(COVERAGE_REPORT); \
+	cat $(COVERAGE_REPORT).tmp | grep -v "indexer/definitions/assets.go" | grep -v "/mocks/" > $(COVERAGE_REPORT); \
 	rm $(COVERAGE_REPORT).tmp
 
 build-image:

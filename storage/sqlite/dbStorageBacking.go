@@ -86,6 +86,11 @@ func (d *DBStorage) CreateWithId(keyParts *indexing.Key, tr *search.ExternalResu
 	return nil
 }
 
+func (d *DBStorage) Close() {
+	//This is just a stub
+	//gdb.Close()
+}
+
 func (d *DBStorage) Truncate() {
 	gdb := db.GetOrmDb(d.Path)
 	defer func() {
