@@ -76,7 +76,6 @@ search:
   pagesize: 20
   path: bananas
   followredirect: true
-  key: LocalId
   inputs:
     $raw: "{{ range .Categories }}c{{.}}=1&{{end}}"
     search: "{{ if .Query.Keywords }}{{ .Query.Keywords }}{{else}}{{end}}"

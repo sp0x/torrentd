@@ -100,7 +100,7 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 	for _, item := range r.definition.Search.Fields {
 		value := row[item.Field]
 		currentItem := item
-		formatValues(&currentItem, value, row)
+		value = formatValues(&currentItem, value, row)
 		row[item.Field] = value
 	}
 
