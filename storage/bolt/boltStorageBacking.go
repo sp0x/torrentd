@@ -153,7 +153,7 @@ func (b *BoltStorage) Update(query indexing.Query, item *search.ExternalResultIt
 }
 
 //Create a new record. This uses a new random UUID in order to identify the record.
-func (b *BoltStorage) Create(item *search.ExternalResultItem, additionalPK indexing.Key) error {
+func (b *BoltStorage) Create(item *search.ExternalResultItem, additionalPK *indexing.Key) error {
 	item.GUID = uuid.New().String()
 	key := indexing.NewKey("GUID")
 	err := b.CreateWithId(key, item, nil)
@@ -161,7 +161,7 @@ func (b *BoltStorage) Create(item *search.ExternalResultItem, additionalPK index
 		return err
 	}
 	//If we don't have an unique index, we can stop here.
-	if len(additionalPK) == 0 {
+	if len(additionalPK.Fields) == 0 {
 		return nil
 	}
 	indexValue := indexing.GetIndexValueFromItem(additionalPK, item)
@@ -185,7 +185,7 @@ func (b *BoltStorage) Create(item *search.ExternalResultItem, additionalPK index
 
 //CreateWithId a new record for a result.
 //The key is used if you have a custom object that uses a different key, not the GUID
-func (b *BoltStorage) CreateWithId(keyParts indexing.Key, item *search.ExternalResultItem, uniqueIndexKeys indexing.Key) error {
+func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item *search.ExternalResultItem, uniqueIndexKeys *indexing.Key) error {
 	indexValue := indexing.GetIndexValueFromItem(keyParts, item)
 	uniqueIndexValue := indexing.GetIndexValueFromItem(uniqueIndexKeys, item)
 	if len(uniqueIndexValue) == 0 {
@@ -202,7 +202,7 @@ func (b *BoltStorage) CreateWithId(keyParts indexing.Key, item *search.ExternalR
 			return err
 		}
 		var uniqueIndex indexing.Index
-		if len(uniqueIndexKeys) > 0 {
+		if !uniqueIndexKeys.IsEmpty() {
 			uniqueIndex, err = GetUniqueIndexFromKeys(bucket, uniqueIndexKeys)
 			if err != nil {
 				return err

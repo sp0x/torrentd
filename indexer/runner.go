@@ -8,6 +8,7 @@ import (
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage"
+	"github.com/sp0x/torrentd/storage/indexing"
 	"github.com/sp0x/torrentd/torznab"
 	"github.com/spf13/viper"
 	"net/http"
@@ -428,6 +429,18 @@ type SearchTarget struct {
 	Values url.Values
 }
 
+func (r *Runner) getUniqueIndex(item *search.ExternalResultItem) *indexing.Key {
+	if item == nil {
+		return nil
+	}
+	key := &indexing.Key{}
+	//Local id would be a good bet.
+	if len(item.LocalId) > 0 {
+		key.Add("LocalId")
+	}
+	return key
+}
+
 //SearchKeywords for a given torrent
 func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Instance, error) {
 	r.createBrowser()
@@ -510,6 +523,7 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 			}
 			//The category doesn't match even 1 of the categories in the query.
 			if !matchCat {
+				r.Storage.AddUniqueIndex(r.getUniqueIndex(&item))
 				storageErr := r.Storage.Add(&item)
 				r.logger.
 					WithFields(logrus.Fields{"category": item.LocalCategoryName, "categoryId": item.LocalCategoryID}).
@@ -522,6 +536,7 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 		}
 		//Try to map the category from the Indexer to the global categories
 		r.resolveCategory(&item)
+		r.Storage.AddUniqueIndex(r.getUniqueIndex(&item))
 		storageErr := r.Storage.Add(&item)
 		r.logger.Errorf("Couldn't save item: %s\n", storageErr)
 

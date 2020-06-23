@@ -12,16 +12,18 @@ import (
 
 type KeyedStorage struct {
 	//backing *DBStorage
-	backing    ItemStorageBacking
-	primaryKey indexing.Key
-	indexKeys  indexing.Key
+	backing        ItemStorageBacking
+	primaryKey     *indexing.Key
+	indexKeys      *indexing.Key
+	indexKeysCache map[string]interface{}
 }
 
 //NewKeyedStorage creates a new keyed storage with the default storage backing.
-func NewKeyedStorage(keyFields indexing.Key) *KeyedStorage {
+func NewKeyedStorage(keyFields *indexing.Key) *KeyedStorage {
 	return &KeyedStorage{
-		primaryKey: keyFields,
-		backing:    DefaultStorageBacking(),
+		primaryKey:     keyFields,
+		backing:        DefaultStorageBacking(),
+		indexKeysCache: make(map[string]interface{}),
 	}
 }
 
@@ -35,14 +37,15 @@ func DefaultStorageBacking() ItemStorageBacking {
 }
 
 //NewKeyedStorageWithBacking creates a new keyed storage with a custom storage backing.
-func NewKeyedStorageWithBacking(key indexing.Key, storage ItemStorageBacking) *KeyedStorage {
+func NewKeyedStorageWithBacking(key *indexing.Key, storage ItemStorageBacking) *KeyedStorage {
 	return &KeyedStorage{
-		primaryKey: key,
-		backing:    storage,
+		primaryKey:     key,
+		backing:        storage,
+		indexKeysCache: make(map[string]interface{}),
 	}
 }
 
-func NewKeyedStorageWithBackingType(key indexing.Key, storageType string) *KeyedStorage {
+func NewKeyedStorageWithBackingType(key *indexing.Key, storageType string) *KeyedStorage {
 	bfn, ok := storageBackingMap[storageType]
 	if !ok {
 		panic("Unsupported storage backing type")
@@ -80,7 +83,7 @@ func init() {
 }
 
 //NewWithKey gets a storage backed in the same way, with a different key.
-func (s *KeyedStorage) NewWithKey(key indexing.Key) ItemStorage {
+func (s *KeyedStorage) NewWithKey(key *indexing.Key) ItemStorage {
 	storage := s.backing
 
 	return &KeyedStorage{
@@ -97,10 +100,9 @@ func (s *KeyedStorage) Size() int64 {
 	return s.backing.Size()
 }
 
-func (s *KeyedStorage) getDefaultKey() indexing.Key {
+func (s *KeyedStorage) getDefaultKey() *indexing.Key {
 	//Use the ID from the result as a key
-	key := indexing.Key{}
-	key = append(key, "GUID")
+	key := indexing.NewKey("GUID")
 	return key
 }
 
@@ -110,7 +112,7 @@ func (s *KeyedStorage) Add(item *search.ExternalResultItem) error {
 	var existingQuery indexing.Query
 	//The key is what makes each result unique. If no key is provided you might end up with doubles, since GUID is used.
 	key := s.primaryKey
-	if key == nil || len(key) == 0 {
+	if key == nil || key.IsEmpty() {
 		key = s.getDefaultKey()
 	}
 	keyHasValue := indexing.KeyHasValue(key, item)
@@ -151,6 +153,7 @@ func (s *KeyedStorage) Add(item *search.ExternalResultItem) error {
 	return nil
 }
 
-func (s *KeyedStorage) AddUniqueIndex(key indexing.Key) {
-	s.indexKeys = append(s.indexKeys, key...)
+//AddUniqueIndex adds a new key set as unique for this storage.
+func (s *KeyedStorage) AddUniqueIndex(key *indexing.Key) {
+	s.indexKeys.AddKeys(key)
 }

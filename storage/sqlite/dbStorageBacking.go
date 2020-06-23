@@ -70,14 +70,14 @@ func (d *DBStorage) FindById(id string) *search.ExternalResultItem {
 	return &torrent
 }
 
-func (d *DBStorage) Create(item *search.ExternalResultItem, additionalIndexKey indexing.Key) error {
+func (d *DBStorage) Create(item *search.ExternalResultItem, additionalIndexKey *indexing.Key) error {
 	item.GUID = uuid.New().String()
 	return d.CreateWithId(nil, item, nil)
 }
 
 //CreateWithId a new result record.
 //In sqlite we're not using the key parts.
-func (d *DBStorage) CreateWithId(keyParts indexing.Key, tr *search.ExternalResultItem, uniqueIndexKeys indexing.Key) error {
+func (d *DBStorage) CreateWithId(keyParts *indexing.Key, tr *search.ExternalResultItem, uniqueIndexKeys *indexing.Key) error {
 	gdb := db.GetOrmDb(d.Path)
 	defer func() {
 		_ = gdb.Close()

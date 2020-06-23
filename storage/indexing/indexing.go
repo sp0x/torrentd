@@ -35,10 +35,10 @@ func GetIndexNameFromQuery(query Query) string {
 }
 
 //GetIndexValueFromItem gets the index value from a key set and an item.
-func GetIndexValueFromItem(keyParts Key, item *search.ExternalResultItem) []byte {
+func GetIndexValueFromItem(keyParts *Key, item *search.ExternalResultItem) []byte {
 	val := reflect.ValueOf(item).Elem()
-	valueParts := make([]string, len(keyParts))
-	for ix, kfield := range keyParts {
+	valueParts := make([]string, len(keyParts.Fields))
+	for ix, kfield := range keyParts.Fields {
 		fld := val.FieldByName(kfield)
 		if !fld.IsValid() {
 			valueParts[ix] = serializeKeyValue(item.GetField(kfield))
@@ -47,6 +47,7 @@ func GetIndexValueFromItem(keyParts Key, item *search.ExternalResultItem) []byte
 		}
 	}
 	output := strings.Join(valueParts, "\000")
+	output = keyParts.ValuePrefix + output
 	return []byte(output)
 }
 

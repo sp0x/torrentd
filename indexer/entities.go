@@ -11,10 +11,10 @@ type entityBlock struct {
 }
 
 //GetKey gets the indexing key for this entity.
-func (b entityBlock) GetKey() indexing.Key {
-	key := indexing.Key{}
+func (b entityBlock) GetKey() *indexing.Key {
+	key := indexing.NewKey()
 	for _, s := range b.IndexKey {
-		key = append(key, s)
+		key.Add(s)
 	}
 	return key
 }
