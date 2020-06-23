@@ -458,10 +458,10 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 	if err != nil {
 		return nil, err
 	}
-	dom := r.browser.Dom()
 	r.logger.
 		WithFields(logrus.Fields{}).
 		Debugf("Fetched Indexer page.\n")
+	dom := r.browser.Dom()
 	setupContext(r, &context, dom)
 	// merge following rows for After selector
 	err = r.clearDom(dom)

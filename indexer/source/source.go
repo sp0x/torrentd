@@ -14,6 +14,7 @@ func NewTarget(url string) *SearchTarget {
 	}
 }
 
+//go:generate mockgen -source source.go -destination=mocks/source.go -package=mocks
 type ContentFetcher interface {
 	Cleanup()
 	Fetch(target *SearchTarget) error

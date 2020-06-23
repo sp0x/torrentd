@@ -6,6 +6,7 @@ import (
 )
 
 type ItemStorage interface {
+	Find(query indexing.Query, output *search.ExternalResultItem) error
 	Add(item *search.ExternalResultItem) error
 	AddUniqueIndex(key *indexing.Key)
 	NewWithKey(pk *indexing.Key) ItemStorage

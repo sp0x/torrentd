@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/config"
@@ -112,6 +113,13 @@ func (s *KeyedStorage) getDefaultKey() *indexing.Key {
 	//Use the ID from the result as a key
 	key := indexing.NewKey("GUID")
 	return key
+}
+
+func (s *KeyedStorage) Find(query indexing.Query, output *search.ExternalResultItem) error {
+	if s.backing.Find(query, output) == nil {
+		return nil
+	}
+	return errors.New("not found")
 }
 
 //Add handles the discovery of the result, adding additional information like staleness state.
