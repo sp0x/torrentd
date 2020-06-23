@@ -114,8 +114,7 @@ func TestGetIndexValueFromQuery(t *testing.T) {
 func TestGetIndexValueFromItem(t *testing.T) {
 	g := NewWithT(t)
 	//Should use key values only, when generating the index value
-	key := indexing.Key{}
-	key = append(key, "a")
+	key := indexing.NewKey("a")
 	item := &search.ExternalResultItem{}
 	item.ExtraFields = make(map[string]interface{})
 	item.ExtraFields["a"] = "asdasd123"

@@ -22,6 +22,7 @@ func (k *Key) IsEmpty() bool {
 //NewKey creates a new keyParts using an array of fields.
 func NewKey(fieldNames ...string) *Key {
 	var key Key
+	key.fieldsCache = make(map[string]interface{})
 	for _, item := range fieldNames {
 		_, exists := key.fieldsCache[item]
 		if exists {
@@ -40,6 +41,9 @@ func NewKey(fieldNames ...string) *Key {
 
 //AddKeys adds multiple keys
 func (k *Key) AddKeys(newKeys *Key) {
+	if k.fieldsCache == nil {
+		k.fieldsCache = make(map[string]interface{})
+	}
 	for _, newKey := range newKeys.Fields {
 		_, exists := k.fieldsCache[newKey]
 		if exists {

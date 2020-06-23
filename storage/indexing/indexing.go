@@ -36,6 +36,9 @@ func GetIndexNameFromQuery(query Query) string {
 
 //GetIndexValueFromItem gets the index value from a key set and an item.
 func GetIndexValueFromItem(keyParts *Key, item *search.ExternalResultItem) []byte {
+	if keyParts == nil {
+		return []byte{}
+	}
 	val := reflect.ValueOf(item).Elem()
 	valueParts := make([]string, len(keyParts.Fields))
 	for ix, kfield := range keyParts.Fields {

@@ -161,7 +161,7 @@ func (b *BoltStorage) Create(item *search.ExternalResultItem, additionalPK *inde
 		return err
 	}
 	//If we don't have an unique index, we can stop here.
-	if len(additionalPK.Fields) == 0 {
+	if additionalPK == nil || additionalPK.IsEmpty() {
 		return nil
 	}
 	indexValue := indexing.GetIndexValueFromItem(additionalPK, item)
@@ -202,7 +202,7 @@ func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item *search.External
 			return err
 		}
 		var uniqueIndex indexing.Index
-		if !uniqueIndexKeys.IsEmpty() {
+		if uniqueIndexKeys != nil && !uniqueIndexKeys.IsEmpty() {
 			uniqueIndex, err = GetUniqueIndexFromKeys(bucket, uniqueIndexKeys)
 			if err != nil {
 				return err

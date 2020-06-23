@@ -433,7 +433,7 @@ func (r *Runner) getUniqueIndex(item *search.ExternalResultItem) *indexing.Key {
 	if item == nil {
 		return nil
 	}
-	key := &indexing.Key{}
+	key := indexing.NewKey()
 	//Local id would be a good bet.
 	if len(item.LocalId) > 0 {
 		key.Add("LocalId")

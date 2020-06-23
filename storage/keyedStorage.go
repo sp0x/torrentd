@@ -12,15 +12,15 @@ import (
 type KeyedStorage struct {
 	//backing *DBStorage
 	backing        ItemStorageBacking
-	primaryKey     *indexing.Key
-	indexKeys      *indexing.Key
+	primaryKey     indexing.Key
+	indexKeys      indexing.Key
 	indexKeysCache map[string]interface{}
 }
 
 //NewKeyedStorage creates a new keyed storage with the default storage backing.
 func NewKeyedStorage(keyFields *indexing.Key) *KeyedStorage {
 	return &KeyedStorage{
-		primaryKey:     keyFields,
+		primaryKey:     *keyFields,
 		backing:        DefaultStorageBacking(),
 		indexKeysCache: make(map[string]interface{}),
 	}
@@ -38,7 +38,7 @@ func DefaultStorageBacking() ItemStorageBacking {
 //NewKeyedStorageWithBacking creates a new keyed storage with a custom storage backing.
 func NewKeyedStorageWithBacking(key *indexing.Key, storage ItemStorageBacking) *KeyedStorage {
 	return &KeyedStorage{
-		primaryKey:     key,
+		primaryKey:     *key,
 		backing:        storage,
 		indexKeysCache: make(map[string]interface{}),
 	}
@@ -88,7 +88,7 @@ func (s *KeyedStorage) NewWithKey(key *indexing.Key) ItemStorage {
 	storage := s.backing
 
 	return &KeyedStorage{
-		primaryKey: key,
+		primaryKey: *key,
 		backing:    storage,
 	}
 }
@@ -112,8 +112,8 @@ func (s *KeyedStorage) Add(item *search.ExternalResultItem) error {
 	var existingResult *search.ExternalResultItem
 	var existingQuery indexing.Query
 	//The key is what makes each result unique. If no key is provided you might end up with doubles, since GUID is used.
-	key := s.primaryKey
-	if key == nil || key.IsEmpty() {
+	key := &s.primaryKey
+	if key.IsEmpty() {
 		key = s.getDefaultKey()
 	}
 	keyHasValue := indexing.KeyHasValue(key, item)
@@ -133,9 +133,9 @@ func (s *KeyedStorage) Add(item *search.ExternalResultItem) error {
 		item.Fingerprint = search.GetResultFingerprint(item)
 		var err error
 		if keyHasValue {
-			err = s.backing.CreateWithId(key, item, s.indexKeys)
+			err = s.backing.CreateWithId(key, item, &s.indexKeys)
 		} else {
-			err = s.backing.Create(item, s.indexKeys)
+			err = s.backing.Create(item, &s.indexKeys)
 		}
 		if err != nil {
 			return err
