@@ -80,6 +80,7 @@ search:
     $raw: "{{ range .Categories }}c{{.}}=1&{{end}}"
     search: "{{ if .Query.Keywords }}{{ .Query.Keywords }}{{else}}{{end}}"
     incldead: 0
+    page: "{{ if .Query.Page }}{{ .Query.Page }}{{ else }}{{end}}"
     #sort: "{{ .Config.sort }}"
     #type: "{{ .Config.type }}"
 
