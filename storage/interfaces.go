@@ -11,6 +11,7 @@ type ItemStorage interface {
 	AddUniqueIndex(key *indexing.Key)
 	NewWithKey(pk *indexing.Key) ItemStorage
 	Close()
+	SetKey(index *indexing.Key) error
 }
 type ItemStorageBacking interface {
 	//Tries to find a single record matching the query.

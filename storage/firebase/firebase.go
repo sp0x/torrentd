@@ -68,10 +68,6 @@ func (f *FirestoreStorage) Close() {
 }
 
 func (f *FirestoreStorage) Find(query indexing.Query, result *search.ExternalResultItem) error {
-	//if query.Size()==0 || query==nil{
-	//	query = indexing.NewQuery()
-	//	query.Put("GUID", result.GUID)
-	//}
 	fireQuery := f.transformIndexQueryToFirestoreQuery(query, 1)
 	documentIterator := fireQuery.Limit(1).Documents(f.context)
 	document, err := documentIterator.Next()
@@ -132,13 +128,13 @@ func (f *FirestoreStorage) CreateWithId(key *indexing.Key, item *search.External
 	collection := f.getCollection()
 	indexValue := ""
 	var doc *firestore.DocumentRef
-	if key.IsEmpty() {
+	if key == nil || key.IsEmpty() {
 		doc = collection.NewDoc()
 	} else {
 		indexValue = string(indexing.GetIndexValueFromItem(key, item))
 		doc = collection.Doc(string(indexValue))
 	}
-	if key.IsEmpty() {
+	if key == nil || key.IsEmpty() {
 		//Since this is a new item we'll need to create a new ID, if there's no key.
 		item.GUID = doc.ID
 	}

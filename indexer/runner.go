@@ -488,14 +488,14 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 			continue
 		}
 		if !r.validateAndStoreItem(query, localCats, &item) {
-			r.Storage.AddUniqueIndex(r.getUniqueIndex(&item))
+			_ = r.Storage.SetKey(r.getUniqueIndex(&item))
 			err = r.Storage.Add(&item)
 			if err != nil {
 				r.logger.Errorf("Found an item that doesn't match our search categories: %s\n", err)
 			}
 			continue
 		}
-		r.Storage.AddUniqueIndex(r.getUniqueIndex(&item))
+		_ = r.Storage.SetKey(r.getUniqueIndex(&item))
 		err = r.Storage.Add(&item)
 		if err != nil {
 			r.logger.Errorf("Found an item that doesn't match our search categories: %s\n", err)

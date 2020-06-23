@@ -126,6 +126,14 @@ func (s *KeyedStorage) Find(query indexing.Query, output *search.ExternalResultI
 	return errors.New("not found")
 }
 
+func (s *KeyedStorage) SetKey(index *indexing.Key) error {
+	if index.IsEmpty() {
+		return errors.New("primary key was empty")
+	}
+	s.primaryKey = *index
+	return nil
+}
+
 //Add handles the discovery of the result, adding additional information like staleness state.
 func (s *KeyedStorage) Add(item *search.ExternalResultItem) error {
 	var existingResult *search.ExternalResultItem
