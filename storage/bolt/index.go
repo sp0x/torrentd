@@ -18,7 +18,7 @@ func GetIndexFromQuery(bucket *bolt.Bucket, query indexing.Query) (indexing.Inde
 
 //GetUniqueIndexFromKeys gets the index from a key.
 func GetUniqueIndexFromKeys(bucket *bolt.Bucket, keyParts *indexing.Key) (indexing.Index, error) {
-	indexName := keyParts.ValuePrefix + strings.Join(keyParts.Fields, "_")
+	indexName := strings.Join(keyParts.Fields, "_")
 	return getIndex(bucket, "unique", indexName)
 }
 

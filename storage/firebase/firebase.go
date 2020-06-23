@@ -12,12 +12,14 @@ import (
 type FirestoreConfig struct {
 	ProjectId       string
 	CredentialsFile string
+	Namespace       string
 }
 
 type FirestoreStorage struct {
-	client  *firestore.Client
-	context context.Context
-	counter counter
+	client    *firestore.Client
+	context   context.Context
+	counter   counter
+	namespace string
 }
 
 const (
@@ -40,16 +42,25 @@ func NewFirestoreStorage(conf *FirestoreConfig) (*FirestoreStorage, error) {
 	if err != nil {
 		return nil, err
 	}
-	f := &FirestoreStorage{
-		context: ctx,
-		client:  client,
-		counter: counter{20},
+	targetCollection := conf.Namespace
+	if targetCollection == "" {
+		targetCollection = resultsCollection
 	}
-	err = f.counter.initCounterIfNeeded(client.Collection(resultsCollection), f.context, counterDoc)
+	f := &FirestoreStorage{
+		context:   ctx,
+		client:    client,
+		counter:   counter{20},
+		namespace: targetCollection,
+	}
+	err = f.counter.initCounterIfNeeded(f.getCollection(), f.context, counterDoc)
 	if err != nil {
 		return nil, err
 	}
 	return f, nil
+}
+
+func (f *FirestoreStorage) getCollection() *firestore.CollectionRef {
+	return f.client.Collection(f.namespace)
 }
 
 func (f *FirestoreStorage) Find(query indexing.Query, result *search.ExternalResultItem) error {
@@ -67,7 +78,7 @@ func (f *FirestoreStorage) Find(query indexing.Query, result *search.ExternalRes
 }
 
 func (f *FirestoreStorage) transformIndexQueryToFirestoreQuery(query indexing.Query, limit int) *firestore.Query {
-	collection := f.client.Collection(resultsCollection)
+	collection := f.getCollection()
 	var fireQuery *firestore.Query
 	for _, key := range query.Keys() {
 		val, _ := query.Get(key)
@@ -114,7 +125,7 @@ func (f *FirestoreStorage) Create(item *search.ExternalResultItem, additionalInd
 //CreateWithId creates a new record using a custom key.
 //If a key isn't provided, a random uuid is generated in it's place, and stored in the GUID field.
 func (f *FirestoreStorage) CreateWithId(key *indexing.Key, item *search.ExternalResultItem, uniqueIndexKeys *indexing.Key) error {
-	collection := f.client.Collection(resultsCollection)
+	collection := f.getCollection()
 	indexValue := ""
 	var doc *firestore.DocumentRef
 	if key.IsEmpty() {
@@ -138,7 +149,7 @@ func (f *FirestoreStorage) CreateWithId(key *indexing.Key, item *search.External
 
 //Size is the size of the storage, as in records count
 func (f *FirestoreStorage) Size() int64 {
-	collection := f.client.Collection(resultsCollection)
+	collection := f.getCollection()
 	doc, err := collection.Doc(metaDocId).Get(f.context)
 	if err != nil {
 		return -1
@@ -150,7 +161,7 @@ func (f *FirestoreStorage) Size() int64 {
 //GetNewest returns the latest `count` of records.
 func (f *FirestoreStorage) GetNewest(count int) []search.ExternalResultItem {
 	var output []search.ExternalResultItem
-	collection := f.client.Collection(resultsCollection)
+	collection := f.getCollection()
 	iter := collection.OrderBy("ID", firestore.Desc).Limit(count).Documents(f.context)
 	for {
 		doc, err := iter.Next()

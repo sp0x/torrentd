@@ -43,8 +43,8 @@ verbose: false
 indexers:
     # We'll configure the zamunda index
     zamunda:
-      username: deter
-      password: koftara
+      username: myusername
+      password: g43ewef
       #To use the the login creds in the index definition you just need to use them as a template in the login block.
       #Like this:
       #login:

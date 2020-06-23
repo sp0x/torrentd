@@ -47,7 +47,6 @@ func GetIndexValueFromItem(keyParts *Key, item *search.ExternalResultItem) []byt
 		}
 	}
 	output := strings.Join(valueParts, "\000")
-	output = keyParts.ValuePrefix + output
 	return []byte(output)
 }
 

@@ -97,7 +97,7 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 	}
 	//Our root storage, which isn't indexed.
 	entityType := runner.definition.getSearchEntity()
-	runner.Storage = storage.NewKeyedStorageWithBackingType(entityType.GetKey(), viper.Get("storage").(string))
+	runner.Storage = storage.NewKeyedStorageWithBackingType(def.Name, entityType.GetKey(), viper.Get("storage").(string))
 	//runner.Storage.(*storage.KeyedStorage).AddUniqueIndex(runner.getUniqueIndexKey())
 	//Add our unique indexes if needed
 	return runner

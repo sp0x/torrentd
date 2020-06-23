@@ -6,7 +6,6 @@ import (
 	"github.com/sp0x/torrentd/storage/bolt"
 	"github.com/sp0x/torrentd/storage/firebase"
 	"github.com/sp0x/torrentd/storage/indexing"
-	"github.com/sp0x/torrentd/storage/sqlite"
 	"github.com/spf13/viper"
 )
 
@@ -45,28 +44,29 @@ func NewKeyedStorageWithBacking(key *indexing.Key, storage ItemStorageBacking) *
 	}
 }
 
-func NewKeyedStorageWithBackingType(key *indexing.Key, storageType string) *KeyedStorage {
+func NewKeyedStorageWithBackingType(namespace string, key *indexing.Key, storageType string) *KeyedStorage {
 	bfn, ok := storageBackingMap[storageType]
 	if !ok {
 		panic("Unsupported storage backing type")
 	}
-	b := bfn()
+	b := bfn(namespace)
 	return NewKeyedStorageWithBacking(key, b)
 }
 
-var storageBackingMap = make(map[string]func() ItemStorageBacking)
+var storageBackingMap = make(map[string]func(ns string) ItemStorageBacking)
 
 func init() {
-	storageBackingMap["boltdb"] = func() ItemStorageBacking {
+	storageBackingMap["boltdb"] = func(ns string) ItemStorageBacking {
 		b, err := bolt.NewBoltStorage("")
+		b.SetNamespace(ns)
 		if err != nil {
 			log.Error(err)
 			return nil
 		}
 		return b
 	}
-	storageBackingMap["firebase"] = func() ItemStorageBacking {
-		conf := &firebase.FirestoreConfig{}
+	storageBackingMap["firebase"] = func(ns string) ItemStorageBacking {
+		conf := &firebase.FirestoreConfig{Namespace: ns}
 		conf.ProjectId = viper.Get("firebase_project").(string)
 		conf.CredentialsFile = viper.Get("firebase_credentials_file").(string)
 		b, err := firebase.NewFirestoreStorage(conf)
@@ -76,9 +76,10 @@ func init() {
 		}
 		return b
 	}
-	storageBackingMap["sqlite"] = func() ItemStorageBacking {
-		b := &sqlite.DBStorage{}
-		return b
+	storageBackingMap["sqlite"] = func(ns string) ItemStorageBacking {
+		panic("Deprecated")
+		//b := &sqlite.DBStorage{}
+		//return b
 	}
 }
 

@@ -479,6 +479,10 @@ func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) erro
 	return nil
 }
 
+func (b *BoltStorage) SetNamespace(namespace string) {
+	b.rootBucket = []string{namespace}
+}
+
 func getItemKey(item search.ExternalResultItem) ([]byte, error) {
 	if item.GUID == "" {
 		return nil, errors.New("record has no keyParts")
