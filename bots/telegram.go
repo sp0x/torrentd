@@ -6,6 +6,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/storage/bolt"
+	"github.com/spf13/viper"
 )
 
 type TelegramRunner struct {
@@ -17,6 +18,7 @@ type TelegramRunner struct {
 type TelegramProvider func(token string) (*tgbotapi.BotAPI, error)
 
 //NewTelegram creates a new telegram bot runner.
+//This function uses the `chat_db` environment variable for storing the chats.
 func NewTelegram(token string, provider TelegramProvider) (*TelegramRunner, error) {
 	if token == "" {
 		return nil, errors.New("token is required")
@@ -32,7 +34,7 @@ func NewTelegram(token string, provider TelegramProvider) (*TelegramRunner, erro
 	telegram.bot = bot
 	//bot.Debug = true
 	log.Printf("Authorized on account %s", bot.Self.UserName)
-	bolts, _ := bolt.NewBoltStorage("")
+	bolts, _ := bolt.NewBoltStorage(viper.GetString("chat_db"))
 	telegram.bolts = bolts
 	return telegram, nil
 }
