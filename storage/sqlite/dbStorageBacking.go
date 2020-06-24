@@ -71,7 +71,7 @@ func (d *DBStorage) FindById(id string) *search.ExternalResultItem {
 }
 
 func (d *DBStorage) Create(item *search.ExternalResultItem, additionalIndexKey *indexing.Key) error {
-	item.GUID = uuid.New().String()
+	item.UUIDValue = uuid.New().String()
 	return d.CreateWithId(nil, item, nil)
 }
 

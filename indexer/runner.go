@@ -109,6 +109,7 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 			WithEndpoint(runnerConfig.GetString("db")).
 			WithPK(entityType.GetKey()).
 			WithBacking(storageType).
+			WithRecord(&search.ExternalResultItem{}).
 			Build()
 	} else {
 		//All the results will be stored in a collection with the same name as the index.
@@ -117,6 +118,7 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 			WithNamespace(def.Name).
 			WithEndpoint(runnerConfig.GetString("db")).
 			WithBacking(storageType).
+			WithRecord(&search.ExternalResultItem{}).
 			Build()
 	}
 

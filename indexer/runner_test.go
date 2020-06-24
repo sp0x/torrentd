@@ -85,12 +85,12 @@ func TestRunner_Search(t *testing.T) {
 	g.Expect(srch).ToNot(gomega.BeNil())
 	g.Expect(len(srch.GetResults()) > 0).To(gomega.BeTrue())
 	firstDoc := srch.GetResults()[0]
-	g.Expect(firstDoc.GUID != "").To(gomega.BeTrue())
+	g.Expect(firstDoc.UUIDValue != "").To(gomega.BeTrue())
 	var foundDoc search.ExternalResultItem
 	guidQuery := indexing.NewQuery()
-	guidQuery.Put("GUID", firstDoc.GUID)
+	guidQuery.Put("UUID", firstDoc.UUIDValue)
 	g.Expect(runner.Storage.Find(guidQuery, &foundDoc)).To(gomega.BeNil())
-	g.Expect(foundDoc.GUID).To(gomega.Equal(firstDoc.GUID))
+	g.Expect(foundDoc.UUIDValue).To(gomega.Equal(firstDoc.UUIDValue))
 	g.Expect(foundDoc.ExtraFields["fieldA"]).To(gomega.Equal("sd"))
 
 	//-------Should be able to use unique indexes
@@ -143,7 +143,7 @@ func TestRunner_Search(t *testing.T) {
 	g.Expect(srch).ToNot(gomega.BeNil())
 	g.Expect(len(srch.GetResults()) == 1).To(gomega.BeTrue())
 	//result := srch.GetResults()[0]
-	//g.Expect(result.GUID!="").To(gomega.BeTrue())
+	//g.Expect(result.UUIDValue!="").To(gomega.BeTrue())
 	//g.Expect(result.LocalId=="val1").To(gomega.BeTrue())
 	//guidQuery = indexing.NewQuery()
 	//guidQuery.Put("LocalId", "val1")

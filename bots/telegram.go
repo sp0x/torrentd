@@ -48,6 +48,7 @@ func NewTelegram(token string, cfg config.Config, provider TelegramProvider) (*T
 		WithPK(indexing.NewKey("id")).
 		WithBacking(storageType).
 		WithEndpoint(viper.GetString("chat_db")).
+		WithRecord(&bolt.Chat{}).
 		Build()
 	//telegram.bolts = bolts
 	return telegram, nil

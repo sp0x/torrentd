@@ -2,7 +2,6 @@ package indexing
 
 import (
 	"fmt"
-	"github.com/sp0x/torrentd/indexer/search"
 	"reflect"
 	"strconv"
 	"strings"
@@ -39,26 +38,29 @@ func GetIndexValueFromItem(keyParts *Key, item interface{}) []byte {
 	if keyParts == nil {
 		return []byte{}
 	}
-	val := reflect.ValueOf(item).Elem()
+	val := reflect.ValueOf(item)
+	element := val.Elem()
 	valueParts := make([]string, len(keyParts.Fields))
-	if searchItem, ok := item.(*search.ExternalResultItem); ok {
-		for ix, kfield := range keyParts.Fields {
-			fld := val.FieldByName(kfield)
-			if !fld.IsValid() {
-				valueParts[ix] = serializeKeyValue(searchItem.GetField(kfield))
-			} else {
-				valueParts[ix] = serializeKeyValue(fld.Interface())
-			}
-		}
-	} else {
-		for ix, kfield := range keyParts.Fields {
-			fld := val.FieldByName(kfield)
-			if !fld.IsValid() {
-				//Maybe log a warning?
-				continue
-			}
+	fieldsField := element.FieldByName("ExtraFields")
+	for ix, kfield := range keyParts.Fields {
+		fld := element.FieldByName(kfield)
+		if fld.IsValid() {
 			valueParts[ix] = serializeKeyValue(fld.Interface())
+			continue
 		}
+		method := val.MethodByName(kfield)
+		if method.IsValid() {
+			rawval := method.Call([]reflect.Value{})[0].Interface()
+			valueParts[ix] = serializeKeyValue(rawval)
+			continue
+		}
+		if !fieldsField.IsValid() {
+			continue
+		}
+		if value, found := fieldsField.Interface().(map[string]interface{})[kfield]; found {
+			valueParts[ix] = serializeKeyValue(value)
+		}
+
 	}
 	output := strings.Join(valueParts, "\000")
 	return []byte(output)
@@ -104,6 +106,6 @@ func serializeKeyValue(val interface{}) string {
 	case bool:
 		return strconv.FormatBool(castVal)
 	default:
-		panic("non supported index value part")
+		panic(fmt.Sprintf("non supported index value part: %s", val))
 	}
 }

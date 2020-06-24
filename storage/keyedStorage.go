@@ -3,7 +3,6 @@ package storage
 import (
 	"errors"
 	"github.com/sp0x/torrentd/indexer/search"
-	"github.com/sp0x/torrentd/storage/bolt"
 	"github.com/sp0x/torrentd/storage/indexing"
 )
 
@@ -25,13 +24,13 @@ type KeyedStorage struct {
 //}
 
 //DefaultStorageBacking gets the default storage method for results.
-func DefaultStorageBacking() ItemStorageBacking {
-	backing, err := bolt.NewBoltStorage("")
-	if err != nil {
-		panic(err)
-	}
-	return backing
-}
+//func DefaultStorageBacking() ItemStorageBacking {
+//	backing, err := bolt.NewBoltStorage("")
+//	if err != nil {
+//		panic(err)
+//	}
+//	return backing
+//}
 
 //NewKeyedStorageWithBacking creates a new keyed storage with a custom storage backing.
 //func NewKeyedStorageWithBacking(key *indexing.Key, storage ItemStorageBacking) *KeyedStorage {
@@ -65,7 +64,7 @@ func (s *KeyedStorage) Size() int64 {
 
 func (s *KeyedStorage) getDefaultKey() *indexing.Key {
 	//Use the ID from the result as a key
-	key := indexing.NewKey("GUID")
+	key := indexing.NewKey("UUID")
 	return key
 }
 
@@ -77,7 +76,7 @@ func (s *KeyedStorage) Find(query indexing.Query, output *search.ExternalResultI
 }
 
 func (s *KeyedStorage) ForEach(callback func(record interface{})) {
-	panic("implement me")
+	s.backing.ForEach(callback)
 }
 
 func (s *KeyedStorage) SetKey(index *indexing.Key) error {
@@ -92,7 +91,7 @@ func (s *KeyedStorage) SetKey(index *indexing.Key) error {
 func (s *KeyedStorage) Add(item search.Record) error {
 	var existingResult *search.ExternalResultItem
 	var existingQuery indexing.Query
-	//The key is what makes each result unique. If no key is provided you might end up with doubles, since GUID is used.
+	//The key is what makes each result unique. If no key is provided you might end up with doubles, since UUIDValue is used.
 	key := &s.primaryKey
 	if key.IsEmpty() {
 		key = s.getDefaultKey()

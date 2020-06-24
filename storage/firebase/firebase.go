@@ -5,6 +5,7 @@ import (
 	"context"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/indexing"
+	"github.com/sp0x/torrentd/storage/serializers"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )
@@ -20,6 +21,7 @@ type FirestoreStorage struct {
 	context   context.Context
 	counter   counter
 	namespace string
+	marshaler *serializers.DynamicMarshaler
 }
 
 const (
@@ -30,7 +32,7 @@ const (
 )
 
 //NewFirestoreStorage creates a new firestore backed storage
-func NewFirestoreStorage(conf *FirestoreConfig) (*FirestoreStorage, error) {
+func NewFirestoreStorage(conf *FirestoreConfig, typePtr interface{}) (*FirestoreStorage, error) {
 	ctx := context.Background()
 	var options []option.ClientOption
 	if conf.CredentialsFile != "" {
@@ -51,6 +53,7 @@ func NewFirestoreStorage(conf *FirestoreConfig) (*FirestoreStorage, error) {
 		client:    client,
 		counter:   counter{20},
 		namespace: targetCollection,
+		marshaler: serializers.NewDynamicMarshaler(typePtr, nil),
 	}
 	err = f.counter.initCounterIfNeeded(f.getCollection(), f.context, counterDoc)
 	if err != nil {
@@ -67,7 +70,7 @@ func (f *FirestoreStorage) Close() {
 	//This is just a stub
 }
 
-func (f *FirestoreStorage) Find(query indexing.Query, result *search.ExternalResultItem) error {
+func (f *FirestoreStorage) Find(query indexing.Query, result interface{}) error {
 	fireQuery := f.transformIndexQueryToFirestoreQuery(query, 1)
 	documentIterator := fireQuery.Limit(1).Documents(f.context)
 	document, err := documentIterator.Next()
@@ -77,9 +80,34 @@ func (f *FirestoreStorage) Find(query indexing.Query, result *search.ExternalRes
 	return document.DataTo(result)
 }
 
+func (f *FirestoreStorage) ForEach(callback func(record interface{})) {
+	fireQuery := f.transformIndexQueryToFirestoreQuery(nil, 1)
+	documentIterator := fireQuery.Documents(f.context)
+	for true {
+		document, err := documentIterator.Next()
+		if err == iterator.Done {
+			break
+		}
+		if document == nil {
+			continue
+		}
+		record := f.marshaler.New()
+		err = document.DataTo(record)
+		if err != nil {
+			break
+		}
+		callback(record)
+	}
+
+}
+
 func (f *FirestoreStorage) transformIndexQueryToFirestoreQuery(query indexing.Query, limit int) *firestore.Query {
 	collection := f.getCollection()
 	var fireQuery *firestore.Query
+	if query == nil {
+		tmpQuery := collection.Offset(0).Limit(limit)
+		return &tmpQuery
+	}
 	for _, key := range query.Keys() {
 		val, _ := query.Get(key)
 		if fireQuery != nil {
@@ -109,7 +137,7 @@ func (f *FirestoreStorage) Update(query indexing.Query, item interface{}) error 
 }
 
 //Create a new record.
-//This uses the GUID for identifying records, upon creation a new UUID is generated.
+//This uses the UUIDValue for identifying records, upon creation a new UUID is generated.
 func (f *FirestoreStorage) Create(item search.Record, additionalIndex *indexing.Key) error {
 	err := f.CreateWithId(nil, item, additionalIndex)
 	if err != nil {
@@ -123,7 +151,7 @@ func (f *FirestoreStorage) Create(item search.Record, additionalIndex *indexing.
 }
 
 //CreateWithId creates a new record using a custom key.
-//If a key isn't provided, a random uuid is generated in it's place, and stored in the GUID field.
+//If a key isn't provided, a random uuid is generated in it's place, and stored in the UUIDValue field.
 func (f *FirestoreStorage) CreateWithId(key *indexing.Key, item search.Record, uniqueIndexKeys *indexing.Key) error {
 	collection := f.getCollection()
 	indexValue := ""

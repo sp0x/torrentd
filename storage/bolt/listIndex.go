@@ -17,7 +17,7 @@ func NewListIndex(parent *bolt.Bucket, name []byte) (*ListIndex, error) {
 	b := parent.Bucket(name)
 	if b != nil {
 		if !parent.Writable() {
-			return nil, errors.New("parent bucket is not writable")
+			return nil, &IndexDoesNotExistAndNotWritable{}
 		}
 		b, err = parent.CreateBucket(name)
 		if err != nil {

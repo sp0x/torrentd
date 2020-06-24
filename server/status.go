@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sp0x/torrentd/indexer/cache"
+	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage"
 	"time"
 )
@@ -14,6 +15,7 @@ func (s *Server) status(c *gin.Context) {
 	//If we don't have it in the cache
 	if !statusCache.Contains("status") {
 		store := storage.NewBuilder().
+			WithRecord(&search.ExternalResultItem{}).
 			Build()
 		latest := store.GetNewest(10)
 		var latestNames []string

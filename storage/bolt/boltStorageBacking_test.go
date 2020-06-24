@@ -14,6 +14,7 @@ import (
 )
 
 var _ = Describe("Bolt storage", func() {
+
 	It("Should be able to open a db", func() {
 		db, err := GetBoltDb(tempfile())
 		if err != nil {
@@ -31,9 +32,10 @@ var _ = Describe("Bolt storage", func() {
 	Context("with a database", func() {
 		var db *bolt.DB
 		bstore := &BoltStorage{}
+		key := indexing.NewKey("ChatId")
 		//Init db
 		BeforeEach(func() {
-			tmpBstore, err := NewBoltStorage(tempfile())
+			tmpBstore, err := NewBoltStorage(tempfile(), &Chat{})
 			if err != nil {
 				Fail(fmt.Sprintf("Couldn't open a db: %v", err))
 				return
@@ -55,15 +57,18 @@ var _ = Describe("Bolt storage", func() {
 			}
 		})
 		It("Should be able to store chats", func() {
-			newchat := &Chat{"tester", "", 12}
-			err := bstore.StoreChat(newchat)
+			newchat := &Chat{Username: "tester", InitialText: "", ChatId: 12}
+			err := bstore.Create(newchat, key)
 			if err != nil {
-				Fail("Couldn't store chat")
+				Fail(fmt.Sprintf("Couldn't store chat: %v", err))
 				return
 			}
-			chat, err := bstore.GetChat(12)
+			chat := Chat{}
+			query := indexing.NewQuery()
+			query.Put("ChatId", 12)
+			err = bstore.Find(query, &chat)
 			if err != nil {
-				Fail("couldn't get chat from storage")
+				Fail(fmt.Sprintf("couldn't get chat from storage: %v", err))
 				return
 			}
 			if chat.ChatId != newchat.ChatId || chat.Username != newchat.Username || chat.InitialText != newchat.InitialText {
@@ -72,31 +77,34 @@ var _ = Describe("Bolt storage", func() {
 			}
 		})
 
-		It("should return nil if a chat isn't found", func() {
-			chat, err := bstore.GetChat(12)
-			if err != nil {
+		It("shouldn't return nil if a chat isn't found", func() {
+			chat := Chat{ChatId: 12}
+			query := indexing.NewQuery()
+			query.Put("ChatId", 12)
+			err := bstore.Find(query, &chat)
+			if err == nil {
 				Fail(fmt.Sprintf("Error fetching non-existing chat: %v", err))
 				return
-			}
-			if chat != nil {
-				Fail("chat was not nil")
 			}
 		})
 
 		It("Should be able to iterate over chats", func() {
-			c1, c2 := &Chat{"a", "", 1}, &Chat{"b", "", 2}
-			_ = bstore.StoreChat(c1)
-			_ = bstore.StoreChat(c2)
+			c1, c2 := &Chat{Username: "a", InitialText: "", ChatId: 1}, &Chat{Username: "b", InitialText: "", ChatId: 2}
+			err := bstore.Create(c1, key)
+			if err != nil {
+				Fail("couldn't store chat 1")
+			}
+			err = bstore.Create(c2, key)
+			if err != nil {
+				Fail("couldn't store chat 2")
+			}
 			cnt := 0
-			err := bstore.ForChat(func(chat *Chat) {
+			bstore.ForEach(func(obj interface{}) {
+				chat := obj.(*Chat)
 				if chat.ChatId == c1.ChatId || chat.ChatId == c2.ChatId {
 					cnt += 1
 				}
 			})
-			if err != nil {
-				Fail(fmt.Sprintf("failed iterating over chats: %v", err))
-				return
-			}
 			if cnt != 2 {
 				Fail("Couldn't correctly iterate over chats, got the wrong results.")
 			}
@@ -105,10 +113,10 @@ var _ = Describe("Bolt storage", func() {
 		It("Should be able to store multiple search results", func() {
 			items := []search.ExternalResultItem{
 				{ResultItem: search.ResultItem{
-					Title: "a", Category: categories.CategoryBooks.ID, GUID: "a",
+					Title: "a", Category: categories.CategoryBooks.ID, UUIDValue: "a",
 				}},
 				{ResultItem: search.ResultItem{
-					Title: "b", Category: categories.CategoryBooks.ID, GUID: "b",
+					Title: "b", Category: categories.CategoryBooks.ID, UUIDValue: "b",
 				}},
 			}
 			err := bstore.StoreSearchResults(items)
@@ -129,10 +137,10 @@ var _ = Describe("Bolt storage", func() {
 		It("Should be able to store multiple uncategorized search results", func() {
 			items := []search.ExternalResultItem{
 				{ResultItem: search.ResultItem{
-					Title: "az", Category: -100, GUID: "ag",
+					Title: "az", Category: -100, UUIDValue: "ag",
 				}},
 				{ResultItem: search.ResultItem{
-					Title: "bz", Category: -100, GUID: "bg",
+					Title: "bz", Category: -100, UUIDValue: "bg",
 				}},
 			}
 			err := bstore.StoreSearchResults(items)
@@ -181,7 +189,7 @@ func TestNewBoltStorage(t *testing.T) {
 	for _, tt := range tests {
 		//Run as a subtest
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewBoltStorage(tempfile())
+			got, err := NewBoltStorage(tempfile(), &Chat{})
 			g.Expect(err).ShouldNot(HaveOccurred())
 			g.Expect(got).ShouldNot(BeNil())
 		})
@@ -201,10 +209,10 @@ func Test_getItemKey(t *testing.T) {
 		notNil  bool
 	}{
 		{name: "1", args: args{item: search.ExternalResultItem{
-			ResultItem: search.ResultItem{Title: "a", GUID: "x"},
+			ResultItem: search.ResultItem{Title: "a", UUIDValue: "x"},
 		}}, wantErr: false},
 		{name: "1", args: args{item: search.ExternalResultItem{
-			ResultItem: search.ResultItem{Title: "b", GUID: "y"},
+			ResultItem: search.ResultItem{Title: "b", UUIDValue: "y"},
 		}}, wantErr: false},
 		{name: "1", args: args{item: search.ExternalResultItem{
 			ResultItem: search.ResultItem{Title: "a"},
@@ -227,7 +235,7 @@ func Test_getItemKey(t *testing.T) {
 
 func TestBoltStorage_GetBucket(t *testing.T) {
 	g := NewGomegaWithT(t)
-	storage, err := NewBoltStorage(tempfile())
+	storage, err := NewBoltStorage(tempfile(), &Chat{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -262,7 +270,7 @@ func TestBoltStorage_GetBucket(t *testing.T) {
 
 func TestBoltStorage_Find(t *testing.T) {
 	g := NewGomegaWithT(t)
-	storage, err := NewBoltStorage(tempfile())
+	storage, err := NewBoltStorage(tempfile(), &Chat{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -270,18 +278,18 @@ func TestBoltStorage_Find(t *testing.T) {
 	item.ExtraFields = make(map[string]interface{})
 	item.ExtraFields["a"] = "b"
 	item.ExtraFields["c"] = "b"
-	//We create an item that would be indexed only by GUID
+	//We create an item that would be indexed only by UUIDValue
 	err = storage.Create(item, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	g.Expect(item.GUID != "").To(BeTrue())
+	g.Expect(item.UUIDValue != "").To(BeTrue())
 
 	query := indexing.NewQuery()
 	searchResult := search.ExternalResultItem{}
 
-	//Should be able to find it by GUID, since it's the ID.
-	query.Put("GUID", item.GUID)
+	//Should be able to find it by UUIDValue, since it's the ID.
+	query.Put("UUID", item.UUIDValue)
 	g.Expect(storage.Find(query, &searchResult)).To(BeNil())
 
 	//Should not find an item that's not indexed in that way.
@@ -296,25 +304,26 @@ func TestBoltStorage_Find(t *testing.T) {
 	item.ExtraFields["c"] = "b"
 	err = storage.CreateWithId(indexing.NewKey("a"), item, nil)
 	g.Expect(err).To(BeNil())
-	//it shouldn't use the GUID
-	g.Expect(item.GUID != "").To(BeFalse())
+	//it shouldn't use the UUIDValue
+	g.Expect(item.UUIDValue != "").To(BeFalse())
 	//and find it after that, using that custom ID
 	query = indexing.NewQuery()
 	query.Put("a", "b")
 	g.Expect(storage.Find(query, &searchResult)).To(BeNil())
 	g.Expect(len(searchResult.ExtraFields)).To(Equal(2))
 
-	//Should be able to create records by GUID
+	//Should be able to create records by UUIDValue
 	//and index them with another key field
 	item = &search.ExternalResultItem{}
 	item.ExtraFields = make(map[string]interface{})
 	item.ExtraFields["x"] = "b"
 	item.ExtraFields["c"] = "b"
-	err = storage.Create(item, indexing.NewKey("x")) // Create it with GUID
+	err = storage.Create(item, indexing.NewKey("x")) // Create it with UUID
 	g.Expect(err).To(BeNil())
 	query = indexing.NewQuery()
-	query.Put("x", "b")
-	g.Expect(storage.Find(query, &searchResult)).ToNot(BeNil())
+	query.Put("x", "b") //We're indexed under UUID, but we can also use the `x` key.
+	searchResult = search.ExternalResultItem{}
+	g.Expect(storage.Find(query, &searchResult)).To(BeNil())
 	g.Expect(len(searchResult.ExtraFields)).To(Equal(2))
 
 	//Should be able to update records with a custom key as an additional index

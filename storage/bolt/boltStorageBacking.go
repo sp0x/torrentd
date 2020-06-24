@@ -18,10 +18,16 @@ import (
 	"time"
 )
 
+const (
+	resultsBucket = "results"
+)
+
+var categoriesInitialized = false
+
 type BoltStorage struct {
 	Database   *bolt.DB
 	rootBucket []string
-	marshaler  serializers.MarshalUnmarshaler
+	marshaler  *serializers.DynamicMarshaler
 }
 
 func ensurePathExists(dbPath string) {
@@ -35,7 +41,7 @@ func ensurePathExists(dbPath string) {
 	_ = os.MkdirAll(dirPath, os.ModePerm)
 }
 
-func NewBoltStorage(dbPath string) (*BoltStorage, error) {
+func NewBoltStorage(dbPath string, recordTypePtr interface{}) (*BoltStorage, error) {
 	if dbPath == "" {
 		dbPath = DefaultBoltPath()
 	}
@@ -46,12 +52,10 @@ func NewBoltStorage(dbPath string) (*BoltStorage, error) {
 	}
 	bls := &BoltStorage{
 		Database:  dbx,
-		marshaler: json.Serializer,
+		marshaler: serializers.NewDynamicMarshaler(recordTypePtr, json.Serializer),
 	}
 	return bls, nil
 }
-
-var categoriesInitialized = false
 
 func GetBoltDb(file string) (*bolt.DB, error) {
 	dbx, err := bolt.Open(file, 0600, nil)
@@ -87,41 +91,6 @@ func GetBoltDb(file string) (*bolt.DB, error) {
 	return dbx, nil
 }
 
-type ChatMessage struct {
-	Text   string
-	ChatId string
-}
-
-type Chat struct {
-	Username    string
-	InitialText string
-	ChatId      int64
-}
-
-func (c Chat) UUID() string {
-	panic("implement me")
-}
-
-func (c Chat) SetUUID(s string) {
-	panic("implement me")
-}
-
-func (c Chat) Id() uint32 {
-	panic("implement me")
-}
-
-func (c Chat) SetId(u uint32) {
-	panic("implement me")
-}
-
-func (c Chat) SetState(new, updated bool) {
-	panic("implement me")
-}
-
-const (
-	resultsBucket = "results"
-)
-
 func (b *BoltStorage) Close() {
 	if b.Database == nil {
 		return
@@ -130,38 +99,76 @@ func (b *BoltStorage) Close() {
 }
 
 //Find something by it's index keys.
-func (b *BoltStorage) Find(query indexing.Query, result *search.ExternalResultItem) error {
+//Todo: refactor this
+func (b *BoltStorage) Find(query indexing.Query, result interface{}) error {
 	if query == nil {
 		return errors.New("query is required")
 	}
-	return b.Database.View(func(tx *bolt.Tx) error {
-		bucket := b.GetBucket(tx, resultsBucket)
-		if bucket == nil {
-			return errors.New("not found")
-		}
-		//Ways to go about this:
-		//-scan the entire bucket and filter by the query - this may be too slow
-		//-serialize the keyParts query and use it as the keyParts in the bucket, to search by it
-		//-use the query as an index, having a bucket with all the ids
-		//convert the query to a prefix, and seek to the start of that prefix in a cursor
-		//iterate until the end of the prefixed region in the cursor
-		//Todo: implement querying if we're not using primary keys.
-		idx, err := GetIndexFromQuery(bucket, query)
-		if err != nil {
-			return err
-		}
-		indexValue := indexing.GetIndexValueFromQuery(query)
+	indexValue := indexing.GetIndexValueFromQuery(query)
+	extract := func(bucket *bolt.Bucket, idx indexing.Index) error {
 		ids := idx.All(indexValue, indexing.SingleItemCursor())
 		if len(ids) == 0 {
 			return errors.New("not found")
 		}
+		//Use the same root bucket and query by the ID in our index
 		rawResult := bucket.Get(ids[0])
-		err = b.marshaler.Unmarshal(rawResult, result)
+		var err error
+		//If the result is nil, we night be using the additional PK
+		if rawResult == nil {
+			//TODO: add the pk information into the root bucket, so we know if we need to do this.
+			var secondaryIndex indexing.Index
+			secondaryIndex, err = GetUniqueIndexFromKeys(bucket, indexing.NewKey("UUID"))
+			if err != nil {
+				return err
+			}
+			ids := secondaryIndex.Get(ids[0])
+			rawResult = bucket.Get(ids)
+		}
+		err = b.marshaler.UnmarshalAt(rawResult, result)
 		if err != nil {
 			return err
 		}
 		return nil
+	}
+	//The our bucket, and the index that matches the query best
+	err := b.Database.View(func(tx *bolt.Tx) error {
+		bucket := b.GetBucket(tx, resultsBucket)
+		if bucket == nil {
+			return errors.New("not found")
+		}
+		idx, err := GetIndexFromQuery(bucket, query)
+		if err != nil {
+			return err
+		}
+		return extract(bucket, idx)
 	})
+	//At this point we can quit.
+	if err == nil {
+		return nil
+	}
+	//We should retry
+	if _, ok := err.(*IndexDoesNotExistAndNotWritable); ok {
+		err = b.Database.Update(func(tx *bolt.Tx) error {
+			_, err := GetIndexFromQuery(b.GetBucket(tx, resultsBucket), query)
+			return err
+		})
+		if err != nil {
+			return err
+		}
+		err = b.Database.View(func(tx *bolt.Tx) error {
+			bucket := b.GetBucket(tx, resultsBucket)
+			if bucket == nil {
+				return errors.New("not found")
+			}
+			idx, err := GetIndexFromQuery(bucket, query)
+			if err != nil {
+				return err
+			}
+			return extract(bucket, idx)
+		})
+		return err
+	}
+	return err
 }
 
 func (b *BoltStorage) Update(query indexing.Query, item interface{}) error {
@@ -194,7 +201,7 @@ func (b *BoltStorage) Update(query indexing.Query, item interface{}) error {
 //Create a new record. This uses a new random UUID in order to identify the record.
 func (b *BoltStorage) Create(item search.Record, additionalPK *indexing.Key) error {
 	item.SetUUID(uuid.New().String())
-	key := indexing.NewKey("GUID")
+	key := indexing.NewKey("UUID")
 	err := b.CreateWithId(key, item, nil)
 	if err != nil {
 		return err
@@ -204,7 +211,7 @@ func (b *BoltStorage) Create(item search.Record, additionalPK *indexing.Key) err
 		return nil
 	}
 	indexValue := indexing.GetIndexValueFromItem(additionalPK, item)
-	//We need add a new index: additionalPK -> GUID
+	//We need add a new index: additionalPK -> UUIDValue
 	return b.Database.Update(func(tx *bolt.Tx) error {
 		bucket, err := b.createBucketIfItDoesntExist(tx, resultsBucket)
 		if err != nil {
@@ -223,7 +230,7 @@ func (b *BoltStorage) Create(item search.Record, additionalPK *indexing.Key) err
 }
 
 //CreateWithId a new record for a result.
-//The key is used if you have a custom object that uses a different key, not the GUID
+//The key is used if you have a custom object that uses a different key, not the UUIDValue
 func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item search.Record, uniqueIndexKeys *indexing.Key) error {
 	indexValue := indexing.GetIndexValueFromItem(keyParts, item)
 	uniqueIndexValue := indexing.GetIndexValueFromItem(uniqueIndexKeys, item)
@@ -252,7 +259,7 @@ func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item search.Record, u
 			}
 		}
 
-		//We increment the ID
+		//We increment the ID, the ID is used to avoid long seeking times
 		nextId, _ := bucket.NextSequence()
 		item.SetId(uint32(nextId))
 
@@ -299,13 +306,26 @@ func (b *BoltStorage) Size() int64 {
 	return int64(*count)
 }
 
+//ForEach Goes through all the records
+func (b *BoltStorage) ForEach(callback func(record interface{})) {
+	_ = b.Database.View(func(tx *bolt.Tx) error {
+		bucket := b.GetBucket(tx, resultsBucket)
+		cursor := ReversibleCursor{C: bucket.Cursor(), Reverse: false}
+		for _, val := cursor.First(); cursor.CanContinue(val); _, val = cursor.Next() {
+			result, err := b.marshaler.Unmarshal(val)
+			if err != nil {
+				return err
+			}
+			callback(result)
+		}
+		return nil
+	})
+}
+
 func (b *BoltStorage) GetNewest(count int) []search.ExternalResultItem {
 	var output []search.ExternalResultItem
 	_ = b.Database.View(func(tx *bolt.Tx) error {
-		bucket, err := b.createBucketIfItDoesntExist(tx, resultsBucket)
-		if err != nil {
-			return err
-		}
+		bucket := b.GetBucket(tx, resultsBucket)
 		cursor := ReversibleCursor{C: bucket.Cursor(), Reverse: true}
 		itemsFetched := 0
 		for _, val := cursor.First(); cursor.CanContinue(val); _, val = cursor.Next() {
@@ -313,7 +333,7 @@ func (b *BoltStorage) GetNewest(count int) []search.ExternalResultItem {
 				break
 			}
 			newItem := search.ExternalResultItem{}
-			if err := b.marshaler.Unmarshal(val, &newItem); err != nil {
+			if err := b.marshaler.UnmarshalAt(val, &newItem); err != nil {
 				log.Warning("Couldn't deserialize item from bolt storage.")
 				continue
 			}
@@ -327,22 +347,22 @@ func (b *BoltStorage) GetNewest(count int) []search.ExternalResultItem {
 
 //StoreChat stores a new chat.
 //The chat id is used as a keyParts.
-func (b *BoltStorage) StoreChat(chat *Chat) error {
-	//	defer db.Close()
-	err := b.Database.Update(func(tx *bolt.Tx) error {
-		bucket, err := b.createBucketIfItDoesntExist(tx, "telegram_chats")
-		if err != nil {
-			return err
-		}
-		key := i64tob(chat.ChatId)
-		val, err := b.marshaler.Marshal(chat)
-		if err != nil {
-			return err
-		}
-		return bucket.Put(key, val)
-	})
-	return err
-}
+//func (b *BoltStorage) StoreChat(chat *Chat) error {
+//	//	defer db.Close()
+//	err := b.Database.Update(func(tx *bolt.Tx) error {
+//		bucket, err := b.createBucketIfItDoesntExist(tx, resultsBucket)
+//		if err != nil {
+//			return err
+//		}
+//		key := i64tob(chat.ChatId)
+//		val, err := b.marshaler.Marshal(chat)
+//		if err != nil {
+//			return err
+//		}
+//		return bucket.Put(key, val)
+//	})
+//	return err
+//}
 
 func DefaultBoltPath() string {
 	cwd, _ := os.Getwd()
@@ -394,49 +414,49 @@ func (b *BoltStorage) GetBucket(tx *bolt.Tx, children ...string) *bolt.Bucket {
 }
 
 //ForChat calls the callback for each chat, in an async way.
-func (b *BoltStorage) ForChat(callback func(chat *Chat)) error {
-	return b.Database.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte("telegram_chats"))
-		if bucket == nil {
-			return nil
-		}
-		return bucket.ForEach(func(k, v []byte) error {
-			var chat = Chat{}
-			if err := b.marshaler.Unmarshal(v, &chat); err != nil {
-				return err
-			}
-			callback(&chat)
-			return nil
-		})
-	})
-}
+//func (b *BoltStorage) ForChat(callback func(chat *Chat)) error {
+//	return b.Database.View(func(tx *bolt.Tx) error {
+//		bucket := tx.Bucket([]byte("telegram_chats"))
+//		if bucket == nil {
+//			return nil
+//		}
+//		return bucket.ForEach(func(k, v []byte) error {
+//			var chat = Chat{}
+//			if err := b.marshaler.Unmarshal(v, &chat); err != nil {
+//				return err
+//			}
+//			callback(&chat)
+//			return nil
+//		})
+//	})
+//}
 
-func (b *BoltStorage) GetChat(id int) (*Chat, error) {
-	var chat = Chat{}
-	found := false
-	err := b.Database.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte("telegram_chats"))
-		if bucket == nil {
-			return nil
-		}
-		buff := bucket.Get(itob(id))
-		if buff == nil {
-			return nil
-		}
-		found = true
-		if err := b.marshaler.Unmarshal(buff, &chat); err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	if !found {
-		return nil, nil
-	}
-	return &chat, nil
-}
+//func (b *BoltStorage) GetChat(id int) (*Chat, error) {
+//	var chat = Chat{}
+//	found := false
+//	err := b.Database.View(func(tx *bolt.Tx) error {
+//		bucket := tx.Bucket([]byte("telegram_chats"))
+//		if bucket == nil {
+//			return nil
+//		}
+//		buff := bucket.Get(itob(id))
+//		if buff == nil {
+//			return nil
+//		}
+//		found = true
+//		if err := b.marshaler.UnmarshalAt(buff, &chat); err != nil {
+//			return err
+//		}
+//		return nil
+//	})
+//	if err != nil {
+//		return nil, err
+//	}
+//	if !found {
+//		return nil, nil
+//	}
+//	return &chat, nil
+//}
 
 func (b *BoltStorage) Truncate() error {
 	db := b.Database
@@ -465,7 +485,7 @@ func (b *BoltStorage) GetSearchResults(categoryId int) ([]search.ExternalResultI
 		}
 		return bucket.ForEach(func(k, v []byte) error {
 			var newItem search.ExternalResultItem
-			err := b.marshaler.Unmarshal(v, &newItem)
+			err := b.marshaler.UnmarshalAt(v, &newItem)
 			if err != nil {
 				return err
 			}
@@ -523,10 +543,10 @@ func (b *BoltStorage) SetNamespace(namespace string) {
 }
 
 func getItemKey(item search.ExternalResultItem) ([]byte, error) {
-	if item.GUID == "" {
+	if item.UUIDValue == "" {
 		return nil, errors.New("record has no keyParts")
 	}
-	return []byte(item.GUID), nil
+	return []byte(item.UUIDValue), nil
 }
 
 // itob returns an 8-byte big endian representation of v.
@@ -547,7 +567,7 @@ func itob(v int) []byte {
 }
 
 //toBytes is a helper function that converts any value to bytes
-func toBytes(key interface{}, codec serializers.MarshalUnmarshaler) ([]byte, error) {
+func toBytes(key interface{}, codec *serializers.DynamicMarshaler) ([]byte, error) {
 	if key == nil {
 		return nil, nil
 	}

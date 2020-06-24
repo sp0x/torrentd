@@ -54,11 +54,11 @@ func (i *ExternalResultItem) SetId(id uint32) {
 }
 
 func (i *ExternalResultItem) UUID() string {
-	return i.GUID
+	return i.UUIDValue
 }
 
 func (i *ExternalResultItem) SetUUID(u string) {
-	i.GUID = u
+	i.UUIDValue = u
 }
 
 //IsUpdate whether the result is an update to an existing one.
@@ -171,7 +171,7 @@ type ResultItem struct {
 	OriginalTitle string
 	ShortTitle    string
 	Description   string
-	GUID          string
+	UUIDValue     string
 	Comments      string
 	Link          string
 	Fingerprint   string
@@ -250,7 +250,7 @@ func (ri ResultItem) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
 		Title:       ri.Title,
 		Description: ri.Description,
 		Indexer:     ri.Indexer,
-		GUID:        ri.GUID,
+		GUID:        ri.UUIDValue,
 		Comments:    ri.Comments,
 		Link:        ri.Link,
 		Category:    strconv.Itoa(ri.Category),

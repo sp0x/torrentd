@@ -18,15 +18,21 @@ func NewBuilder() *Builder {
 }
 
 type Builder struct {
-	backingType string
-	primaryKey  *indexing.Key
-	endpoint    string
-	namespace   string
-	backing     ItemStorageBacking
+	backingType   string
+	primaryKey    *indexing.Key
+	endpoint      string
+	namespace     string
+	backing       ItemStorageBacking
+	recordTypePtr interface{}
 }
 
 func (b *Builder) WithBacking(backingType string) *Builder {
 	b.backingType = backingType
+	return b
+}
+
+func (b *Builder) WithRecord(recordTypePtr interface{}) *Builder {
+	b.recordTypePtr = recordTypePtr
 	return b
 }
 
@@ -57,6 +63,9 @@ func (b *Builder) WithNamespace(ns string) *Builder {
 
 func (b *Builder) Build() ItemStorage {
 	backing := b.backing
+	if b.recordTypePtr == nil {
+		panic("record type is required")
+	}
 	if backing == nil {
 		bfn, ok := storageBackingMap[b.backingType]
 		if !ok {
@@ -73,7 +82,7 @@ func (b *Builder) Build() ItemStorage {
 
 func init() {
 	storageBackingMap["boltdb"] = func(builder *Builder) ItemStorageBacking {
-		b, err := bolt.NewBoltStorage(builder.endpoint)
+		b, err := bolt.NewBoltStorage(builder.endpoint, builder.recordTypePtr)
 		if err != nil {
 			fmt.Printf("Error while constructing boltdb storage: %v", err)
 			os.Exit(1)
@@ -83,13 +92,14 @@ func init() {
 			os.Exit(1)
 		}
 		b.SetNamespace(builder.namespace)
+
 		return b
 	}
 	storageBackingMap["firebase"] = func(builder *Builder) ItemStorageBacking {
 		conf := &firebase.FirestoreConfig{Namespace: builder.namespace}
 		conf.ProjectId = viper.Get("firebase_project").(string)
 		conf.CredentialsFile = viper.Get("firebase_credentials_file").(string)
-		b, err := firebase.NewFirestoreStorage(conf)
+		b, err := firebase.NewFirestoreStorage(conf, builder.recordTypePtr)
 		if err != nil {
 			log.Error(err)
 			return nil

@@ -12,11 +12,12 @@ import (
 
 func TestKeyedStorage_Add(t *testing.T) {
 	g := NewWithT(t)
-	bolts, _ := bolt.NewBoltStorage(tempfile())
+	bolts, _ := bolt.NewBoltStorage(tempfile(), &search.ExternalResultItem{})
 	//We'll use `a` as a primary key
 	storage := NewBuilder().
 		WithPK(indexing.NewKey("a")).
 		BackedBy(bolts).
+		WithRecord(&search.ExternalResultItem{}).
 		Build()
 	//We'll also define an index `ix`
 	storage.AddUniqueIndex(indexing.NewKey("ix"))
@@ -26,8 +27,8 @@ func TestKeyedStorage_Add(t *testing.T) {
 	item.ExtraFields["a"] = "b"
 	err := storage.Add(item)
 	g.Expect(item.IsNew()).To(BeTrue())
-	//Since we're using a custom key, GUID should be nil
-	g.Expect(item.GUID != "").To(BeFalse())
+	//Since we're using a custom key, UUIDValue should be nil
+	g.Expect(item.UUIDValue != "").To(BeFalse())
 	g.Expect(err).To(BeNil())
 
 	//Shouldn't be able to add a new record since IX is a unique index and we'll be breaking that rule
@@ -38,7 +39,7 @@ func TestKeyedStorage_Add(t *testing.T) {
 	err = storage.Add(item)
 	g.Expect(item.IsNew()).To(BeFalse())
 	g.Expect(item.IsUpdate()).To(BeFalse())
-	g.Expect(item.GUID != "").To(BeFalse())
+	g.Expect(item.UUIDValue != "").To(BeFalse())
 	g.Expect(err).ToNot(BeNil())
 
 	//Should be able to add a new record with an unique IX
@@ -50,7 +51,7 @@ func TestKeyedStorage_Add(t *testing.T) {
 	err = storage.Add(item)
 	g.Expect(item.IsNew()).To(BeTrue())
 	g.Expect(item.IsUpdate()).To(BeFalse())
-	g.Expect(item.GUID != "").To(BeFalse())
+	g.Expect(item.UUIDValue != "").To(BeFalse())
 	g.Expect(err).To(BeNil())
 
 	//Should create a new item if the key field is not set.
@@ -61,7 +62,7 @@ func TestKeyedStorage_Add(t *testing.T) {
 	err = storage.Add(item)
 	g.Expect(item.IsNew()).To(BeTrue())
 	g.Expect(item.IsUpdate()).To(BeFalse())
-	g.Expect(item.GUID != "").To(BeTrue())
+	g.Expect(item.UUIDValue != "").To(BeTrue())
 	g.Expect(err).To(BeNil())
 
 }
@@ -133,10 +134,11 @@ func TestGetIndexValueFromItem(t *testing.T) {
 
 func TestKeyedStorage_NewWithKey(t *testing.T) {
 	g := NewWithT(t)
-	bolts, _ := bolt.NewBoltStorage(tempfile())
+	bolts, _ := bolt.NewBoltStorage(tempfile(), &search.ExternalResultItem{})
 	storage := NewBuilder().
 		WithPK(indexing.NewKey("a")).
 		BackedBy(bolts).
+		WithRecord(&search.ExternalResultItem{}).
 		Build()
 	otherStorage := storage.NewWithKey(indexing.NewKey("keyb"))
 	//The storage backing in the second storage should be the same as in the first one.

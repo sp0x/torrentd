@@ -18,10 +18,6 @@ type IDed interface {
 	SetId(uint32)
 }
 
-type WithUUIDAndId interface {
-	UUIDed
-	IDed
-}
 type Record interface {
 	UUIDed
 	IDed

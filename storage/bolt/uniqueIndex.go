@@ -7,6 +7,12 @@ import (
 	"github.com/sp0x/torrentd/storage/indexing"
 )
 
+type IndexDoesNotExistAndNotWritable struct{}
+
+func (e *IndexDoesNotExistAndNotWritable) Error() string {
+	return "index does not exist and couln't be created"
+}
+
 //NewUniqueIndex creates a new unique index bucket
 func NewUniqueIndex(parentBucket *bolt.Bucket, name []byte) (*UniqueIndex, error) {
 	var err error
@@ -16,7 +22,7 @@ func NewUniqueIndex(parentBucket *bolt.Bucket, name []byte) (*UniqueIndex, error
 	bucket := parentBucket.Bucket(name)
 	if bucket == nil {
 		if !parentBucket.Writable() {
-			return nil, errors.New("bucket isn't writable")
+			return nil, &IndexDoesNotExistAndNotWritable{}
 		}
 		bucket, err = parentBucket.CreateBucket(name)
 		if err != nil {

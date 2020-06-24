@@ -10,7 +10,7 @@ const (
 	indexPrefix = "__index_"
 )
 
-//getIndexFrommQuery gets the index from the fields in a query
+//getIndexFromQuery gets the index from the fields in a query
 func GetIndexFromQuery(bucket *bolt.Bucket, query indexing.Query) (indexing.Index, error) {
 	indexName := indexing.GetIndexNameFromQuery(query)
 	return getIndex(bucket, "unique", indexName)
@@ -20,6 +20,13 @@ func GetIndexFromQuery(bucket *bolt.Bucket, query indexing.Query) (indexing.Inde
 func GetUniqueIndexFromKeys(bucket *bolt.Bucket, keyParts *indexing.Key) (indexing.Index, error) {
 	indexName := strings.Join(keyParts.Fields, "_")
 	return getIndex(bucket, "unique", indexName)
+}
+
+//hasIndex Figures out if an index exists.
+func hasIndex(bucket *bolt.Bucket, name string) bool {
+	indexName := []byte(indexPrefix + name)
+	val := bucket.Bucket(indexName)
+	return val != nil
 }
 
 //getIndex creates a new index if one doesn't exist for a bucket
