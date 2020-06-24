@@ -28,6 +28,7 @@ type BoltStorage struct {
 	Database   *bolt.DB
 	rootBucket []string
 	marshaler  *serializers.DynamicMarshaler
+	metadata   *Metadata
 }
 
 func ensurePathExists(dbPath string) {
@@ -54,6 +55,11 @@ func NewBoltStorage(dbPath string, recordTypePtr interface{}) (*BoltStorage, err
 		Database:  dbx,
 		marshaler: serializers.NewDynamicMarshaler(recordTypePtr, json.Serializer),
 	}
+	err = bls.setupMetadata()
+	if err != nil {
+		bls.Close()
+		return nil, err
+	}
 	return bls, nil
 }
 
@@ -68,10 +74,11 @@ func GetBoltDb(file string) (*bolt.DB, error) {
 		if err != nil {
 			return err
 		}
-		_, err = tx.CreateBucketIfNotExists([]byte("telegram_chats"))
-		if err != nil {
-			return err
-		}
+
+		//_, err = tx.CreateBucketIfNotExists([]byte("telegram_chats"))
+		//if err != nil {
+		//	return err
+		//}
 		//CreateWithId all of our categories
 		if !categoriesInitialized {
 			for _, cat := range categories.AllCategories {
@@ -117,7 +124,7 @@ func (b *BoltStorage) Find(query indexing.Query, result interface{}) error {
 		if rawResult == nil {
 			//TODO: add the pk information into the root bucket, so we know if we need to do this.
 			var secondaryIndex indexing.Index
-			secondaryIndex, err = GetUniqueIndexFromKeys(bucket, indexing.NewKey("UUID"))
+			secondaryIndex, err = b.GetUniqueIndexFromKeys(bucket, indexing.NewKey("UUID"))
 			if err != nil {
 				return err
 			}
@@ -136,7 +143,7 @@ func (b *BoltStorage) Find(query indexing.Query, result interface{}) error {
 		if bucket == nil {
 			return errors.New("not found")
 		}
-		idx, err := GetIndexFromQuery(bucket, query)
+		idx, err := b.GetIndexFromQuery(bucket, query)
 		if err != nil {
 			return err
 		}
@@ -149,7 +156,7 @@ func (b *BoltStorage) Find(query indexing.Query, result interface{}) error {
 	//We should retry
 	if _, ok := err.(*IndexDoesNotExistAndNotWritable); ok {
 		err = b.Database.Update(func(tx *bolt.Tx) error {
-			_, err := GetIndexFromQuery(b.GetBucket(tx, resultsBucket), query)
+			_, err := b.GetIndexFromQuery(b.GetBucket(tx, resultsBucket), query)
 			return err
 		})
 		if err != nil {
@@ -160,7 +167,7 @@ func (b *BoltStorage) Find(query indexing.Query, result interface{}) error {
 			if bucket == nil {
 				return errors.New("not found")
 			}
-			idx, err := GetIndexFromQuery(bucket, query)
+			idx, err := b.GetIndexFromQuery(bucket, query)
 			if err != nil {
 				return err
 			}
@@ -180,7 +187,7 @@ func (b *BoltStorage) Update(query indexing.Query, item interface{}) error {
 		if err != nil {
 			return err
 		}
-		idx, err := GetIndexFromQuery(bucket, query)
+		idx, err := b.GetIndexFromQuery(bucket, query)
 		if err != nil {
 			return err
 		}
@@ -218,7 +225,7 @@ func (b *BoltStorage) Create(item search.Record, additionalPK *indexing.Key) err
 			return err
 		}
 		//We get the keyIndex that we'll use
-		keyToGuidIndex, err := GetUniqueIndexFromKeys(bucket, additionalPK)
+		keyToGuidIndex, err := b.GetUniqueIndexFromKeys(bucket, additionalPK)
 		if err != nil {
 			return err
 		}
@@ -243,13 +250,13 @@ func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item search.Record, u
 			return err
 		}
 		//We get the pkIndex that we'll use
-		pkIndex, err := GetUniqueIndexFromKeys(bucket, keyParts)
+		pkIndex, err := b.GetUniqueIndexFromKeys(bucket, keyParts)
 		if err != nil {
 			return err
 		}
 		var uniqueIndex indexing.Index
 		if uniqueIndexKeys != nil && !uniqueIndexKeys.IsEmpty() {
-			uniqueIndex, err = GetUniqueIndexFromKeys(bucket, uniqueIndexKeys)
+			uniqueIndex, err = b.GetUniqueIndexFromKeys(bucket, uniqueIndexKeys)
 			if err != nil {
 				return err
 			}

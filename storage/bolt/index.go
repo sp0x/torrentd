@@ -11,15 +11,15 @@ const (
 )
 
 //getIndexFromQuery gets the index from the fields in a query
-func GetIndexFromQuery(bucket *bolt.Bucket, query indexing.Query) (indexing.Index, error) {
+func (b *BoltStorage) GetIndexFromQuery(bucket *bolt.Bucket, query indexing.Query) (indexing.Index, error) {
 	indexName := indexing.GetIndexNameFromQuery(query)
-	return getIndex(bucket, "unique", indexName)
+	return b.getIndex(bucket, "unique", indexName)
 }
 
 //GetUniqueIndexFromKeys gets the index from a key.
-func GetUniqueIndexFromKeys(bucket *bolt.Bucket, keyParts *indexing.Key) (indexing.Index, error) {
+func (b *BoltStorage) GetUniqueIndexFromKeys(bucket *bolt.Bucket, keyParts *indexing.Key) (indexing.Index, error) {
 	indexName := strings.Join(keyParts.Fields, "_")
-	return getIndex(bucket, "unique", indexName)
+	return b.getIndex(bucket, "unique", indexName)
 }
 
 //hasIndex Figures out if an index exists.
@@ -30,7 +30,7 @@ func hasIndex(bucket *bolt.Bucket, name string) bool {
 }
 
 //getIndex creates a new index if one doesn't exist for a bucket
-func getIndex(bucket *bolt.Bucket, kind string, name string) (indexing.Index, error) {
+func (b *BoltStorage) getIndex(bucket *bolt.Bucket, kind string, name string) (indexing.Index, error) {
 	var index indexing.Index
 	var err error
 	indexName := []byte(indexPrefix + name)
@@ -39,6 +39,14 @@ func getIndex(bucket *bolt.Bucket, kind string, name string) (indexing.Index, er
 		index, err = NewUniqueIndex(bucket, indexName)
 	case "id":
 		index, err = NewListIndex(bucket, indexName)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	//Add the information for this indexer.
+	if b.metadata.AddIndex(name, string(indexName), kind == "unique") {
+		b.saveMetadata(bucket)
 	}
 	return index, err
 }
