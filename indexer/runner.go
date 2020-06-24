@@ -12,7 +12,6 @@ import (
 	"github.com/sp0x/torrentd/storage"
 	"github.com/sp0x/torrentd/storage/indexing"
 	"github.com/sp0x/torrentd/torznab"
-	"github.com/spf13/viper"
 	"net/http"
 	"net/url"
 	"strings"
@@ -98,16 +97,27 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 		failingSearchFields: make(map[string]fieldBlock),
 	}
 	entityType := runner.definition.getSearchEntity()
-	storageType := viper.Get("storage")
-	if storageType == nil {
-		storageType = "boltdb"
+	storageType := opts.Config.GetString("storage")
+	if storageType == "" {
+		panic("no storage type configured")
 	}
 	if entityType != nil {
 		//All the results will be stored in a collection with the same name as the index.
-		runner.Storage = storage.NewKeyedStorageWithBackingType(def.Name, runnerConfig, entityType.GetKey(), storageType.(string))
+		//runner.Storage = storage.NewKeyedStorageWithBackingType(def.Name, runnerConfig, entityType.GetKey(), storageType)
+		runner.Storage = storage.NewBuilder().
+			WithNamespace(def.Name).
+			WithEndpoint(runnerConfig.GetString("db")).
+			WithPK(entityType.GetKey()).
+			WithBacking(storageType).
+			Build()
 	} else {
 		//All the results will be stored in a collection with the same name as the index.
-		runner.Storage = storage.NewKeyedStorageWithBackingType(def.Name, runnerConfig, indexing.NewKey(), storageType.(string))
+		//runner.Storage = storage.NewKeyedStorageWithBackingType(def.Name, runnerConfig, indexing.NewKey(), storageType)
+		runner.Storage = storage.NewBuilder().
+			WithNamespace(def.Name).
+			WithEndpoint(runnerConfig.GetString("db")).
+			WithBacking(storageType).
+			Build()
 	}
 
 	return runner
@@ -487,6 +497,8 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 		if err != nil {
 			continue
 		}
+		//Maybe don't do that always?
+		item.Fingerprint = search.GetResultFingerprint(&item)
 		if !r.validateAndStoreItem(query, localCats, &item) {
 			_ = r.Storage.SetKey(r.getUniqueIndex(&item))
 			err = r.Storage.Add(&item)

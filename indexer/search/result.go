@@ -46,6 +46,21 @@ func (i *ExternalResultItem) IsNew() bool {
 	return i.isNew
 }
 
+func (i *ExternalResultItem) Id() uint32 {
+	return i.ID
+}
+func (i *ExternalResultItem) SetId(id uint32) {
+	i.ID = id
+}
+
+func (i *ExternalResultItem) UUID() string {
+	return i.GUID
+}
+
+func (i *ExternalResultItem) SetUUID(u string) {
+	i.GUID = u
+}
+
 //IsUpdate whether the result is an update to an existing one.
 func (i *ExternalResultItem) IsUpdate() bool {
 	return i.isUpdate
@@ -67,7 +82,11 @@ func (i *ExternalResultItem) GetField(key string) interface{} {
 
 //Equals checks if this item matches the other one exactly(excluding the ID)
 //TODO: refactor this to reduce #complexity
-func (i *ExternalResultItem) Equals(item *ExternalResultItem) bool {
+func (i *ExternalResultItem) Equals(other interface{}) bool {
+	item, isOkType := other.(*ExternalResultItem)
+	if !isOkType {
+		return false
+	}
 	if (item.ExtraFields == nil && i.ExtraFields != nil) ||
 		(i.ExtraFields == nil && item.ExtraFields != nil) ||
 		(len(i.ExtraFields) != len(item.ExtraFields)) {

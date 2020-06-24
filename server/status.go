@@ -13,7 +13,8 @@ func (s *Server) status(c *gin.Context) {
 	var statusObj interface{}
 	//If we don't have it in the cache
 	if !statusCache.Contains("status") {
-		store := storage.NewKeyedStorage(nil)
+		store := storage.NewBuilder().
+			Build()
 		latest := store.GetNewest(10)
 		var latestNames []string
 		for _, late := range latest {

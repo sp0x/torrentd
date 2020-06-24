@@ -2,15 +2,9 @@ package storage
 
 import (
 	"errors"
-	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/bolt"
-	"github.com/sp0x/torrentd/storage/firebase"
 	"github.com/sp0x/torrentd/storage/indexing"
-	"github.com/spf13/viper"
-	"os"
 )
 
 type KeyedStorage struct {
@@ -21,48 +15,14 @@ type KeyedStorage struct {
 	indexKeysCache map[string]interface{}
 }
 
-var storageBackingMap = make(map[string]func(ns string, config config.Config) ItemStorageBacking)
-
-func init() {
-	storageBackingMap["boltdb"] = func(ns string, config config.Config) ItemStorageBacking {
-		b, err := bolt.NewBoltStorage(config.GetString("db"))
-		if err != nil {
-			fmt.Printf("Error while constructing boltdb storage: %v", err)
-			os.Exit(1)
-		}
-		if b == nil {
-			fmt.Printf("Couldn't construct boltdb storage.")
-			os.Exit(1)
-		}
-		b.SetNamespace(ns)
-		return b
-	}
-	storageBackingMap["firebase"] = func(ns string, config config.Config) ItemStorageBacking {
-		conf := &firebase.FirestoreConfig{Namespace: ns}
-		conf.ProjectId = viper.Get("firebase_project").(string)
-		conf.CredentialsFile = viper.Get("firebase_credentials_file").(string)
-		b, err := firebase.NewFirestoreStorage(conf)
-		if err != nil {
-			log.Error(err)
-			return nil
-		}
-		return b
-	}
-	storageBackingMap["sqlite"] = func(ns string, config config.Config) ItemStorageBacking {
-		panic("Deprecated")
-		//b := &sqlite.DBStorage{}
-		//return b
-	}
-}
-
 //NewKeyedStorage creates a new keyed storage with the default storage backing.
-func NewKeyedStorage(keyFields *indexing.Key) *KeyedStorage {
-	return &KeyedStorage{
-		primaryKey:     *keyFields,
-		backing:        DefaultStorageBacking(),
-		indexKeysCache: make(map[string]interface{}),
-	}
-}
+//func NewKeyedStorage(keyFields *indexing.Key) *KeyedStorage {
+//	return &KeyedStorage{
+//		primaryKey:     *keyFields,
+//		backing:        DefaultStorageBacking(),
+//		indexKeysCache: make(map[string]interface{}),
+//	}
+//}
 
 //DefaultStorageBacking gets the default storage method for results.
 func DefaultStorageBacking() ItemStorageBacking {
@@ -74,27 +34,17 @@ func DefaultStorageBacking() ItemStorageBacking {
 }
 
 //NewKeyedStorageWithBacking creates a new keyed storage with a custom storage backing.
-func NewKeyedStorageWithBacking(key *indexing.Key, storage ItemStorageBacking) *KeyedStorage {
-	return &KeyedStorage{
-		primaryKey:     *key,
-		backing:        storage,
-		indexKeysCache: make(map[string]interface{}),
-	}
-}
+//func NewKeyedStorageWithBacking(key *indexing.Key, storage ItemStorageBacking) *KeyedStorage {
+//
+//}
 
-func NewKeyedStorageWithBackingType(namespace string, config config.Config, key *indexing.Key, storageType string) *KeyedStorage {
-	bfn, ok := storageBackingMap[storageType]
-	if !ok {
-		panic("Unsupported storage backing type")
-	}
-	b := bfn(namespace, config)
-	return NewKeyedStorageWithBacking(key, b)
-}
+//func NewKeyedStorageWithBackingType(namespace string, config config.Config, key *indexing.Key, storageType string) *KeyedStorage {
+//
+//}
 
 //NewWithKey gets a storage backed in the same way, with a different key.
 func (s *KeyedStorage) NewWithKey(key *indexing.Key) ItemStorage {
 	storage := s.backing
-
 	return &KeyedStorage{
 		primaryKey: *key,
 		backing:    storage,
@@ -126,6 +76,10 @@ func (s *KeyedStorage) Find(query indexing.Query, output *search.ExternalResultI
 	return errors.New("not found")
 }
 
+func (s *KeyedStorage) ForEach(callback func(record interface{})) {
+	panic("implement me")
+}
+
 func (s *KeyedStorage) SetKey(index *indexing.Key) error {
 	if index.IsEmpty() {
 		return errors.New("primary key was empty")
@@ -135,7 +89,7 @@ func (s *KeyedStorage) SetKey(index *indexing.Key) error {
 }
 
 //Add handles the discovery of the result, adding additional information like staleness state.
-func (s *KeyedStorage) Add(item *search.ExternalResultItem) error {
+func (s *KeyedStorage) Add(item search.Record) error {
 	var existingResult *search.ExternalResultItem
 	var existingQuery indexing.Query
 	//The key is what makes each result unique. If no key is provided you might end up with doubles, since GUID is used.
@@ -157,7 +111,6 @@ func (s *KeyedStorage) Add(item *search.ExternalResultItem) error {
 	isUpdate := false
 	if existingResult == nil {
 		isNew = true
-		item.Fingerprint = search.GetResultFingerprint(item)
 		var err error
 		if keyHasValue {
 			err = s.backing.CreateWithId(key, item, &s.indexKeys)
@@ -170,7 +123,6 @@ func (s *KeyedStorage) Add(item *search.ExternalResultItem) error {
 	} else if !existingResult.Equals(item) {
 		//This must be an update
 		isUpdate = true
-		item.Fingerprint = existingResult.Fingerprint
 		err := s.backing.Update(existingQuery, item)
 		if err != nil {
 			return err

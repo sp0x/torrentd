@@ -3,6 +3,7 @@ package bots
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	. "github.com/onsi/gomega"
+	"github.com/sp0x/torrentd/config"
 	"reflect"
 	"testing"
 )
@@ -27,17 +28,18 @@ func TestNewTelegram(t *testing.T) {
 		{"should return null on empty token", &args{"", nil}, nil},
 		{"should return null on empty token", &args{"asd", nil}, nil},
 	}
+	cfg := &config.ViperConfig{}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got, _ := NewTelegram(tt.args.token, tt.args.provider); !reflect.DeepEqual(got, tt.want) {
+			if got, _ := NewTelegram(tt.args.token, cfg, tt.args.provider); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewTelegram() = %v, want %v", got, tt.want)
 			}
 		})
 	}
-	tgram, err := NewTelegram("asd", tgbotapi.NewBotAPI)
+	tgram, err := NewTelegram("asd", cfg, tgbotapi.NewBotAPI)
 	g.Expect(err).ShouldNot(BeNil())
 	g.Expect(tgram).Should(BeNil())
-	tgram, err = NewTelegram("asd", MockedApiProvider)
+	tgram, err = NewTelegram("asd", cfg, MockedApiProvider)
 	g.Expect(err).Should(BeNil())
 	g.Expect(tgram).ShouldNot(BeNil())
 

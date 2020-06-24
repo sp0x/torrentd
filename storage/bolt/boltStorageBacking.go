@@ -15,7 +15,6 @@ import (
 	"github.com/sp0x/torrentd/storage/serializers/json"
 	"os"
 	"path"
-	"strings"
 	"time"
 )
 
@@ -29,9 +28,9 @@ func ensurePathExists(dbPath string) {
 	if dbPath == "" {
 		return
 	}
-	if !strings.HasSuffix(dbPath, ".db") && !strings.HasSuffix(dbPath, "/") {
-		dbPath += "/"
-	}
+	//if !strings.HasSuffix(dbPath, ".db") && !strings.HasSuffix(dbPath, "/") {
+	//	dbPath += "/"
+	//}
 	dirPath := path.Dir(dbPath)
 	_ = os.MkdirAll(dirPath, os.ModePerm)
 }
@@ -99,6 +98,26 @@ type Chat struct {
 	ChatId      int64
 }
 
+func (c Chat) UUID() string {
+	panic("implement me")
+}
+
+func (c Chat) SetUUID(s string) {
+	panic("implement me")
+}
+
+func (c Chat) Id() uint32 {
+	panic("implement me")
+}
+
+func (c Chat) SetId(u uint32) {
+	panic("implement me")
+}
+
+func (c Chat) SetState(new, updated bool) {
+	panic("implement me")
+}
+
 const (
 	resultsBucket = "results"
 )
@@ -145,7 +164,7 @@ func (b *BoltStorage) Find(query indexing.Query, result *search.ExternalResultIt
 	})
 }
 
-func (b *BoltStorage) Update(query indexing.Query, item *search.ExternalResultItem) error {
+func (b *BoltStorage) Update(query indexing.Query, item interface{}) error {
 	if query == nil {
 		return errors.New("query is required")
 	}
@@ -173,8 +192,8 @@ func (b *BoltStorage) Update(query indexing.Query, item *search.ExternalResultIt
 }
 
 //Create a new record. This uses a new random UUID in order to identify the record.
-func (b *BoltStorage) Create(item *search.ExternalResultItem, additionalPK *indexing.Key) error {
-	item.GUID = uuid.New().String()
+func (b *BoltStorage) Create(item search.Record, additionalPK *indexing.Key) error {
+	item.SetUUID(uuid.New().String())
 	key := indexing.NewKey("GUID")
 	err := b.CreateWithId(key, item, nil)
 	if err != nil {
@@ -196,7 +215,7 @@ func (b *BoltStorage) Create(item *search.ExternalResultItem, additionalPK *inde
 		if err != nil {
 			return err
 		}
-		guidBytes := []byte(item.GUID)
+		guidBytes := []byte(item.UUID())
 		//Save the keyIndex for the id of the result.
 		err = keyToGuidIndex.Add(indexValue, guidBytes)
 		return err
@@ -205,7 +224,7 @@ func (b *BoltStorage) Create(item *search.ExternalResultItem, additionalPK *inde
 
 //CreateWithId a new record for a result.
 //The key is used if you have a custom object that uses a different key, not the GUID
-func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item *search.ExternalResultItem, uniqueIndexKeys *indexing.Key) error {
+func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item search.Record, uniqueIndexKeys *indexing.Key) error {
 	indexValue := indexing.GetIndexValueFromItem(keyParts, item)
 	uniqueIndexValue := indexing.GetIndexValueFromItem(uniqueIndexKeys, item)
 	if len(uniqueIndexValue) == 0 {
@@ -235,10 +254,10 @@ func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item *search.External
 
 		//We increment the ID
 		nextId, _ := bucket.NextSequence()
-		item.ID = uint32(nextId)
+		item.SetId(uint32(nextId))
 
 		//We serialize the ID
-		idBytes, err := toBytes(item.ID, b.marshaler)
+		idBytes, err := toBytes(item.Id(), b.marshaler)
 		if err != nil {
 			return err
 		}

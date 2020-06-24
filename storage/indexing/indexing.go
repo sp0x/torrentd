@@ -35,17 +35,28 @@ func GetIndexNameFromQuery(query Query) string {
 }
 
 //GetIndexValueFromItem gets the index value from a key set and an item.
-func GetIndexValueFromItem(keyParts *Key, item *search.ExternalResultItem) []byte {
+func GetIndexValueFromItem(keyParts *Key, item interface{}) []byte {
 	if keyParts == nil {
 		return []byte{}
 	}
 	val := reflect.ValueOf(item).Elem()
 	valueParts := make([]string, len(keyParts.Fields))
-	for ix, kfield := range keyParts.Fields {
-		fld := val.FieldByName(kfield)
-		if !fld.IsValid() {
-			valueParts[ix] = serializeKeyValue(item.GetField(kfield))
-		} else {
+	if searchItem, ok := item.(*search.ExternalResultItem); ok {
+		for ix, kfield := range keyParts.Fields {
+			fld := val.FieldByName(kfield)
+			if !fld.IsValid() {
+				valueParts[ix] = serializeKeyValue(searchItem.GetField(kfield))
+			} else {
+				valueParts[ix] = serializeKeyValue(fld.Interface())
+			}
+		}
+	} else {
+		for ix, kfield := range keyParts.Fields {
+			fld := val.FieldByName(kfield)
+			if !fld.IsValid() {
+				//Maybe log a warning?
+				continue
+			}
 			valueParts[ix] = serializeKeyValue(fld.Interface())
 		}
 	}

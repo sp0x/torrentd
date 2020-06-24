@@ -65,20 +65,34 @@ func (k *Key) Add(s string) {
 }
 
 //KeyHasValue checks if all the key fields in an item have a value.
-func KeyHasValue(key *Key, item *search.ExternalResultItem) bool {
+func KeyHasValue(key *Key, item interface{}) bool {
 	val := reflect.ValueOf(item).Elem()
-	for _, key := range key.Fields {
-		fld := val.FieldByName(key)
-		var val interface{}
-		if !fld.IsValid() {
-			val = item.GetField(key)
-		} else {
-			val = fld.Interface()
+	if searchItem, isSearch := item.(*search.ExternalResultItem); isSearch {
+		for _, key := range key.Fields {
+			fld := val.FieldByName(key)
+			var val interface{}
+			if !fld.IsValid() {
+				val = searchItem.GetField(key)
+			} else {
+				val = fld.Interface()
+			}
+			if val == nil || val.(string) == "" {
+				return false
+			}
 		}
-		if val == nil || val.(string) == "" {
-			return false
+	} else {
+		for _, key := range key.Fields {
+			fld := val.FieldByName(key)
+			if !fld.IsValid() {
+				continue
+			}
+			val := fld.Interface()
+			if val == nil || val.(string) == "" {
+				return false
+			}
 		}
 	}
+
 	return true
 }
 
@@ -96,16 +110,27 @@ func NewQuery() Query {
 }
 
 //GetKeyQueryFromItem gets the query that matches an item with the given keyParts.
-func GetKeyQueryFromItem(keyParts *Key, item *search.ExternalResultItem) Query {
+func GetKeyQueryFromItem(keyParts *Key, item interface{}) Query {
 	output := NewQuery()
 	val := reflect.ValueOf(item).Elem()
-	for _, kfield := range keyParts.Fields {
-		fld := val.FieldByName(kfield)
-		if !fld.IsValid() {
-			output.Put(kfield, item.GetField(kfield))
-		} else {
+	if searchItem, isSearch := item.(*search.ExternalResultItem); isSearch {
+		for _, kfield := range keyParts.Fields {
+			fld := val.FieldByName(kfield)
+			if !fld.IsValid() {
+				output.Put(kfield, searchItem.GetField(kfield))
+			} else {
+				output.Put(kfield, fld.Interface())
+			}
+		}
+	} else {
+		for _, kfield := range keyParts.Fields {
+			fld := val.FieldByName(kfield)
+			if !fld.IsValid() {
+				continue
+			}
 			output.Put(kfield, fld.Interface())
 		}
 	}
+
 	return output
 }

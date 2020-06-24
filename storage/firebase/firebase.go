@@ -97,7 +97,7 @@ func (f *FirestoreStorage) transformIndexQueryToFirestoreQuery(query indexing.Qu
 	return fireQuery
 }
 
-func (f *FirestoreStorage) Update(query indexing.Query, item *search.ExternalResultItem) error {
+func (f *FirestoreStorage) Update(query indexing.Query, item interface{}) error {
 	fireQuery := f.transformIndexQueryToFirestoreQuery(query, 1)
 	docs := fireQuery.Documents(f.context)
 	firstDoc, err := docs.Next()
@@ -110,7 +110,7 @@ func (f *FirestoreStorage) Update(query indexing.Query, item *search.ExternalRes
 
 //Create a new record.
 //This uses the GUID for identifying records, upon creation a new UUID is generated.
-func (f *FirestoreStorage) Create(item *search.ExternalResultItem, additionalIndex *indexing.Key) error {
+func (f *FirestoreStorage) Create(item search.Record, additionalIndex *indexing.Key) error {
 	err := f.CreateWithId(nil, item, additionalIndex)
 	if err != nil {
 		return err
@@ -124,7 +124,7 @@ func (f *FirestoreStorage) Create(item *search.ExternalResultItem, additionalInd
 
 //CreateWithId creates a new record using a custom key.
 //If a key isn't provided, a random uuid is generated in it's place, and stored in the GUID field.
-func (f *FirestoreStorage) CreateWithId(key *indexing.Key, item *search.ExternalResultItem, uniqueIndexKeys *indexing.Key) error {
+func (f *FirestoreStorage) CreateWithId(key *indexing.Key, item search.Record, uniqueIndexKeys *indexing.Key) error {
 	collection := f.getCollection()
 	indexValue := ""
 	var doc *firestore.DocumentRef
@@ -136,7 +136,7 @@ func (f *FirestoreStorage) CreateWithId(key *indexing.Key, item *search.External
 	}
 	if key == nil || key.IsEmpty() {
 		//Since this is a new item we'll need to create a new ID, if there's no key.
-		item.GUID = doc.ID
+		item.SetUUID(doc.ID)
 	}
 	_, err := doc.Create(f.context, item)
 	if err != nil {

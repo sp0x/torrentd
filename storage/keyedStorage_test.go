@@ -14,7 +14,10 @@ func TestKeyedStorage_Add(t *testing.T) {
 	g := NewWithT(t)
 	bolts, _ := bolt.NewBoltStorage(tempfile())
 	//We'll use `a` as a primary key
-	storage := NewKeyedStorageWithBacking(indexing.NewKey("a"), bolts)
+	storage := NewBuilder().
+		WithPK(indexing.NewKey("a")).
+		BackedBy(bolts).
+		Build()
 	//We'll also define an index `ix`
 	storage.AddUniqueIndex(indexing.NewKey("ix"))
 	item := &search.ExternalResultItem{}
@@ -131,7 +134,10 @@ func TestGetIndexValueFromItem(t *testing.T) {
 func TestKeyedStorage_NewWithKey(t *testing.T) {
 	g := NewWithT(t)
 	bolts, _ := bolt.NewBoltStorage(tempfile())
-	storage := NewKeyedStorageWithBacking(indexing.NewKey("a"), bolts)
+	storage := NewBuilder().
+		WithPK(indexing.NewKey("a")).
+		BackedBy(bolts).
+		Build()
 	otherStorage := storage.NewWithKey(indexing.NewKey("keyb"))
 	//The storage backing in the second storage should be the same as in the first one.
 	g.Expect(otherStorage.(*KeyedStorage).backing).To(Equal(bolts))

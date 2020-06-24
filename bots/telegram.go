@@ -5,21 +5,26 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/torrentd/config"
+	"github.com/sp0x/torrentd/storage"
 	"github.com/sp0x/torrentd/storage/bolt"
+	"github.com/sp0x/torrentd/storage/indexing"
 	"github.com/spf13/viper"
 )
 
 type TelegramRunner struct {
 	bot     *tgbotapi.BotAPI
 	updates tgbotapi.UpdatesChannel
-	bolts   *bolt.BoltStorage
+	storage storage.ItemStorage
+
+	//bolts   *bolt.BoltStorage
 }
 
 type TelegramProvider func(token string) (*tgbotapi.BotAPI, error)
 
 //NewTelegram creates a new telegram bot runner.
 //This function uses the `chat_db` environment variable for storing the chats.
-func NewTelegram(token string, provider TelegramProvider) (*TelegramRunner, error) {
+func NewTelegram(token string, cfg config.Config, provider TelegramProvider) (*TelegramRunner, error) {
 	if token == "" {
 		return nil, errors.New("token is required")
 	}
@@ -34,8 +39,17 @@ func NewTelegram(token string, provider TelegramProvider) (*TelegramRunner, erro
 	telegram.bot = bot
 	//bot.Debug = true
 	log.Printf("Authorized on account %s", bot.Self.UserName)
-	bolts, _ := bolt.NewBoltStorage(viper.GetString("chat_db"))
-	telegram.bolts = bolts
+	storageType := cfg.GetString("storage")
+	if storageType == "" {
+		panic("no storage type configured")
+	}
+	telegram.storage = storage.NewBuilder().
+		WithNamespace("__chats_telegram").
+		WithPK(indexing.NewKey("id")).
+		WithBacking(storageType).
+		WithEndpoint(viper.GetString("chat_db")).
+		Build()
+	//telegram.bolts = bolts
 	return telegram, nil
 }
 
@@ -48,7 +62,7 @@ func (t *TelegramRunner) listenForUpdates() {
 				continue
 			}
 			//We create our chat
-			_ = t.bolts.StoreChat(&bolt.Chat{
+			_ = t.storage.Add(&bolt.Chat{
 				Username:    update.Message.From.UserName,
 				InitialText: update.Message.Text,
 				ChatId:      update.Message.Chat.ID,
@@ -78,8 +92,8 @@ func (t *TelegramRunner) Run() error {
 }
 
 //ForEachChat goes over all the persisted chats and invokes the callback on them.
-func (t *TelegramRunner) ForEachChat(callback func(chat *bolt.Chat)) {
-	_ = t.bolts.ForChat(callback)
+func (t *TelegramRunner) ForEachChat(callback func(chat interface{})) {
+	t.storage.ForEach(callback)
 }
 
 type ChatMessage struct {
@@ -93,7 +107,8 @@ func (t *TelegramRunner) FeedBroadcast(messageChannel <-chan ChatMessage) error 
 		return fmt.Errorf("message channel is required")
 	}
 	for chatMsg := range messageChannel {
-		t.ForEachChat(func(chat *bolt.Chat) {
+		t.ForEachChat(func(obj interface{}) {
+			chat := obj.(*bolt.Chat)
 			msg := tgbotapi.NewMessage(chat.ChatId, chatMsg.Text)
 			msg.DisableWebPagePreview = false
 			msg.ParseMode = "markdown"
