@@ -69,7 +69,13 @@ func (b *Builder) Build() ItemStorage {
 	if backing == nil {
 		bfn, ok := storageBackingMap[b.backingType]
 		if !ok {
-			panic("Unsupported storage backing type")
+			var supportedStorages []string
+			for k := range storageBackingMap {
+				supportedStorages = append(supportedStorages, k)
+			}
+			log.WithFields(log.Fields{"requested": b.backingType, "supported": supportedStorages}).
+				Error("Unsupported storage backing type.")
+			panic("Unsupported storage backing type.")
 		}
 		backing = bfn(b)
 	}

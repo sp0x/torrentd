@@ -23,7 +23,7 @@ func init() {
 	cmdFlags := cmdWatch.Flags()
 	cmdFlags.IntVarP(&watchInterval, "interval", "i", 10, "Interval between checks.")
 	cmdFlags.StringVarP(&storage, "storage", "o", "boltdb", `The storage backing to use.
-Currently supported storage backings: boltdb, firestore, sqlite`)
+Currently supported storage backings: boltdb, firebase, sqlite`)
 	firebaseProject := ""
 	firebaseCredentials := ""
 	cmdFlags.StringVarP(&firebaseCredentials, "firebase_project", "", "", "The project id for firebase")
@@ -31,10 +31,10 @@ Currently supported storage backings: boltdb, firestore, sqlite`)
 	viper.SetDefault("port", 5000)
 	_ = viper.BindEnv("port")
 	_ = viper.BindEnv("api_key")
+	//Storage config
 	_ = viper.BindPFlag("storage", cmdFlags.Lookup("storage"))
 	_ = viper.BindEnv("storage")
 	//Firebase related
-
 	_ = viper.BindPFlag("firebase_project", cmdFlags.Lookup("firebase_project"))
 	_ = viper.BindEnv("firebase_project")
 	_ = viper.BindPFlag("firebase_credentials_file", cmdFlags.Lookup("firebase_credentials_file"))
