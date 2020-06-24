@@ -15,6 +15,7 @@ import (
 	"github.com/sp0x/torrentd/storage/serializers/json"
 	"os"
 	"path"
+	"strings"
 	"time"
 )
 
@@ -24,10 +25,22 @@ type BoltStorage struct {
 	marshaler  serializers.MarshalUnmarshaler
 }
 
+func ensurePathExists(dbPath string) {
+	if dbPath == "" {
+		return
+	}
+	if !strings.HasSuffix(dbPath, ".db") && !strings.HasSuffix(dbPath, "/") {
+		dbPath += "/"
+	}
+	dirPath := path.Dir(dbPath)
+	_ = os.MkdirAll(dirPath, os.ModePerm)
+}
+
 func NewBoltStorage(dbPath string) (*BoltStorage, error) {
 	if dbPath == "" {
 		dbPath = DefaultBoltPath()
 	}
+	ensurePathExists(dbPath)
 	dbx, err := GetBoltDb(dbPath)
 	if err != nil {
 		return nil, err
