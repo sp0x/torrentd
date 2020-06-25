@@ -11,6 +11,7 @@ import (
 	"github.com/sp0x/torrentd/torznab"
 	"io/ioutil"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
@@ -59,7 +60,17 @@ func (id *IndexerDefinition) Stats() IndexerDefinitionStats {
 func (id *IndexerDefinition) getSearchEntity() *entityBlock {
 	entity := &entityBlock{}
 	entity.Name = searchEntity
-	entity.IndexKey = id.Search.Key
+	key := id.Search.Key
+	localizedKey := make([]string, len(key))
+	t := reflect.ValueOf(search.ExternalResultItem{})
+	for ix, k := range key {
+		field := t.FieldByName(k)
+		if !field.IsValid() {
+			k = fmt.Sprintf("ExtraFields.%s", k)
+		}
+		localizedKey[ix] = k
+	}
+	entity.IndexKey = localizedKey
 	return entity
 }
 

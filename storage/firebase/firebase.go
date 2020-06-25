@@ -70,6 +70,10 @@ func (f *FirestoreStorage) Close() {
 	//This is just a stub
 }
 
+func (f *FirestoreStorage) HasIndex(meta *indexing.IndexMetadata) bool {
+	return false
+}
+
 func (f *FirestoreStorage) Find(query indexing.Query, result interface{}) error {
 	fireQuery := f.transformIndexQueryToFirestoreQuery(query, 1)
 	documentIterator := fireQuery.Limit(1).Documents(f.context)

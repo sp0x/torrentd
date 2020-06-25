@@ -7,39 +7,11 @@ import (
 )
 
 type KeyedStorage struct {
-	//backing *DBStorage
 	backing        ItemStorageBacking
 	primaryKey     indexing.Key
 	indexKeys      indexing.Key
 	indexKeysCache map[string]interface{}
 }
-
-//NewKeyedStorage creates a new keyed storage with the default storage backing.
-//func NewKeyedStorage(keyFields *indexing.Key) *KeyedStorage {
-//	return &KeyedStorage{
-//		primaryKey:     *keyFields,
-//		backing:        DefaultStorageBacking(),
-//		indexKeysCache: make(map[string]interface{}),
-//	}
-//}
-
-//DefaultStorageBacking gets the default storage method for results.
-//func DefaultStorageBacking() ItemStorageBacking {
-//	backing, err := bolt.NewBoltStorage("")
-//	if err != nil {
-//		panic(err)
-//	}
-//	return backing
-//}
-
-//NewKeyedStorageWithBacking creates a new keyed storage with a custom storage backing.
-//func NewKeyedStorageWithBacking(key *indexing.Key, storage ItemStorageBacking) *KeyedStorage {
-//
-//}
-
-//func NewKeyedStorageWithBackingType(namespace string, config config.Config, key *indexing.Key, storageType string) *KeyedStorage {
-//
-//}
 
 //NewWithKey gets a storage backed in the same way, with a different key.
 func (s *KeyedStorage) NewWithKey(key *indexing.Key) ItemStorage {

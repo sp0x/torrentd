@@ -2,8 +2,8 @@ package indexing
 
 import (
 	"github.com/emirpasic/gods/maps/linkedhashmap"
-	"github.com/sp0x/torrentd/indexer/search"
 	"reflect"
+	"strings"
 )
 
 //Key is a primary key or an indexing key, this can be a composite key as well
@@ -67,32 +67,28 @@ func (k *Key) Add(s string) {
 //KeyHasValue checks if all the key fields in an item have a value.
 func KeyHasValue(key *Key, item interface{}) bool {
 	val := reflect.ValueOf(item).Elem()
-	if searchItem, isSearch := item.(*search.ExternalResultItem); isSearch {
-		for _, key := range key.Fields {
-			fld := val.FieldByName(key)
-			var val interface{}
-			if !fld.IsValid() {
-				val = searchItem.GetField(key)
-			} else {
-				val = fld.Interface()
-			}
-			if val == nil || val.(string) == "" {
-				return false
-			}
+	fieldsField := val.FieldByName("ExtraFields")
+	for _, key := range key.Fields {
+		isExtra := strings.HasPrefix(key, "ExtraFields.")
+		if isExtra {
+			key = key[12:]
 		}
-	} else {
-		for _, key := range key.Fields {
-			fld := val.FieldByName(key)
-			if !fld.IsValid() {
-				continue
-			}
+		fld := val.FieldByName(key)
+		if fld.IsValid() {
 			val := fld.Interface()
 			if val == nil || val.(string) == "" {
 				return false
 			}
+			continue
 		}
+		if val, found := fieldsField.Interface().(map[string]interface{})[key]; found {
+			if val == nil || val.(string) == "" {
+				return false
+			}
+			continue
+		}
+		return false
 	}
-
 	return true
 }
 
@@ -113,24 +109,22 @@ func NewQuery() Query {
 func GetKeyQueryFromItem(keyParts *Key, item interface{}) Query {
 	output := NewQuery()
 	val := reflect.ValueOf(item).Elem()
-	if searchItem, isSearch := item.(*search.ExternalResultItem); isSearch {
-		for _, kfield := range keyParts.Fields {
-			fld := val.FieldByName(kfield)
-			if !fld.IsValid() {
-				output.Put(kfield, searchItem.GetField(kfield))
-			} else {
-				output.Put(kfield, fld.Interface())
-			}
+	fieldsField := val.FieldByName("ExtraFields")
+	for _, key := range keyParts.Fields {
+		isExtra := strings.HasPrefix(key, "ExtraFields.")
+		parsedKey := key
+		if isExtra {
+			parsedKey = key[12:]
 		}
-	} else {
-		for _, kfield := range keyParts.Fields {
-			fld := val.FieldByName(kfield)
-			if !fld.IsValid() {
-				continue
-			}
-			output.Put(kfield, fld.Interface())
+		fld := val.FieldByName(parsedKey)
+		if fld.IsValid() {
+			val := fld.Interface()
+			output.Put(key, val)
+			continue
+		}
+		if val, found := fieldsField.Interface().(map[string]interface{})[parsedKey]; found {
+			output.Put(key, val)
 		}
 	}
-
 	return output
 }

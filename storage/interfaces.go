@@ -19,6 +19,7 @@ type ItemStorage interface {
 type ItemStorageBacking interface {
 	//Tries to find a single record matching the query.
 	Find(query indexing.Query, result interface{}) error
+	HasIndex(meta *indexing.IndexMetadata) bool
 	Update(query indexing.Query, item interface{}) error
 	//CreateWithId creates a new record using a custom key
 	CreateWithId(parts *indexing.Key, item search.Record, uniqueIndexKeys *indexing.Key) error

@@ -19,6 +19,13 @@ type Index interface {
 	//	AllWithPrefix(prefix []byte, opts *CursorOptions) ([][]byte)
 }
 
+//IndexMetadata is used to describe an index
+type IndexMetadata struct {
+	Name     string `json:"name"`
+	Unique   bool   `json:"unique"`
+	Location string
+}
+
 //GetIndexNameFromQuery gets the name of an index from a query.
 func GetIndexNameFromQuery(query Query) string {
 	name := ""
