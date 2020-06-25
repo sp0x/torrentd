@@ -49,13 +49,18 @@ func GetIndexValueFromItem(keyParts *Key, item interface{}) []byte {
 	element := val.Elem()
 	valueParts := make([]string, len(keyParts.Fields))
 	fieldsField := element.FieldByName("ExtraFields")
-	for ix, kfield := range keyParts.Fields {
-		fld := element.FieldByName(kfield)
+	for ix, fieldName := range keyParts.Fields {
+		parsedFieldName := fieldName
+		isExtra := strings.HasPrefix(fieldName, "ExtraFields.")
+		if isExtra {
+			parsedFieldName = parsedFieldName[12:]
+		}
+		fld := element.FieldByName(fieldName)
 		if fld.IsValid() {
 			valueParts[ix] = serializeKeyValue(fld.Interface())
 			continue
 		}
-		method := val.MethodByName(kfield)
+		method := val.MethodByName(parsedFieldName)
 		if method.IsValid() {
 			rawval := method.Call([]reflect.Value{})[0].Interface()
 			valueParts[ix] = serializeKeyValue(rawval)
@@ -64,7 +69,7 @@ func GetIndexValueFromItem(keyParts *Key, item interface{}) []byte {
 		if !fieldsField.IsValid() {
 			continue
 		}
-		if value, found := fieldsField.Interface().(map[string]interface{})[kfield]; found {
+		if value, found := fieldsField.Interface().(map[string]interface{})[parsedFieldName]; found {
 			valueParts[ix] = serializeKeyValue(value)
 		}
 

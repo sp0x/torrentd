@@ -3,6 +3,7 @@ package firebase
 import (
 	"cloud.google.com/go/firestore"
 	"context"
+	"errors"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/indexing"
 	"github.com/sp0x/torrentd/storage/serializers"
@@ -164,6 +165,9 @@ func (f *FirestoreStorage) CreateWithId(key *indexing.Key, item search.Record, u
 		doc = collection.NewDoc()
 	} else {
 		indexValue = string(indexing.GetIndexValueFromItem(key, item))
+		if indexValue == "" {
+			return errors.New("id was empty, it's required for firebase")
+		}
 		doc = collection.Doc(string(indexValue))
 	}
 	if key == nil || key.IsEmpty() {
