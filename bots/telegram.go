@@ -96,27 +96,33 @@ func (t *TelegramRunner) ForEachChat(callback func(chat interface{})) {
 	t.storage.ForEach(callback)
 }
 
+//Broadcast a message to all active chats.
+func (t *TelegramRunner) Broadcast(message *ChatMessage) {
+	t.ForEachChat(func(obj interface{}) {
+		chat := obj.(*Chat)
+		msg := tgbotapi.NewMessage(chat.ChatId, message.Text)
+		msg.DisableWebPagePreview = false
+		msg.ParseMode = "markdown"
+		//Since we're not replying.
+		//msg.ReplyToMessageID = update.Message.MessageID
+		_, _ = t.bot.Send(msg)
+		if message.Banner != "" {
+			imgMsg := tgbotapi.NewPhotoUpload(chat.ChatId, nil)
+			imgMsg.FileID = message.Banner
+			imgMsg.UseExisting = true
+			_, _ = t.bot.Send(imgMsg)
+		}
+	})
+}
+
 //FeedBroadcast the messages that are passed to each one of the chats.
 func (t *TelegramRunner) FeedBroadcast(messageChannel <-chan ChatMessage) error {
 	if messageChannel == nil {
 		return fmt.Errorf("message channel is required")
 	}
 	for chatMsg := range messageChannel {
-		t.ForEachChat(func(obj interface{}) {
-			chat := obj.(*Chat)
-			msg := tgbotapi.NewMessage(chat.ChatId, chatMsg.Text)
-			msg.DisableWebPagePreview = false
-			msg.ParseMode = "markdown"
-			//Since we're not replying.
-			//msg.ReplyToMessageID = update.Message.MessageID
-			_, _ = t.bot.Send(msg)
-			if chatMsg.Banner != "" {
-				imgMsg := tgbotapi.NewPhotoUpload(chat.ChatId, nil)
-				imgMsg.FileID = chatMsg.Banner
-				imgMsg.UseExisting = true
-				_, _ = t.bot.Send(imgMsg)
-			}
-		})
+		tmpChatMsg := chatMsg
+		t.Broadcast(&tmpChatMsg)
 	}
 	return nil
 }
