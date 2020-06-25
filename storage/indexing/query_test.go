@@ -1,14 +1,17 @@
-package indexing
+package indexing_test
 
 import (
 	"github.com/onsi/gomega"
+	"github.com/sp0x/torrentd/bots"
 	"github.com/sp0x/torrentd/indexer/search"
+	. "github.com/sp0x/torrentd/storage/indexing"
 	"testing"
 )
 
 func TestKeyHasValue(t *testing.T) {
 	g := gomega.NewWithT(t)
 	item := &search.ExternalResultItem{}
+	chat := &bots.Chat{}
 	item.ExtraFields = make(map[string]interface{})
 	item.ExtraFields["time"] = "33"
 	k := NewKey("ExtraFields.time")
@@ -31,6 +34,10 @@ func TestKeyHasValue(t *testing.T) {
 	item.ExtraFields["time"] = ""
 	k = NewKey("time")
 	g.Expect(KeyHasValue(k, item)).ToNot(gomega.BeTrue())
+
+	//Should work with other types also
+	kChat := NewKey("id")
+	g.Expect(KeyHasValue(kChat, chat)).ToNot(gomega.BeTrue())
 }
 
 func TestGetKeyQueryFromItem(t *testing.T) {

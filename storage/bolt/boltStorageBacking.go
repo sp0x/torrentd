@@ -519,7 +519,7 @@ func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) erro
 			//Use the category as a keyParts
 			bucket, _ := tx.CreateBucketIfNotExists([]byte("searchResults"))
 			bucket, _ = bucket.CreateBucketIfNotExists(cgryKey)
-			key, err := getItemKey(item)
+			key, err := GetItemKey(item)
 			if err != nil {
 				return err
 			}
@@ -549,7 +549,7 @@ func (b *BoltStorage) SetNamespace(namespace string) {
 	b.rootBucket = []string{namespace}
 }
 
-func getItemKey(item search.ExternalResultItem) ([]byte, error) {
+func GetItemKey(item search.ExternalResultItem) ([]byte, error) {
 	if item.UUIDValue == "" {
 		return nil, errors.New("record has no keyParts")
 	}

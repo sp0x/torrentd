@@ -1,12 +1,14 @@
-package bolt
+package bolt_test
 
 import (
 	"fmt"
 	"github.com/boltdb/bolt"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/sp0x/torrentd/bots"
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
+	. "github.com/sp0x/torrentd/storage/bolt"
 	"github.com/sp0x/torrentd/storage/indexing"
 	"io/ioutil"
 	"os"
@@ -35,7 +37,7 @@ var _ = Describe("Bolt storage", func() {
 		key := indexing.NewKey("ChatId")
 		//Init db
 		BeforeEach(func() {
-			tmpBstore, err := NewBoltStorage(tempfile(), &Chat{})
+			tmpBstore, err := NewBoltStorage(tempfile(), &bots.Chat{})
 			if err != nil {
 				Fail(fmt.Sprintf("Couldn't open a db: %v", err))
 				return
@@ -57,13 +59,13 @@ var _ = Describe("Bolt storage", func() {
 			}
 		})
 		It("Should be able to store chats", func() {
-			newchat := &Chat{Username: "tester", InitialText: "", ChatId: 12}
+			newchat := &bots.Chat{Username: "tester", InitialText: "", ChatId: 12}
 			err := bstore.Create(newchat, key)
 			if err != nil {
 				Fail(fmt.Sprintf("Couldn't store chat: %v", err))
 				return
 			}
-			chat := Chat{}
+			chat := bots.Chat{}
 			query := indexing.NewQuery()
 			query.Put("ChatId", 12)
 			err = bstore.Find(query, &chat)
@@ -78,7 +80,7 @@ var _ = Describe("Bolt storage", func() {
 		})
 
 		It("shouldn't return nil if a chat isn't found", func() {
-			chat := Chat{ChatId: 12}
+			chat := bots.Chat{ChatId: 12}
 			query := indexing.NewQuery()
 			query.Put("ChatId", 12)
 			err := bstore.Find(query, &chat)
@@ -89,7 +91,7 @@ var _ = Describe("Bolt storage", func() {
 		})
 
 		It("Should be able to iterate over chats", func() {
-			c1, c2 := &Chat{Username: "a", InitialText: "", ChatId: 1}, &Chat{Username: "b", InitialText: "", ChatId: 2}
+			c1, c2 := &bots.Chat{Username: "a", InitialText: "", ChatId: 1}, &bots.Chat{Username: "b", InitialText: "", ChatId: 2}
 			err := bstore.Create(c1, key)
 			if err != nil {
 				Fail("couldn't store chat 1")
@@ -100,7 +102,7 @@ var _ = Describe("Bolt storage", func() {
 			}
 			cnt := 0
 			bstore.ForEach(func(obj interface{}) {
-				chat := obj.(*Chat)
+				chat := obj.(*bots.Chat)
 				if chat.ChatId == c1.ChatId || chat.ChatId == c2.ChatId {
 					cnt += 1
 				}
@@ -189,7 +191,7 @@ func TestNewBoltStorage(t *testing.T) {
 	for _, tt := range tests {
 		//Run as a subtest
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewBoltStorage(tempfile(), &Chat{})
+			got, err := NewBoltStorage(tempfile(), &bots.Chat{})
 			g.Expect(err).ShouldNot(HaveOccurred())
 			g.Expect(got).ShouldNot(BeNil())
 		})
@@ -220,7 +222,7 @@ func Test_getItemKey(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := getItemKey(tt.args.item)
+			got, err := GetItemKey(tt.args.item)
 			if tt.wantErr {
 				g.Expect(err).ShouldNot(BeNil())
 			} else {
@@ -235,7 +237,7 @@ func Test_getItemKey(t *testing.T) {
 
 func TestBoltStorage_GetBucket(t *testing.T) {
 	g := NewGomegaWithT(t)
-	storage, err := NewBoltStorage(tempfile(), &Chat{})
+	storage, err := NewBoltStorage(tempfile(), &bots.Chat{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -270,7 +272,7 @@ func TestBoltStorage_GetBucket(t *testing.T) {
 
 func TestBoltStorage_Find(t *testing.T) {
 	g := NewGomegaWithT(t)
-	storage, err := NewBoltStorage(tempfile(), &Chat{})
+	storage, err := NewBoltStorage(tempfile(), &bots.Chat{})
 	if err != nil {
 		t.Fatal(err)
 	}

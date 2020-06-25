@@ -1,4 +1,4 @@
-package bolt
+package bots
 
 type Chat struct {
 	Username    string
@@ -13,6 +13,7 @@ type Chat struct {
 type ChatMessage struct {
 	Text   string
 	ChatId string
+	Banner string
 }
 
 func (c *Chat) UUID() string {

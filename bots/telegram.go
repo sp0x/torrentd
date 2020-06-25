@@ -7,7 +7,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/storage"
-	"github.com/sp0x/torrentd/storage/bolt"
 	"github.com/sp0x/torrentd/storage/indexing"
 	"github.com/spf13/viper"
 )
@@ -48,7 +47,7 @@ func NewTelegram(token string, cfg config.Config, provider TelegramProvider) (*T
 		WithPK(indexing.NewKey("id")).
 		WithBacking(storageType).
 		WithEndpoint(viper.GetString("chat_db")).
-		WithRecord(&bolt.Chat{}).
+		WithRecord(&Chat{}).
 		Build()
 	//telegram.bolts = bolts
 	return telegram, nil
@@ -63,7 +62,7 @@ func (t *TelegramRunner) listenForUpdates() {
 				continue
 			}
 			//We create our chat
-			_ = t.storage.Add(&bolt.Chat{
+			_ = t.storage.Add(&Chat{
 				Username:    update.Message.From.UserName,
 				InitialText: update.Message.Text,
 				ChatId:      update.Message.Chat.ID,
@@ -97,11 +96,6 @@ func (t *TelegramRunner) ForEachChat(callback func(chat interface{})) {
 	t.storage.ForEach(callback)
 }
 
-type ChatMessage struct {
-	Text   string
-	Banner string
-}
-
 //FeedBroadcast the messages that are passed to each one of the chats.
 func (t *TelegramRunner) FeedBroadcast(messageChannel <-chan ChatMessage) error {
 	if messageChannel == nil {
@@ -109,7 +103,7 @@ func (t *TelegramRunner) FeedBroadcast(messageChannel <-chan ChatMessage) error 
 	}
 	for chatMsg := range messageChannel {
 		t.ForEachChat(func(obj interface{}) {
-			chat := obj.(*bolt.Chat)
+			chat := obj.(*Chat)
 			msg := tgbotapi.NewMessage(chat.ChatId, chatMsg.Text)
 			msg.DisableWebPagePreview = false
 			msg.ParseMode = "markdown"

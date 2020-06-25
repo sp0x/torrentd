@@ -81,11 +81,13 @@ func KeyHasValue(key *Key, item interface{}) bool {
 			}
 			continue
 		}
-		if val, found := fieldsField.Interface().(map[string]interface{})[key]; found {
-			if val == nil || val.(string) == "" {
-				return false
+		if fieldsField.IsValid() {
+			if val, found := fieldsField.Interface().(map[string]interface{})[key]; found {
+				if val == nil || val.(string) == "" {
+					return false
+				}
+				continue
 			}
-			continue
 		}
 		return false
 	}
@@ -120,6 +122,9 @@ func GetKeyQueryFromItem(keyParts *Key, item interface{}) Query {
 		if fld.IsValid() {
 			val := fld.Interface()
 			output.Put(key, val)
+			continue
+		}
+		if !fieldsField.IsValid() {
 			continue
 		}
 		if val, found := fieldsField.Interface().(map[string]interface{})[parsedKey]; found {
