@@ -8,8 +8,8 @@ import (
 )
 
 //IteratePages goes over all the pages in an index and returns the results through a channel.
-func GetAllPagesFromIndex(facade *Facade, query *torznab.Query) <-chan search.ExternalResultItem {
-	outputChan := make(chan search.ExternalResultItem)
+func GetAllPagesFromIndex(facade *Facade, query *torznab.Query) <-chan *search.ExternalResultItem {
+	outputChan := make(chan *search.ExternalResultItem)
 	if query == nil {
 		query = &torznab.Query{}
 	}
@@ -31,7 +31,8 @@ func GetAllPagesFromIndex(facade *Facade, query *torznab.Query) <-chan search.Ex
 				break
 			}
 			for _, result := range currentSearch.GetResults() {
-				outputChan <- result
+				tmpResult := result
+				outputChan <- &tmpResult
 			}
 			//Go to the next page
 			query.Page += 1
@@ -48,8 +49,8 @@ func GetAllPagesFromIndex(facade *Facade, query *torznab.Query) <-chan search.Ex
 //Watch tracks an index for any new items, through all search pages(or max pages).
 //Whenever old results are found, or we've exhausted the number of pages, the search restarts from the start.
 //The interval is in seconds, it's used to sleep after each search for new results.
-func Watch(facade *Facade, initialQuery *torznab.Query, intervalSec int) <-chan search.ExternalResultItem {
-	outputChan := make(chan search.ExternalResultItem)
+func Watch(facade *Facade, initialQuery *torznab.Query, intervalSec int) <-chan *search.ExternalResultItem {
+	outputChan := make(chan *search.ExternalResultItem)
 	if initialQuery == nil {
 		initialQuery = &torznab.Query{}
 	}
@@ -78,7 +79,8 @@ func Watch(facade *Facade, initialQuery *torznab.Query, intervalSec int) <-chan 
 				continue
 			}
 			for _, result := range currentSearch.GetResults() {
-				outputChan <- result
+				tmpResult := result
+				outputChan <- &tmpResult
 			}
 			//Parse the currentPage and see if there are any new torrents
 			//if there aren't any, sleep the intervalSec
