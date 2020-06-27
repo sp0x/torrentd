@@ -3,7 +3,8 @@ package indexer
 import (
 	"errors"
 	"fmt"
-	"github.com/cardigann/releaseinfo"
+	"github.com/sp0x/torrentd/indexer/source/series"
+
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/categories"
@@ -41,12 +42,12 @@ type RunnerOpts struct {
 
 //Runner works index definitions in order to extract data.
 type Runner struct {
-	definition          *IndexerDefinition
-	browser             browser.Browsable
-	cookies             http.CookieJar
-	opts                RunnerOpts
-	logger              logrus.FieldLogger
-	caps                torznab.Capabilities
+	definition *IndexerDefinition
+	browser    browser.Browsable
+	cookies    http.CookieJar
+	opts       RunnerOpts
+	logger     logrus.FieldLogger
+	//caps                torznab.Capabilities
 	browserLock         sync.Mutex
 	connectivityTester  cache.ConnectivityTester
 	state               *IndexerState
@@ -126,18 +127,18 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 }
 
 // checks that the runner has the config values it needs
-func (r *Runner) checkHasConfig() error {
-	for _, setting := range r.definition.Settings {
-		_, ok, err := r.opts.Config.GetSiteOption(r.definition.Site, setting.Name)
-		if err != nil {
-			return fmt.Errorf("Error reading config for %s: %v", setting.Name, err)
-		}
-		if !ok {
-			return fmt.Errorf("No value for %s.%s in config", r.definition.Site, setting.Name)
-		}
-	}
-	return nil
-}
+//func (r *Runner) checkHasConfig() error {
+//	for _, setting := range r.definition.Settings {
+//		_, ok, err := r.opts.Config.GetSiteOption(r.definition.Site, setting.Name)
+//		if err != nil {
+//			return fmt.Errorf("Error reading config for %s: %v", setting.Name, err)
+//		}
+//		if !ok {
+//			return fmt.Errorf("No value for %s.%s in config", r.definition.Site, setting.Name)
+//		}
+//	}
+//	return nil
+//}
 
 //Get a working url for the Indexer
 func (r *Runner) currentURL() (*url.URL, error) {
@@ -535,29 +536,7 @@ func (r *Runner) validateAndStoreItem(query *torznab.Query, localCats []string, 
 	}
 	//Try to map the category from the Indexer to the global categories
 	r.resolveCategory(item)
-	return !r.isSeriesAndNotMatching(query, item)
-}
-
-//Checks if the result is a series result, and ignores it if the title of the series is different.
-func (r *Runner) isSeriesAndNotMatching(query *torznab.Query, item *search.ExternalResultItem) bool {
-	if query.Series != "" {
-		info, err := releaseinfo.Parse(item.Title)
-		if err != nil {
-			r.logger.
-				WithFields(logrus.Fields{"title": item.Title}).
-				WithError(err).
-				Warn("Failed to parse show title, skipping")
-			return true
-		}
-
-		if info != nil && !info.SeriesTitleInfo.Equal(query.Series) {
-			r.logger.
-				WithFields(logrus.Fields{"got": info.SeriesTitleInfo.TitleWithoutYear, "expected": query.Series}).
-				Debugf("Series search skipping non-matching series")
-			return true
-		}
-	}
-	return false
+	return !series.IsSeriesAndNotMatching(query, item)
 }
 
 func (r *Runner) itemMatchesLocalCategories(localCats []string, item *search.ExternalResultItem) bool {
@@ -738,11 +717,11 @@ func (r *Runner) getIndexer() *search.ResultIndexer {
 	}
 }
 
-func (r *Runner) getField(s string) *fieldBlock {
-	for _, fld := range r.definition.Search.Fields {
-		if fld.Field == s {
-			return &fld
-		}
-	}
-	return nil
-}
+//func (r *Runner) getField(s string) *fieldBlock {
+//	for _, fld := range r.definition.Search.Fields {
+//		if fld.Field == s {
+//			return &fld
+//		}
+//	}
+//	return nil
+//}

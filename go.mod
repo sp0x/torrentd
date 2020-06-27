@@ -9,9 +9,7 @@ require (
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/boltdb/bolt v1.3.1
 	github.com/cardigann/go-imdb-scraper v0.0.0-20170921034215-f67df398e320
-	github.com/cardigann/releaseinfo v0.0.0-20161016223251-01f6c28996d5
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/dlclark/regexp2 v1.2.0 // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/emirpasic/gods v1.12.0
 	github.com/f2prateek/train v0.0.0-20170409194429-523ebcaf2f00
@@ -34,14 +32,14 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/onsi/ginkgo v1.12.0
 	github.com/onsi/gomega v1.7.1
-	github.com/prometheus/common v0.4.0
 	github.com/sirupsen/logrus v1.5.0
 	github.com/smartystreets/assertions v1.0.1 // indirect
+	github.com/sp0x/mediareleaseinfo v0.0.0-20200627064541-fc7d90330bf9
 	github.com/sp0x/surf v0.0.0-20200427101727-f37e70cd344f
 	github.com/spf13/cobra v0.0.7
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.6.2
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
