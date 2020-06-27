@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 	"math/rand"
 	"strconv"
+	"time"
 )
 
 type counter struct {
@@ -31,12 +32,13 @@ func (c counter) initCounterIfNeeded(collection *firestore.CollectionRef, ctx co
 }
 
 func (c *counter) initCounter(ctx context.Context, docRef *firestore.DocumentRef) error {
-	_, err := docRef.Create(ctx, nil)
+	counterDoc := make(map[string]interface{})
+	counterDoc["created"] = time.Now()
+	_, err := docRef.Create(ctx, counterDoc)
 	if err != nil {
 		return err
 	}
 	colRef := docRef.Collection("shards")
-
 	// Initialize each shard with count=0
 	for num := 0; num < c.numOfShards; num++ {
 		shard := counterShard{0}
