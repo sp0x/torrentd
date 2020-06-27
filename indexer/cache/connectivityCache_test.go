@@ -2,6 +2,7 @@ package cache
 
 import (
 	"github.com/onsi/gomega"
+	"github.com/sp0x/torrentd/indexer/cache/mocks"
 	"testing"
 )
 
@@ -9,7 +10,7 @@ func TestConnectivityCache_IsOk(t *testing.T) {
 	g := gomega.NewWithT(t)
 	conCache, _ := NewConnectivityCache()
 	g.Expect(conCache.IsOk("http://example.com")).To(gomega.BeFalse())
-	br := &MockedBrowser{}
+	br := &mocks.MockedBrowser{}
 	br.CanOpen = true
 	conCache.SetBrowser(br)
 	g.Expect(conCache.IsOkAndSet("http://example.com", func() bool {

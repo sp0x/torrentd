@@ -1,4 +1,4 @@
-package cache
+package mocks
 
 import (
 	"errors"
@@ -13,6 +13,7 @@ import (
 
 type MockedBrowser struct {
 	CanOpen bool
+	state   *jar.State
 }
 
 // SetUserAgent sets the user agent.
@@ -39,8 +40,8 @@ func (b *MockedBrowser) SetAttributes(_ browser.AttributeMap) {
 }
 
 // SetState sets the init browser state.
-func (b *MockedBrowser) SetState(_ *jar.State) {
-
+func (b *MockedBrowser) SetState(state *jar.State) {
+	b.state = state
 }
 
 // State returns the browser state.
@@ -214,7 +215,11 @@ func (b *MockedBrowser) Url() *url.URL {
 
 // StatusCode returns the response status code.
 func (b *MockedBrowser) StatusCode() int {
-	return 0
+	if b.CanOpen {
+		return http.StatusOK
+	} else {
+		return 502
+	}
 }
 
 // Title returns the page title.
@@ -234,7 +239,7 @@ func (b *MockedBrowser) Body() string {
 
 // Dom returns the inner *goquery.Selection.
 func (b *MockedBrowser) Dom() *goquery.Selection {
-	return nil
+	return b.state.Dom.Contents()
 }
 
 // Find returns the dom selections matching the given expression.

@@ -2,6 +2,7 @@ package cache
 
 import (
 	"github.com/onsi/gomega"
+	"github.com/sp0x/torrentd/indexer/cache/mocks"
 	"testing"
 )
 
@@ -11,7 +12,7 @@ var optimisticUrl2 = "http://example2.com"
 func Test_NewOptimisticConnectivityCache(t *testing.T) {
 	g := gomega.NewWithT(t)
 	conCache, _ := NewOptimisticConnectivityCache()
-	br := &MockedBrowser{}
+	br := &mocks.MockedBrowser{}
 	br.CanOpen = true
 	conCache.SetBrowser(br)
 	g.Expect(conCache.IsOk(optimisticUrl)).To(gomega.BeTrue())
@@ -22,7 +23,7 @@ func Test_NewOptimisticConnectivityCache(t *testing.T) {
 func TestOptimisticCache_ShouldReturnTrueFromTheStart(t *testing.T) {
 	g := gomega.NewWithT(t)
 	conCache, _ := NewOptimisticConnectivityCache()
-	br := &MockedBrowser{}
+	br := &mocks.MockedBrowser{}
 	br.CanOpen = true
 	conCache.SetBrowser(br)
 	g.Expect(conCache.IsOk(optimisticUrl)).To(gomega.BeTrue())
@@ -32,7 +33,7 @@ func TestOptimisticCache_ShouldReturnTrueFromTheStart(t *testing.T) {
 func Test_OptimisticCache_ShouldReturnFalseIfInvalidated(t *testing.T) {
 	g := gomega.NewWithT(t)
 	conCache, _ := NewOptimisticConnectivityCache()
-	br := &MockedBrowser{}
+	br := &mocks.MockedBrowser{}
 	br.CanOpen = true
 	conCache.SetBrowser(br)
 	g.Expect(conCache.IsOk(optimisticUrl)).To(gomega.BeTrue())
@@ -49,7 +50,7 @@ func Test_OptimisticCache_ShouldReturnFalseIfInvalidated(t *testing.T) {
 func Test_OptimisticCache_ShouldTestUrlsOnceTheyWereInvalidated(t *testing.T) {
 	g := gomega.NewWithT(t)
 	conCache, _ := NewOptimisticConnectivityCache()
-	br := &MockedBrowser{}
+	br := &mocks.MockedBrowser{}
 	br.CanOpen = true
 	conCache.SetBrowser(br)
 	g.Expect(conCache.IsOk(optimisticUrl)).To(gomega.BeTrue())
@@ -64,7 +65,7 @@ func Test_OptimisticCache_ShouldTestUrlsOnceTheyWereInvalidated(t *testing.T) {
 func Test_OptimisticCache_ShouldWorkWithOkAndSet(t *testing.T) {
 	g := gomega.NewWithT(t)
 	conCache, _ := NewOptimisticConnectivityCache()
-	br := &MockedBrowser{}
+	br := &mocks.MockedBrowser{}
 	br.CanOpen = true
 	conCache.SetBrowser(br)
 
@@ -79,7 +80,7 @@ func Test_OptimisticCache_ShouldWorkWithOkAndSet(t *testing.T) {
 func Test_OptimisticCache_InvalidationShouldWorkWithOkAndSet(t *testing.T) {
 	g := gomega.NewWithT(t)
 	conCache, _ := NewOptimisticConnectivityCache()
-	br := &MockedBrowser{}
+	br := &mocks.MockedBrowser{}
 	br.CanOpen = true
 	conCache.SetBrowser(br)
 
@@ -96,7 +97,7 @@ func Test_OptimisticCache_InvalidationShouldWorkWithOkAndSet(t *testing.T) {
 func Test_OptimisticCache_BadUrlsShouldBeInvalidated(t *testing.T) {
 	g := gomega.NewWithT(t)
 	conCache, _ := NewOptimisticConnectivityCache()
-	br := &MockedBrowser{}
+	br := &mocks.MockedBrowser{}
 	br.CanOpen = false
 	conCache.SetBrowser(br)
 	err := conCache.Test(optimisticUrl)
@@ -108,7 +109,7 @@ func Test_OptimisticCache_BadUrlsShouldBeInvalidated(t *testing.T) {
 func Test_OptimisticCache_BadUrlsShouldStayInvalidated(t *testing.T) {
 	g := gomega.NewWithT(t)
 	conCache, _ := NewOptimisticConnectivityCache()
-	br := &MockedBrowser{}
+	br := &mocks.MockedBrowser{}
 	br.CanOpen = false
 	conCache.SetBrowser(br)
 

@@ -86,7 +86,9 @@ type RunContext struct {
 func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 	logger := logrus.New()
 	logger.Level = logrus.GetLevel()
-	connCache, _ := cache.NewConnectivityCache()
+	//connCache, _ := cache.NewConnectivityCache()
+	//Use an optimistic cache instead.
+	connCache, _ := cache.NewOptimisticConnectivityCache()
 	runnerConfig := opts.Config
 	runner := &Runner{
 		opts:                opts,
@@ -157,6 +159,7 @@ func (r *Runner) currentURL() (*url.URL, error) {
 	return nil, errors.New("No working urls found")
 }
 
+//Test if the url returns a 20x response
 func (r *Runner) testURLWorks(u string) bool {
 	var ok bool
 	//Do this like that so it's locked.
@@ -476,6 +479,9 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 		WithFields(logrus.Fields{}).
 		Debugf("Fetched Indexer page.\n")
 	dom := r.browser.Dom()
+	if dom == nil {
+		return nil, errors.New("DOM was nil")
+	}
 	setupContext(r, &context, dom)
 	// merge following rows for After selector
 	err = r.clearDom(dom)

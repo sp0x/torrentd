@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/browser"
+	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/source"
 	"net/url"
 	"regexp"
@@ -16,9 +17,23 @@ const (
 	searchMethodGet  = "get"
 )
 
+//ContentFetcher is a content fetcher that deals with the state of sources
 type ContentFetcher struct {
-	Browser browser.Browsable
-	Cacher  ContentCacher
+	Browser            browser.Browsable
+	Cacher             ContentCacher
+	ConnectivityTester cache.ConnectivityTester
+}
+
+func NewWebContentFetcher(browser browser.Browsable, contentCache ContentCacher, connectivityTester cache.ConnectivityTester) source.ContentFetcher {
+	if connectivityTester == nil {
+		panic("a connectivity tester is required")
+	}
+	return &ContentFetcher{
+		Browser: browser,
+		//We'll use the indexer to cache content.
+		Cacher:             contentCache,
+		ConnectivityTester: connectivityTester,
+	}
 }
 
 type ContentCacher interface {
@@ -31,7 +46,11 @@ func (w *ContentFetcher) Cleanup() {
 
 func (w *ContentFetcher) FetchUrl(url string) error {
 	target := source.SearchTarget{Url: url}
-	return w.get(target.Url)
+	err := w.get(target.Url)
+	if err != nil {
+		w.ConnectivityTester.Invalidate(target.Url)
+	}
+	return err
 }
 
 //Gets the content from which we'll extract the search results
@@ -50,10 +69,12 @@ func (w *ContentFetcher) Fetch(target *source.SearchTarget) error {
 			target.Url = fmt.Sprintf("%s?%s", target.Url, target.Values.Encode())
 		}
 		if err = w.get(target.Url); err != nil {
+			w.ConnectivityTester.Invalidate(target.Url)
 			return err
 		}
 	case searchMethodPost:
 		if err = w.Post(target.Url, target.Values, true); err != nil {
+			w.ConnectivityTester.Invalidate(target.Url)
 			return err
 		}
 
@@ -78,6 +99,7 @@ func (w *ContentFetcher) get(targetUrl string) error {
 		WithFields(logrus.Fields{"code": w.Browser.StatusCode(), "page": w.Browser.Url()}).
 		Debugf("Finished request")
 	if err = w.handleMetaRefreshHeader(); err != nil {
+		w.ConnectivityTester.Invalidate(targetUrl)
 		return err
 	}
 	return nil
@@ -100,6 +122,7 @@ func (w *ContentFetcher) Post(url string, data url.Values, log bool) error {
 		Debugf("Finished request")
 
 	if err := w.handleMetaRefreshHeader(); err != nil {
+		w.ConnectivityTester.Invalidate(url)
 		return err
 	}
 	return nil
@@ -116,7 +139,11 @@ func (w *ContentFetcher) handleMetaRefreshHeader() error {
 				WithField("fields", s).
 				Debug("Found refresh header")
 			requestUrl.Path = strings.TrimPrefix(s[1], "url=")
-			return w.get(requestUrl.String())
+			err := w.get(requestUrl.String())
+			if err != nil {
+				w.ConnectivityTester.Invalidate(requestUrl.String())
+			}
+			return err
 		}
 	}
 	return nil

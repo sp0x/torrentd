@@ -47,6 +47,20 @@ func (mr *MockConnectivityTesterMockRecorder) IsOkAndSet(u, f interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsOkAndSet", reflect.TypeOf((*MockConnectivityTester)(nil).IsOkAndSet), u, f)
 }
 
+// IsOk mocks base method
+func (m *MockConnectivityTester) IsOk(url string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsOk", url)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsOk indicates an expected call of IsOk
+func (mr *MockConnectivityTesterMockRecorder) IsOk(url interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsOk", reflect.TypeOf((*MockConnectivityTester)(nil).IsOk), url)
+}
+
 // Test mocks base method
 func (m *MockConnectivityTester) Test(u string) error {
 	m.ctrl.T.Helper()

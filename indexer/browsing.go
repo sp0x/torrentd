@@ -95,11 +95,7 @@ func (r *Runner) createBrowser() *browser.Browser {
 		panic("Unknown value for DEBUG_HTTP")
 	}
 	r.connectivityTester.SetBrowser(bow)
-	r.contentFetcher = &web.ContentFetcher{
-		Browser: bow,
-		//We'll use the indexer to cache content.
-		Cacher: r,
-	}
+	r.contentFetcher = web.NewWebContentFetcher(bow, r, r.connectivityTester)
 	r.browser = bow
 	return bow
 }
