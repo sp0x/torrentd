@@ -161,6 +161,7 @@ func (r *Runner) testURLWorks(u string) bool {
 	var ok bool
 	//Do this like that so it's locked.
 	if ok = r.connectivityTester.IsOkAndSet(u, func() bool {
+		//The check would be performed only if the connectivity tester doesn't have an entry for that URL
 		urlx := u
 		r.logger.WithField("url", u).
 			Info("Checking connectivity to url")

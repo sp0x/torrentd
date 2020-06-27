@@ -4,8 +4,10 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/golang/mock/gomock"
 	"github.com/onsi/gomega"
+	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/jar"
 	"github.com/sp0x/torrentd/config"
+	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/cache/mocks"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/indexer/source"
@@ -43,14 +45,13 @@ func TestRunner_Search(t *testing.T) {
 	//In order to use our custom content fetcher.
 	runner.keepSessions = true
 
-	query := &torznab.Query{}
 	//Shouldn't be able to search with an index that has no urls
-	_, err := runner.Search(query, nil)
+	_, err := runner.Search(emptyQuery, nil)
 	g.Expect(err).ToNot(gomega.BeNil())
 
 	//Shouldn't be able to search with an index that has no search urls
 	index.Links = []string{siteUrl}
-	_, err = runner.Search(query, nil)
+	_, err = runner.Search(emptyQuery, nil)
 	g.Expect(err).ToNot(gomega.BeNil())
 
 	//Shouldn't be able to search with an index that has no search urls
@@ -80,7 +81,7 @@ func TestRunner_Search(t *testing.T) {
 			fakeState := &jar.State{Dom: dom}
 			runner.browser.SetState(fakeState)
 		})
-	srch, err := runner.Search(query, nil)
+	srch, err := runner.Search(emptyQuery, nil)
 	g.Expect(err).To(gomega.BeNil())
 	g.Expect(srch).ToNot(gomega.BeNil())
 	g.Expect(len(srch.GetResults()) > 0).To(gomega.BeTrue())
@@ -92,8 +93,22 @@ func TestRunner_Search(t *testing.T) {
 	g.Expect(runner.Storage.Find(guidQuery, &foundDoc)).To(gomega.BeNil())
 	g.Expect(foundDoc.UUIDValue).To(gomega.Equal(firstDoc.UUIDValue))
 	g.Expect(foundDoc.ExtraFields["fieldA"]).To(gomega.Equal("sd"))
+	runner.Storage.Close()
 
+}
+
+var emptyQuery = &torznab.Query{}
+
+func Test_ShouldUseUniqueIndexes(t *testing.T) {
+	g := gomega.NewWithT(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	index := &IndexerDefinition{Site: "zamunda.net", Name: "zamunda"}
+	contentFetcher := mocks2.NewMockContentFetcher(ctrl)
+	connectivityTester := mocks.NewMockConnectivityTester(ctrl)
 	//-------Should be able to use unique indexes
+	cfg := &config.ViperConfig{}
+	_ = cfg.Set("db", tempfile())
 	index.Name = "other"
 	index.Search = searchBlock{
 		Path: "/",
@@ -118,8 +133,8 @@ func TestRunner_Search(t *testing.T) {
 			},
 		},
 	}
-	runner.Storage.Close()
-	runner = NewRunner(index, RunnerOpts{
+
+	runner := NewRunner(index, RunnerOpts{
 		Config:     cfg,
 		CachePages: false,
 		Transport:  nil,
@@ -138,7 +153,7 @@ func TestRunner_Search(t *testing.T) {
 			fakeState := &jar.State{Dom: dom}
 			runner.browser.SetState(fakeState)
 		})
-	srch, err = runner.Search(query, nil)
+	srch, err := runner.Search(emptyQuery, nil)
 	g.Expect(err).To(gomega.BeNil())
 	g.Expect(srch).ToNot(gomega.BeNil())
 	g.Expect(len(srch.GetResults()) == 1).To(gomega.BeTrue())
@@ -148,4 +163,26 @@ func TestRunner_Search(t *testing.T) {
 	//guidQuery = indexing.NewQuery()
 	//guidQuery.Put("LocalId", "val1")
 	//g.Expect(runner.Storage.Find(guidQuery, &foundDoc)).To(gomega.BeNil())
+}
+
+func TestRunner_testURLWorks_ShouldReturnFalseIfTheUrlIsDown(t *testing.T) {
+	g := gomega.NewWithT(t)
+	r := Runner{}
+	r.logger = log.New()
+	cachedCon, _ := cache.NewConnectivityCache()
+	r.connectivityTester = cachedCon
+	g.Expect(r.testURLWorks("http://example.com")).To(gomega.BeFalse())
+
+}
+
+func TestRunner_testUrlWorks_ShouldWorkWithOptimisticCaching(t *testing.T) {
+	g := gomega.NewWithT(t)
+	r := Runner{}
+	r.logger = log.New()
+	url := "http://example.com"
+	optimisticCacheCon, _ := cache.NewOptimisticConnectivityCache()
+	r.connectivityTester = optimisticCacheCon
+	g.Expect(r.testURLWorks(url)).To(gomega.BeTrue())
+	r.connectivityTester.Invalidate(url)
+
 }

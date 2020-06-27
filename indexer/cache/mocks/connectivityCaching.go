@@ -62,7 +62,7 @@ func (mr *MockConnectivityTesterMockRecorder) Test(u interface{}) *gomock.Call {
 }
 
 // SetBrowser mocks base method
-func (m *MockConnectivityTester) SetBrowser(bow *browser.Browser) {
+func (m *MockConnectivityTester) SetBrowser(bow browser.Browsable) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetBrowser", bow)
 }
@@ -83,4 +83,16 @@ func (m *MockConnectivityTester) ClearBrowser() {
 func (mr *MockConnectivityTesterMockRecorder) ClearBrowser() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearBrowser", reflect.TypeOf((*MockConnectivityTester)(nil).ClearBrowser))
+}
+
+// Invalidate mocks base method
+func (m *MockConnectivityTester) Invalidate(url string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Invalidate", url)
+}
+
+// Invalidate indicates an expected call of Invalidate
+func (mr *MockConnectivityTesterMockRecorder) Invalidate(url interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Invalidate", reflect.TypeOf((*MockConnectivityTester)(nil).Invalidate), url)
 }
