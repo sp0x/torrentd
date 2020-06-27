@@ -23,8 +23,6 @@ func (c counter) initCounterIfNeeded(collection *firestore.CollectionRef, ctx co
 	if err != nil {
 		if status.Code(err) != codes.NotFound {
 			return err
-		} else {
-			//Doc does not exist, we'll create it
 		}
 	} else {
 		return nil
@@ -33,6 +31,10 @@ func (c counter) initCounterIfNeeded(collection *firestore.CollectionRef, ctx co
 }
 
 func (c *counter) initCounter(ctx context.Context, docRef *firestore.DocumentRef) error {
+	_, err := docRef.Create(ctx, nil)
+	if err != nil {
+		return err
+	}
 	colRef := docRef.Collection("shards")
 
 	// Initialize each shard with count=0

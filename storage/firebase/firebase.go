@@ -49,10 +49,11 @@ func NewFirestoreStorage(conf *FirestoreConfig, typePtr interface{}) (*Firestore
 	if targetCollection == "" {
 		targetCollection = resultsCollection
 	}
+	docCounter := counter{20}
 	f := &FirestoreStorage{
 		context:   ctx,
 		client:    client,
-		counter:   counter{20},
+		counter:   docCounter,
 		namespace: targetCollection,
 		marshaler: serializers.NewDynamicMarshaler(typePtr, nil),
 	}
@@ -168,7 +169,7 @@ func (f *FirestoreStorage) CreateWithId(key *indexing.Key, item search.Record, u
 		if indexValue == "" {
 			return errors.New("id was empty, it's required for firebase")
 		}
-		doc = collection.Doc(string(indexValue))
+		doc = collection.Doc(indexValue)
 	}
 	if key == nil || key.IsEmpty() {
 		//Since this is a new item we'll need to create a new ID, if there's no key.
