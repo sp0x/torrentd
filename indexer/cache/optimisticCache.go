@@ -61,7 +61,8 @@ func (c *OptimisticConnectivityCache) Test(u string) error {
 		return errors.New("connectivity invalidatedCache has no browser. call SetBrowser first")
 	}
 	err := c.browser.Open(u)
-	if err != nil {
+	//If the url can be opened, we remove the invalid state.
+	if err == nil {
 		c.invalidatedCache.Remove(u)
 	}
 	return err
