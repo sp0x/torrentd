@@ -17,6 +17,7 @@ func NewBuilder() *Builder {
 	return b.WithDefaultBacking()
 }
 
+//Builder for ItemStorage
 type Builder struct {
 	backingType   string
 	primaryKey    *indexing.Key
@@ -26,41 +27,49 @@ type Builder struct {
 	recordTypePtr interface{}
 }
 
+//WithBacking set the data backing type. ex: boltdb, firebase, sqlite.
 func (b *Builder) WithBacking(backingType string) *Builder {
 	b.backingType = backingType
 	return b
 }
 
+//WithRecord set the type of the items you'll be working with, this is needed for unmarshaling and querying.
 func (b *Builder) WithRecord(recordTypePtr interface{}) *Builder {
 	b.recordTypePtr = recordTypePtr
 	return b
 }
 
+//BackedBy can be used if you already have an initialized storage backing.
 func (b *Builder) BackedBy(backing ItemStorageBacking) *Builder {
 	b.backing = backing
 	return b
 }
 
+//WithDefaultBacking sets the storage backing to `boltdb`
 func (b *Builder) WithDefaultBacking() *Builder {
 	b.backingType = "boltdb"
 	return b
 }
 
+//WithPK use a primary key to store the data. By default an UUID is used.
 func (b *Builder) WithPK(keyFields *indexing.Key) *Builder {
 	b.primaryKey = keyFields
 	return b
 }
 
+//WithEndpoint if your storage location has a specific location (ex: db path)
 func (b *Builder) WithEndpoint(endpoint string) *Builder {
 	b.endpoint = endpoint
 	return b
 }
 
+//WithNamespace make sure all data is in that namespace
 func (b *Builder) WithNamespace(ns string) *Builder {
 	b.namespace = ns
 	return b
 }
 
+//Build the storage object
 func (b *Builder) Build() ItemStorage {
 	backing := b.backing
 	if b.recordTypePtr == nil {
