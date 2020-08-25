@@ -24,6 +24,7 @@ func GetAllPagesFromIndex(facade *Facade, query *torznab.Query) <-chan *search.E
 				currentSearch, err = facade.Search(currentSearch, query)
 			}
 			if err != nil {
+				log.Errorf("Couldn't search: %v", err)
 				break
 			}
 			if currentSearch == nil {
