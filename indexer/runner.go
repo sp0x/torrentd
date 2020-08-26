@@ -456,7 +456,7 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 	} else if required {
 		if err := r.login(); err != nil {
 			r.logger.WithError(err).Error("Login failed")
-			status.PublishSchemeError(r.context, status.LoginError, err, r.definition)
+			status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.LoginError, err, r.definition))
 			return nil, err
 		}
 	}
@@ -472,14 +472,14 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 	}
 	target, err := r.extractSearchTarget(query, localCats, runCtx)
 	if err != nil {
-		status.PublishSchemeError(r.context, status.TargetError, err, r.definition)
+		status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.TargetError, err, r.definition))
 		return nil, err
 	}
 	timer := time.Now()
 	//Get the content
 	err = r.contentFetcher.Fetch(target)
 	if err != nil {
-		status.PublishSchemeError(r.context, status.ContentError, err, r.definition)
+		status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.ContentError, err, r.definition))
 		return nil, err
 	}
 	r.logger.
@@ -531,11 +531,11 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 		}
 		results = append(results, item)
 	}
-	status.PublishSchemeStatus(r.context, status.Ok, r.definition)
 	r.logger.
 		WithFields(logrus.Fields{"Indexer": r.definition.Site, "q": query.Keywords(), "time": time.Since(timer)}).
 		Infof("Query returned %d results", len(results))
 	runCtx.Search.SetResults(results)
+	status.PublishSchemeStatus(r.context, generateSchemeOkStatus(r.definition, runCtx))
 	return runCtx.Search, nil
 }
 
@@ -732,11 +732,32 @@ func (r *Runner) getIndexer() *search.ResultIndexer {
 	}
 }
 
-//func (r *Runner) getField(s string) *fieldBlock {
-//	for _, fld := range r.definition.Search.Fields {
-//		if fld.Field == s {
-//			return &fld
-//		}
-//	}
-//	return nil
-//}
+//region Status messages
+
+func generateSchemeOkStatus(definition *IndexerDefinition, runCtx RunContext) *status.ScrapeSchemeMessage {
+	statusCode := "ok"
+	resultsFound := 0
+	if runCtx.Search != nil && len(runCtx.Search.Results) > 0 {
+		statusCode = "ok-data"
+		resultsFound = len(runCtx.Search.Results)
+	}
+	msg := &status.ScrapeSchemeMessage{
+		Code:          statusCode,
+		Site:          definition.Site,
+		SchemeVersion: definition.Version,
+		ResultsFound:  resultsFound,
+	}
+	return msg
+}
+
+func generateSchemeErrorStatus(errorCode string, err error, definition *IndexerDefinition) *status.SchemeErrorMessage {
+	msg := &status.SchemeErrorMessage{
+		Code:          errorCode,
+		Site:          definition.Site,
+		SchemeVersion: definition.Version,
+		Message:       fmt.Sprintf("couldn't log in: %s", err),
+	}
+	return msg
+}
+
+//endregion
