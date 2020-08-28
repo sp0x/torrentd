@@ -4,6 +4,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer"
+	"github.com/sp0x/torrentd/indexer/status"
 	"github.com/sp0x/torrentd/server"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -58,6 +59,7 @@ func watchTracker(_ *cobra.Command, _ []string) {
 	}()
 
 	//Start watching the torrent tracker.
+	status.SetupPubsub(appConfig.GetString("firebase_project"))
 	resultChannel := indexer.Watch(facade, nil, watchInterval)
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)

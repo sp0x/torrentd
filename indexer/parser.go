@@ -28,6 +28,7 @@ const (
 
 type IndexerDefinition struct {
 	Site         string                 `yaml:"site"`
+	Version      string                 `yaml:"version"`
 	Settings     []settingsField        `yaml:"settings"`
 	Name         string                 `yaml:"name"`
 	Description  string                 `yaml:"description"`

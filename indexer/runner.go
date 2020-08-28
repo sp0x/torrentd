@@ -1,9 +1,11 @@
 package indexer
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/sp0x/torrentd/indexer/source/series"
+	"github.com/sp0x/torrentd/indexer/status"
 
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/cache"
@@ -56,6 +58,7 @@ type Runner struct {
 	lastVerified        time.Time
 	Storage             storage.ItemStorage
 	contentFetcher      source.ContentFetcher
+	context             context.Context
 }
 
 func (r *Runner) MaxSearchPages() uint {
@@ -98,6 +101,7 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 		state:               defaultIndexerState(),
 		keepSessions:        true,
 		failingSearchFields: make(map[string]fieldBlock),
+		context:             context.Background(),
 	}
 	entityType := runner.definition.getSearchEntity()
 	storageType := opts.Config.GetString("storage")
@@ -445,13 +449,14 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 	if err != nil {
 		return nil, err
 	}
-	filterLogger = r.logger
+
 	//Login if it's required
 	if required, err := r.isLoginRequired(); err != nil {
 		return nil, err
 	} else if required {
 		if err := r.login(); err != nil {
 			r.logger.WithError(err).Error("Login failed")
+			status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.LoginError, err, r.definition))
 			return nil, err
 		}
 	}
@@ -462,17 +467,19 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 	if srch == nil {
 		srch = &search.Search{}
 	}
-	context := RunContext{
+	runCtx := RunContext{
 		Search: srch.(*search.Search),
 	}
-	target, err := r.extractSearchTarget(query, localCats, context)
+	target, err := r.extractSearchTarget(query, localCats, runCtx)
 	if err != nil {
+		status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.TargetError, err, r.definition))
 		return nil, err
 	}
 	timer := time.Now()
 	//Get the content
 	err = r.contentFetcher.Fetch(target)
 	if err != nil {
+		status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.ContentError, err, r.definition))
 		return nil, err
 	}
 	r.logger.
@@ -482,7 +489,7 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 	if dom == nil {
 		return nil, errors.New("DOM was nil")
 	}
-	setupContext(r, &context, dom)
+	setupContext(r, &runCtx, dom)
 	// merge following rows for After selector
 	err = r.clearDom(dom)
 	if err != nil {
@@ -527,8 +534,9 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 	r.logger.
 		WithFields(logrus.Fields{"Indexer": r.definition.Site, "q": query.Keywords(), "time": time.Since(timer)}).
 		Infof("Query returned %d results", len(results))
-	context.Search.SetResults(results)
-	return context.Search, nil
+	runCtx.Search.SetResults(results)
+	status.PublishSchemeStatus(r.context, generateSchemeOkStatus(r.definition, runCtx))
+	return runCtx.Search, nil
 }
 
 func (r *Runner) validateAndStoreItem(query *torznab.Query, localCats []string, item *search.ExternalResultItem) bool {
@@ -724,11 +732,32 @@ func (r *Runner) getIndexer() *search.ResultIndexer {
 	}
 }
 
-//func (r *Runner) getField(s string) *fieldBlock {
-//	for _, fld := range r.definition.Search.Fields {
-//		if fld.Field == s {
-//			return &fld
-//		}
-//	}
-//	return nil
-//}
+//region Status messages
+
+func generateSchemeOkStatus(definition *IndexerDefinition, runCtx RunContext) *status.ScrapeSchemeMessage {
+	statusCode := "ok"
+	resultsFound := 0
+	if runCtx.Search != nil && len(runCtx.Search.Results) > 0 {
+		statusCode = "ok-data"
+		resultsFound = len(runCtx.Search.Results)
+	}
+	msg := &status.ScrapeSchemeMessage{
+		Code:          statusCode,
+		Site:          definition.Site,
+		SchemeVersion: definition.Version,
+		ResultsFound:  resultsFound,
+	}
+	return msg
+}
+
+func generateSchemeErrorStatus(errorCode string, err error, definition *IndexerDefinition) *status.SchemeErrorMessage {
+	msg := &status.SchemeErrorMessage{
+		Code:          errorCode,
+		Site:          definition.Site,
+		SchemeVersion: definition.Version,
+		Message:       fmt.Sprintf("couldn't log in: %s", err),
+	}
+	return msg
+}
+
+//endregion

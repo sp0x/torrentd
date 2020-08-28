@@ -39,9 +39,8 @@ func NewFacadeFromConfiguration(config config.Config) *Facade {
 	facade := NewEmptyFacade(config)
 	indexerName := config.GetString("index")
 	if indexerName == "" {
-		fmt.Printf(noIndexError)
+		fmt.Print(noIndexError)
 		os.Exit(1)
-		//indexerName = "rutracker.org"
 	}
 	ixrObj, err := facade.Scope.Lookup(config, indexerName)
 	if err != nil {
@@ -88,7 +87,7 @@ func NewAggregateFacadeWithCategories(config config.Config, cats ...categories.C
 	facade.Scope = NewScope()
 	indexerName := config.GetString("index")
 	if indexerName == "" {
-		fmt.Printf(noIndexError)
+		fmt.Print(noIndexError)
 		os.Exit(1)
 	}
 	ixrObj, err := facade.Scope.CreateAggregateForCategories(config, cats)
