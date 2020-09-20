@@ -4,7 +4,7 @@ volumes:
 
 services:
 
-  rss:
+  torrentd:
     image: sp0x/torrentd:latest
     build: .
     command: watch -v

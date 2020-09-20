@@ -42,6 +42,7 @@ func ensurePathExists(dbPath string) {
 	_ = os.MkdirAll(dirPath, os.ModePerm)
 }
 
+//NewBoltStorage - opens a BoltDB storage file
 func NewBoltStorage(dbPath string, recordTypePtr interface{}) (*BoltStorage, error) {
 	if dbPath == "" {
 		dbPath = DefaultBoltPath()

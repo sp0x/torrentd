@@ -76,7 +76,7 @@ func (b *Builder) Build() ItemStorage {
 		panic("record type is required")
 	}
 	if backing == nil {
-		bfn, ok := storageBackingMap[b.backingType]
+		storageResolverFunc, ok := storageBackingMap[b.backingType]
 		if !ok {
 			var supportedStorages []string
 			for k := range storageBackingMap {
@@ -86,7 +86,7 @@ func (b *Builder) Build() ItemStorage {
 				Error("Unsupported storage backing type.")
 			panic("Unsupported storage backing type.")
 		}
-		backing = bfn(b)
+		backing = storageResolverFunc(b)
 	}
 	return &KeyedStorage{
 		primaryKey:     *b.primaryKey,
@@ -122,7 +122,7 @@ func init() {
 		return b
 	}
 	storageBackingMap["sqlite"] = func(builder *Builder) ItemStorageBacking {
-		panic("Deprecated")
+		panic("sqlite storage is deprecated and shouldn't be used anymore")
 		//b := &sqlite.DBStorage{}
 		//return b
 	}

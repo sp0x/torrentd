@@ -23,11 +23,6 @@ func NewScope() Scope {
 	return sc
 }
 
-//var indexers map[string]Indexer
-//func init() {
-//	indexers = make(map[string]Indexer)
-//}
-
 //Lookup finds the matching Indexer.
 func (c *CachedScope) Lookup(config config.Config, key string) (Indexer, error) {
 	//If we already have that indexer running, we don't create a new one.

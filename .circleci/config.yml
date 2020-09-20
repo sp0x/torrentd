@@ -18,6 +18,7 @@ jobs:
           at: ./artifacts
       - run:
           name: "Install gomock"
+
           command: |
             GO111MODULE=on go get github.com/golang/mock/mockgen@latest
 

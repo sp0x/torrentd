@@ -49,7 +49,7 @@ test-coverage:
 	rm $(COVERAGE_REPORT).tmp
 
 build-image:
-	docker-compose build rss
+	docker-compose build torrentd
 	docker-compose push
 
 benchmark-server:
