@@ -92,7 +92,7 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 	//connCache, _ := cache.NewConnectivityCache()
 	//Use an optimistic cache instead.
 	connCache, _ := cache.NewOptimisticConnectivityCache()
-	runnerConfig := opts.Config
+
 	runner := &Runner{
 		opts:                opts,
 		definition:          def,
@@ -103,33 +103,38 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 		failingSearchFields: make(map[string]fieldBlock),
 		context:             context.Background(),
 	}
-	entityType := runner.definition.getSearchEntity()
-	storageType := opts.Config.GetString("storage")
-	if storageType == "" {
-		panic("no storage type configured")
-	}
-	if entityType != nil {
-		//All the results will be stored in a collection with the same name as the index.
-		//runner.Storage = storage.NewKeyedStorageWithBackingType(def.Name, runnerConfig, entityType.GetKey(), storageType)
-		runner.Storage = storage.NewBuilder().
-			WithNamespace(def.Name).
-			WithEndpoint(runnerConfig.GetString("db")).
-			WithPK(entityType.GetKey()).
-			WithBacking(storageType).
-			WithRecord(&search.ExternalResultItem{}).
-			Build()
-	} else {
-		//All the results will be stored in a collection with the same name as the index.
-		//runner.Storage = storage.NewKeyedStorageWithBackingType(def.Name, runnerConfig, indexing.NewKey(), storageType)
-		runner.Storage = storage.NewBuilder().
-			WithNamespace(def.Name).
-			WithEndpoint(runnerConfig.GetString("db")).
-			WithBacking(storageType).
-			WithRecord(&search.ExternalResultItem{}).
-			Build()
-	}
+	constructStorage(runner, opts.Config)
 
 	return runner
+}
+
+func constructStorage(indexer Indexer, conf config.Config) {
+
+	//entityType := runner.definition.getSearchEntity()
+	//storageType := opts.Config.GetString("storage")
+	//if storageType == "" {
+	//	panic("no storage type configured")
+	//}
+	//dbPath := runnerConfig.GetString("db")
+	//if entityType != nil {
+	//	//All the results will be stored in a collection with the same name as the index.
+	//	runner.Storage = storage.NewBuilder().
+	//		WithNamespace(def.Name).
+	//		WithEndpoint(dbPath).
+	//		WithPK(entityType.GetKey()).
+	//		WithBacking(storageType).
+	//		WithRecord(&search.ExternalResultItem{}).
+	//		Build()
+	//} else {
+	//	//All the results will be stored in a collection with the same name as the index.
+	//	//runner.Storage = storage.NewKeyedStorageWithBackingType(def.Name, runnerConfig, indexing.NewKey(), storageType)
+	//	runner.Storage = storage.NewBuilder().
+	//		WithNamespace(def.Name).
+	//		WithEndpoint(dbPath).
+	//		WithBacking(storageType).
+	//		WithRecord(&search.ExternalResultItem{}).
+	//		Build()
+	//}
 }
 
 // checks that the runner has the config values it needs
@@ -440,6 +445,9 @@ func (r *Runner) getUniqueIndex(item *search.ExternalResultItem) *indexing.Key {
 
 //SearchKeywords for a given torrent
 func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Instance, error) {
+	if r.Storage == nil {
+		return nil, errors.New("indexer doesn't have any storage configured")
+	}
 	r.createBrowser()
 	if !r.keepSessions {
 		defer r.releaseBrowser()
@@ -485,6 +493,9 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 	r.logger.
 		WithFields(logrus.Fields{}).
 		Debugf("Fetched Indexer page.\n")
+	if r.browser.State() == nil {
+		return nil, errors.New("browser has no state")
+	}
 	dom := r.browser.Dom()
 	if dom == nil {
 		return nil, errors.New("DOM was nil")

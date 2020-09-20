@@ -10,6 +10,7 @@ import (
 type Scope interface {
 	Lookup(config config.Config, key string) (Indexer, error)
 	CreateAggregateForCategories(config config.Config, cats []categories.Category) (Indexer, error)
+	CreateAggregate(config config.Config) (Indexer, error)
 }
 
 type CachedScope struct {
@@ -49,7 +50,8 @@ func (c *CachedScope) CreateAggregateForCategories(config config.Config, cats []
 	if err != nil {
 		return nil, err
 	}
-	var indexers []Indexer
+
+	result := &Aggregate{}
 	for _, key := range ixrKeys {
 		ixr, err := c.Lookup(config, key)
 		if err != nil {
@@ -58,19 +60,20 @@ func (c *CachedScope) CreateAggregateForCategories(config config.Config, cats []
 		if !ixr.Capabilities().HasCategories(cats) {
 			continue
 		}
-		indexers = append(indexers, ixr)
+		result.Indexers = append(result.Indexers, ixr)
 	}
-	return NewAggregate(indexers), nil
+	return result, nil
 }
 
-//CreateAggregate gets you an aggregate of all the valid configured indexers
+//CreateAggregate creates an aggregate of all the valid configured indexers
 //this includes indexers that don't need a login.
 func (c *CachedScope) CreateAggregate(config config.Config) (Indexer, error) {
 	keys, err := Loader.List()
 	if err != nil {
 		return nil, err
 	}
-	var indexers []Indexer
+
+	result := &Aggregate{}
 	for _, key := range keys {
 		//Get the site configuration, we only use configured indexers
 		ifaceConfig, _ := config.GetSite(key) //Get all the configured indexers
@@ -79,7 +82,7 @@ func (c *CachedScope) CreateAggregate(config config.Config) (Indexer, error) {
 			if err != nil {
 				return nil, err
 			}
-			indexers = append(indexers, indexer)
+			result.Indexers = append(result.Indexers, indexer)
 		}
 		//else {
 		//Indexer might not be configured
@@ -94,8 +97,7 @@ func (c *CachedScope) CreateAggregate(config config.Config) (Indexer, error) {
 		//}
 	}
 
-	agg := NewAggregate(indexers)
-	return agg, nil
+	return result, nil
 }
 
 //CreateIndexer creates a new Indexer or aggregate Indexer with the given configuration.
