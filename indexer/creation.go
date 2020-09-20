@@ -39,6 +39,7 @@ func (c *CachedScope) Lookup(config config.Config, key string) (Indexer, error) 
 		if err != nil {
 			return nil, err
 		}
+		constructStorage(indexer, config)
 		c.indexers[key] = indexer
 	}
 	return c.indexers[key], nil

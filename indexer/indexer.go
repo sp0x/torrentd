@@ -6,6 +6,7 @@ This is part of https://github.com/cardigann/cardigann
 
 import (
 	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/storage"
 	"github.com/sp0x/torrentd/torznab"
 	"io"
 	"net/http"
@@ -21,6 +22,7 @@ type Info interface {
 //go:generate mockgen -source indexer.go -destination=mocks/indexer.go -package=mocks
 type Indexer interface {
 	Info() Info
+	GetDefinition() *IndexerDefinition
 	Search(query *torznab.Query, srch search.Instance) (search.Instance, error)
 	Download(urlStr string) (io.ReadCloser, error)
 	Capabilities() torznab.Capabilities
@@ -33,4 +35,5 @@ type Indexer interface {
 	//The maximum number of pages we can search
 	MaxSearchPages() uint
 	SearchIsSinglePaged() bool
+	SetStorage(storage storage.ItemStorage)
 }

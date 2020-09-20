@@ -61,6 +61,14 @@ type Runner struct {
 	context             context.Context
 }
 
+func (r *Runner) GetDefinition() *IndexerDefinition {
+	return r.definition
+}
+
+func (r *Runner) SetStorage(s storage.ItemStorage) {
+	r.Storage = s
+}
+
 func (r *Runner) MaxSearchPages() uint {
 	p := uint(r.definition.Search.MaxPages)
 	if r.SearchIsSinglePaged() {
@@ -103,38 +111,38 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 		failingSearchFields: make(map[string]fieldBlock),
 		context:             context.Background(),
 	}
-	constructStorage(runner, opts.Config)
-
 	return runner
 }
 
 func constructStorage(indexer Indexer, conf config.Config) {
-
-	//entityType := runner.definition.getSearchEntity()
-	//storageType := opts.Config.GetString("storage")
-	//if storageType == "" {
-	//	panic("no storage type configured")
-	//}
-	//dbPath := runnerConfig.GetString("db")
-	//if entityType != nil {
-	//	//All the results will be stored in a collection with the same name as the index.
-	//	runner.Storage = storage.NewBuilder().
-	//		WithNamespace(def.Name).
-	//		WithEndpoint(dbPath).
-	//		WithPK(entityType.GetKey()).
-	//		WithBacking(storageType).
-	//		WithRecord(&search.ExternalResultItem{}).
-	//		Build()
-	//} else {
-	//	//All the results will be stored in a collection with the same name as the index.
-	//	//runner.Storage = storage.NewKeyedStorageWithBackingType(def.Name, runnerConfig, indexing.NewKey(), storageType)
-	//	runner.Storage = storage.NewBuilder().
-	//		WithNamespace(def.Name).
-	//		WithEndpoint(dbPath).
-	//		WithBacking(storageType).
-	//		WithRecord(&search.ExternalResultItem{}).
-	//		Build()
-	//}
+	definition := indexer.GetDefinition()
+	entityType := definition.getSearchEntity()
+	storageType := conf.GetString("storage")
+	if storageType == "" {
+		panic("no storage type configured")
+	}
+	var itemStorage storage.ItemStorage
+	dbPath := conf.GetString("db")
+	if entityType != nil {
+		//All the results will be stored in a collection with the same name as the index.
+		itemStorage = storage.NewBuilder().
+			WithNamespace(definition.Name).
+			WithEndpoint(dbPath).
+			WithPK(entityType.GetKey()).
+			WithBacking(storageType).
+			WithRecord(&search.ExternalResultItem{}).
+			Build()
+	} else {
+		//All the results will be stored in a collection with the same name as the index.
+		//runner.Storage = storage.NewKeyedStorageWithBackingType(def.Name, runnerConfig, indexing.NewKey(), storageType)
+		itemStorage = storage.NewBuilder().
+			WithNamespace(definition.Name).
+			WithEndpoint(dbPath).
+			WithBacking(storageType).
+			WithRecord(&search.ExternalResultItem{}).
+			Build()
+	}
+	indexer.SetStorage(itemStorage)
 }
 
 // checks that the runner has the config values it needs

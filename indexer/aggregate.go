@@ -4,15 +4,33 @@ import (
 	"errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/storage"
 	"github.com/sp0x/torrentd/torznab"
 	"io"
 	"net/http"
+	"strings"
 
 	"golang.org/x/sync/errgroup"
 )
 
 type Aggregate struct {
 	Indexers []Indexer
+	Storage  storage.ItemStorage
+}
+
+func (ag *Aggregate) SetStorage(s storage.ItemStorage) {
+	ag.Storage = s
+}
+
+func (ag *Aggregate) GetDefinition() *IndexerDefinition {
+	definition := &IndexerDefinition{}
+	definition.Site = "aggregate"
+	var indexerNames []string
+	for _, ixr := range ag.Indexers {
+		indexerNames = append(indexerNames, ixr.GetDefinition().Name)
+	}
+	definition.Name = strings.Join(indexerNames, ",")
+	return definition
 }
 
 func (ag *Aggregate) Open(s *search.ExternalResultItem) (io.ReadCloser, error) {
@@ -24,13 +42,6 @@ func (ag *Aggregate) Open(s *search.ExternalResultItem) (io.ReadCloser, error) {
 		}
 	}
 	return nil, errors.New("couldn't find Indexer")
-}
-
-//CreateWithId a new aggregate from the given indexers
-func NewAggregate(indexers []Indexer) *Aggregate {
-	ag := &Aggregate{}
-	ag.Indexers = indexers
-	return ag
 }
 
 //MaxSearchPages returns the maximum number of pages that this aggregate can search, this is using the maximum paged index in the aggregate.
@@ -159,7 +170,7 @@ func (ag *Aggregate) Capabilities() torznab.Capabilities {
 	}
 }
 
-func (ag *Aggregate) Download(u string) (io.ReadCloser, error) {
+func (ag *Aggregate) Download(string) (io.ReadCloser, error) {
 	return nil, errors.New("not implemented")
 }
 
