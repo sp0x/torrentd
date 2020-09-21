@@ -4,3 +4,5 @@
 .env
 /db/bolt.db
 keys
+**/bolt.db
+**/bolt.db.lock
