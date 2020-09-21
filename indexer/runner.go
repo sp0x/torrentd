@@ -56,18 +56,19 @@ type Runner struct {
 	keepSessions        bool
 	failingSearchFields map[string]fieldBlock
 	lastVerified        time.Time
-	Storage             storage.ItemStorage
-	contentFetcher      source.ContentFetcher
-	context             context.Context
+	//Storage             storage.ItemStorage
+	contentFetcher source.ContentFetcher
+	context        context.Context
 }
 
 func (r *Runner) GetDefinition() *IndexerDefinition {
 	return r.definition
 }
 
-func (r *Runner) SetStorage(s storage.ItemStorage) {
-	r.Storage = s
-}
+//
+//func (r *Runner) SetStorage(s storage.ItemStorage) {
+//	r.Storage = s
+//}
 
 func (r *Runner) MaxSearchPages() uint {
 	p := uint(r.definition.Search.MaxPages)
@@ -114,7 +115,7 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 	return runner
 }
 
-func constructStorage(indexer Indexer, conf config.Config) {
+func getIndexStorage(indexer Indexer, conf config.Config) storage.ItemStorage {
 	definition := indexer.GetDefinition()
 	entityType := definition.getSearchEntity()
 	storageType := conf.GetString("storage")
@@ -142,7 +143,8 @@ func constructStorage(indexer Indexer, conf config.Config) {
 			WithRecord(&search.ExternalResultItem{}).
 			Build()
 	}
-	indexer.SetStorage(itemStorage)
+
+	return itemStorage
 }
 
 // checks that the runner has the config values it needs
@@ -173,7 +175,7 @@ func (r *Runner) currentURL() (*url.URL, error) {
 			return url.Parse(u)
 		}
 	}
-	return nil, errors.New("No working urls found")
+	return nil, errors.New("no working urls found")
 }
 
 //Test if the url returns a 20x response
@@ -255,7 +257,7 @@ func (r *Runner) matchPageTestBlock(p pageTestBlock) (bool, error) {
 		Debug("Checking page test block")
 
 	if r.browser.Url() == nil && p.Path == "" {
-		return false, errors.New("No url loaded and pageTestBlock has no path")
+		return false, errors.New("no url loaded and pageTestBlock has no path")
 	}
 	//Go to a path to verify
 	if p.Path != "" {
@@ -407,7 +409,7 @@ func (r *Runner) fillInAdditionalQueryParameters(query *torznab.Query) (*torznab
 
 	if movie != nil {
 		if movie.Title == "" {
-			return query, fmt.Errorf("Movie title was blank")
+			return query, fmt.Errorf("movie title was blank")
 		}
 		query.Movie = movie.Title
 		query.Year = movie.Year
@@ -453,9 +455,6 @@ func (r *Runner) getUniqueIndex(item *search.ExternalResultItem) *indexing.Key {
 
 //SearchKeywords for a given torrent
 func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Instance, error) {
-	if r.Storage == nil {
-		return nil, errors.New("indexer doesn't have any storage configured")
-	}
 	r.createBrowser()
 	if !r.keepSessions {
 		defer r.releaseBrowser()
@@ -524,6 +523,7 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 		}).Debugf("Found %d rows", rows.Length())
 
 	var results []search.ExternalResultItem
+	itemStorage := getIndexStorage(r, r.opts.Config)
 	for i := 0; i < rows.Length(); i++ {
 		if query.Limit > 0 && len(results) >= query.Limit {
 			break
@@ -536,15 +536,15 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 		//Maybe don't do that always?
 		item.Fingerprint = search.GetResultFingerprint(&item)
 		if !r.validateAndStoreItem(query, localCats, &item) {
-			_ = r.Storage.SetKey(r.getUniqueIndex(&item))
-			err = r.Storage.Add(&item)
+			_ = itemStorage.SetKey(r.getUniqueIndex(&item))
+			err = itemStorage.Add(&item)
 			if err != nil {
 				r.logger.Errorf("Found an item that doesn't match our search categories: %s\n", err)
 			}
 			continue
 		}
-		_ = r.Storage.SetKey(r.getUniqueIndex(&item))
-		err = r.Storage.Add(&item)
+		_ = itemStorage.SetKey(r.getUniqueIndex(&item))
+		err = itemStorage.Add(&item)
 		if err != nil {
 			r.logger.Errorf("Couldn't add item: %s\n", err)
 		}
@@ -555,6 +555,7 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 		Infof("Query returned %d results", len(results))
 	runCtx.Search.SetResults(results)
 	status.PublishSchemeStatus(r.context, generateSchemeOkStatus(r.definition, runCtx))
+	itemStorage.Close()
 	return runCtx.Search, nil
 }
 

@@ -176,10 +176,11 @@ func TestRunner_Search(t *testing.T) {
 	var foundDoc search.ExternalResultItem
 	guidQuery := indexing.NewQuery()
 	guidQuery.Put("UUID", firstDoc.UUIDValue)
-	g.Expect(runner.Storage.Find(guidQuery, &foundDoc)).To(gomega.BeNil())
+	storage := getIndexStorage(runner, cfg)
+	g.Expect(storage.Find(guidQuery, &foundDoc)).To(gomega.BeNil())
 	g.Expect(foundDoc.UUIDValue).To(gomega.Equal(firstDoc.UUIDValue))
 	g.Expect(foundDoc.ExtraFields["fieldA"]).To(gomega.Equal("sd"))
-	runner.Storage.Close()
+	storage.Close()
 
 }
 

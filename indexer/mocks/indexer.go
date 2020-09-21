@@ -8,6 +8,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	indexer "github.com/sp0x/torrentd/indexer"
 	search "github.com/sp0x/torrentd/indexer/search"
+	storage "github.com/sp0x/torrentd/storage"
 	torznab "github.com/sp0x/torrentd/torznab"
 	io "io"
 	http "net/http"
@@ -39,7 +40,7 @@ func (m *MockInfo) EXPECT() *MockInfoMockRecorder {
 
 // GetId mocks base method
 func (m *MockInfo) GetId() string {
-
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetId")
 	ret0, _ := ret[0].(string)
 	return ret0
@@ -47,13 +48,13 @@ func (m *MockInfo) GetId() string {
 
 // GetId indicates an expected call of GetId
 func (mr *MockInfoMockRecorder) GetId() *gomock.Call {
-
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetId", reflect.TypeOf((*MockInfo)(nil).GetId))
 }
 
 // GetTitle mocks base method
 func (m *MockInfo) GetTitle() string {
-
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTitle")
 	ret0, _ := ret[0].(string)
 	return ret0
@@ -61,13 +62,13 @@ func (m *MockInfo) GetTitle() string {
 
 // GetTitle indicates an expected call of GetTitle
 func (mr *MockInfoMockRecorder) GetTitle() *gomock.Call {
-
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTitle", reflect.TypeOf((*MockInfo)(nil).GetTitle))
 }
 
 // GetLanguage mocks base method
 func (m *MockInfo) GetLanguage() string {
-
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLanguage")
 	ret0, _ := ret[0].(string)
 	return ret0
@@ -75,13 +76,13 @@ func (m *MockInfo) GetLanguage() string {
 
 // GetLanguage indicates an expected call of GetLanguage
 func (mr *MockInfoMockRecorder) GetLanguage() *gomock.Call {
-
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLanguage", reflect.TypeOf((*MockInfo)(nil).GetLanguage))
 }
 
 // GetLink mocks base method
 func (m *MockInfo) GetLink() string {
-
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLink")
 	ret0, _ := ret[0].(string)
 	return ret0
@@ -89,7 +90,7 @@ func (m *MockInfo) GetLink() string {
 
 // GetLink indicates an expected call of GetLink
 func (mr *MockInfoMockRecorder) GetLink() *gomock.Call {
-
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLink", reflect.TypeOf((*MockInfo)(nil).GetLink))
 }
 
@@ -118,7 +119,7 @@ func (m *MockIndexer) EXPECT() *MockIndexerMockRecorder {
 
 // Info mocks base method
 func (m *MockIndexer) Info() indexer.Info {
-
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Info")
 	ret0, _ := ret[0].(indexer.Info)
 	return ret0
@@ -126,13 +127,27 @@ func (m *MockIndexer) Info() indexer.Info {
 
 // Info indicates an expected call of Info
 func (mr *MockIndexerMockRecorder) Info() *gomock.Call {
-
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Info", reflect.TypeOf((*MockIndexer)(nil).Info))
+}
+
+// GetDefinition mocks base method
+func (m *MockIndexer) GetDefinition() *indexer.IndexerDefinition {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDefinition")
+	ret0, _ := ret[0].(*indexer.IndexerDefinition)
+	return ret0
+}
+
+// GetDefinition indicates an expected call of GetDefinition
+func (mr *MockIndexerMockRecorder) GetDefinition() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDefinition", reflect.TypeOf((*MockIndexer)(nil).GetDefinition))
 }
 
 // Search mocks base method
 func (m *MockIndexer) Search(query *torznab.Query, srch search.Instance) (search.Instance, error) {
-
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Search", query, srch)
 	ret0, _ := ret[0].(search.Instance)
 	ret1, _ := ret[1].(error)
@@ -141,13 +156,13 @@ func (m *MockIndexer) Search(query *torznab.Query, srch search.Instance) (search
 
 // Search indicates an expected call of Search
 func (mr *MockIndexerMockRecorder) Search(query, srch interface{}) *gomock.Call {
-
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockIndexer)(nil).Search), query, srch)
 }
 
 // Download mocks base method
 func (m *MockIndexer) Download(urlStr string) (io.ReadCloser, error) {
-
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Download", urlStr)
 	ret0, _ := ret[0].(io.ReadCloser)
 	ret1, _ := ret[1].(error)
@@ -156,13 +171,13 @@ func (m *MockIndexer) Download(urlStr string) (io.ReadCloser, error) {
 
 // Download indicates an expected call of Download
 func (mr *MockIndexerMockRecorder) Download(urlStr interface{}) *gomock.Call {
-
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Download", reflect.TypeOf((*MockIndexer)(nil).Download), urlStr)
 }
 
 // Capabilities mocks base method
 func (m *MockIndexer) Capabilities() torznab.Capabilities {
-
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Capabilities")
 	ret0, _ := ret[0].(torznab.Capabilities)
 	return ret0
@@ -170,13 +185,13 @@ func (m *MockIndexer) Capabilities() torznab.Capabilities {
 
 // Capabilities indicates an expected call of Capabilities
 func (mr *MockIndexerMockRecorder) Capabilities() *gomock.Call {
-
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Capabilities", reflect.TypeOf((*MockIndexer)(nil).Capabilities))
 }
 
 // GetEncoding mocks base method
 func (m *MockIndexer) GetEncoding() string {
-
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEncoding")
 	ret0, _ := ret[0].(string)
 	return ret0
@@ -184,13 +199,13 @@ func (m *MockIndexer) GetEncoding() string {
 
 // GetEncoding indicates an expected call of GetEncoding
 func (mr *MockIndexerMockRecorder) GetEncoding() *gomock.Call {
-
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEncoding", reflect.TypeOf((*MockIndexer)(nil).GetEncoding))
 }
 
 // ProcessRequest mocks base method
 func (m *MockIndexer) ProcessRequest(req *http.Request) (*http.Response, error) {
-
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ProcessRequest", req)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
@@ -199,13 +214,13 @@ func (m *MockIndexer) ProcessRequest(req *http.Request) (*http.Response, error) 
 
 // ProcessRequest indicates an expected call of ProcessRequest
 func (mr *MockIndexerMockRecorder) ProcessRequest(req interface{}) *gomock.Call {
-
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessRequest", reflect.TypeOf((*MockIndexer)(nil).ProcessRequest), req)
 }
 
 // Open mocks base method
 func (m *MockIndexer) Open(s *search.ExternalResultItem) (io.ReadCloser, error) {
-
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Open", s)
 	ret0, _ := ret[0].(io.ReadCloser)
 	ret1, _ := ret[1].(error)
@@ -214,13 +229,13 @@ func (m *MockIndexer) Open(s *search.ExternalResultItem) (io.ReadCloser, error) 
 
 // Open indicates an expected call of Open
 func (mr *MockIndexerMockRecorder) Open(s interface{}) *gomock.Call {
-
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Open", reflect.TypeOf((*MockIndexer)(nil).Open), s)
 }
 
 // Check mocks base method
 func (m *MockIndexer) Check() error {
-
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Check")
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -228,13 +243,13 @@ func (m *MockIndexer) Check() error {
 
 // Check indicates an expected call of Check
 func (mr *MockIndexerMockRecorder) Check() *gomock.Call {
-
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockIndexer)(nil).Check))
 }
 
 // MaxSearchPages mocks base method
 func (m *MockIndexer) MaxSearchPages() uint {
-
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MaxSearchPages")
 	ret0, _ := ret[0].(uint)
 	return ret0
@@ -242,13 +257,13 @@ func (m *MockIndexer) MaxSearchPages() uint {
 
 // MaxSearchPages indicates an expected call of MaxSearchPages
 func (mr *MockIndexerMockRecorder) MaxSearchPages() *gomock.Call {
-
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaxSearchPages", reflect.TypeOf((*MockIndexer)(nil).MaxSearchPages))
 }
 
 // SearchIsSinglePaged mocks base method
 func (m *MockIndexer) SearchIsSinglePaged() bool {
-
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchIsSinglePaged")
 	ret0, _ := ret[0].(bool)
 	return ret0
@@ -256,6 +271,18 @@ func (m *MockIndexer) SearchIsSinglePaged() bool {
 
 // SearchIsSinglePaged indicates an expected call of SearchIsSinglePaged
 func (mr *MockIndexerMockRecorder) SearchIsSinglePaged() *gomock.Call {
-
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchIsSinglePaged", reflect.TypeOf((*MockIndexer)(nil).SearchIsSinglePaged))
+}
+
+// SetStorage mocks base method
+func (m *MockIndexer) SetStorage(storage storage.ItemStorage) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetStorage", storage)
+}
+
+// SetStorage indicates an expected call of SetStorage
+func (mr *MockIndexerMockRecorder) SetStorage(storage interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetStorage", reflect.TypeOf((*MockIndexer)(nil).SetStorage), storage)
 }
