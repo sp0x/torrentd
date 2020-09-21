@@ -21,6 +21,7 @@ type Info interface {
 //go:generate mockgen -source indexer.go -destination=mocks/indexer.go -package=mocks
 type Indexer interface {
 	Info() Info
+	GetDefinition() *IndexerDefinition
 	Search(query *torznab.Query, srch search.Instance) (search.Instance, error)
 	Download(urlStr string) (io.ReadCloser, error)
 	Capabilities() torznab.Capabilities
@@ -33,4 +34,5 @@ type Indexer interface {
 	//The maximum number of pages we can search
 	MaxSearchPages() uint
 	SearchIsSinglePaged() bool
+	//SetStorage(storage storage.ItemStorage)
 }

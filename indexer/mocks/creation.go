@@ -37,7 +37,7 @@ func (m *MockScope) EXPECT() *MockScopeMockRecorder {
 
 // Lookup mocks base method
 func (m *MockScope) Lookup(config config.Config, key string) (indexer.Indexer, error) {
-
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Lookup", config, key)
 	ret0, _ := ret[0].(indexer.Indexer)
 	ret1, _ := ret[1].(error)
@@ -46,13 +46,13 @@ func (m *MockScope) Lookup(config config.Config, key string) (indexer.Indexer, e
 
 // Lookup indicates an expected call of Lookup
 func (mr *MockScopeMockRecorder) Lookup(config, key interface{}) *gomock.Call {
-
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Lookup", reflect.TypeOf((*MockScope)(nil).Lookup), config, key)
 }
 
 // CreateAggregateForCategories mocks base method
 func (m *MockScope) CreateAggregateForCategories(config config.Config, cats []categories.Category) (indexer.Indexer, error) {
-
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAggregateForCategories", config, cats)
 	ret0, _ := ret[0].(indexer.Indexer)
 	ret1, _ := ret[1].(error)
@@ -61,6 +61,21 @@ func (m *MockScope) CreateAggregateForCategories(config config.Config, cats []ca
 
 // CreateAggregateForCategories indicates an expected call of CreateAggregateForCategories
 func (mr *MockScopeMockRecorder) CreateAggregateForCategories(config, cats interface{}) *gomock.Call {
-
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAggregateForCategories", reflect.TypeOf((*MockScope)(nil).CreateAggregateForCategories), config, cats)
+}
+
+// CreateAggregate mocks base method
+func (m *MockScope) CreateAggregate(config config.Config) (indexer.Indexer, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateAggregate", config)
+	ret0, _ := ret[0].(indexer.Indexer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateAggregate indicates an expected call of CreateAggregate
+func (mr *MockScopeMockRecorder) CreateAggregate(config interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAggregate", reflect.TypeOf((*MockScope)(nil).CreateAggregate), config)
 }

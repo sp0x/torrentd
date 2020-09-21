@@ -68,11 +68,13 @@ func Watch(facade *Facade, initialQuery *torznab.Query, intervalSec int) <-chan 
 				currentSearch, err = facade.Search(currentSearch, initialQuery)
 			}
 			if err != nil {
-				time.Sleep(time.Second * time.Duration(intervalSec))
 				switch err.(type) {
 				case *LoginError:
 					return
+				default:
+					log.Warnf("search error: %v\n", err)
 				}
+				time.Sleep(time.Second * time.Duration(intervalSec))
 			}
 			if currentSearch == nil {
 				log.Warningf("Could not fetch page: %d\n", initialQuery.Page)

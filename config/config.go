@@ -38,15 +38,16 @@ func init() {
 }
 
 func GetDefinitionDirs() []string {
-	dirs := []string{}
+	var dirs []string
 	if cwd, err := os.Getwd(); err == nil {
 		dirs = append(dirs, filepath.Join(cwd, "definitions"))
 	}
 	home, _ := homedir.Dir()
-	homeDefsDir := path.Join(home, "."+appname, "definitions")
+	homeDefsDir := filepath.FromSlash(path.Join(home, "."+appname, "definitions"))
 
 	dirs = append(dirs, homeDefsDir)
 	if configDir := os.Getenv("CONFIG_DIR"); configDir != "" {
+		configDir = filepath.FromSlash(configDir)
 		dirs = append(dirs, filepath.Join(configDir, "definitions"))
 	}
 

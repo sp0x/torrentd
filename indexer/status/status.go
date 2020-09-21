@@ -7,7 +7,6 @@ import (
 	"github.com/lileio/pubsub/middleware/defaults"
 	"github.com/lileio/pubsub/providers/google"
 	log "github.com/sirupsen/logrus"
-	"os"
 )
 
 const schemeTopic = "scrapescheme"
@@ -33,9 +32,9 @@ type SchemeErrorMessage struct {
 func SetupPubsub(projectId string) {
 	provider, err := google.NewGoogleCloud(projectId)
 	if err != nil {
-		log.Errorf("%v", err)
-		fmt.Printf("couldn't initialize google pubsub provider")
-		os.Exit(1)
+		log.Errorf("%v\n", err)
+		fmt.Printf("couldn't initialize google pubsub provider. status will not be published\n")
+		return
 	}
 	//Service credentials exposed through: GOOGLE_APPLICATION_CREDENTIALS
 	pubsub.SetClient(&pubsub.Client{

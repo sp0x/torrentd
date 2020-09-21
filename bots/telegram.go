@@ -40,7 +40,8 @@ func NewTelegram(token string, cfg config.Config, provider TelegramProvider) (*T
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 	storageType := cfg.GetString("storage")
 	if storageType == "" {
-		panic("no storage type configured")
+		storageType = "boltdb"
+		//panic("no storage type configured")
 	}
 	telegram.storage = storage.NewBuilder().
 		WithNamespace("__chats_telegram").

@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	noIndexError = "no index configured"
+	noIndexError = "no index configured. you have to pick an index"
 )
 
 //Facade for an indexer/aggregate, helps manage the scope of the index, it's configuration and the index itself.
