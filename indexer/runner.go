@@ -500,9 +500,9 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 	r.logger.
 		WithFields(logrus.Fields{}).
 		Debugf("Fetched Indexer page.\n")
-	if r.browser.State() == nil {
-		return nil, errors.New("browser has no state")
-	}
+	//if r.browser.State() == nil {
+	//	return nil, errors.New("browser has no state")
+	//}
 	dom := r.browser.Dom()
 	if dom == nil {
 		return nil, errors.New("DOM was nil")

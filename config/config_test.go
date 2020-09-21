@@ -4,6 +4,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"os"
 	"path"
+	"path/filepath"
 	"reflect"
 	"testing"
 )
@@ -13,9 +14,9 @@ func TestGetCachePath(t *testing.T) {
 
 func TestGetDefinitionDirs(t *testing.T) {
 	home, _ := homedir.Dir()
-	homeDefs := path.Join(home, ".torrentd", "definitions")
+	homeDefs := filepath.FromSlash(path.Join(home, ".torrentd", "definitions"))
 	pwd, _ := os.Getwd()
-	pwdDefs := path.Join(pwd, "definitions")
+	pwdDefs := filepath.FromSlash(path.Join(pwd, "definitions"))
 	tests := []struct {
 		name string
 		want []string
