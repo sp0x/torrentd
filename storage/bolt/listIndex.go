@@ -172,6 +172,27 @@ func (ix *ListIndex) All(indexValue []byte, opts *indexing.CursorOptions) [][]by
 	return results
 }
 
+func (ix *ListIndex) GoOverCursor(action func(id []byte), opts *indexing.CursorOptions) {
+	c := ReversibleCursor{C: ix.IndexBucket.Cursor(), Reverse: opts != nil && opts.Reverse}
+
+	for k, id := c.First(); k != nil; k, id = c.Next() {
+		if id == nil || bytes.Equal(k, []byte("__ids")) {
+			continue
+		}
+		if opts != nil && opts.Skip > 0 {
+			opts.Skip--
+			continue
+		}
+		if opts != nil && opts.Limit == 0 {
+			break
+		}
+		if opts != nil && opts.Limit > 0 {
+			opts.Limit--
+		}
+		action(id)
+	}
+}
+
 // AllRecords returns all the IDs of this index
 func (ix *ListIndex) AllRecords(opts *indexing.CursorOptions) [][]byte {
 	var list [][]byte

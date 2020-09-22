@@ -126,6 +126,27 @@ func (ix *UniqueIndex) AllWithPrefix(prefix []byte, ops *indexing.CursorOptions)
 	return scanCursor(c, ops)
 }
 
+func (ix *UniqueIndex) GoOverCursor(action func(id []byte), opts *indexing.CursorOptions) {
+	c := &PrefixCursor{
+		C:       ix.IndexBucket.Cursor(),
+		Reverse: opts != nil && opts.Reverse,
+		Prefix:  nil,
+	}
+	for value, id := c.First(); value != nil && c.CanContinue(value); value, id = c.Next() {
+		if opts != nil && opts.Skip > 0 {
+			opts.Skip--
+			continue
+		}
+		if opts != nil && opts.Limit == 0 {
+			break
+		}
+		if opts != nil && opts.Limit > 0 {
+			opts.Limit--
+		}
+		action(id)
+	}
+}
+
 func scanCursor(c indexing.Cursor, ops *indexing.CursorOptions) [][]byte {
 	var results [][]byte
 	for value, id := c.First(); value != nil && c.CanContinue(value); value, id = c.Next() {

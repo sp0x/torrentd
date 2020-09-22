@@ -12,10 +12,12 @@ type Index interface {
 	Add(value []byte, targetID []byte) error
 	Remove(value []byte) error
 	RemoveById(id []byte) error
-	Get(value []byte) []byte
-	All(value []byte, opts *CursorOptions) [][]byte
+	Get(indexValue []byte) []byte
+	// All returns all the IDs corresponding to the given index value.
+	All(indexValue []byte, opts *CursorOptions) [][]byte
 	AllRecords(opts *CursorOptions) [][]byte
 	Range(min []byte, max []byte, opts *CursorOptions) [][]byte
+	GoOverCursor(action func(id []byte), opts *CursorOptions)
 	//	AllWithPrefix(prefix []byte, opts *CursorOptions) ([][]byte)
 }
 

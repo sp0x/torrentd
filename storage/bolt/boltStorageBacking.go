@@ -18,6 +18,12 @@ import (
 	"time"
 )
 
+/**
+Storage scheme:
+bucket:
+ - index(unique/non)
+	- items
+*/
 const (
 	resultsBucket = "results"
 )
@@ -188,13 +194,13 @@ func (b *BoltStorage) Update(query indexing.Query, item interface{}) error {
 		if err != nil {
 			return err
 		}
-		idx, err := b.GetIndexFromQuery(bucket, query)
+		queryIndex, err := b.GetIndexFromQuery(bucket, query)
 		if err != nil {
 			return err
 		}
 		indexValue := indexing.GetIndexValueFromQuery(query)
 		//Fetch the ID from the index
-		ids := idx.All(indexValue, indexing.SingleItemCursor())
+		ids := queryIndex.All(indexValue, indexing.SingleItemCursor())
 		//Serialize the item
 		serializedValue, err := b.marshaler.Marshal(item)
 		if err != nil {
@@ -250,8 +256,8 @@ func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item search.Record, u
 		if err != nil {
 			return err
 		}
-		//We get the pkIndex that we'll use
-		pkIndex, err := b.GetUniqueIndexFromKeys(bucket, keyParts)
+		//We get the primaryIndex that we'll use
+		primaryIndex, err := b.GetUniqueIndexFromKeys(bucket, keyParts)
 		if err != nil {
 			return err
 		}
@@ -276,8 +282,8 @@ func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item search.Record, u
 		if err != nil {
 			return err
 		}
-		//Save the pkIndex for the id of the result.
-		err = pkIndex.Add(indexValue, idBytes)
+		//Save the primaryIndex for the id of the result.
+		err = primaryIndex.Add(indexValue, idBytes)
 		if err != nil {
 			return err
 		}
@@ -334,20 +340,26 @@ func (b *BoltStorage) GetNewest(count int) []search.ExternalResultItem {
 	var output []search.ExternalResultItem
 	_ = b.Database.View(func(tx *bolt.Tx) error {
 		bucket := b.GetBucket(tx, resultsBucket)
-		cursor := ReversibleCursor{C: bucket.Cursor(), Reverse: true}
+		index, err := b.GetUniqueIndexFromKeys(bucket, indexing.NewKey("LocalId"))
+		if err != nil {
+			return err
+		}
 		itemsFetched := 0
-		for _, val := cursor.First(); cursor.CanContinue(val); _, val = cursor.Next() {
+		index.GoOverCursor(func(id []byte) {
 			if itemsFetched == count {
-				break
+				return
 			}
+			val := index.Get(id)
+
 			newItem := search.ExternalResultItem{}
 			if err := b.marshaler.UnmarshalAt(val, &newItem); err != nil {
 				log.Warning("Couldn't deserialize item from bolt storage.")
-				continue
+				return
 			}
 			output = append(output, newItem)
 			itemsFetched++
-		}
+		}, &indexing.CursorOptions{Reverse: true})
+
 		return nil
 	})
 	return output

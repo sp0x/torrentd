@@ -18,6 +18,7 @@ func (s *Server) status(c *gin.Context) {
 			WithRecord(&search.ExternalResultItem{}).
 			Build()
 		latest := store.GetNewest(10)
+		store.Close()
 		var latestNames []string
 		for _, late := range latest {
 			latestNames = append(latestNames, late.Title)
