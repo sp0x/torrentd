@@ -88,8 +88,12 @@ func (b *Builder) Build() ItemStorage {
 		}
 		backing = storageResolverFunc(b)
 	}
+	key := b.primaryKey
+	if key == nil {
+		key = &indexing.Key{}
+	}
 	return &KeyedStorage{
-		primaryKey:     *b.primaryKey,
+		primaryKey:     *key,
 		backing:        backing,
 		indexKeysCache: make(map[string]interface{}),
 	}
