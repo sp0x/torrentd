@@ -27,9 +27,8 @@ type FirestoreStorage struct {
 
 const (
 	resultsCollection = "results"
-	//metaCollection    = "meta"
-	metaDocId  = "__meta"
-	counterDoc = "__count"
+	metaDoc           = "meta"
+	counterDoc        = "__count"
 )
 
 //NewFirestoreStorage creates a new firestore backed storage
@@ -74,6 +73,10 @@ func (f *FirestoreStorage) Close() {
 
 func (f *FirestoreStorage) HasIndex(meta *indexing.IndexMetadata) bool {
 	return false
+}
+
+func (f *FirestoreStorage) GetIndexes() map[string]indexing.IndexMetadata {
+	return nil
 }
 
 func (f *FirestoreStorage) Find(query indexing.Query, result interface{}) error {
@@ -187,7 +190,7 @@ func (f *FirestoreStorage) CreateWithId(key *indexing.Key, item search.Record, u
 //Size is the size of the storage, as in records count
 func (f *FirestoreStorage) Size() int64 {
 	collection := f.getCollection()
-	doc, err := collection.Doc(metaDocId).Get(f.context)
+	doc, err := collection.Doc(metaDoc).Get(f.context)
 	if err != nil {
 		return -1
 	}

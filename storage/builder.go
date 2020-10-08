@@ -110,6 +110,7 @@ func init() {
 			fmt.Printf("Couldn't construct boltdb storage.")
 			os.Exit(1)
 		}
+		//Set to the namespace of the builder(this may be the index)
 		b.SetNamespace(builder.namespace)
 
 		return b
