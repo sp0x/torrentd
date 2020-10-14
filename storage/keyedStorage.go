@@ -26,8 +26,8 @@ func (s *KeyedStorage) Close() {
 	s.backing.Close()
 }
 
-func (s *KeyedStorage) GetNewest(count int) []search.ExternalResultItem {
-	return s.backing.GetNewest(count)
+func (s *KeyedStorage) GetLatest(count int) []search.ExternalResultItem {
+	return s.backing.GetLatest(count)
 }
 
 func (s *KeyedStorage) Size() int64 {

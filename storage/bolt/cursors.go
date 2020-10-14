@@ -5,6 +5,47 @@ import (
 	"github.com/boltdb/bolt"
 )
 
+type FilteredCursor struct {
+	C       *bolt.Cursor
+	Filters []func([]byte, []byte) bool
+}
+
+func shouldSkip(fc *FilteredCursor, id []byte, value []byte) bool {
+	for _, filter := range fc.Filters {
+		isFiltered := filter(id, value)
+		if isFiltered {
+			return true
+		}
+	}
+	return false
+}
+
+func (c *FilteredCursor) First() ([]byte, []byte) {
+	id, value := c.C.First()
+	for true {
+		if !shouldSkip(c, id, value) {
+			break
+		}
+		id, value = c.Next()
+	}
+	return id, value
+}
+
+func (c *FilteredCursor) Next() ([]byte, []byte) {
+	id, value := c.C.Next()
+	for true {
+		if !shouldSkip(c, id, value) {
+			break
+		}
+		id, value = c.Next()
+	}
+	return id, value
+}
+
+func (c *FilteredCursor) CanContinue(val []byte) bool {
+	return val != nil
+}
+
 type ReversibleCursor struct {
 	C       *bolt.Cursor
 	Reverse bool

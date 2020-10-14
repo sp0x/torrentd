@@ -27,10 +27,8 @@ bucket:
  - __meta: indexes information
 */
 const (
-	resultsBucket         = "results"
-	latestResultsBucket   = "results.latest"
-	latestResultsIndexKey = "__index"
-	metaBucket            = "__meta"
+	resultsBucket = "results"
+	metaBucket    = "__meta"
 )
 
 var categoriesInitialized = false
@@ -46,9 +44,7 @@ func ensurePathExists(dbPath string) {
 	if dbPath == "" {
 		return
 	}
-	//if !strings.HasSuffix(dbPath, ".db") && !strings.HasSuffix(dbPath, "/") {
-	//	dbPath += "/"
-	//}
+
 	dirPath := path.Dir(dbPath)
 	_ = os.MkdirAll(dirPath, os.ModePerm)
 }
@@ -244,24 +240,6 @@ func (b *BoltStorage) Create(item search.Record, additionalPK *indexing.Key) err
 	})
 }
 
-func (b *BoltStorage) updateLatestResults(tx *bolt.Tx, item search.Record) error {
-	//TODO:
-	// - get the count of results in latest results
-	// - get the index(0-20) of the document that should be added
-	// - save the document
-	bucket, err := b.assertBucket(tx, latestResultsBucket)
-	if err != nil {
-		return err
-	}
-	indexValue := bucket.Get(latestResultsIndexKey)
-	serializedValue, err := b.marshaler.Marshal(item)
-	if err != nil {
-		return err
-	}
-	err = bucket.Put(idBytes, serializedValue)
-	return nil
-}
-
 //CreateWithId a new record for a result.
 //The key is used if you have a custom object that uses a different key, not the UUIDValue
 func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item search.Record, uniqueIndexKeys *indexing.Key) error {
@@ -366,45 +344,28 @@ func goOverBucket(buck *bolt.Bucket) {
 	}
 }
 
-//GetNewest gets the newest results for all the indexes
-func (b *BoltStorage) GetNewest(count int) []search.ExternalResultItem {
+//GetLatest gets the newest results for all the indexes
+func (b *BoltStorage) GetLatest(count int) []search.ExternalResultItem {
 	var output []search.ExternalResultItem
-	//TODO: Use new Structure:
-	// - results (all indexes)
-	// - searchResults(includes: categories)
-	// - <index Name / zamunda>
-	//  - items: records, indexes
 
-	//indexes := b.GetIndexes()
-	//if indexes == nil{
-	//	return nil
-	//}
 	_ = b.Database.View(func(tx *bolt.Tx) error {
-		bucket := b.GetRootBucket(tx, latestResultsBucket)
-		if bucket == nil {
-			return nil
-		}
-		goOverBucket(bucket)
-		index, err := b.GetUniqueIndexFromKeys(bucket, indexing.NewKey("LocalId"))
+		cursor, err := b.getLatestResultsCursor(tx)
 		if err != nil {
 			return err
 		}
 		itemsFetched := 0
-		index.GoOverCursor(func(id []byte) {
-			if itemsFetched == count {
-				return
-			}
-			val := index.Get(id)
-
+		for _, value := cursor.First(); value != nil && cursor.CanContinue(value); _, value = cursor.Next() {
 			newItem := search.ExternalResultItem{}
-			if err := b.marshaler.UnmarshalAt(val, &newItem); err != nil {
+			if err := b.marshaler.UnmarshalAt(value, &newItem); err != nil {
 				log.Warning("Couldn't deserialize item from bolt storage.")
-				return
+				break
 			}
 			output = append(output, newItem)
 			itemsFetched++
-		}, nil)
-
+			if itemsFetched == count {
+				break
+			}
+		}
 		return nil
 	})
 	return output
@@ -473,20 +434,8 @@ func (b *BoltStorage) assertNamespaceBucket(tx *bolt.Tx, name string) (*bolt.Buc
 
 // GetBucket returns the given bucket. You can use an array of strings for sub-buckets.
 func (b *BoltStorage) GetBucket(tx *bolt.Tx, children ...string) *bolt.Bucket {
-	var bucket *bolt.Bucket
 	bucketNamespace := append(b.rootBucket, children...)
-	for _, bucketName := range bucketNamespace {
-		if bucket != nil {
-			if bucket = bucket.Bucket([]byte(bucketName)); b == nil {
-				return nil
-			}
-		} else {
-			if bucket = tx.Bucket([]byte(bucketName)); b == nil {
-				return nil
-			}
-		}
-	}
-	return bucket
+	return b.GetRootBucket(tx, bucketNamespace...)
 }
 
 func (b *BoltStorage) GetRootBucket(tx *bolt.Tx, children ...string) *bolt.Bucket {

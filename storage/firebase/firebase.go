@@ -198,8 +198,8 @@ func (f *FirestoreStorage) Size() int64 {
 	return int64(size.(int))
 }
 
-//GetNewest returns the latest `count` of records.
-func (f *FirestoreStorage) GetNewest(count int) []search.ExternalResultItem {
+//GetLatest returns the latest `count` of records.
+func (f *FirestoreStorage) GetLatest(count int) []search.ExternalResultItem {
 	var output []search.ExternalResultItem
 	collection := f.getCollection()
 	iter := collection.OrderBy("ID", firestore.Desc).Limit(count).Documents(f.context)

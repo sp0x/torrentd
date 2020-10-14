@@ -17,7 +17,7 @@ func (s *Server) status(c *gin.Context) {
 		store := storage.NewBuilder().
 			WithRecord(&search.ExternalResultItem{}).
 			Build()
-		latest := store.GetNewest(10)
+		latest := store.GetLatest(10)
 		store.Close()
 		var latestNames []string
 		for _, late := range latest {
