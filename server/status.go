@@ -13,11 +13,11 @@ var statusCache, _ = cache.NewTTL(10, 3*time.Minute)
 func (s *Server) status(c *gin.Context) {
 	var statusObj interface{}
 	//If we don't have it in the cache
-	if !statusCache.Contains("status") {
+	if true || !statusCache.Contains("status") {
 		store := storage.NewBuilder().
 			WithRecord(&search.ExternalResultItem{}).
 			Build()
-		latest := store.GetNewest(10)
+		latest := store.GetLatest(10)
 		store.Close()
 		var latestNames []string
 		for _, late := range latest {

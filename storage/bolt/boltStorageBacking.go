@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/boltdb/bolt"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer/categories"
@@ -21,11 +22,13 @@ import (
 /**
 Storage scheme:
 bucket:
- - index(unique/non)
-	- items
+ - indexes(unique/non): bucket of IDs
+ - items
+ - __meta: indexes information
 */
 const (
 	resultsBucket = "results"
+	metaBucket    = "__meta"
 )
 
 var categoriesInitialized = false
@@ -41,9 +44,7 @@ func ensurePathExists(dbPath string) {
 	if dbPath == "" {
 		return
 	}
-	//if !strings.HasSuffix(dbPath, ".db") && !strings.HasSuffix(dbPath, "/") {
-	//	dbPath += "/"
-	//}
+
 	dirPath := path.Dir(dbPath)
 	_ = os.MkdirAll(dirPath, os.ModePerm)
 }
@@ -82,10 +83,6 @@ func GetBoltDb(file string) (*bolt.DB, error) {
 			return err
 		}
 
-		//_, err = tx.CreateBucketIfNotExists([]byte("telegram_chats"))
-		//if err != nil {
-		//	return err
-		//}
 		//CreateWithId all of our categories
 		if !categoriesInitialized {
 			for _, cat := range categories.AllCategories {
@@ -190,7 +187,7 @@ func (b *BoltStorage) Update(query indexing.Query, item interface{}) error {
 		return errors.New("query is required")
 	}
 	return b.Database.Update(func(tx *bolt.Tx) error {
-		bucket, err := b.createBucketIfItDoesntExist(tx, resultsBucket)
+		bucket, err := b.assertNamespaceBucket(tx, resultsBucket)
 		if err != nil {
 			return err
 		}
@@ -227,7 +224,7 @@ func (b *BoltStorage) Create(item search.Record, additionalPK *indexing.Key) err
 	indexValue := indexing.GetIndexValueFromItem(additionalPK, item)
 	//We need add a new index: additionalPK -> UUIDValue
 	return b.Database.Update(func(tx *bolt.Tx) error {
-		bucket, err := b.createBucketIfItDoesntExist(tx, resultsBucket)
+		bucket, err := b.assertNamespaceBucket(tx, resultsBucket)
 		if err != nil {
 			return err
 		}
@@ -252,7 +249,7 @@ func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item search.Record, u
 		uniqueIndexValue = []byte("\000;\000")
 	}
 	return b.Database.Update(func(tx *bolt.Tx) error {
-		bucket, err := b.createBucketIfItDoesntExist(tx, resultsBucket)
+		bucket, err := b.assertNamespaceBucket(tx, resultsBucket)
 		if err != nil {
 			return err
 		}
@@ -300,7 +297,10 @@ func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item search.Record, u
 		if uniqueIndex != nil {
 			err = uniqueIndex.Add(uniqueIndexValue, idBytes)
 		}
-		return err
+		if err != nil {
+			return nil
+		}
+		return b.updateLatestResults(tx, item)
 	})
 }
 
@@ -309,7 +309,7 @@ func (b *BoltStorage) Size() int64 {
 	count = new(int)
 	*count = 0
 	_ = b.Database.View(func(tx *bolt.Tx) error {
-		bucket, err := b.createBucketIfItDoesntExist(tx, resultsBucket)
+		bucket, err := b.assertNamespaceBucket(tx, resultsBucket)
 		if err != nil {
 			return err
 		}
@@ -336,30 +336,36 @@ func (b *BoltStorage) ForEach(callback func(record interface{})) {
 	})
 }
 
-func (b *BoltStorage) GetNewest(count int) []search.ExternalResultItem {
+func goOverBucket(buck *bolt.Bucket) {
+	cursor := buck.Cursor()
+	for id, val := cursor.First(); id != nil; id, val = cursor.Next() {
+		spew.Dump(id)
+		spew.Dump(val)
+	}
+}
+
+//GetLatest gets the newest results for all the indexes
+func (b *BoltStorage) GetLatest(count int) []search.ExternalResultItem {
 	var output []search.ExternalResultItem
+
 	_ = b.Database.View(func(tx *bolt.Tx) error {
-		bucket := b.GetBucket(tx, resultsBucket)
-		index, err := b.GetUniqueIndexFromKeys(bucket, indexing.NewKey("LocalId"))
+		cursor, err := b.getLatestResultsCursor(tx)
 		if err != nil {
 			return err
 		}
 		itemsFetched := 0
-		index.GoOverCursor(func(id []byte) {
-			if itemsFetched == count {
-				return
-			}
-			val := index.Get(id)
-
+		for _, value := cursor.First(); value != nil && cursor.CanContinue(value); _, value = cursor.Next() {
 			newItem := search.ExternalResultItem{}
-			if err := b.marshaler.UnmarshalAt(val, &newItem); err != nil {
+			if err := b.marshaler.UnmarshalAt(value, &newItem); err != nil {
 				log.Warning("Couldn't deserialize item from bolt storage.")
-				return
+				break
 			}
 			output = append(output, newItem)
 			itemsFetched++
-		}, &indexing.CursorOptions{Reverse: true})
-
+			if itemsFetched == count {
+				break
+			}
+		}
 		return nil
 	})
 	return output
@@ -370,7 +376,7 @@ func (b *BoltStorage) GetNewest(count int) []search.ExternalResultItem {
 //func (b *BoltStorage) StoreChat(chat *Chat) error {
 //	//	defer db.Close()
 //	err := b.Database.Update(func(tx *bolt.Tx) error {
-//		bucket, err := b.createBucketIfItDoesntExist(tx, resultsBucket)
+//		bucket, err := b.assertNamespaceBucket(tx, resultsBucket)
 //		if err != nil {
 //			return err
 //		}
@@ -389,19 +395,18 @@ func DefaultBoltPath() string {
 	return path.Join(cwd, "db", "bolt.db")
 }
 
-//createBucketIfItDoesntExist creates a new bucket by it's name if it doesn't exist
-func (b *BoltStorage) createBucketIfItDoesntExist(tx *bolt.Tx, name string) (*bolt.Bucket, error) {
+//assertBucket makes sure a bucket exists, in the given path
+func (b *BoltStorage) assertBucket(tx *bolt.Tx, fullName ...string) (*bolt.Bucket, error) {
 	if tx == nil || !tx.Writable() {
 		return nil, errors.New("transaction is nil or not writable")
 	}
-	if name == "" {
+	if fullName == nil {
 		return nil, errors.New("bucket name is required")
 	}
 	var bucket *bolt.Bucket
 	var err error
-	bucketNames := append(b.rootBucket, name)
 	//Make sure we keep our bucket structure correct.
-	for _, bucketName := range bucketNames {
+	for _, bucketName := range fullName {
 		if bucket != nil {
 			if bucket, err = bucket.CreateBucketIfNotExists([]byte(bucketName)); err != nil {
 				return nil, err
@@ -415,11 +420,28 @@ func (b *BoltStorage) createBucketIfItDoesntExist(tx *bolt.Tx, name string) (*bo
 	return bucket, nil
 }
 
+//assertNamespaceBucket creates a new bucket by it's name if it doesn't exist, in the preset namespace
+func (b *BoltStorage) assertNamespaceBucket(tx *bolt.Tx, name string) (*bolt.Bucket, error) {
+	if tx == nil || !tx.Writable() {
+		return nil, errors.New("transaction is nil or not writable")
+	}
+	if name == "" {
+		return nil, errors.New("bucket name is required")
+	}
+	bucketNames := append(b.rootBucket, name)
+	return b.assertBucket(tx, bucketNames...)
+}
+
 // GetBucket returns the given bucket. You can use an array of strings for sub-buckets.
 func (b *BoltStorage) GetBucket(tx *bolt.Tx, children ...string) *bolt.Bucket {
+	bucketNamespace := append(b.rootBucket, children...)
+	return b.GetRootBucket(tx, bucketNamespace...)
+}
+
+func (b *BoltStorage) GetRootBucket(tx *bolt.Tx, children ...string) *bolt.Bucket {
 	var bucket *bolt.Bucket
-	bucketNames := append(b.rootBucket, children...)
-	for _, bucketName := range bucketNames {
+	bucketNamespace := children
+	for _, bucketName := range bucketNamespace {
 		if bucket != nil {
 			if bucket = bucket.Bucket([]byte(bucketName)); b == nil {
 				return nil
@@ -558,8 +580,13 @@ func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) erro
 	return nil
 }
 
+//Set the root namespace
 func (b *BoltStorage) SetNamespace(namespace string) {
 	b.rootBucket = []string{namespace}
+}
+
+func (b *BoltStorage) loadGlobalMetadata(bucket *bolt.Bucket) {
+
 }
 
 func GetItemKey(item search.ExternalResultItem) ([]byte, error) {

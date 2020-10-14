@@ -160,7 +160,7 @@ func (d *DBStorage) GetOlderThanHours(h int) []search.ExternalResultItem {
 	return torrents
 }
 
-//GetNewest gets the CNT latest results.
+//GetLatest gets the CNT latest results.
 func (d *DBStorage) GetNewest(cnt int) []search.ExternalResultItem {
 	gdb := db.GetOrmDb(d.Path)
 	defer func() {
