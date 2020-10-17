@@ -4,13 +4,14 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/categories"
+	"strings"
 )
 
 //go:generate mockgen -source creation.go -destination=mocks/creation.go -package=mocks
 type Scope interface {
 	Lookup(config config.Config, key string) (Indexer, error)
 	CreateAggregateForCategories(config config.Config, cats []categories.Category) (Indexer, error)
-	CreateAggregate(config config.Config) (Indexer, error)
+	CreateAggregate(config config.Config, indexerKey string) (Indexer, error)
 }
 
 type CachedScope struct {
@@ -24,6 +25,10 @@ func NewScope() Scope {
 	return sc
 }
 
+func isAggregate(indexName string) bool {
+	return indexName == "" || indexName == "aggregate" || indexName == "all" || strings.Contains(indexName, ",")
+}
+
 //Lookup finds the matching Indexer.
 func (c *CachedScope) Lookup(config config.Config, key string) (Indexer, error) {
 	//If we already have that indexer running, we don't create a new one.
@@ -31,8 +36,8 @@ func (c *CachedScope) Lookup(config config.Config, key string) (Indexer, error) 
 		var indexer Indexer
 		var err error
 		//If we're looking up an aggregate indexer, we just create an aggregate
-		if key == "aggregate" || key == "all" {
-			indexer, err = c.CreateAggregate(config)
+		if isAggregate(key) {
+			indexer, err = c.CreateAggregate(config, key)
 		} else {
 			indexer, err = CreateIndexer(config, key)
 		}
@@ -67,14 +72,22 @@ func (c *CachedScope) CreateAggregateForCategories(config config.Config, cats []
 
 //CreateAggregate creates an aggregate of all the valid configured indexers
 //this includes indexers that don't need a login.
-func (c *CachedScope) CreateAggregate(config config.Config) (Indexer, error) {
-	keys, err := Loader.List()
+func (c *CachedScope) CreateAggregate(config config.Config, indexerKey string) (Indexer, error) {
+	indexKeys := strings.Split(indexerKey, ",")
+	shouldLoadAll := len(indexKeys) == 1
+	var keysToLoad []string = nil
+	var err error
+	if shouldLoadAll {
+		keysToLoad, err = Loader.List()
+	} else {
+		keysToLoad, err = Loader.ListWithNames(indexKeys)
+	}
 	if err != nil {
 		return nil, err
 	}
 
 	result := &Aggregate{}
-	for _, key := range keys {
+	for _, key := range keysToLoad {
 		//Get the site configuration, we only use configured indexers
 		ifaceConfig, _ := config.GetSite(key) //Get all the configured indexers
 		if ifaceConfig != nil {

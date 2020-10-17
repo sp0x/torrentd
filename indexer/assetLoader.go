@@ -58,6 +58,20 @@ func (l *AssetLoader) List() ([]string, error) {
 	return results, nil
 }
 
+func (l *AssetLoader) ListWithNames(names []string) ([]string, error) {
+	var results []string
+	for _, name := range l.Names {
+		if !contains(names, name) {
+			continue
+		}
+		fname := path.Base(name)
+		fname = strings.Replace(fname, ".yml", "", -1)
+		fname = strings.Replace(fname, ".yaml", "", -1)
+		results = append(results, fname)
+	}
+	return results, nil
+}
+
 //Load a definition with a given name
 func (l *AssetLoader) Load(key string) (*IndexerDefinition, error) {
 	data, err := l.Resolver(key)

@@ -73,6 +73,21 @@ func (fs *FileIndexLoader) List() ([]string, error) {
 	return results, nil
 }
 
+func (fs *FileIndexLoader) ListWithNames(names []string) ([]string, error) {
+	defs, err := fs.walkDirectories()
+	if err != nil {
+		return nil, err
+	}
+	var results []string
+	for k := range defs {
+		if !contains(names, k) {
+			continue
+		}
+		results = append(results, k)
+	}
+	return results, nil
+}
+
 func (fs *FileIndexLoader) String() string {
 	buff := ""
 	defs := fs.Directories

@@ -16,6 +16,44 @@ func defaultMultiLoader() *MultipleDefinitionLoader {
 	}
 }
 
+func (ml MultipleDefinitionLoader) ListWithNames(names []string) ([]string, error) {
+	allResults := map[string]struct{}{}
+
+	for _, loader := range ml {
+		result, err := loader.List()
+		if err != nil {
+			return nil, err
+		}
+		for _, val := range result {
+			if !(contains(names, val)) {
+				continue
+			}
+			allResults[val] = struct{}{}
+		}
+	}
+
+	var results []string
+
+	for key := range allResults {
+		if !(contains(names, key)) {
+			continue
+		}
+		results = append(results, key)
+	}
+
+	sort.Sort(sort.StringSlice(results))
+	return results, nil
+}
+
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
 func (ml MultipleDefinitionLoader) List() ([]string, error) {
 	allResults := map[string]struct{}{}
 
@@ -29,7 +67,7 @@ func (ml MultipleDefinitionLoader) List() ([]string, error) {
 		}
 	}
 
-	results := []string{}
+	var results []string
 
 	for key := range allResults {
 		results = append(results, key)

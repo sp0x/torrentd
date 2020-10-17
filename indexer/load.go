@@ -40,6 +40,7 @@ func LoadEnabledDefinitions(conf interface{}) ([]*IndexerDefinition, error) {
 type DefinitionLoader interface {
 	//List - Lists available trackers.
 	List() ([]string, error)
+	ListWithNames(names []string) ([]string, error)
 	//Load - Load a definition of an Indexer from it's name
 	Load(key string) (*IndexerDefinition, error)
 }
