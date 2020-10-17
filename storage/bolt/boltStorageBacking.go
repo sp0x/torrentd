@@ -300,7 +300,8 @@ func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item search.Record, u
 		if err != nil {
 			return nil
 		}
-		return b.updateLatestResults(tx, item)
+
+		return b.PushToLatestItems(tx, serializedValue)
 	})
 }
 

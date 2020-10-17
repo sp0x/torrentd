@@ -1,9 +1,9 @@
 package bolt
 
 import (
+	"errors"
 	"fmt"
 	"github.com/boltdb/bolt"
-	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/indexing"
 	"strconv"
 )
@@ -14,8 +14,11 @@ const (
 	latestResultsBucketSize = 20
 )
 
-//updateLatestResults updates a bucket with the latest 20 results. the items are unordered
-func (b *BoltStorage) updateLatestResults(tx *bolt.Tx, item search.Record) error {
+//PushToLatestItems updates a bucket with the latest 20 results. the items are unordered
+func (b *BoltStorage) PushToLatestItems(tx *bolt.Tx, serializedItem []byte) error {
+	if serializedItem == nil {
+		return errors.New("serialized value is required")
+	}
 	bucket, err := b.assertBucket(tx, latestResultsBucket)
 	if err != nil {
 		return err
@@ -31,12 +34,7 @@ func (b *BoltStorage) updateLatestResults(tx *bolt.Tx, item search.Record) error
 		}
 		nextKey = []byte(fmt.Sprintf("%d", indexInt+1))
 	}
-
-	serializedValue, err := b.marshaler.Marshal(item)
-	if err != nil {
-		return err
-	}
-	err = bucket.Put(nextKey, serializedValue)
+	err = bucket.Put(nextKey, serializedItem)
 	if err != nil {
 		return err
 	}

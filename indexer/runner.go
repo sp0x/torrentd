@@ -535,7 +535,7 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 		}
 		//Maybe don't do that always?
 		item.Fingerprint = search.GetResultFingerprint(&item)
-		if !r.validateAndStoreItem(query, localCats, &item) {
+		if !r.resolveItemCategory(query, localCats, &item) {
 			_ = itemStorage.SetKey(r.getUniqueIndex(&item))
 			err = itemStorage.Add(&item)
 			if err != nil {
@@ -559,7 +559,7 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 	return runCtx.Search, nil
 }
 
-func (r *Runner) validateAndStoreItem(query *torznab.Query, localCats []string, item *search.ExternalResultItem) bool {
+func (r *Runner) resolveItemCategory(query *torznab.Query, localCats []string, item *search.ExternalResultItem) bool {
 	if len(localCats) > 0 {
 		//The category doesn't match even 1 of the categories in the query.
 		if !r.itemMatchesLocalCategories(localCats, item) {
