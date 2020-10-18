@@ -61,14 +61,17 @@ func (fs *FileIndexLoader) walkDirectories() (map[string]string, error) {
 	return defs, nil
 }
 
-func (fs *FileIndexLoader) List() ([]string, error) {
+func (fs *FileIndexLoader) List(selector *IndexerSelector) ([]string, error) {
 	defs, err := fs.walkDirectories()
 	if err != nil {
 		return nil, err
 	}
 	var results []string
-	for k := range defs {
-		results = append(results, k)
+	for name := range defs {
+		if selector != nil && !selector.Matches(name) {
+			continue
+		}
+		results = append(results, name)
 	}
 	return results, nil
 }

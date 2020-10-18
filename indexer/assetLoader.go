@@ -47,12 +47,15 @@ func CreateEmbeddedDefinitionSource(definitionNames []string, loader DefinitionD
 }
 
 //List all the names of the embedded definitions
-func (l *AssetLoader) List() ([]string, error) {
+func (l *AssetLoader) List(selector *IndexerSelector) ([]string, error) {
 	var results []string
 	for _, name := range l.Names {
 		fname := path.Base(name)
 		fname = strings.Replace(fname, ".yml", "", -1)
 		fname = strings.Replace(fname, ".yaml", "", -1)
+		if selector != nil && !selector.Matches(name) {
+			continue
+		}
 		results = append(results, fname)
 	}
 	return results, nil
