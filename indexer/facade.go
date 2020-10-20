@@ -63,7 +63,7 @@ func NewEmptyFacade(config config.Config) *Facade {
 //If any categories are given, the facade must be for an indexer that supports these categories.
 //If you don't provide a name or name is `all`, an aggregate is used.
 func NewFacade(indexerName string, config config.Config, cats ...categories.Category) (*Facade, error) {
-	if indexerName == "" || indexerName == "all" {
+	if newIndexerSelector(indexerName).isAggregate() {
 		return NewAggregateFacadeWithCategories(config, cats...), nil
 	}
 	facade := NewEmptyFacade(config)
@@ -90,7 +90,8 @@ func NewAggregateFacadeWithCategories(config config.Config, cats ...categories.C
 		fmt.Print(noIndexError)
 		os.Exit(1)
 	}
-	ixrObj, err := facade.Scope.CreateAggregateForCategories(config, cats)
+	selector := newIndexerSelector(indexerName)
+	ixrObj, err := facade.Scope.CreateAggregateForCategories(config, &selector, cats)
 	if err != nil {
 		log.Errorf("Could not find Indexer `%s`.\n", indexerName)
 		return nil

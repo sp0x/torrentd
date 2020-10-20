@@ -16,11 +16,20 @@ func defaultMultiLoader() *MultipleDefinitionLoader {
 	}
 }
 
-func (ml MultipleDefinitionLoader) List() ([]string, error) {
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func (ml MultipleDefinitionLoader) List(selector *IndexerSelector) ([]string, error) {
 	allResults := map[string]struct{}{}
 
 	for _, loader := range ml {
-		result, err := loader.List()
+		result, err := loader.List(selector)
 		if err != nil {
 			return nil, err
 		}
@@ -29,7 +38,7 @@ func (ml MultipleDefinitionLoader) List() ([]string, error) {
 		}
 	}
 
-	results := []string{}
+	var results []string
 
 	for key := range allResults {
 		results = append(results, key)
