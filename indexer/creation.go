@@ -4,13 +4,14 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/categories"
+	"strings"
 )
 
 //go:generate mockgen -source creation.go -destination=mocks/creation.go -package=mocks
 type Scope interface {
 	Lookup(config config.Config, key string) (Indexer, error)
-	CreateAggregateForCategories(config config.Config, cats []categories.Category) (Indexer, error)
-	CreateAggregate(config config.Config) (Indexer, error)
+	CreateAggregateForCategories(config config.Config, selector *IndexerSelector, cats []categories.Category) (Indexer, error)
+	CreateAggregate(config config.Config, selector *IndexerSelector) (Indexer, error)
 }
 
 type CachedScope struct {
@@ -24,17 +25,47 @@ func NewScope() Scope {
 	return sc
 }
 
+func (s IndexerSelector) isAggregate() bool {
+	return s.selector == "" || s.selector == "aggregate" || s.selector == "all" || strings.Contains(s.selector, ",")
+}
+
+type IndexerSelector struct {
+	selector string
+	parts    []string
+}
+
+func (s IndexerSelector) shouldLoadAllIndexes() bool {
+	indexKeys := strings.Split(s.selector, ",")
+	return s.isAggregate() && len(indexKeys) == 1
+}
+
+func (s IndexerSelector) Matches(name string) bool {
+	if s.selector == "" || s.selector == "all" || s.selector == "aggregate" {
+		return false
+	}
+	return contains(s.parts, name)
+}
+
+func (s IndexerSelector) Value() string {
+	return s.selector
+}
+
+func newIndexerSelector(selector string) IndexerSelector {
+	return IndexerSelector{selector: selector, parts: strings.Split(selector, ",")}
+}
+
 //Lookup finds the matching Indexer.
 func (c *CachedScope) Lookup(config config.Config, key string) (Indexer, error) {
 	//If we already have that indexer running, we don't create a new one.
+	selector := newIndexerSelector(key)
 	if _, ok := c.indexers[key]; !ok {
 		var indexer Indexer
 		var err error
 		//If we're looking up an aggregate indexer, we just create an aggregate
-		if key == "aggregate" || key == "all" {
-			indexer, err = c.CreateAggregate(config)
+		if selector.isAggregate() {
+			indexer, err = c.CreateAggregate(config, &selector)
 		} else {
-			indexer, err = CreateIndexer(config, key)
+			indexer, err = CreateIndexer(config, selector.Value())
 		}
 		if err != nil {
 			return nil, err
@@ -45,8 +76,8 @@ func (c *CachedScope) Lookup(config config.Config, key string) (Indexer, error) 
 }
 
 //CreateAggregateForCategories creates a new aggregate with the indexers that match a set of categories
-func (c *CachedScope) CreateAggregateForCategories(config config.Config, cats []categories.Category) (Indexer, error) {
-	ixrKeys, err := Loader.List()
+func (c *CachedScope) CreateAggregateForCategories(config config.Config, selector *IndexerSelector, cats []categories.Category) (Indexer, error) {
+	ixrKeys, err := Loader.List(selector)
 	if err != nil {
 		return nil, err
 	}
@@ -67,14 +98,16 @@ func (c *CachedScope) CreateAggregateForCategories(config config.Config, cats []
 
 //CreateAggregate creates an aggregate of all the valid configured indexers
 //this includes indexers that don't need a login.
-func (c *CachedScope) CreateAggregate(config config.Config) (Indexer, error) {
-	keys, err := Loader.List()
+func (c *CachedScope) CreateAggregate(config config.Config, selector *IndexerSelector) (Indexer, error) {
+	var keysToLoad []string = nil
+	var err error
+	keysToLoad, err = Loader.List(selector)
 	if err != nil {
 		return nil, err
 	}
 
 	result := &Aggregate{}
-	for _, key := range keys {
+	for _, key := range keysToLoad {
 		//Get the site configuration, we only use configured indexers
 		ifaceConfig, _ := config.GetSite(key) //Get all the configured indexers
 		if ifaceConfig != nil {

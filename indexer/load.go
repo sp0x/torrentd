@@ -13,12 +13,12 @@ var (
 
 //ListBuiltInIndexes returns a list of all the embedded indexes that are supported.
 func ListBuiltInIndexes() ([]string, error) {
-	return DefaultDefinitionLoader.List()
+	return DefaultDefinitionLoader.List(nil)
 }
 
 //LoadEnabledDefinitions loads all of the definitions that are covered by the current definition loader (`Loader`).
 func LoadEnabledDefinitions(conf interface{}) ([]*IndexerDefinition, error) {
-	keys, err := Loader.List()
+	keys, err := Loader.List(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func LoadEnabledDefinitions(conf interface{}) ([]*IndexerDefinition, error) {
 //DefinitionLoader loads an index definition by name or lists the names of the supported indexes.
 type DefinitionLoader interface {
 	//List - Lists available trackers.
-	List() ([]string, error)
+	List(selector *IndexerSelector) ([]string, error)
 	//Load - Load a definition of an Indexer from it's name
 	Load(key string) (*IndexerDefinition, error)
 }
