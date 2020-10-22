@@ -117,6 +117,9 @@ func (ag *Aggregate) Search(query *torznab.Query, srch search.Instance) (search.
 	aggSearch := srch.(*search.AggregatedSearch)
 	//indexerSearches := make(map[int]*search.SearchKeywords)
 	// fetch all results
+	if ag.Indexers == nil {
+		log.Warn("aggregate has no indexers")
+	}
 	for idx, pIndexer := range ag.Indexers {
 		//Run the Indexer in a goroutine
 		idx, pIndexer := idx, pIndexer
