@@ -26,6 +26,10 @@ func ResolveIndexId(scope Scope, id string) string {
 	return id
 }
 
+func (s IndexerSelector) String() string {
+	return s.selector
+}
+
 func (s IndexerSelector) shouldLoadAllIndexes() bool {
 	indexKeys := strings.Split(s.selector, ",")
 	return s.isAggregate() && len(indexKeys) == 1

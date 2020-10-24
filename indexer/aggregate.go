@@ -16,6 +16,7 @@ import (
 type Aggregate struct {
 	Indexers []Indexer
 	Storage  storage.ItemStorage
+	selector IndexerSelector
 }
 
 func (ag *Aggregate) SetStorage(s storage.ItemStorage) {
@@ -118,7 +119,7 @@ func (ag *Aggregate) Search(query *torznab.Query, srch search.Instance) (search.
 	//indexerSearches := make(map[int]*search.SearchKeywords)
 	// fetch all results
 	if ag.Indexers == nil {
-		log.Warn("aggregate has no indexes")
+		log.Warnf("searching an aggregate[%s] that has no indexes", ag.selector)
 	}
 	for idx, pIndexer := range ag.Indexers {
 		//Run the Indexer in a goroutine

@@ -83,6 +83,7 @@ func (c *CachedScope) CreateAggregate(config config.Config, selector *IndexerSel
 	}
 
 	result := &Aggregate{}
+	result.selector = *selector
 	for _, key := range keysToLoad {
 		//Get the site configuration, we only use configured indexes
 		ifaceConfig, _ := config.GetSite(key) //Get all the configured indexes
