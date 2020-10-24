@@ -500,9 +500,7 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 	r.logger.
 		WithFields(logrus.Fields{}).
 		Debugf("Fetched Indexer page.\n")
-	//if r.browser.State() == nil {
-	//	return nil, errors.New("browser has no state")
-	//}
+
 	dom := r.browser.Dom()
 	if dom == nil {
 		return nil, errors.New("DOM was nil")
@@ -524,6 +522,7 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 
 	var results []search.ExternalResultItem
 	itemStorage := getIndexStorage(r, r.opts.Config)
+	defer itemStorage.Close()
 	for i := 0; i < rows.Length(); i++ {
 		if query.Limit > 0 && len(results) >= query.Limit {
 			break
@@ -555,7 +554,6 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 		Infof("Query returned %d results", len(results))
 	runCtx.Search.SetResults(results)
 	status.PublishSchemeStatus(r.context, generateSchemeOkStatus(r.definition, runCtx))
-	itemStorage.Close()
 	return runCtx.Search, nil
 }
 

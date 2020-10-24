@@ -58,7 +58,7 @@ func TestServer_downloadHandler(t *testing.T) {
 	s.downloadHandler(context)
 
 	//If we've given a valid link, we should see the download
-	scopeMock := indexerMocks.NewMockScope(ctrl)
+	scopeMock := indexer.NewMockScope(ctrl)
 	mockedIndexer := indexerMocks.NewMockIndexer(ctrl)
 	tkn = token{Site: "rutracker.org", Link: "http://rutracker.org"}
 	downloadResult := ioutil.NopCloser(bytes.NewReader([]byte("result")))
