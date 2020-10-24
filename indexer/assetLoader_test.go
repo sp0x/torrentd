@@ -12,7 +12,7 @@ func TestAssetLoader_List(t *testing.T) {
 	ldr := CreateEmbeddedDefinitionSource([]string{"a", "b", "c.yml"}, func(key string) ([]byte, error) {
 		return nil, nil
 	})
-	names, err := ldr.List()
+	names, err := ldr.List(nil)
 	g.Expect(err).To(BeNil())
 	g.Expect(len(names)).To(Equal(3))
 	g.Expect(names[0]).To(Equal("a"))
@@ -41,7 +41,7 @@ func TestAssetLoader_Load(t *testing.T) {
 func TestGetDefaultEmbeddedDefinitionSource(t *testing.T) {
 	g := NewWithT(t)
 	src := getDefaultEmbeddedDefinitionSource()
-	names, err := src.List()
+	names, err := src.List(nil)
 	g.Expect(err).To(BeNil())
 	g.Expect(len(names) > 10).To(BeTrue())
 }

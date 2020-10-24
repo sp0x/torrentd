@@ -80,7 +80,7 @@ func (ag *Aggregate) GetEncoding() string {
 	return "utf-8"
 }
 
-//Check checks all indexers, if they can be searched.
+//Check checks all indexes, if they can be searched.
 func (ag *Aggregate) Check() error {
 	g := errgroup.Group{}
 	for _, ixr := range ag.Indexers {
@@ -118,7 +118,7 @@ func (ag *Aggregate) Search(query *torznab.Query, srch search.Instance) (search.
 	//indexerSearches := make(map[int]*search.SearchKeywords)
 	// fetch all results
 	if ag.Indexers == nil {
-		log.Warn("aggregate has no indexers")
+		log.Warn("aggregate has no indexes")
 	}
 	for idx, pIndexer := range ag.Indexers {
 		//Run the Indexer in a goroutine

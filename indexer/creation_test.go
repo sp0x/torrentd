@@ -21,7 +21,7 @@ func TestCachedScope_CreateAggregate_ShouldNotHang(t *testing.T) {
 	var err error
 
 	go func() {
-		aggregate, err = facade.Scope.CreateAggregate(cfg)
+		aggregate, err = facade.Scope.CreateAggregate(cfg, nil)
 		close(done)
 	}()
 

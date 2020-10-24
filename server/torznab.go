@@ -36,15 +36,15 @@ var searchCache, _ = cache.NewTTL(100, 1*time.Hour)
 //Handle queries
 func (s *Server) torznabHandler(c *gin.Context) {
 	_ = c.Params
-	indexerID := c.Param("ixr")
+	indexerID := indexer.ResolveIndexId(s.indexerFacade.Scope, c.Param("searchIndex"))
 	t := c.Query("t")
-	ixr, err := s.indexerFacade.Scope.Lookup(s.config, indexerID)
+	searchIndex, err := s.indexerFacade.Scope.Lookup(s.config, indexerID)
 	if err != nil {
 		torznab.Error(c, err.Error(), torznab.ErrIncorrectParameter)
 		return
 	}
 	if t == "caps" {
-		ixr.Capabilities().ServeHTTP(c.Writer, c.Request)
+		searchIndex.Capabilities().ServeHTTP(c.Writer, c.Request)
 		return
 	}
 	apiKey := c.Query("apikey")
@@ -69,7 +69,7 @@ func (s *Server) torznabHandler(c *gin.Context) {
 		if cachedFeed, ok := searchCache.Get(query.UniqueKey()); ok {
 			feed = cachedFeed.(*torznab.ResultFeed)
 		} else {
-			feed, err = s.torznabSearch(c.Request, query, ixr)
+			feed, err = s.torznabSearch(c.Request, query, searchIndex)
 			searchCache.Add(query.UniqueKey(), feed)
 		}
 		if err != nil {
@@ -78,11 +78,11 @@ func (s *Server) torznabHandler(c *gin.Context) {
 		}
 		switch c.Query("format") {
 		case "atom":
-			atomOutput(c, feed, ixr.GetEncoding())
+			atomOutput(c, feed, searchIndex.GetEncoding())
 		case "", "xml":
-			xmlOutput(c, feed, ixr.GetEncoding())
+			xmlOutput(c, feed, searchIndex.GetEncoding())
 		case "json":
-			jsonOutput(c.Writer, feed, ixr.GetEncoding())
+			jsonOutput(c.Writer, feed, searchIndex.GetEncoding())
 		}
 
 	default:
