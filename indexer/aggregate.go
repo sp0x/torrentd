@@ -103,7 +103,7 @@ func (ag *Aggregate) Check() error {
 }
 
 func (ag *Aggregate) Search(query *torznab.Query, srch search.Instance) (search.Instance, error) {
-	g := errgroup.Group{}
+	errorGroup := errgroup.Group{}
 	allResults := make([][]search.ExternalResultItem, len(ag.Indexers))
 	maxLength := 0
 	if srch == nil {
@@ -123,11 +123,11 @@ func (ag *Aggregate) Search(query *torznab.Query, srch search.Instance) (search.
 	for idx, pIndexer := range ag.Indexers {
 		//Run the Indexer in a goroutine
 		idx, pIndexer := idx, pIndexer
-		g.Go(func() error {
+		errorGroup.Go(func() error {
 			indexerID := pIndexer.Info().GetId()
 			ixrSearch := aggSearch.SearchContexts[&pIndexer]
-			//log.WithFields(log.Fields{"Indexer": indexerID}).
-			//	Info("Aggregate index search")
+			log.WithFields(log.Fields{"Indexer": indexerID}).
+				Debug("Aggregate index search")
 			srchRes, err := pIndexer.Search(query, ixrSearch)
 			if err != nil {
 				log.Warnf("Indexer %q failed: %s", indexerID, err)
@@ -141,7 +141,7 @@ func (ag *Aggregate) Search(query *torznab.Query, srch search.Instance) (search.
 			return nil
 		})
 	}
-	if err := g.Wait(); err != nil {
+	if err := errorGroup.Wait(); err != nil {
 		log.Warn(err)
 		return nil, err
 	}

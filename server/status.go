@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage"
@@ -16,15 +17,20 @@ type latestResult struct {
 	Site        string `json:"site"`
 	Link        string `json:"link"`
 }
+type indexStatus struct {
+	Index       string `json:"index"`
+	IsAggregate bool   `json:"is_aggregate"`
+}
 type statusResponse struct {
-	Count  int            `json:"total_count"`
-	Latest []latestResult `json:"latest"`
+	Count   int            `json:"total_count"`
+	Latest  []latestResult `json:"latest"`
+	Indexes []indexStatus  `json:"indexes"`
 }
 
 func (s *Server) status(c *gin.Context) {
 	var statusObj statusResponse
 	//If we don't have it in the cache
-	if true || !statusCache.Contains("status") {
+	if !statusCache.Contains("status") {
 		store := storage.NewBuilder().
 			WithRecord(&search.ExternalResultItem{}).
 			Build()
@@ -47,6 +53,13 @@ func (s *Server) status(c *gin.Context) {
 	} else {
 		cached, _ := statusCache.Get("status")
 		statusObj = cached.(statusResponse)
+	}
+	for ixKey, ix := range s.indexerFacade.Scope.Indexes() {
+		_, isAggregate := ix.(*indexer.Aggregate)
+		statusObj.Indexes = append(statusObj.Indexes, indexStatus{
+			Index:       ixKey,
+			IsAggregate: isAggregate,
+		})
 	}
 	c.JSON(200, statusObj)
 }
