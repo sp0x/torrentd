@@ -45,9 +45,15 @@ func SetupPubsub(projectId string) {
 }
 
 func PublishSchemeStatus(ctx context.Context, msg *ScrapeSchemeMessage) {
+	log.
+		WithFields(log.Fields{"message": msg}).
+		Infof("Scheme %s: ", schemeTopic)
 	pubsub.PublishJSON(ctx, schemeTopic, msg)
 }
 
 func PublishSchemeError(ctx context.Context, msg *SchemeErrorMessage) {
+	log.
+		WithFields(log.Fields{"message": msg}).
+		Infof("ERR Scheme %s: ", schemeErrorTopic)
 	pubsub.PublishJSON(ctx, schemeErrorTopic, msg)
 }
