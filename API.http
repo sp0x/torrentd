@@ -1,0 +1,9 @@
+### Status
+GET http://localhost:5001/status
+
+<> 2020-10-24T061640.200.json
+
+###Testing
+GET http://localhost:5001/torznab/all/api?t=search&cat=2000,2010,2020,2030,2035,2040,2045,2050,2060&extended=1&apikey=210fc7bb818639a&offset=0&limit=100&q=heisei%20era%20raccoon%20dog%20war%20ponpoko%201994
+
+<> 2020-10-24T061604.200.txt
