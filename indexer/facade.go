@@ -42,12 +42,13 @@ func NewFacadeFromConfiguration(config config.Config) *Facade {
 		fmt.Print(noIndexError)
 		os.Exit(1)
 	}
-	ixrObj, err := facade.Scope.Lookup(config, indexerName)
+	log.Debugf("Creating new facade from configuration: %v\n", indexerName)
+	index, err := facade.Scope.Lookup(config, indexerName)
 	if err != nil {
 		log.Errorf("Could not find Indexer `%s`.\n", indexerName)
 		return nil
 	}
-	facade.Indexer = ixrObj
+	facade.Indexer = index
 	return facade
 }
 
@@ -62,7 +63,7 @@ func NewEmptyFacade(config config.Config) *Facade {
 //NewFacade Creates a new facade for an indexer with the given name and config.
 //If any categories are given, the facade must be for an indexer that supports these categories.
 //If you don't provide a name or name is `all`, an aggregate is used.
-func NewFacade(indexerName string, config config.Config, cats ...categories.Category) (*Facade, error) {
+func NewFacade(indexerName string, config config.Config, cats ...categories.Category) (*Facade, error) { //nolint:unused
 	if newIndexerSelector(indexerName).isAggregate() {
 		return NewAggregateFacadeWithCategories(config, cats...), nil
 	}
@@ -91,7 +92,7 @@ func NewAggregateFacadeWithCategories(config config.Config, cats ...categories.C
 		os.Exit(1)
 	}
 	selector := newIndexerSelector(indexerName)
-	ixrObj, err := facade.Scope.CreateAggregateForCategories(config, &selector, cats)
+	ixrObj, err := facade.Scope.CreateAggregateForCategories(config, selector, cats)
 	if err != nil {
 		log.Errorf("Could not find Indexer `%s`.\n", indexerName)
 		return nil

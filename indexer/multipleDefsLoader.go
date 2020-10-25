@@ -1,8 +1,8 @@
 package indexer
 
 import (
+	"fmt"
 	log "github.com/sirupsen/logrus"
-	"reflect"
 	"sort"
 )
 
@@ -44,8 +44,21 @@ func (ml MultipleDefinitionLoader) List(selector *IndexerSelector) ([]string, er
 		results = append(results, key)
 	}
 
-	sort.Sort(sort.StringSlice(results))
+	sort.Strings(results)
+	log.WithFields(log.Fields{"results": results, "loader": ml}).
+		Debug("Multiple definitions loader listed indexes")
 	return results, nil
+}
+
+func (ml MultipleDefinitionLoader) String() string {
+	str := ""
+	for ix, loader := range ml {
+		if ix > 0 {
+			str += ", "
+		}
+		str += fmt.Sprintf("%s", loader)
+	}
+	return "loaders[" + str + "]"
 }
 
 //Load an indexer with the matching name
@@ -58,8 +71,7 @@ func (ml MultipleDefinitionLoader) Load(key string) (*IndexerDefinition, error) 
 		}
 		loaded, err := loader.Load(key)
 		if err != nil {
-			loaderName := reflect.TypeOf(loader)
-			log.Warnf("Couldn't load the Indexer `%s` using %s. Error : %s\n", key, loaderName, err)
+			log.Debugf("Couldn't load the Indexer `%s` using %s. Error : %s\n", key, loader, err)
 			continue
 		}
 		//If it's newer than our last one

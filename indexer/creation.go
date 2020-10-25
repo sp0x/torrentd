@@ -1,6 +1,7 @@
 package indexer
 
 import (
+	"errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/categories"
@@ -34,12 +35,13 @@ func (c *CachedScope) Indexes() map[string]Indexer {
 func (c *CachedScope) Lookup(config config.Config, key string) (Indexer, error) {
 	//If we already have that indexer running, we don't create a new one.
 	selector := newIndexerSelector(key)
+	log.Debugf("Looking up scoped index: %v\n", selector)
 	if _, ok := c.indexes[key]; !ok {
 		var indexer Indexer
 		var err error
 		//If we're looking up an aggregate indexer, we just create an aggregate
 		if selector.isAggregate() {
-			indexer, err = c.CreateAggregate(config, &selector)
+			indexer, err = c.CreateAggregate(config, selector)
 		} else {
 			indexer, err = CreateIndexer(config, selector.Value())
 		}
@@ -75,36 +77,39 @@ func (c *CachedScope) CreateAggregateForCategories(config config.Config, selecto
 //CreateAggregate creates an aggregate of all the valid configured indexes
 //this includes indexes that don't need a login.
 func (c *CachedScope) CreateAggregate(config config.Config, selector *IndexerSelector) (Indexer, error) {
-	var keysToLoad []string = nil
+	var keysToLoad []string
 	var err error
 	keysToLoad, err = Loader.List(selector)
 	if err != nil {
 		return nil, err
 	}
+	if keysToLoad == nil {
+		log.WithFields(log.Fields{"selector": selector, "loader": Loader}).
+			Debug("Tried to create an aggregate index where no child indexes could be found")
+		return nil, errors.New("no indexes matched the given selector")
+	}
 
 	result := &Aggregate{}
-	result.selector = *selector
+	if selector != nil {
+		*result.selector = *selector
+	}
 	for _, key := range keysToLoad {
 		//Get the site configuration, we only use configured indexes
-		ifaceConfig, _ := config.GetSite(key) //Get all the configured indexes
-		if ifaceConfig != nil {
-			indexer, err := c.Lookup(config, key)
+		indexConfig, _ := config.GetSite(key) //Get all the configured indexes
+		if indexConfig != nil {
+			index, err := c.Lookup(config, key)
 			if err != nil {
 				return nil, err
 			}
-			result.Indexers = append(result.Indexers, indexer)
+			result.Indexers = append(result.Indexers, index)
+		} else {
+			log.WithFields(log.Fields{"index": key}).
+				Debug("Tried to load an index that has no config")
 		}
-		//else {
-		//Indexer might not be configured
-		//indexer, err := Lookup(config, key)
-		//if err !=nil{
-		//	continue
-		//}
-		//isSub := indexer.Capabilities().Categories.ContainsCat(categories.Subtitle)
-		//if isSub{
-		//	//This is a subtitle category
-		//}
-		//}
+	}
+	if result.Indexers == nil {
+		log.WithFields(log.Fields{"selector": selector}).
+			Debug("Created aggregate without any indexes")
 	}
 	return result, nil
 }

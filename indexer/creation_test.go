@@ -9,7 +9,6 @@ import (
 
 func TestCachedScope_CreateAggregate_ShouldNotHang(t *testing.T) {
 	g := gomega.NewWithT(t)
-	//ctrl := gomock.NewController(t)
 	timeout := time.After(30 * time.Second)
 	done := make(chan struct{})
 	facade := Facade{}
@@ -22,6 +21,7 @@ func TestCachedScope_CreateAggregate_ShouldNotHang(t *testing.T) {
 
 	go func() {
 		aggregate, err = facade.Scope.CreateAggregate(cfg, nil)
+		g.Expect(err).To(gomega.BeNil())
 		close(done)
 	}()
 

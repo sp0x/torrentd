@@ -97,7 +97,7 @@ func (fs *FileIndexLoader) String() string {
 	for _, def := range defs {
 		buff += def + "\n"
 	}
-	return buff
+	return "dirs{" + buff + "}"
 }
 
 //Load - Load a definition of an Indexer from it's name

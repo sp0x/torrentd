@@ -8,7 +8,7 @@ import (
 )
 
 //IteratePages goes over all the pages in an index and returns the results through a channel.
-func GetAllPagesFromIndex(facade *Facade, query *torznab.Query) <-chan *search.ExternalResultItem {
+func GetAllPagesFromIndex(facade *Facade, query *torznab.Query) <-chan *search.ExternalResultItem { //nolint:unused
 	outputChan := make(chan *search.ExternalResultItem)
 	if query == nil {
 		query = &torznab.Query{}
@@ -70,14 +70,15 @@ func Watch(facade *Facade, initialQuery *torznab.Query, intervalSec int) <-chan 
 			if err != nil {
 				switch err.(type) {
 				case *LoginError:
+					log.Warnf("search got login error: %v", err)
 					return
 				default:
-					log.Warnf("search error: %v\n", err)
+					log.Warnf("search error: %v", err)
 				}
 				time.Sleep(time.Second * time.Duration(intervalSec))
 			}
 			if currentSearch == nil {
-				log.Warningf("Could not fetch page: %d\n", initialQuery.Page)
+				log.Warningf("Could not fetch page: %d", initialQuery.Page)
 				time.Sleep(time.Second * time.Duration(intervalSec))
 				continue
 			}
@@ -123,6 +124,8 @@ func Watch(facade *Facade, initialQuery *torznab.Query, intervalSec int) <-chan 
 				currentSearch = nil
 				time.Sleep(time.Second * time.Duration(intervalSec))
 			}
+			log.WithFields(log.Fields{"page": initialQuery.Page, "max-pages": maxPages}).
+				Debugf("going through next page in query")
 		}
 	}()
 	return outputChan

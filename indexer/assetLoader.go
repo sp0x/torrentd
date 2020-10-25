@@ -53,12 +53,16 @@ func (l *AssetLoader) List(selector *IndexerSelector) ([]string, error) {
 		fname := path.Base(name)
 		fname = strings.Replace(fname, ".yml", "", -1)
 		fname = strings.Replace(fname, ".yaml", "", -1)
-		if selector != nil && !selector.Matches(name) {
+		if selector != nil && !selector.Matches(fname) {
 			continue
 		}
 		results = append(results, fname)
 	}
 	return results, nil
+}
+
+func (l *AssetLoader) String() string {
+	return "assets{}"
 }
 
 func (l *AssetLoader) ListWithNames(names []string) ([]string, error) {
