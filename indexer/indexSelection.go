@@ -15,13 +15,19 @@ type IndexerSelector struct {
 }
 
 //ResolveIndexId resolves the global aggregate index ID to a allowed index in the given scope
+//if no id is given then the first index in the scope is used
 func ResolveIndexId(scope Scope, id string) string {
 	isGlobalAggregate := id == "" || id == "aggregate" || id == "all"
 	if !isGlobalAggregate {
 		return id
 	}
 	indexes := scope.Indexes()
+	shouldChooseFirstIndex := id == ""
+	//We're searching for the first index
 	for ixId, ix := range indexes {
+		if shouldChooseFirstIndex {
+			return ixId
+		}
 		if _, ok := ix.(*Aggregate); ok {
 			return ixId
 		}
