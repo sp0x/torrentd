@@ -18,7 +18,7 @@ func NewThreadSafeCache(size int) (*Cache, error) {
 // NewWithEvict constructs a fixed size cache with the given eviction
 // callback.
 func NewThreadSafeWithEvict(size int, onEvicted func(key interface{}, value interface{})) (*Cache, error) {
-	lru, err := NewLRU(size, EvictionCallback(onEvicted))
+	lru, err := NewLRU(size, onEvicted)
 	if err != nil {
 		return nil, err
 	}

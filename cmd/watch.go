@@ -18,7 +18,7 @@ func init() {
 	cmdWatch := &cobra.Command{
 		Use:   "watch",
 		Short: "Watches the torrent tracker for new torrents.",
-		Run:   watchTracker,
+		Run:   watchIndex,
 	}
 	storage := ""
 	cmdFlags := cmdWatch.Flags()
@@ -43,7 +43,7 @@ Currently supported storage backings: boltdb, firebase, sqlite`)
 	rootCmd.AddCommand(cmdWatch)
 }
 
-func watchTracker(_ *cobra.Command, _ []string) {
+func watchIndex(_ *cobra.Command, _ []string) {
 	facade := indexer.NewFacadeFromConfiguration(&appConfig)
 	if facade == nil {
 		log.Error("Couldn't initialize torrent facade.")

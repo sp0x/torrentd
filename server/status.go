@@ -18,8 +18,9 @@ type latestResult struct {
 	Link        string `json:"link"`
 }
 type indexStatus struct {
-	Index       string `json:"index"`
-	IsAggregate bool   `json:"is_aggregate"`
+	Index       string   `json:"index"`
+	IsAggregate bool     `json:"is_aggregate"`
+	Errors      []string `json:"errors"`
 }
 type statusResponse struct {
 	Count   int            `json:"total_count"`
@@ -54,12 +55,19 @@ func (s *Server) status(c *gin.Context) {
 		cached, _ := statusCache.Get("status")
 		statusObj = cached.(statusResponse)
 	}
+	statusObj.Indexes = createIndexesStatus(s)
+	c.JSON(200, statusObj)
+}
+
+func createIndexesStatus(s *Server) []indexStatus {
+	var statuses []indexStatus
 	for ixKey, ix := range s.indexerFacade.Scope.Indexes() {
 		_, isAggregate := ix.(*indexer.Aggregate)
-		statusObj.Indexes = append(statusObj.Indexes, indexStatus{
+		statuses = append(statuses, indexStatus{
 			Index:       ixKey,
 			IsAggregate: isAggregate,
+			Errors:      ix.Errors(),
 		})
 	}
-	c.JSON(200, statusObj)
+	return statuses
 }

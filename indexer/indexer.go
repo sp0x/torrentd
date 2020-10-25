@@ -34,5 +34,6 @@ type Indexer interface {
 	//The maximum number of pages we can search
 	MaxSearchPages() uint
 	SearchIsSinglePaged() bool
+	Errors() []string
 	//SetStorage(storage storage.ItemStorage)
 }

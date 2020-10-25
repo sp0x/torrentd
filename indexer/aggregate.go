@@ -23,6 +23,14 @@ func (ag *Aggregate) SetStorage(s storage.ItemStorage) {
 	ag.Storage = s
 }
 
+func (ag *Aggregate) Errors() []string {
+	var errs []string
+	for _, index := range ag.Indexers {
+		errs = append(errs, index.Errors()...)
+	}
+	return errs
+}
+
 func (ag *Aggregate) GetDefinition() *IndexerDefinition {
 	definition := &IndexerDefinition{}
 	definition.Site = "aggregate"
@@ -103,19 +111,19 @@ func (ag *Aggregate) Check() error {
 	return nil
 }
 
-func (ag *Aggregate) Search(query *torznab.Query, srch search.Instance) (search.Instance, error) {
+func (ag *Aggregate) Search(query *torznab.Query, searchInstance search.Instance) (search.Instance, error) {
 	errorGroup := errgroup.Group{}
 	allResults := make([][]search.ExternalResultItem, len(ag.Indexers))
 	maxLength := 0
-	if srch == nil {
-		srch = search.NewAggregatedSearch()
+	if searchInstance == nil {
+		searchInstance = search.NewAggregatedSearch()
 	}
-	switch srch.(type) {
+	switch searchInstance.(type) {
 	case *search.AggregatedSearch:
 	default:
 		return nil, errors.New("can't use normal search on an aggregate")
 	}
-	aggSearch := srch.(*search.AggregatedSearch)
+	aggregatedSearch := searchInstance.(*search.AggregatedSearch)
 	//indexerSearches := make(map[int]*search.SearchKeywords)
 	// fetch all results
 	if ag.Indexers == nil {
@@ -124,20 +132,20 @@ func (ag *Aggregate) Search(query *torznab.Query, srch search.Instance) (search.
 	}
 	for idx, pIndexer := range ag.Indexers {
 		//Run the Indexer in a goroutine
-		idx, pIndexer := idx, pIndexer
+		i, pIndex := idx, pIndexer
 		errorGroup.Go(func() error {
-			indexerID := pIndexer.Info().GetId()
-			ixrSearch := aggSearch.SearchContexts[&pIndexer]
-			log.WithFields(log.Fields{"Indexer": indexerID}).
+			indexId := pIndex.Info().GetId()
+			indexSearch := aggregatedSearch.SearchContexts[&pIndex]
+			log.WithFields(log.Fields{"Indexer": indexId}).
 				Debug("Aggregate index search")
-			srchRes, err := pIndexer.Search(query, ixrSearch)
+			resultingSearch, err := pIndex.Search(query, indexSearch)
 			if err != nil {
-				log.Warnf("Indexer %q failed: %s", indexerID, err)
+				log.Warnf("Indexer %q failed: %s", indexId, err)
 				return nil
 			}
-			aggSearch.SearchContexts[&pIndexer] = srchRes
-			allResults[idx] = srchRes.GetResults()
-			if l := len(srchRes.GetResults()); l > maxLength {
+			aggregatedSearch.SearchContexts[&pIndex] = resultingSearch
+			allResults[i] = resultingSearch.GetResults()
+			if l := len(resultingSearch.GetResults()); l > maxLength {
 				maxLength = l
 			}
 			return nil
@@ -161,8 +169,8 @@ func (ag *Aggregate) Search(query *torznab.Query, srch search.Instance) (search.
 	if query.Limit > 0 && len(results) > query.Limit {
 		results = results[:query.Limit]
 	}
-	aggSearch.SetResults(results)
-	return aggSearch, nil
+	aggregatedSearch.SetResults(results)
+	return aggregatedSearch, nil
 }
 
 func (ag *Aggregate) Capabilities() torznab.Capabilities {

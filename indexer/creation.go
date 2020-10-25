@@ -91,7 +91,8 @@ func (c *CachedScope) CreateAggregate(config config.Config, selector *IndexerSel
 
 	result := &Aggregate{}
 	if selector != nil {
-		*result.selector = *selector
+		selectorCopy := *selector
+		result.selector = &selectorCopy
 	}
 	for _, key := range keysToLoad {
 		//Get the site configuration, we only use configured indexes

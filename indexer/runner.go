@@ -59,6 +59,7 @@ type Runner struct {
 	//Storage             storage.ItemStorage
 	contentFetcher source.ContentFetcher
 	context        context.Context
+	errors         cache.LRUCache
 }
 
 func (r *Runner) GetDefinition() *IndexerDefinition {
@@ -101,7 +102,7 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 	//connCache, _ := cache.NewConnectivityCache()
 	//Use an optimistic cache instead.
 	connCache, _ := cache.NewOptimisticConnectivityCache()
-
+	errorCache, _ := cache.NewThreadSafeWithEvict(10, nil)
 	runner := &Runner{
 		opts:                opts,
 		definition:          def,
@@ -111,6 +112,7 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 		keepSessions:        true,
 		failingSearchFields: make(map[string]fieldBlock),
 		context:             context.Background(),
+		errors:              errorCache,
 	}
 	return runner
 }
@@ -454,12 +456,15 @@ func (r *Runner) getUniqueIndex(item *search.ExternalResultItem) *indexing.Key {
 }
 
 //SearchKeywords for a given torrent
-func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Instance, error) {
+func (r *Runner) Search(query *torznab.Query, searchInstance search.Instance) (search.Instance, error) {
 	r.createBrowser()
 	if !r.keepSessions {
 		defer r.releaseBrowser()
 	}
 	var err error
+	//Collect errors on exit
+	defer func() { r.noteError(err) }()
+
 	query, err = r.fillInAdditionalQueryParameters(query)
 	if err != nil {
 		return nil, err
@@ -471,7 +476,7 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 	} else if required {
 		if err := r.login(); err != nil {
 			r.logger.WithError(err).Error("Login failed")
-			status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.LoginError, err, r.definition))
+			r.noteError(err)
 			return nil, err
 		}
 	}
@@ -479,11 +484,11 @@ func (r *Runner) Search(query *torznab.Query, srch search.Instance) (search.Inst
 	localCats := r.getLocalCategoriesMatchingQuery(query)
 
 	//Context about the search
-	if srch == nil {
-		srch = &search.Search{}
+	if searchInstance == nil {
+		searchInstance = &search.Search{}
 	}
 	runCtx := RunContext{
-		Search: srch.(*search.Search),
+		Search: searchInstance.(*search.Search),
 	}
 	target, err := r.extractSearchTarget(query, localCats, runCtx)
 	if err != nil {
@@ -748,6 +753,27 @@ func (r *Runner) getIndexer() *search.ResultIndexer {
 		Id:   "",
 		Name: r.definition.Site,
 	}
+}
+
+func (r *Runner) Errors() []string {
+	errs := make([]string, r.errors.Len())
+	for i := 0; i < r.errors.Len(); i++ {
+		err, ok := r.errors.Get(i)
+		if !ok {
+			continue
+		}
+		errs[i] = fmt.Sprintf("%s", err)
+	}
+	return errs
+}
+
+func (r *Runner) noteError(err error) {
+	if err == nil {
+		return
+	}
+	status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.LoginError, err, r.definition))
+	errId := r.errors.Len()
+	r.errors.Add(errId, err)
 }
 
 //region Status messages
