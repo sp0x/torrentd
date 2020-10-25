@@ -7,11 +7,11 @@ services:
   torrentd:
     image: sp0x/torrentd:latest
     build: .
-    command: watch -v -x zamunda,arenabg,rutracker.org --config /config.yaml -i 1800
+    command: watch -x zamunda,arenabg,rutracker.org --config /config.yaml -i 1800
     env_file:
       - .env
     volumes:
       - db:/db
-      - ./docker.config.yaml:/config.yaml
+      - ./ignored/watch.yaml:/config.yaml
     ports:
       - 4000:5000
