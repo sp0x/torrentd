@@ -58,6 +58,9 @@ func (r *Runner) login() error {
 	if loginValues["login_username"] == "<no value>" && loginValues["login_password"] == "<no value>" {
 		return &LoginError{errors.New("no login details configured")}
 	}
+	if loginValues["username"] == "<no value>" && loginValues["password"] == "<no value>" {
+		return &LoginError{errors.New("no login details configured")}
+	}
 	switch r.definition.Login.Method {
 	case "", loginMethodForm:
 		if err = r.loginViaForm(loginUrl, r.definition.Login.FormSelector, loginValues); err != nil {
@@ -86,7 +89,8 @@ func (r *Runner) login() error {
 	if err != nil {
 		return err
 	} else if !match {
-		return errors.New("login check after login failed. no matches found")
+		hasPass := loginValues["login_password"] != "<no value>"
+		return fmt.Errorf("login check after login failed. no matches found. user: %s, using pass: %v", loginValues["login_username"], hasPass)
 	}
 
 	r.logger.Debug("Successfully logged in")
