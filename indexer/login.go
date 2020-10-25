@@ -32,6 +32,9 @@ func (r *Runner) extractInputLogins() (map[string]string, error) {
 			WithFields(logrus.Fields{"key": name, "val": resolved}).
 			Debugf("Resolved login input template")
 
+		if val == "{{ .Config.password }}" && resolved == "<no value>" {
+			return nil, fmt.Errorf("no password was configured for input `%s` @%s", name, r.definition.Site)
+		}
 		result[name] = resolved
 	}
 
@@ -55,12 +58,12 @@ func (r *Runner) login() error {
 	if err != nil {
 		return err
 	}
-	if loginValues["login_username"] == "<no value>" && loginValues["login_password"] == "<no value>" {
-		return &LoginError{errors.New("no login details configured")}
-	}
-	if loginValues["username"] == "<no value>" && loginValues["password"] == "<no value>" {
-		return &LoginError{errors.New("no login details configured")}
-	}
+	//if loginValues["login_username"] == "<no value>" && loginValues["login_password"] == "<no value>" {
+	//	return &LoginError{errors.New("no login details configured")}
+	//}
+	//if loginValues["username"] == "<no value>" && loginValues["password"] == "<no value>" {
+	//	return &LoginError{errors.New("no login details configured")}
+	//}
 	switch r.definition.Login.Method {
 	case "", loginMethodForm:
 		if err = r.loginViaForm(loginUrl, r.definition.Login.FormSelector, loginValues); err != nil {
@@ -71,6 +74,10 @@ func (r *Runner) login() error {
 			return err
 		}
 	case loginMethodCookie:
+		cookieVal := loginValues["cookie"]
+		if cookieVal == "<no value>" {
+			return &LoginError{errors.New("no login cookie configured")}
+		}
 		if err = r.loginViaCookie(loginUrl, loginValues["cookie"]); err != nil {
 			return err
 		}
@@ -90,6 +97,9 @@ func (r *Runner) login() error {
 		return err
 	} else if !match {
 		hasPass := loginValues["login_password"] != "<no value>"
+		if _, ok := loginValues["login_password"]; !ok {
+			hasPass = false
+		}
 		return fmt.Errorf("login check after login failed. no matches found. user: %s, using pass: %v", loginValues["login_username"], hasPass)
 	}
 
