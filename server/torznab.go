@@ -66,7 +66,7 @@ func (s *Server) torznabHandler(c *gin.Context) {
 			return
 		}
 		var feed *torznab.ResultFeed
-		if cachedFeed, ok := searchCache.Get(query.UniqueKey()); ok {
+		if cachedFeed, ok := searchCache.Get(query.UniqueKey()); false && ok {
 			feed = cachedFeed.(*torznab.ResultFeed)
 		} else {
 			feed, err = s.torznabSearch(c.Request, query, searchIndex)

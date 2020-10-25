@@ -39,7 +39,10 @@ func (s IndexerSelector) shouldLoadAllIndexes() bool { //nolint:unused
 }
 
 func (s IndexerSelector) Matches(name string) bool {
-	if s.selector == "" || s.selector == "all" || s.selector == "aggregate" {
+	if s.selector == "" {
+		return true
+	}
+	if s.selector == "all" || s.selector == "aggregate" {
 		return false
 	}
 

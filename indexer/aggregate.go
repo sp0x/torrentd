@@ -133,6 +133,10 @@ func (ag *Aggregate) Search(query *torznab.Query, searchInstance search.Instance
 	for idx, pIndexer := range ag.Indexers {
 		//Run the Indexer in a goroutine
 		i, pIndex := idx, pIndexer
+		if len(pIndexer.Errors()) > 0 {
+			log.WithFields(log.Fields{"index": pIndexer}).Debug("Skipping index because it has errors")
+			continue
+		}
 		errorGroup.Go(func() error {
 			indexId := pIndex.Info().GetId()
 			indexSearch := aggregatedSearch.SearchContexts[&pIndex]

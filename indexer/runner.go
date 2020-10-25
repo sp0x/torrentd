@@ -33,7 +33,8 @@ import (
 //"github.com/tehjojo/go-tvmaze/tvmaze"
 
 var (
-	_ Indexer = &Runner{}
+	_        Indexer = &Runner{}
+	errorTTL         = 2 * 24 * time.Hour
 )
 
 type RunnerOpts struct {
@@ -102,7 +103,7 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 	//connCache, _ := cache.NewConnectivityCache()
 	//Use an optimistic cache instead.
 	connCache, _ := cache.NewOptimisticConnectivityCache()
-	errorCache, _ := cache.NewThreadSafeWithEvict(10, nil)
+	errorCache, _ := cache.NewTTL(10, errorTTL)
 	runner := &Runner{
 		opts:                opts,
 		definition:          def,
