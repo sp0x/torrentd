@@ -59,4 +59,5 @@ indexers:
 By default, the server caches the following data:
 - Connectivity checks (LRU with Timeout)
 - Search results (LRU with Timeout)
+- Last errors for each loaded index (LRU with 2 days TTL)
 
