@@ -32,22 +32,9 @@ func (s *Server) status(c *gin.Context) {
 	var statusObj statusResponse
 	//If we don't have it in the cache
 	if !statusCache.Contains("status") {
-		store := storage.NewBuilder().
-			WithRecord(&search.ExternalResultItem{}).
-			Build()
-		latest := store.GetLatest(20)
-		store.Close()
-		var latestResultItems []latestResult
-		for _, late := range latest {
-			latestResultItems = append(latestResultItems, latestResult{
-				Name:        late.Title,
-				Description: late.Description,
-				Site:        late.Site,
-				Link:        late.SourceLink,
-			})
-		}
+		latestResultItems := getLatestItems()
 		statusObj = statusResponse{
-			Count:  len(latest),
+			Count:  len(latestResultItems),
 			Latest: latestResultItems,
 		}
 		statusCache.Add("status", statusObj)
@@ -55,11 +42,29 @@ func (s *Server) status(c *gin.Context) {
 		cached, _ := statusCache.Get("status")
 		statusObj = cached.(statusResponse)
 	}
-	statusObj.Indexes = createIndexesStatus(s)
+	statusObj.Indexes = getIndexesStatus(s)
 	c.JSON(200, statusObj)
 }
 
-func createIndexesStatus(s *Server) []indexStatus {
+func getLatestItems() []latestResult {
+	store := storage.NewBuilder().
+		WithRecord(&search.ExternalResultItem{}).
+		Build()
+	latest := store.GetLatest(20)
+	store.Close()
+	var latestResultItems []latestResult
+	for _, late := range latest {
+		latestResultItems = append(latestResultItems, latestResult{
+			Name:        late.Title,
+			Description: late.Description,
+			Site:        late.Site,
+			Link:        late.SourceLink,
+		})
+	}
+	return latestResultItems
+}
+
+func getIndexesStatus(s *Server) []indexStatus {
 	var statuses []indexStatus
 	for ixKey, ix := range s.indexerFacade.Scope.Indexes() {
 		_, isAggregate := ix.(*indexer.Aggregate)

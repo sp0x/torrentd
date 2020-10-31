@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"errors"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage"
@@ -26,7 +27,11 @@ func (ag *Aggregate) SetStorage(s storage.ItemStorage) {
 func (ag *Aggregate) Errors() []string {
 	var errs []string
 	for _, index := range ag.Indexers {
-		errs = append(errs, index.Errors()...)
+		indexErrors := index.Errors()
+		site := index.GetDefinition().Site
+		for _, indexError := range indexErrors {
+			errs = append(errs, fmt.Sprintf("%s: %s", site, indexError))
+		}
 	}
 	return errs
 }
