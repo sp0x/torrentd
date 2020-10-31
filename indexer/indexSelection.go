@@ -26,7 +26,9 @@ func ResolveIndexId(scope Scope, id string) string {
 	var firstWorkingIndex string
 	//We're searching for the first index
 	for ixId, ix := range indexes {
-		if len(ix.Errors()) > 0 {
+		hasErrors := len(ix.Errors()) > 0
+		_, isAggregate := ix.(*Aggregate)
+		if hasErrors && !isAggregate {
 			continue
 		}
 		if firstWorkingIndex == "" {
