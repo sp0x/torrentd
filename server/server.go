@@ -22,6 +22,7 @@ import (
 type Server struct {
 	indexerFacade *indexer.Facade
 	tabWriter     *tabwriter.Writer
+	status        indexer.ReportGenerator
 	//Params    Params
 	config     config.Config
 	Port       int

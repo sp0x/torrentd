@@ -1,9 +1,5 @@
 package indexer
 
-/**
-This is part of https://github.com/cardigann/cardigann
-*/
-
 import (
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/torznab"

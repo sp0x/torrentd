@@ -16,7 +16,7 @@ func (s *Server) setupRoutes(r *gin.Engine) {
 	r.GET("/search/:name", func(c *gin.Context) {
 		rss.SearchAndServe(s.indexerFacade, s.indexerFacade.GetDefaultOptions(), c)
 	})
-	r.GET("/status", s.status)
+	r.GET("/status", s.Status)
 
 	//Torznab
 	r.GET("torznab/:indexer", s.torznabHandler)

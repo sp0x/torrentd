@@ -8,7 +8,6 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	indexer "github.com/sp0x/torrentd/indexer"
 	search "github.com/sp0x/torrentd/indexer/search"
-	storage "github.com/sp0x/torrentd/storage"
 	torznab "github.com/sp0x/torrentd/torznab"
 	io "io"
 	http "net/http"
@@ -275,14 +274,16 @@ func (mr *MockIndexerMockRecorder) SearchIsSinglePaged() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchIsSinglePaged", reflect.TypeOf((*MockIndexer)(nil).SearchIsSinglePaged))
 }
 
-// SetStorage mocks base method
-func (m *MockIndexer) SetStorage(storage storage.ItemStorage) {
+// Errors mocks base method
+func (m *MockIndexer) Errors() []string {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetStorage", storage)
+	ret := m.ctrl.Call(m, "Errors")
+	ret0, _ := ret[0].([]string)
+	return ret0
 }
 
-// SetStorage indicates an expected call of SetStorage
-func (mr *MockIndexerMockRecorder) SetStorage(storage interface{}) *gomock.Call {
+// Errors indicates an expected call of Errors
+func (mr *MockIndexerMockRecorder) Errors() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetStorage", reflect.TypeOf((*MockIndexer)(nil).SetStorage), storage)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Errors", reflect.TypeOf((*MockIndexer)(nil).Errors))
 }
