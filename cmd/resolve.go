@@ -25,5 +25,7 @@ func resolveTorrents(_ *cobra.Command, _ []string) {
 		log.Error("Couldn't initialize helper.")
 		return
 	}
-	torrent.ResolveTorrents(helper, resolutionHours)
+	config := helper.Config
+	index := helper.Indexer
+	torrent.ResolveTorrents(index, config)
 }

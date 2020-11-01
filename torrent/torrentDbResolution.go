@@ -1,72 +1,73 @@
 package torrent
 
 import (
-	"fmt"
 	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer"
-	"github.com/sp0x/torrentd/storage/sqlite"
-	"os"
+	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/storage"
 	"reflect"
-	"text/tabwriter"
 )
 
 //Gets torrent information from a given tracker and updates the torrent db
-func ResolveTorrents(client *indexer.Facade, hours int) {
-	dbStorage := sqlite.DBStorage{}
-	torrents := dbStorage.GetOlderThanHours(hours)
-	tabWr := new(tabwriter.Writer)
-	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
-	if err := client.Indexer.Check(); err != nil {
-		log.Errorf("Failed while checking indexer %s. Err: %s\n", reflect.TypeOf(client.Indexer), err)
-		return
+func ResolveTorrents(index indexer.Indexer, config config.Config) []search.ExternalResultItem {
+	store := storage.NewBuilder().
+		WithRecord(&search.ExternalResultItem{}).
+		Build()
+	defer store.Close()
+	results := store.GetLatest(20)
+	if err := index.Check(); err != nil {
+		log.Errorf("Failed while checking indexer %s. Err: %s\n", reflect.TypeOf(index), err)
+		return nil
 	}
-	scope := indexer.NewScope()
-	for i, t := range torrents {
-		//Skip already resolved torrents.
-		if t.Announce != "" {
+	indexScope := indexer.NewScope()
+	for i, item := range results {
+		//Skip already resolved results.
+		if item.Announce != "" {
 			continue
 		}
-		ixr, err := scope.Lookup(client.Config, t.Site)
+		index, err := indexScope.Lookup(config, item.Site)
 		if err != nil {
-			log.WithFields(log.Fields{"err": err, "site": t.Site}).
+			log.WithFields(log.Fields{"err": err, "site": item.Site}).
 				Warningf("Error while looking up indexer.")
 			continue
 		}
-		if ixr == nil {
-			log.WithFields(log.Fields{"site": t.Site}).
-				Warningf("Couldn't find indexer.")
+		if index == nil {
+			log.WithFields(log.Fields{"site": item.Site}).
+				Warningf("Couldn'item find indexer.")
 			continue
 		}
-		err = ixr.Check()
+		err = index.Check()
 		if err != nil {
-			log.WithFields(log.Fields{"err": err, "site": t.Site}).
+			log.WithFields(log.Fields{"err": err, "site": item.Site}).
 				Warningf("Error while checking indexer.")
 			continue
 		}
-		reader, err := ixr.Open(&t)
+		reader, err := index.Open(&item)
 		if err != nil {
-			log.Debugf("Couldn't open result [%v] %v", t.LocalId, t.Title)
+			log.Debugf("Couldn'item open result [%v] %v", item.LocalId, item.Title)
 			continue
 		}
 		log.
-			WithFields(log.Fields{"link": t.SourceLink, "name": t.Title}).
+			WithFields(log.Fields{"link": item.SourceLink, "name": item.Title}).
 			Info("Resolving")
 		def, err := ParseTorrentFromStream(reader)
 		if err != nil {
-			log.Debugf("Could not resolve result: [%v] %v", t.LocalId, t.Title)
+			log.Debugf("Could not resolve result: [%v] %v", item.LocalId, item.Title)
 			continue
 		}
-		t.Announce = def.Announce
-		t.Publisher = def.Publisher
-		t.OriginalTitle = def.Info.Name
-		t.Size = def.GetTotalFileSize()
-		t.PublishedWith = def.CreatedBy
-		perc := (float32(i) / float32(len(torrents))) * 100
-		_, _ = fmt.Fprintf(tabWr, "%f%% Resolved [%s]\t%s\n", perc, t.LocalId, t.Title)
-		err = dbStorage.CreateWithId(nil, &t, nil)
+		item.Announce = def.Announce
+		item.Publisher = def.Publisher
+		item.OriginalTitle = def.Info.Name
+		item.Size = def.GetTotalFileSize()
+		item.PublishedWith = def.CreatedBy
+		perc := (float32(i) / float32(len(results))) * 100
+		log.WithFields(log.Fields{"id": item.LocalId, "title": item.Title}).
+			Infof("%f%% Resolved ", perc)
+		err = store.Add(&item)
 		if err != nil {
 			log.Errorf("Could not save result: %v", err)
 		}
-		_ = tabWr.Flush()
 	}
+	return results
 }

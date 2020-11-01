@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/sp0x/torrentd/storage/sqlite"
+	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/storage"
 	"github.com/spf13/cobra"
 	"os"
 	"text/tabwriter"
@@ -22,11 +23,14 @@ func init() {
 }
 
 func listLatestTorrents(cmd *cobra.Command, args []string) {
-	st := sqlite.DBStorage{}
+	store := storage.NewBuilder().
+		WithRecord(&search.ExternalResultItem{}).
+		Build()
+	defer store.Close()
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 
-	torrents := st.GetNewest(torrentCount)
+	torrents := store.GetLatest(torrentCount)
 	for _, tr := range torrents {
 		_, _ = fmt.Fprintf(tabWr, "%s\t%s\t%s", tr.LocalCategoryID, tr.Title, tr.AddedOnStr())
 		_ = tabWr.Flush()

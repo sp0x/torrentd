@@ -1,8 +1,11 @@
 package main
 
 import (
-	"github.com/sp0x/torrentd/storage/sqlite"
+	"fmt"
+	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/storage"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 func init() {
@@ -16,6 +19,12 @@ func init() {
 }
 
 func truncateTorrentDb(cmd *cobra.Command, args []string) {
-	storage := sqlite.DBStorage{}
-	storage.Truncate()
+	store := storage.NewBuilder().
+		WithRecord(&search.ExternalResultItem{}).
+		Build()
+	defer store.Close()
+	fmt.Printf("not supported\n")
+	os.Exit(1)
+	//store.Truncate()
+	//storage.Truncate()
 }
