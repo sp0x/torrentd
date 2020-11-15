@@ -44,6 +44,9 @@ func (b *BoltStorage) PushToLatestItems(tx *bolt.Tx, serializedItem []byte) erro
 
 func (b *BoltStorage) getLatestResultsCursor(tx *bolt.Tx) (indexing.Cursor, error) {
 	bucket := b.GetRootBucket(tx, latestResultsBucket)
+	if bucket == nil {
+		return nil, errors.New("root bucket doesn't exist")
+	}
 	cursor := bucket.Cursor()
 	return &FilteredCursor{C: cursor, Filters: []func([]byte, []byte) bool{
 		func(id []byte, value []byte) bool {
