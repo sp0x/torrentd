@@ -52,10 +52,13 @@ func formatValues(field *fieldBlock, value interface{}, values map[string]interf
 			return strValue
 		}
 		strValue = updated
+	} else {
+		//Don't format non-patterns
+		return strValue
 	}
 	if field != nil {
 		updated, err := field.Block.ApplyFilters(strValue)
-		if err != nil {
+		if err != nil || updated == "" {
 			return strValue
 		}
 		strValue = updated
@@ -89,9 +92,6 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 			r.failingSearchFields[item.Field] = item
 			continue
 		}
-		//r.logger.
-		//	WithFields(logrus.Fields{"row": rowIdx, "output": val}).
-		//	Debugf("Finished processing field %q", item.Field)
 
 		row[item.Field] = val
 	}
