@@ -149,49 +149,47 @@ func getRecordByIndexOrDefault(b *BoltStorage, bucket *bolt.Bucket, dbIndex inde
 	return err
 }
 
+func (b *BoltStorage) getFromIndexedQuery(bucketName string, tx *bolt.Tx, query indexing.Query, result interface{}) error {
+	indexValue := indexing.GetIndexValueFromQuery(query)
+	bucket := b.GetBucket(tx, bucketName)
+	if bucket == nil {
+		return errors.New("not found")
+	}
+	idx, err := b.GetIndexFromQuery(bucket, query)
+	if err != nil {
+		return err
+	}
+	return getRecordByIndexOrDefault(b, bucket, idx, indexValue, result)
+}
+
+func (b *BoltStorage) indexQuery(bucketName string, query indexing.Query) error {
+	return b.Database.Update(func(tx *bolt.Tx) error {
+		_, err := b.GetIndexFromQuery(b.GetBucket(tx, bucketName), query)
+		return err
+	})
+}
+
 //Find records by it's index keys.
-//Todo: refactor this
 func (b *BoltStorage) Find(query indexing.Query, result interface{}) error {
 	if query == nil {
 		return errors.New("query is required")
 	}
-	indexValue := indexing.GetIndexValueFromQuery(query)
-
 	//The our bucket, and the index that matches the query best
 	err := b.Database.View(func(tx *bolt.Tx) error {
-		bucket := b.GetBucket(tx, resultsBucket)
-		if bucket == nil {
-			return errors.New("not found")
-		}
-		idx, err := b.GetIndexFromQuery(bucket, query)
-		if err != nil {
-			return err
-		}
-		return getRecordByIndexOrDefault(b, bucket, idx, indexValue, result)
+		return b.getFromIndexedQuery(resultsBucket, tx, query, result)
 	})
 	//At this point we can quit.
 	if err == nil {
 		return nil
 	}
-	//We should retry
+	//If the index does not exist, we create it and query by it
 	if _, ok := err.(*IndexDoesNotExistAndNotWritable); ok {
-		err = b.Database.Update(func(tx *bolt.Tx) error {
-			_, err := b.GetIndexFromQuery(b.GetBucket(tx, resultsBucket), query)
-			return err
-		})
+		err = b.indexQuery(resultsBucket, query)
 		if err != nil {
 			return err
 		}
 		err = b.Database.View(func(tx *bolt.Tx) error {
-			bucket := b.GetBucket(tx, resultsBucket)
-			if bucket == nil {
-				return errors.New("not found")
-			}
-			idx, err := b.GetIndexFromQuery(bucket, query)
-			if err != nil {
-				return err
-			}
-			return getRecordByIndexOrDefault(b, bucket, idx, indexValue, result)
+			return b.getFromIndexedQuery(resultsBucket, tx, query, result)
 		})
 		return err
 	}
