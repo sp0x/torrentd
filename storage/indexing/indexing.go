@@ -21,6 +21,14 @@ type Index interface {
 	//	AllWithPrefix(prefix []byte, opts *CursorOptions) ([][]byte)
 }
 
+func First(index Index, indexKey []byte) []byte {
+	results := index.All(indexKey, SingleItemCursor())
+	if results == nil {
+		return nil
+	}
+	return results[0]
+}
+
 //IndexMetadata is used to describe an index
 type IndexMetadata struct {
 	Name     string `json:"name"`

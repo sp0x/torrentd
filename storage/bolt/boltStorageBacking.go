@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/boltdb/bolt"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer/categories"
@@ -109,38 +108,55 @@ func (b *BoltStorage) Close() {
 	_ = b.Database.Close()
 }
 
-//Find something by it's index keys.
+func getByIndex(bucket *bolt.Bucket, index indexing.Index, indexValue []byte) (id []byte, result []byte, err error) {
+	id = indexing.First(index, indexValue)
+	if id == nil {
+		return nil, nil, errors.New("not found")
+	}
+	//Use the same root bucket and query by the ID in our index
+	result = bucket.Get(id)
+	return id, result, nil
+}
+
+func getDefaultPKIndex(b *BoltStorage, bucket *bolt.Bucket) (indexing.Index, error) {
+	return b.GetUniqueIndexFromKeys(bucket, indexing.NewKey("UUID"))
+}
+
+func getByDefaultPKIndex(b *BoltStorage, bucket *bolt.Bucket, id []byte) ([]byte, error) {
+	defaultPKIndex, err := getDefaultPKIndex(b, bucket)
+	if err != nil {
+		return nil, err
+	}
+	ids := defaultPKIndex.Get(id)
+	rawResult := bucket.Get(ids)
+	return rawResult, nil
+}
+
+func getRecordByIndexOrDefault(b *BoltStorage, bucket *bolt.Bucket, dbIndex indexing.Index, indexValue []byte, result interface{}) error {
+	id, rawResult, err := getByIndex(bucket, dbIndex, indexValue)
+	if err != nil {
+		return err
+	}
+	//If the result is nil, we might be using the additional PK
+	if rawResult == nil {
+		//TODO: add the pk information into the root bucket, so we know if we need to do this.
+		rawResult, err = getByDefaultPKIndex(b, bucket, id)
+	}
+	if err != nil {
+		return err
+	}
+	err = b.marshaler.UnmarshalAt(rawResult, result)
+	return err
+}
+
+//Find records by it's index keys.
 //Todo: refactor this
 func (b *BoltStorage) Find(query indexing.Query, result interface{}) error {
 	if query == nil {
 		return errors.New("query is required")
 	}
 	indexValue := indexing.GetIndexValueFromQuery(query)
-	extract := func(bucket *bolt.Bucket, idx indexing.Index) error {
-		ids := idx.All(indexValue, indexing.SingleItemCursor())
-		if len(ids) == 0 {
-			return errors.New("not found")
-		}
-		//Use the same root bucket and query by the ID in our index
-		rawResult := bucket.Get(ids[0])
-		var err error
-		//If the result is nil, we night be using the additional PK
-		if rawResult == nil {
-			//TODO: add the pk information into the root bucket, so we know if we need to do this.
-			var secondaryIndex indexing.Index
-			secondaryIndex, err = b.GetUniqueIndexFromKeys(bucket, indexing.NewKey("UUID"))
-			if err != nil {
-				return err
-			}
-			ids := secondaryIndex.Get(ids[0])
-			rawResult = bucket.Get(ids)
-		}
-		err = b.marshaler.UnmarshalAt(rawResult, result)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
+
 	//The our bucket, and the index that matches the query best
 	err := b.Database.View(func(tx *bolt.Tx) error {
 		bucket := b.GetBucket(tx, resultsBucket)
@@ -151,7 +167,7 @@ func (b *BoltStorage) Find(query indexing.Query, result interface{}) error {
 		if err != nil {
 			return err
 		}
-		return extract(bucket, idx)
+		return getRecordByIndexOrDefault(b, bucket, idx, indexValue, result)
 	})
 	//At this point we can quit.
 	if err == nil {
@@ -175,7 +191,7 @@ func (b *BoltStorage) Find(query indexing.Query, result interface{}) error {
 			if err != nil {
 				return err
 			}
-			return extract(bucket, idx)
+			return getRecordByIndexOrDefault(b, bucket, idx, indexValue, result)
 		})
 		return err
 	}
@@ -335,14 +351,6 @@ func (b *BoltStorage) ForEach(callback func(record interface{})) {
 		}
 		return nil
 	})
-}
-
-func goOverBucket(buck *bolt.Bucket) {
-	cursor := buck.Cursor()
-	for id, val := cursor.First(); id != nil; id, val = cursor.Next() {
-		spew.Dump(id)
-		spew.Dump(val)
-	}
 }
 
 //GetLatest gets the newest results for all the indexes
