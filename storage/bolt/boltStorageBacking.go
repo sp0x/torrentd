@@ -108,67 +108,6 @@ func (b *BoltStorage) Close() {
 	_ = b.Database.Close()
 }
 
-func getByIndex(bucket *bolt.Bucket, index indexing.Index, indexValue []byte) (id []byte, result []byte, err error) {
-	id = indexing.First(index, indexValue)
-	if id == nil {
-		return nil, nil, errors.New("not found")
-	}
-	//Use the same root bucket and query by the ID in our index
-	result = bucket.Get(id)
-	return id, result, nil
-}
-
-func getDefaultPKIndex(b *BoltStorage, bucket *bolt.Bucket) (indexing.Index, error) {
-	return b.GetUniqueIndexFromKeys(bucket, indexing.NewKey("UUID"))
-}
-
-func getByDefaultPKIndex(b *BoltStorage, bucket *bolt.Bucket, id []byte) ([]byte, error) {
-	defaultPKIndex, err := getDefaultPKIndex(b, bucket)
-	if err != nil {
-		return nil, err
-	}
-	ids := defaultPKIndex.Get(id)
-	rawResult := bucket.Get(ids)
-	return rawResult, nil
-}
-
-func getRecordByIndexOrDefault(b *BoltStorage, bucket *bolt.Bucket, dbIndex indexing.Index, indexValue []byte, result interface{}) error {
-	id, rawResult, err := getByIndex(bucket, dbIndex, indexValue)
-	if err != nil {
-		return err
-	}
-	//If the result is nil, we might be using the additional PK
-	if rawResult == nil {
-		//TODO: add the pk information into the root bucket, so we know if we need to do this.
-		rawResult, err = getByDefaultPKIndex(b, bucket, id)
-	}
-	if err != nil {
-		return err
-	}
-	err = b.marshaler.UnmarshalAt(rawResult, result)
-	return err
-}
-
-func (b *BoltStorage) getFromIndexedQuery(bucketName string, tx *bolt.Tx, query indexing.Query, result interface{}) error {
-	indexValue := indexing.GetIndexValueFromQuery(query)
-	bucket := b.GetBucket(tx, bucketName)
-	if bucket == nil {
-		return errors.New("not found")
-	}
-	idx, err := b.GetIndexFromQuery(bucket, query)
-	if err != nil {
-		return err
-	}
-	return getRecordByIndexOrDefault(b, bucket, idx, indexValue, result)
-}
-
-func (b *BoltStorage) indexQuery(bucketName string, query indexing.Query) error {
-	return b.Database.Update(func(tx *bolt.Tx) error {
-		_, err := b.GetIndexFromQuery(b.GetBucket(tx, bucketName), query)
-		return err
-	})
-}
-
 //Find records by it's index keys.
 func (b *BoltStorage) Find(query indexing.Query, result interface{}) error {
 	if query == nil {
@@ -226,8 +165,7 @@ func (b *BoltStorage) Update(query indexing.Query, item interface{}) error {
 //Create a new record. This uses a new random UUID in order to identify the record.
 func (b *BoltStorage) Create(item search.Record, additionalPK *indexing.Key) error {
 	item.SetUUID(uuid.New().String())
-	key := indexing.NewKey("UUID")
-	err := b.CreateWithId(key, item, nil)
+	err := b.CreateWithId(getDefaultPK(), item, nil)
 	if err != nil {
 		return err
 	}
@@ -319,6 +257,7 @@ func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item search.Record, u
 	})
 }
 
+//Size gets the record count in this namespace's results bucket
 func (b *BoltStorage) Size() int64 {
 	var count *int
 	count = new(int)
@@ -350,52 +289,6 @@ func (b *BoltStorage) ForEach(callback func(record interface{})) {
 		return nil
 	})
 }
-
-//GetLatest gets the newest results for all the indexes
-func (b *BoltStorage) GetLatest(count int) []search.ExternalResultItem {
-	var output []search.ExternalResultItem
-
-	_ = b.Database.View(func(tx *bolt.Tx) error {
-		cursor, err := b.getLatestResultsCursor(tx)
-		if err != nil {
-			return err
-		}
-		itemsFetched := 0
-		for _, value := cursor.First(); value != nil && cursor.CanContinue(value); _, value = cursor.Next() {
-			newItem := search.ExternalResultItem{}
-			if err := b.marshaler.UnmarshalAt(value, &newItem); err != nil {
-				log.Warning("Couldn't deserialize item from bolt storage.")
-				break
-			}
-			output = append(output, newItem)
-			itemsFetched++
-			if itemsFetched == count {
-				break
-			}
-		}
-		return nil
-	})
-	return output
-}
-
-//StoreChat stores a new chat.
-//The chat id is used as a keyParts.
-//func (b *BoltStorage) StoreChat(chat *Chat) error {
-//	//	defer db.Close()
-//	err := b.Database.Update(func(tx *bolt.Tx) error {
-//		bucket, err := b.assertNamespaceBucket(tx, resultsBucket)
-//		if err != nil {
-//			return err
-//		}
-//		key := i64tob(chat.ChatId)
-//		val, err := b.marshaler.Marshal(chat)
-//		if err != nil {
-//			return err
-//		}
-//		return bucket.Put(key, val)
-//	})
-//	return err
-//}
 
 func DefaultBoltPath() string {
 	cwd, _ := os.Getwd()
@@ -462,52 +355,8 @@ func (b *BoltStorage) GetRootBucket(tx *bolt.Tx, children ...string) *bolt.Bucke
 	return bucket
 }
 
-//ForChat calls the callback for each chat, in an async way.
-//func (b *BoltStorage) ForChat(callback func(chat *Chat)) error {
-//	return b.Database.View(func(tx *bolt.Tx) error {
-//		bucket := tx.Bucket([]byte("telegram_chats"))
-//		if bucket == nil {
-//			return nil
-//		}
-//		return bucket.ForEach(func(k, v []byte) error {
-//			var chat = Chat{}
-//			if err := b.marshaler.Unmarshal(v, &chat); err != nil {
-//				return err
-//			}
-//			callback(&chat)
-//			return nil
-//		})
-//	})
-//}
-
-//func (b *BoltStorage) GetChat(id int) (*Chat, error) {
-//	var chat = Chat{}
-//	found := false
-//	err := b.Database.View(func(tx *bolt.Tx) error {
-//		bucket := tx.Bucket([]byte("telegram_chats"))
-//		if bucket == nil {
-//			return nil
-//		}
-//		buff := bucket.Get(itob(id))
-//		if buff == nil {
-//			return nil
-//		}
-//		found = true
-//		if err := b.marshaler.UnmarshalAt(buff, &chat); err != nil {
-//			return err
-//		}
-//		return nil
-//	})
-//	if err != nil {
-//		return nil, err
-//	}
-//	if !found {
-//		return nil, nil
-//	}
-//	return &chat, nil
-//}
-
-func (b *BoltStorage) Truncate() error {
+//Truncate the whole database
+func (b *BoltStorage) TruncateDb() error {
 	db := b.Database
 	return db.Update(func(tx *bolt.Tx) error {
 		return tx.ForEach(func(name []byte, b *bolt.Bucket) error {
@@ -601,23 +450,6 @@ func GetItemKey(item search.ExternalResultItem) ([]byte, error) {
 		return nil, errors.New("record has no keyParts")
 	}
 	return []byte(item.UUIDValue), nil
-}
-
-// itob returns an 8-byte big endian representation of v.
-//func uitob(v uint) []byte {
-//	b := make([]byte, 8)
-//	binary.BigEndian.PutUint64(b, uint64(v))
-//	return b
-//}
-func i64tob(v int64) []byte {
-	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, uint64(v))
-	return b
-}
-func itob(v int) []byte {
-	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, uint64(v))
-	return b
 }
 
 //toBytes is a helper function that converts any value to bytes

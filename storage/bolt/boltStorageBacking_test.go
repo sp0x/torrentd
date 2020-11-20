@@ -52,7 +52,7 @@ var _ = Describe("Bolt storage", func() {
 		//Teardown db
 		AfterEach(func() {
 			if db != nil {
-				err := bstore.Truncate()
+				err := bstore.TruncateDb()
 				if err != nil {
 					Fail("couldn't teardown bolt storage")
 				}

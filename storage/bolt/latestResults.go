@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/boltdb/bolt"
+	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/indexing"
 	"strconv"
 )
@@ -53,4 +55,31 @@ func (b *BoltStorage) getLatestResultsCursor(tx *bolt.Tx) (indexing.Cursor, erro
 			return string(id) == latestResultsIndexKey
 		},
 	}}, nil
+}
+
+//GetLatest gets the newest results for all the indexes
+func (b *BoltStorage) GetLatest(count int) []search.ExternalResultItem {
+	var output []search.ExternalResultItem
+
+	_ = b.Database.View(func(tx *bolt.Tx) error {
+		cursor, err := b.getLatestResultsCursor(tx)
+		if err != nil {
+			return err
+		}
+		itemsFetched := 0
+		for _, value := cursor.First(); value != nil && cursor.CanContinue(value); _, value = cursor.Next() {
+			newItem := search.ExternalResultItem{}
+			if err := b.marshaler.UnmarshalAt(value, &newItem); err != nil {
+				log.Warning("Couldn't deserialize item from bolt storage.")
+				break
+			}
+			output = append(output, newItem)
+			itemsFetched++
+			if itemsFetched == count {
+				break
+			}
+		}
+		return nil
+	})
+	return output
 }
