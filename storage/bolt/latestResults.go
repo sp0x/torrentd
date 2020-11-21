@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	latestResultsBucket     = "results.latest"
+	latestResultsBucketName = "results.latest"
 	latestResultsIndexKey   = "__index"
 	latestResultsBucketSize = 20
 )
@@ -21,7 +21,7 @@ func (b *BoltStorage) PushToLatestItems(tx *bolt.Tx, serializedItem []byte) erro
 	if serializedItem == nil {
 		return errors.New("serialized value is required")
 	}
-	bucket, err := b.assertBucket(tx, latestResultsBucket)
+	bucket, err := b.assertBucket(tx, latestResultsBucketName)
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func (b *BoltStorage) PushToLatestItems(tx *bolt.Tx, serializedItem []byte) erro
 }
 
 func (b *BoltStorage) getLatestResultsCursor(tx *bolt.Tx) (indexing.Cursor, error) {
-	bucket := b.GetRootBucket(tx, latestResultsBucket)
+	bucket := b.GetRootBucket(tx, latestResultsBucketName)
 	if bucket == nil {
 		return nil, errors.New("root bucket doesn't exist")
 	}

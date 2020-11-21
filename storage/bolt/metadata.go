@@ -13,27 +13,27 @@ type Metadata struct {
 
 func (b *BoltStorage) setupMetadata() error {
 	return b.Database.Update(func(tx *bolt.Tx) error {
-		rootBucket, err := b.assertBucket(tx, resultsBucket)
+		internalBucket, err := b.assertBucket(tx, internalBucketName)
 		if err != nil {
 			return err
 		}
-		bucket, err := b.assertNamespaceBucket(tx, resultsBucket)
+		nsBucket, err := b.assertNamespaceBucket(tx, namespaceResultsBucketName)
 		if err != nil {
 			return err
 		}
-		b.loadGlobalMetadata(rootBucket)
-		b.loadMetadata(bucket)
+		b.loadGlobalMetadata(internalBucket)
+		b.loadMetadata(nsBucket)
 		return nil
 	})
 }
 
 func (b *BoltStorage) saveMetadata(bucket *bolt.Bucket) {
 	metadataBytes, _ := json.Marshal(b.metadata)
-	_ = bucket.Put([]byte(metaBucket), metadataBytes)
+	_ = bucket.Put([]byte(metaBucketName), metadataBytes)
 }
 
 func (b *BoltStorage) loadMetadata(bucket *bolt.Bucket) {
-	metadataBytes := bucket.Get([]byte(metaBucket))
+	metadataBytes := bucket.Get([]byte(metaBucketName))
 	metadata := &Metadata{}
 	if metadataBytes != nil {
 		err := json.Unmarshal(metadataBytes, &metadata)

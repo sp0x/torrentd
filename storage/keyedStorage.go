@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/indexing"
+	"github.com/sp0x/torrentd/storage/stats"
 )
 
 type KeyedStorage struct {
@@ -49,6 +50,10 @@ func (s *KeyedStorage) Find(query indexing.Query, output *search.ExternalResultI
 
 func (s *KeyedStorage) ForEach(callback func(record interface{})) {
 	s.backing.ForEach(callback)
+}
+
+func (s *KeyedStorage) GetStats() *stats.Stats {
+	return s.backing.GetStats(false)
 }
 
 func (s *KeyedStorage) SetKey(index *indexing.Key) error {
