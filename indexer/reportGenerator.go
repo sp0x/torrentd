@@ -4,6 +4,7 @@ import (
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/indexer/status/models"
 	"github.com/sp0x/torrentd/storage"
+	"github.com/sp0x/torrentd/storage/stats"
 )
 
 type StandardReportGenerator struct{}
@@ -34,13 +35,26 @@ func (st *StandardReportGenerator) GetLatestItems() []models.LatestResult {
 
 func (st *StandardReportGenerator) GetIndexesStatus(indexFacade *Facade) []models.IndexStatus {
 	var statuses []models.IndexStatus
-	for ixKey, ix := range indexFacade.Scope.Indexes() {
+	var storageStats *stats.Stats
+	for indexKey, ix := range indexFacade.Scope.Indexes() {
 		_, isAggregate := ix.(*Aggregate)
-		statuses = append(statuses, models.IndexStatus{
-			Index:       ixKey,
+		if storageStats == nil {
+			storg := ix.GetStorage()
+			storageStats = storg.GetStats()
+			storg.Close()
+		}
+		indexStats := models.IndexStatus{
+			Index:       indexKey,
 			IsAggregate: isAggregate,
 			Errors:      ix.Errors(),
-		})
+		}
+		if storageStats != nil {
+			nsp := storageStats.GetNamespace(indexKey)
+			if nsp != nil {
+				indexStats.Size = nsp.RecordCount
+			}
+		}
+		statuses = append(statuses, indexStats)
 	}
 	return statuses
 }

@@ -11,4 +11,5 @@ type IndexStatus struct {
 	Index       string   `json:"index"`
 	IsAggregate bool     `json:"is_aggregate"`
 	Errors      []string `json:"errors"`
+	Size        int      `json:"size"`
 }

@@ -24,6 +24,10 @@ func (ag *Aggregate) SetStorage(s storage.ItemStorage) {
 	ag.Storage = s
 }
 
+func (ag *Aggregate) GetStorage() storage.ItemStorage {
+	return ag.Storage
+}
+
 func (ag *Aggregate) Errors() []string {
 	var errs []string
 	for _, index := range ag.Indexers {

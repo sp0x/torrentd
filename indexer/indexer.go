@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/storage"
 	"github.com/sp0x/torrentd/torznab"
 	"io"
 	"net/http"
@@ -31,5 +32,5 @@ type Indexer interface {
 	MaxSearchPages() uint
 	SearchIsSinglePaged() bool
 	Errors() []string
-	//SetStorage(storage storage.ItemStorage)
+	GetStorage() storage.ItemStorage
 }

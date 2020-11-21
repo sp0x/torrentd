@@ -10,7 +10,6 @@ import (
 var statusCache, _ = cache.NewTTL(10, 3*time.Minute)
 
 type statusResponse struct {
-	Count   int                   `json:"total_count"`
 	Latest  []models.LatestResult `json:"latest"`
 	Indexes []models.IndexStatus  `json:"indexes"`
 }
@@ -21,7 +20,6 @@ func (s *Server) Status(c *gin.Context) {
 	if !statusCache.Contains("status") {
 		latestResultItems := s.status.GetLatestItems()
 		statusObj = statusResponse{
-			Count:  len(latestResultItems),
 			Latest: latestResultItems,
 		}
 		statusCache.Add("status", statusObj)

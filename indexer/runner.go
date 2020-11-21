@@ -57,20 +57,14 @@ type Runner struct {
 	keepSessions        bool
 	failingSearchFields map[string]fieldBlock
 	lastVerified        time.Time
-	//Storage             storage.ItemStorage
-	contentFetcher source.ContentFetcher
-	context        context.Context
-	errors         cache.LRUCache
+	contentFetcher      source.ContentFetcher
+	context             context.Context
+	errors              cache.LRUCache
 }
 
 func (r *Runner) GetDefinition() *IndexerDefinition {
 	return r.definition
 }
-
-//
-//func (r *Runner) SetStorage(s storage.ItemStorage) {
-//	r.Storage = s
-//}
 
 func (r *Runner) MaxSearchPages() uint {
 	p := uint(r.definition.Search.MaxPages)
@@ -116,6 +110,11 @@ func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
 		errors:              errorCache,
 	}
 	return runner
+}
+
+func (r *Runner) GetStorage() storage.ItemStorage {
+	itemStorage := getIndexStorage(r, r.opts.Config)
+	return itemStorage
 }
 
 func getIndexStorage(indexer Indexer, conf config.Config) storage.ItemStorage {
@@ -527,7 +526,7 @@ func (r *Runner) Search(query *torznab.Query, searchInstance search.Instance) (s
 		}).Debugf("Found %d rows", rows.Length())
 
 	var results []search.ExternalResultItem
-	itemStorage := getIndexStorage(r, r.opts.Config)
+	itemStorage := r.GetStorage()
 	defer itemStorage.Close()
 	for i := 0; i < rows.Length(); i++ {
 		if query.Limit > 0 && len(results) >= query.Limit {
