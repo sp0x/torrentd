@@ -257,23 +257,6 @@ func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item search.Record, u
 	})
 }
 
-//Size gets the record count in this namespace's results bucket
-func (b *BoltStorage) Size() int64 {
-	var count *int
-	count = new(int)
-	*count = 0
-	_ = b.Database.View(func(tx *bolt.Tx) error {
-		bucket, err := b.assertNamespaceBucket(tx, resultsBucket)
-		if err != nil {
-			return err
-		}
-		stats := bucket.Stats()
-		count = &stats.InlineBucketN
-		return nil
-	})
-	return int64(*count)
-}
-
 //ForEach Goes through all the records
 func (b *BoltStorage) ForEach(callback func(record interface{})) {
 	_ = b.Database.View(func(tx *bolt.Tx) error {
@@ -355,16 +338,6 @@ func (b *BoltStorage) GetRootBucket(tx *bolt.Tx, children ...string) *bolt.Bucke
 	return bucket
 }
 
-//Truncate the whole database
-func (b *BoltStorage) TruncateDb() error {
-	db := b.Database
-	return db.Update(func(tx *bolt.Tx) error {
-		return tx.ForEach(func(name []byte, b *bolt.Bucket) error {
-			return tx.DeleteBucket(name)
-		})
-	})
-}
-
 //GetSearchResults by a given category id
 func (b *BoltStorage) GetSearchResults(categoryId int) ([]search.ExternalResultItem, error) {
 	bdb := b.Database
@@ -400,17 +373,17 @@ func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) erro
 	for ix, item := range items {
 		//the function passed to Batch may be called multiple times,
 		err := db.Batch(func(tx *bolt.Tx) error {
-			cgry := categories.AllCategories[item.Category]
+			categoryObj := categories.AllCategories[item.Category]
 			var cgryKey []byte
-			if cgry == nil {
+			if categoryObj == nil {
 				cgryKey = []byte("uncategorized")
 			} else {
-				cgryKey = []byte(cgry.Name)
+				cgryKey = []byte(categoryObj.Name)
 			}
 			//Use the category as a keyParts
 			bucket, _ := tx.CreateBucketIfNotExists([]byte("searchResults"))
 			bucket, _ = bucket.CreateBucketIfNotExists(cgryKey)
-			key, err := GetItemKey(item)
+			key, err := GetPKValueFromRecord(item)
 			if err != nil {
 				return err
 			}
@@ -443,13 +416,6 @@ func (b *BoltStorage) SetNamespace(namespace string) {
 
 func (b *BoltStorage) loadGlobalMetadata(bucket *bolt.Bucket) {
 
-}
-
-func GetItemKey(item search.ExternalResultItem) ([]byte, error) {
-	if item.UUIDValue == "" {
-		return nil, errors.New("record has no keyParts")
-	}
-	return []byte(item.UUIDValue), nil
 }
 
 //toBytes is a helper function that converts any value to bytes

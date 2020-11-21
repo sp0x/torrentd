@@ -222,7 +222,7 @@ func Test_getItemKey(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetItemKey(tt.args.item)
+			got, err := GetPKValueFromRecord(tt.args.item)
 			if tt.wantErr {
 				g.Expect(err).ShouldNot(BeNil())
 			} else {

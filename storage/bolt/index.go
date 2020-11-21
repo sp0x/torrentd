@@ -3,6 +3,7 @@ package bolt
 import (
 	"errors"
 	"github.com/boltdb/bolt"
+	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/indexing"
 	"strings"
 )
@@ -115,4 +116,11 @@ func (b *BoltStorage) indexQuery(bucketName string, query indexing.Query) error 
 		_, err := b.GetIndexFromQuery(b.GetBucket(tx, bucketName), query)
 		return err
 	})
+}
+
+func GetPKValueFromRecord(item search.ExternalResultItem) ([]byte, error) {
+	if item.UUIDValue == "" {
+		return nil, errors.New("record has no keyParts")
+	}
+	return []byte(item.UUIDValue), nil
 }
