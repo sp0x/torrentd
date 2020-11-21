@@ -37,6 +37,9 @@ func (st *StandardReportGenerator) GetIndexesStatus(indexFacade *Facade) []model
 	var statuses []models.IndexStatus
 	var storageStats *stats.Stats
 	for indexKey, ix := range indexFacade.Scope.Indexes() {
+		if ix == nil {
+			continue
+		}
 		_, isAggregate := ix.(*Aggregate)
 		if storageStats == nil {
 			storg := ix.GetStorage()
