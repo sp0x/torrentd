@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage"
 	"github.com/spf13/cobra"
@@ -28,14 +29,13 @@ func getInfo(cmd *cobra.Command, args []string) {
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 
-	//tc := store.Size()
-	fmt.Printf("Not supported for now!\n")
-	os.Exit(1)
-	//tCategories := store.GetCategories()
-	//fmt.Printf("Torrent count: %d\n", tc)
-	//fmt.Printf("Categories: \n")
-	//for _, tr := range tCategories {
-	//	_, _ = fmt.Fprintf(tabWr, "[%s]\t%s\n", tr.CategoryId, tr.CategoryName)
-	//	_ = tabWr.Flush()
-	//}
+	stats := store.GetStats()
+	if stats == nil {
+		fmt.Print("No stats information found.")
+		os.Exit(1)
+	}
+	for _, namespace := range stats.Namespaces {
+		_, _ = fmt.Fprintf(tabWr, "[%d]\t%s\n", namespace.RecordCount, namespace.Name)
+	}
+	_ = tabWr.Flush()
 }

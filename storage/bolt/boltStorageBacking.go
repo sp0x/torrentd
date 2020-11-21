@@ -26,8 +26,10 @@ bucket:
  - __meta: indexes information
 */
 const (
-	resultsBucket = "results"
-	metaBucket    = "__meta"
+	internalBucketName         = "__internal"
+	namespaceResultsBucketName = "results"
+	metaBucketName             = "__meta"
+	categoriesBucketName       = "__categories"
 )
 
 var categoriesInitialized = false
@@ -75,9 +77,17 @@ func GetBoltDb(file string) (*bolt.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = setupCategories(dbx)
+	if err != nil {
+		return nil, err
+	}
+	return dbx, nil
+}
+
+func setupCategories(db *bolt.DB) error {
 	//Setup our DB
-	err = dbx.Update(func(tx *bolt.Tx) error {
-		root, err := tx.CreateBucketIfNotExists([]byte("searchResults"))
+	err := db.Update(func(tx *bolt.Tx) error {
+		ctgBucket, err := tx.CreateBucketIfNotExists([]byte(categoriesBucketName))
 		if err != nil {
 			return err
 		}
@@ -86,7 +96,7 @@ func GetBoltDb(file string) (*bolt.DB, error) {
 		if !categoriesInitialized {
 			for _, cat := range categories.AllCategories {
 				catKey := []byte(cat.Name)
-				_, err := root.CreateBucketIfNotExists(catKey)
+				_, err := ctgBucket.CreateBucketIfNotExists(catKey)
 				if err != nil {
 					return err
 				}
@@ -95,10 +105,7 @@ func GetBoltDb(file string) (*bolt.DB, error) {
 		categoriesInitialized = true
 		return err
 	})
-	if err != nil {
-		return nil, err
-	}
-	return dbx, nil
+	return err
 }
 
 func (b *BoltStorage) Close() {
@@ -115,7 +122,7 @@ func (b *BoltStorage) Find(query indexing.Query, result interface{}) error {
 	}
 	//The our bucket, and the index that matches the query best
 	err := b.Database.View(func(tx *bolt.Tx) error {
-		return b.getFromIndexedQuery(resultsBucket, tx, query, result)
+		return b.getFromIndexedQuery(namespaceResultsBucketName, tx, query, result)
 	})
 	//At this point we can quit.
 	if err == nil {
@@ -123,12 +130,12 @@ func (b *BoltStorage) Find(query indexing.Query, result interface{}) error {
 	}
 	//If the index does not exist, we create it and query by it
 	if _, ok := err.(*IndexDoesNotExistAndNotWritable); ok {
-		err = b.indexQuery(resultsBucket, query)
+		err = b.indexQuery(namespaceResultsBucketName, query)
 		if err != nil {
 			return err
 		}
 		err = b.Database.View(func(tx *bolt.Tx) error {
-			return b.getFromIndexedQuery(resultsBucket, tx, query, result)
+			return b.getFromIndexedQuery(namespaceResultsBucketName, tx, query, result)
 		})
 		return err
 	}
@@ -140,7 +147,7 @@ func (b *BoltStorage) Update(query indexing.Query, item interface{}) error {
 		return errors.New("query is required")
 	}
 	return b.Database.Update(func(tx *bolt.Tx) error {
-		bucket, err := b.assertNamespaceBucket(tx, resultsBucket)
+		bucket, err := b.assertNamespaceBucket(tx, namespaceResultsBucketName)
 		if err != nil {
 			return err
 		}
@@ -176,7 +183,7 @@ func (b *BoltStorage) Create(item search.Record, additionalPK *indexing.Key) err
 	indexValue := indexing.GetIndexValueFromItem(additionalPK, item)
 	//We need add a new index: additionalPK -> UUIDValue
 	return b.Database.Update(func(tx *bolt.Tx) error {
-		bucket, err := b.assertNamespaceBucket(tx, resultsBucket)
+		bucket, err := b.assertNamespaceBucket(tx, namespaceResultsBucketName)
 		if err != nil {
 			return err
 		}
@@ -201,7 +208,7 @@ func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item search.Record, u
 		uniqueIndexValue = []byte("\000;\000")
 	}
 	return b.Database.Update(func(tx *bolt.Tx) error {
-		bucket, err := b.assertNamespaceBucket(tx, resultsBucket)
+		bucket, err := b.assertNamespaceBucket(tx, namespaceResultsBucketName)
 		if err != nil {
 			return err
 		}
@@ -260,7 +267,7 @@ func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item search.Record, u
 //ForEach Goes through all the records
 func (b *BoltStorage) ForEach(callback func(record interface{})) {
 	_ = b.Database.View(func(tx *bolt.Tx) error {
-		bucket := b.GetBucket(tx, resultsBucket)
+		bucket := b.GetBucket(tx, namespaceResultsBucketName)
 		cursor := ReversibleCursor{C: bucket.Cursor(), Reverse: false}
 		for _, val := cursor.First(); cursor.CanContinue(val); _, val = cursor.Next() {
 			result, err := b.marshaler.Unmarshal(val)
@@ -350,11 +357,11 @@ func (b *BoltStorage) GetSearchResults(categoryId int) ([]search.ExternalResultI
 			catName = categories.AllCategories[categoryId].Name
 		}
 
-		bucket := tx.Bucket([]byte("searchResults")).Bucket([]byte(catName))
-		if bucket == nil {
+		categoryBucket := tx.Bucket([]byte(categoriesBucketName)).Bucket([]byte(catName))
+		if categoryBucket == nil {
 			return nil
 		}
-		return bucket.ForEach(func(k, v []byte) error {
+		return categoryBucket.ForEach(func(k, v []byte) error {
 			var newItem search.ExternalResultItem
 			err := b.marshaler.UnmarshalAt(v, &newItem)
 			if err != nil {
@@ -381,20 +388,20 @@ func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) erro
 				cgryKey = []byte(categoryObj.Name)
 			}
 			//Use the category as a keyParts
-			bucket, _ := tx.CreateBucketIfNotExists([]byte("searchResults"))
-			bucket, _ = bucket.CreateBucketIfNotExists(cgryKey)
+			categoriesBucket, _ := tx.CreateBucketIfNotExists([]byte(categoriesBucketName))
+			categoriesBucket, _ = categoriesBucket.CreateBucketIfNotExists(cgryKey)
 			key, err := GetPKValueFromRecord(item)
 			if err != nil {
 				return err
 			}
-			nextId, _ := bucket.NextSequence()
+			nextId, _ := categoriesBucket.NextSequence()
 			item.ID = uint32(nextId)
 			buf, err := b.marshaler.Marshal(item)
 			if err != nil {
 				return err
 			}
 			item.CreatedAt = time.Now()
-			err = bucket.Put(key, buf)
+			err = categoriesBucket.Put(key, buf)
 			if err != nil {
 				item.ID = 0
 				log.Error(fmt.Sprintf("Error while inserting %d-th item. %s", ix, err))

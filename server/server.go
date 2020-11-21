@@ -56,6 +56,7 @@ func NewServer(conf config.Config) *Server {
 		APIKey:     conf.GetBytes("api_key"),
 	}
 	s.indexerFacade = indexer.NewEmptyFacade(conf)
+	s.status = &indexer.StandardReportGenerator{}
 	return s
 }
 
@@ -75,8 +76,6 @@ func (s *Server) Listen(tracker *indexer.Facade) error {
 	err := r.Run(fmt.Sprintf(":%d", s.Port))
 	return err
 }
-
-var hostname string
 
 func (s *Server) baseURL(r *http.Request, appendPath string) (*url.URL, error) {
 	proto := "http"

@@ -3,6 +3,7 @@ package storage
 import (
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/indexing"
+	"github.com/sp0x/torrentd/storage/stats"
 )
 
 type ItemStorage interface {
@@ -15,6 +16,7 @@ type ItemStorage interface {
 	SetKey(index *indexing.Key) error
 	GetLatest(count int) []search.ExternalResultItem
 	ForEach(callback func(record interface{}))
+	GetStats() *stats.Stats
 }
 type ItemStorageBacking interface {
 	//Tries to find a single record matching the query.
@@ -32,4 +34,5 @@ type ItemStorageBacking interface {
 	GetLatest(count int) []search.ExternalResultItem
 	Close()
 	ForEach(callback func(record interface{}))
+	GetStats(showDebugInfo bool) *stats.Stats
 }
