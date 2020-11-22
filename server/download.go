@@ -4,7 +4,6 @@ import (
 	"errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/server/http"
-	"time"
 )
 
 func (s *Server) downloadHandler(c http.Context) {
@@ -51,14 +50,18 @@ func (s *Server) downloadHandler(c http.Context) {
 	}()
 	log.WithFields(log.Fields{"link": t.Link}).
 		Infof("Waiting for download")
-	select {
-	case length := <-downloadProxy.ContentLengthChan:
-		c.Header("Content-Type", "application/x-bittorrent")
-		c.Header("Content-Disposition", "attachment; filename="+filename)
-		c.Header("Content-Transfer-Encoding", "binary")
-		c.DataFromReader(200, length, "application/x-bittorrent", downloadProxy.Reader, nil)
-	case <-time.After(20 * time.Second):
-		c.String(408, "Timed out waiting for download")
-	}
+	c.Header("Content-Type", "application/x-bittorrent")
+	c.Header("Content-Disposition", "attachment; filename="+filename)
+	c.Header("Content-Transfer-Encoding", "binary")
+	c.DataFromReader(200, 0, "application/x-bittorrent", downloadProxy.Reader, nil)
+	//select {
+	//case length := <-downloadProxy.ContentLengthChan:
+	//	c.Header("Content-Type", "application/x-bittorrent")
+	//	c.Header("Content-Disposition", "attachment; filename="+filename)
+	//	c.Header("Content-Transfer-Encoding", "binary")
+	//	c.DataFromReader(200, length, "application/x-bittorrent", downloadProxy.Reader, nil)
+	//case <-time.After(20 * time.Second):
+	//	c.String(408, "Timed out waiting for download")
+	//}
 
 }
