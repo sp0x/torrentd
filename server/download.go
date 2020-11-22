@@ -4,6 +4,7 @@ import (
 	"errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/server/http"
+	"time"
 )
 
 func (s *Server) downloadHandler(c http.Context) {
@@ -27,30 +28,37 @@ func (s *Server) downloadHandler(c http.Context) {
 		c.String(404, "Indexer link not found")
 		return
 	}
-	ixr, err := s.indexerFacade.Scope.Lookup(s.config, t.Site)
+	index, err := s.indexerFacade.Scope.Lookup(s.config, t.Site)
 	if err != nil {
 		_ = c.Error(err)
 		return
 	}
-	if ixr == nil {
+	if index == nil {
 		_ = c.Error(errors.New("indexer not found"))
 		return
 	}
-	rc, err := ixr.Download(t.Link)
+	downloadProxy, err := index.Download(t.Link)
 	if err != nil {
 		_ = c.Error(err)
 		return
 	}
-	if rc == nil {
+	if downloadProxy == nil || nil == downloadProxy.Reader {
 		_ = c.Error(errors.New("couldn't open stream for download"))
 		return
 	}
-	c.Header("Content-Type", "application/x-bittorrent")
-	c.Header("Content-Disposition", "attachment; filename="+filename)
-	c.Header("Content-Transfer-Encoding", "binary")
 	defer func() {
-		_ = rc.Close()
+		_ = downloadProxy.Reader.Close()
 	}()
-	c.DataFromReader(200, 0, "application/x-bittorrent", rc, nil)
-	//_, _ = io.Copy(c.Writer, rc)
+	log.WithFields(log.Fields{"link": t.Link}).
+		Infof("Waiting for download")
+	select {
+	case length := <-downloadProxy.ContentLengthChan:
+		c.Header("Content-Type", "application/x-bittorrent")
+		c.Header("Content-Disposition", "attachment; filename="+filename)
+		c.Header("Content-Transfer-Encoding", "binary")
+		c.DataFromReader(200, length, "application/x-bittorrent", downloadProxy.Reader, nil)
+	case <-time.After(10 * time.Second):
+		c.String(408, "Timed out waiting for download")
+	}
+
 }

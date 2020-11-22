@@ -14,7 +14,7 @@ func (r *Runner) downloadsNeedResolution() bool {
 	return false
 }
 
-func (r *Runner) Open(s *search.ExternalResultItem) (io.ReadCloser, error) {
+func (r *Runner) Open(s *search.ExternalResultItem) (*ResponseProxy, error) {
 	r.createBrowser()
 	if required, err := r.isLoginRequired(); required {
 		if err := r.login(); err != nil {
@@ -48,29 +48,13 @@ func (r *Runner) Open(s *search.ExternalResultItem) (io.ReadCloser, error) {
 	if err := browserClone.Open(fullUrl); err != nil {
 		return nil, err
 	}
-	//responseType := browserClone.State().Response.Header.Get("Content-Type")
-	//This isn't a torrent
-	//if strings.Contains(responseType, "text/html"){
-	//	downloadLink, err := r.extractField(r.browser.Dom(), r.getField("download"))
-	//	if err != nil {
-	//		return nil, nil
-	//	}
-	//	sourceLink = downloadLink
-	//	fullUrl, err := r.resolveIndexerPath(sourceLink)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	if err := browserClone.Open(fullUrl); err != nil {
-	//		return nil, err
-	//	}
-	//
-	//}
-	//bf := []byte{}
-	//w := bytes.NewBuffer(bf)
-	//_, err = browserClone.Download(w)
-	//rawBytes := w.Bytes()
-	//ioutil.WriteFile("/tmp/rss.torrent", rawBytes, os.ModePerm)
+
 	pipeR, pipeW := io.Pipe()
+	responsePx := &ResponseProxy{
+		Reader:            pipeR,
+		ContentLengthChan: make(chan int64),
+	}
+	//Start a goroutine and write the response of the download to the pipe
 	go func() {
 		defer func() {
 			_ = pipeW.Close()
@@ -81,59 +65,17 @@ func (r *Runner) Open(s *search.ExternalResultItem) (io.ReadCloser, error) {
 		n, err := browserClone.Download(pipeW)
 		if err != nil {
 			r.logger.Error(err)
+		} else {
+			responsePx.ContentLengthChan <- n
+			r.logger.WithFields(logrus.Fields{"url": fullUrl}).
+				Infof("Downloaded %d bytes", n)
 		}
-		r.logger.WithFields(logrus.Fields{"url": fullUrl}).Debugf("Downloaded %d bytes", n)
 	}()
-	return pipeR, nil
+	return responsePx, nil
 }
 
-func (r *Runner) Download(u string) (io.ReadCloser, error) {
+func (r *Runner) Download(u string) (*ResponseProxy, error) {
 	srcItem := search.ExternalResultItem{}
 	srcItem.SourceLink = u
 	return r.Open(&srcItem)
-	//r.createBrowser()
-	//
-	//if required, err := r.isLoginRequired(); required {
-	//	if err := r.login(); err != nil {
-	//		r.logger.WithError(err).Error("Login failed")
-	//		return nil, http.Header{}, err
-	//	}
-	//} else if err != nil {
-	//	return nil, http.Header{}, err
-	//}
-	////If the download needs to be resolved
-	//if r.downloadsNeedResolution() {
-	//	//Resolve the url
-	//	downloadItem := r.failingSearchFields["download"]
-	//	r.openPage(u)
-	//	downloadLink, err := r.extractField(r.browser.Dom(), downloadItem)
-	//	if err != nil {
-	//		return nil, nil, err
-	//	}
-	//	u = downloadLink
-	//}
-	//
-	//fullUrl, err := r.resolveIndexerPath(u)
-	//if err != nil {
-	//	return nil, http.Header{}, err
-	//}
-	//
-	//if err := r.browser.Open(fullUrl); err != nil {
-	//	return nil, http.Header{}, err
-	//}
-	//
-	//pipeR, pipeW := io.Pipe()
-	//go func() {
-	//	defer pipeW.Close()
-	//	if !r.keepSessions {
-	//		defer r.releaseBrowser()
-	//	}
-	//	n, err := r.browser.Download(pipeW)
-	//	if err != nil {
-	//		r.logger.Error(err)
-	//	}
-	//	r.logger.WithFields(logrus.Fields{"url": fullUrl}).Debugf("Downloaded %d bytes", n)
-	//}()
-	//
-	//return pipeR, r.browser.ResponseHeaders(), nil
 }

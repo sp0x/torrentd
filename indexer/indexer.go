@@ -15,16 +15,21 @@ type Info interface {
 	GetLink() string
 }
 
+type ResponseProxy struct {
+	Reader            io.ReadCloser
+	ContentLengthChan chan int64
+}
+
 //go:generate mockgen -source indexer.go -destination=mocks/indexer.go -package=mocks
 type Indexer interface {
 	Info() Info
 	GetDefinition() *IndexerDefinition
 	Search(query *torznab.Query, srch search.Instance) (search.Instance, error)
-	Download(urlStr string) (io.ReadCloser, error)
+	Download(urlStr string) (*ResponseProxy, error)
 	Capabilities() torznab.Capabilities
 	GetEncoding() string
 	ProcessRequest(req *http.Request) (*http.Response, error)
-	Open(s *search.ExternalResultItem) (io.ReadCloser, error)
+	Open(s *search.ExternalResultItem) (*ResponseProxy, error)
 	//Check if the Indexer works.
 	//This might be needed to validate the search result extraction.
 	Check() error

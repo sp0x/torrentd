@@ -43,7 +43,7 @@ func ResolveTorrents(index indexer.Indexer, config config.Config) []search.Exter
 				Warningf("Error while checking indexer.")
 			continue
 		}
-		reader, err := index.Open(&item)
+		responsePxy, err := index.Open(&item)
 		if err != nil {
 			log.Debugf("Couldn'item open result [%v] %v", item.LocalId, item.Title)
 			continue
@@ -51,7 +51,7 @@ func ResolveTorrents(index indexer.Indexer, config config.Config) []search.Exter
 		log.
 			WithFields(log.Fields{"link": item.SourceLink, "name": item.Title}).
 			Info("Resolving")
-		def, err := ParseTorrentFromStream(reader)
+		def, err := ParseTorrentFromStream(responsePxy.Reader)
 		if err != nil {
 			log.Debugf("Could not resolve result: [%v] %v", item.LocalId, item.Title)
 			continue

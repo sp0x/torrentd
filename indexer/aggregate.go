@@ -7,7 +7,6 @@ import (
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage"
 	"github.com/sp0x/torrentd/torznab"
-	"io"
 	"net/http"
 	"strings"
 
@@ -51,7 +50,7 @@ func (ag *Aggregate) GetDefinition() *IndexerDefinition {
 	return definition
 }
 
-func (ag *Aggregate) Open(s *search.ExternalResultItem) (io.ReadCloser, error) {
+func (ag *Aggregate) Open(s *search.ExternalResultItem) (*ResponseProxy, error) {
 	//Find the Indexer
 	for _, ixr := range ag.Indexers {
 		nfo := ixr.Info()
@@ -196,7 +195,7 @@ func (ag *Aggregate) Capabilities() torznab.Capabilities {
 	}
 }
 
-func (ag *Aggregate) Download(string) (io.ReadCloser, error) {
+func (ag *Aggregate) Download(string) (*ResponseProxy, error) {
 	return nil, errors.New("not implemented")
 }
 
