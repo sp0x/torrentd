@@ -106,7 +106,7 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 
 	item := search.ExternalResultItem{
 		ResultItem: search.ResultItem{
-			Site:        r.definition.Site,
+			Site:        r.definition.Name,
 			Indexer:     r.getIndexer(),
 			ExtraFields: make(map[string]interface{}),
 		},

@@ -9,13 +9,13 @@ import (
 )
 
 type token struct {
-	Site string `json:"s,omitempty"`
-	Link string `json:"l,omitempty"`
+	IndexName string `json:"s,omitempty"`
+	Link      string `json:"l,omitempty"`
 }
 
 func (t *token) Encode(sharedKey []byte) (string, error) {
 	j := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"s":   t.Site,
+		"s":   t.IndexName,
 		"l":   t.Link,
 		"nbf": time.Now().Unix(),
 	})

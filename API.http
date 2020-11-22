@@ -4,8 +4,12 @@ GET http://localhost:5001/status
 <> 2020-10-24T061640.200.json
 
 ###Testing
-GET http://localhost:5001/torznab/all/api?t=search&cat=2000,2010,2020,2030,2035,2040,2045,2050,2060&extended=1&apikey=210fc7bb818639a&offset=0&limit=100&q=heisei%20era%20raccoon%20dog%20war%20ponpoko%201994
+GET http://localhost:5001/torznab/all/api?t=search&cat=2000,2010,2020,2030,2035,2040,2045,2050,2060&extended=1&apikey=210fc7bb818639a&offset=0&limit=100&q=bad boys
 
 <> 2020-10-24T061604.200.txt
+
+### Download
+
+GET http://localhost:5001/d/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsIjoiaHR0cHM6Ly96YW11bmRhLm5ldC9kb3dubG9hZC5waHAvNjI1NTEwL0JhZC5Cb3lzLjIuMjAwMy41NzZwLngyNjUuQUMzLkJHYXVkaW8tUkVGTFVYLnRvcnJlbnQiLCJuYmYiOjE2MDYwNzM5OTIsInMiOiJ6YW11bmRhIn0.zvwfh-awvTLtzXgSLLiEXzOuvnZ7mIced6dEbN4uz5w/Bad.Boys.2.2003.576p.x265.AC3.BGaudio-REFLUX.torrent
 
 ###

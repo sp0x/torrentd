@@ -152,12 +152,12 @@ func getIndexStorage(indexer Indexer, conf config.Config) storage.ItemStorage {
 // checks that the runner has the config values it needs
 //func (r *Runner) checkHasConfig() error {
 //	for _, setting := range r.definition.Settings {
-//		_, ok, err := r.opts.Config.GetSiteOption(r.definition.Site, setting.Name)
+//		_, ok, err := r.opts.Config.GetSiteOption(r.definition.IndexName, setting.Name)
 //		if err != nil {
 //			return fmt.Errorf("Error reading config for %s: %v", setting.Name, err)
 //		}
 //		if !ok {
-//			return fmt.Errorf("No value for %s.%s in config", r.definition.Site, setting.Name)
+//			return fmt.Errorf("No value for %s.%s in config", r.definition.IndexName, setting.Name)
 //		}
 //	}
 //	return nil
@@ -751,7 +751,7 @@ func (r *Runner) Ratio() (string, error) {
 func (r *Runner) getIndexer() *search.ResultIndexer {
 	return &search.ResultIndexer{
 		Id:   "",
-		Name: r.definition.Site,
+		Name: r.definition.Name,
 	}
 }
 

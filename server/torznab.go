@@ -156,10 +156,16 @@ func getTokenValue(item *search.ExternalResultItem, apiKey []byte) (string, erro
 	if sourceLink == "" {
 		sourceLink = item.Link
 	}
+	indexerName := ""
+	if item.Indexer != nil {
+		indexerName = item.Indexer.Name
+	} else {
+		indexerName = item.Site
+	}
 	//Encode the site and source of the torrent as a JWT token
 	t := &token{
-		Site: item.Site,
-		Link: sourceLink,
+		IndexName: indexerName,
+		Link:      sourceLink,
 	}
 
 	te, err := t.Encode(apiKey)

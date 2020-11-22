@@ -64,7 +64,7 @@ func (r *Runner) Open(s *search.ExternalResultItem) (*ResponseProxy, error) {
 		}
 		n, err := browserClone.Download(pipeW)
 		if err != nil {
-			r.logger.Error(err)
+			r.logger.Errorf("Error downloading: %v", err)
 		} else {
 			responsePx.ContentLengthChan <- n
 			r.logger.WithFields(logrus.Fields{"url": fullUrl}).

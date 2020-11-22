@@ -28,7 +28,7 @@ func (s *Server) downloadHandler(c http.Context) {
 		c.String(404, "Indexer link not found")
 		return
 	}
-	index, err := s.indexerFacade.Scope.Lookup(s.config, t.Site)
+	index, err := s.indexerFacade.Scope.Lookup(s.config, t.IndexName)
 	if err != nil {
 		_ = c.Error(err)
 		return
@@ -57,7 +57,7 @@ func (s *Server) downloadHandler(c http.Context) {
 		c.Header("Content-Disposition", "attachment; filename="+filename)
 		c.Header("Content-Transfer-Encoding", "binary")
 		c.DataFromReader(200, length, "application/x-bittorrent", downloadProxy.Reader, nil)
-	case <-time.After(10 * time.Second):
+	case <-time.After(20 * time.Second):
 		c.String(408, "Timed out waiting for download")
 	}
 
