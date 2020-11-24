@@ -66,7 +66,7 @@ func (r *Runner) Open(s *search.ExternalResultItem) (*ResponseProxy, error) {
 		if err != nil {
 			r.logger.Errorf("Error downloading: %v", err)
 		} else {
-			//responsePx.ContentLengthChan <- n
+			responsePx.ContentLengthChan <- n
 			r.logger.WithFields(logrus.Fields{"url": fullUrl}).
 				Infof("Downloaded %d bytes", n)
 		}
