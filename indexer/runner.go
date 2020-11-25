@@ -45,12 +45,11 @@ type RunnerOpts struct {
 
 //Runner works index definitions in order to extract data.
 type Runner struct {
-	definition *IndexerDefinition
-	browser    browser.Browsable
-	cookies    http.CookieJar
-	opts       RunnerOpts
-	logger     logrus.FieldLogger
-	//caps                torznab.Capabilities
+	definition          *IndexerDefinition
+	browser             browser.Browsable
+	cookies             http.CookieJar
+	opts                RunnerOpts
+	logger              logrus.FieldLogger
 	browserLock         sync.Mutex
 	connectivityTester  cache.ConnectivityTester
 	state               *IndexerState

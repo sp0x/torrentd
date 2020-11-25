@@ -1,6 +1,8 @@
 package indexer
 
 import (
+	"bytes"
+	"fmt"
 	//"bytes"
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer/search"
@@ -57,16 +59,25 @@ func (r *Runner) Open(s *search.ExternalResultItem) (*ResponseProxy, error) {
 	//Start a goroutine and write the response of the download to the pipe
 	go func() {
 		defer func() {
-			_ = pipeW.Close()
+			errx := pipeW.Close()
+			if errx != nil {
+				fmt.Printf("%v", errx)
+			}
 		}()
 		if !r.keepSessions {
 			defer r.releaseBrowser()
 		}
-		n, err := browserClone.Download(pipeW)
+		downloadBuffer := bytes.NewBuffer([]byte{})
+		n, err := browserClone.Download(downloadBuffer)
 		if err != nil {
 			r.logger.Errorf("Error downloading: %v", err)
 		} else {
 			responsePx.ContentLengthChan <- n
+			_, err = io.Copy(pipeW, downloadBuffer)
+			if err != nil {
+				r.logger.Errorf("Error piping download: %v", err)
+				return
+			}
 			r.logger.WithFields(logrus.Fields{"url": fullUrl}).
 				Infof("Downloaded %d bytes", n)
 		}
