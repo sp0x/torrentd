@@ -52,7 +52,7 @@ func (s *KeyedStorage) ForEach(callback func(record interface{})) {
 	s.backing.ForEach(callback)
 }
 
-func (s *KeyedStorage) GetStats() *stats.Stats {
+func (s *KeyedStorage) GetStats(showDebugInfo bool) *stats.Stats {
 	return s.backing.GetStats(false)
 }
 

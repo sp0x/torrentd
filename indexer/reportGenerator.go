@@ -37,7 +37,7 @@ func (st *StandardReportGenerator) GetIndexesStatus(indexFacade *Facade) []model
 	store := storage.NewBuilder().
 		WithRecord(&search.ExternalResultItem{}).
 		Build()
-	storageStats := store.GetStats()
+	storageStats := store.GetStats(false)
 	store.Close()
 
 	for indexKey, ix := range indexFacade.Scope.Indexes() {

@@ -10,6 +10,8 @@ import (
 	"text/tabwriter"
 )
 
+var dumpAdditionalInfo = false
+
 func init() {
 	cmdGetInfo := &cobra.Command{
 		Use:     "info",
@@ -17,6 +19,7 @@ func init() {
 		Short:   "Lists torrent DB info.",
 		Run:     getInfo,
 	}
+	cmdGetInfo.Flags().BoolVarP(&dumpAdditionalInfo, "dump", "d", false, "Dump additional info")
 	rootCmd.AddCommand(cmdGetInfo)
 }
 
@@ -29,7 +32,7 @@ func getInfo(cmd *cobra.Command, args []string) {
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 
-	stats := store.GetStats()
+	stats := store.GetStats(dumpAdditionalInfo)
 	if stats == nil {
 		fmt.Print("No stats information found.")
 		os.Exit(1)
