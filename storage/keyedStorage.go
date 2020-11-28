@@ -53,7 +53,7 @@ func (s *KeyedStorage) ForEach(callback func(record interface{})) {
 }
 
 func (s *KeyedStorage) GetStats(showDebugInfo bool) *stats.Stats {
-	return s.backing.GetStats(false)
+	return s.backing.GetStats(showDebugInfo)
 }
 
 func (s *KeyedStorage) SetKey(index *indexing.Key) error {
