@@ -11,18 +11,24 @@ type Metadata struct {
 	Indexes map[string]indexing.IndexMetadata `json:"indexes"`
 }
 
+func (b *BoltStorage) hasNamespace() bool {
+	return b.rootBucket != nil
+}
+
 func (b *BoltStorage) setupMetadata() error {
 	return b.Database.Update(func(tx *bolt.Tx) error {
 		internalBucket, err := b.assertBucket(tx, internalBucketName)
 		if err != nil {
 			return err
 		}
-		nsBucket, err := b.assertNamespaceBucket(tx, namespaceResultsBucketName)
-		if err != nil {
-			return err
+		if b.hasNamespace() {
+			nsBucket, err := b.assertNamespaceBucket(tx, namespaceResultsBucketName)
+			if err != nil {
+				return err
+			}
+			b.loadMetadata(nsBucket)
 		}
 		b.loadGlobalMetadata(internalBucket)
-		b.loadMetadata(nsBucket)
 		return nil
 	})
 }
