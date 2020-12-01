@@ -15,6 +15,7 @@ You can define your torrent trackers in these directories:
 
 This project also carries it's embedded definitions with which it was built.  
 The definition that's loaded is the latest one.
+All definitions are yml files.
 
 ## Storage
 You'll also need to store your results somehow. Depending on the way you run this project there are a few ways you could do that.  
