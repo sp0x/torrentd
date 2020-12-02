@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/boltdb/bolt"
 	"github.com/sp0x/torrentd/storage/indexing"
+	"os"
 )
 
 type Metadata struct {
@@ -42,12 +43,15 @@ func (b *BoltStorage) loadMetadata(bucket *bolt.Bucket) {
 	metadataBytes := bucket.Get([]byte(metaBucketName))
 	metadata := &Metadata{}
 	if metadataBytes != nil {
-		err := json.Unmarshal(metadataBytes, &metadata)
+		err := json.Unmarshal(metadataBytes, metadata)
 		if err != nil {
-			panic(fmt.Sprintf("couldn't load metadata: %v", err))
+			fmt.Printf("couldn't load metadata: %v", err)
+			os.Exit(1)
 		}
 	}
-	b.metadata = metadata
+	if b.hasNamespace() {
+		b.metadata = metadata
+	}
 }
 
 func (b *BoltStorage) GetIndexes() map[string]indexing.IndexMetadata {

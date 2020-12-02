@@ -65,6 +65,9 @@ func (b *Builder) WithEndpoint(endpoint string) *Builder {
 
 //WithNamespace make sure all data is in that namespace
 func (b *Builder) WithNamespace(ns string) *Builder {
+	if ns == "" {
+		panic("namespace must be non-empty")
+	}
 	b.namespace = ns
 	return b
 }
@@ -111,7 +114,10 @@ func init() {
 			os.Exit(1)
 		}
 		//Set to the namespace of the builder(this may be the index)
-		b.SetNamespace(builder.namespace)
+		err = b.SetNamespace(builder.namespace)
+		if err != nil {
+			os.Exit(1)
+		}
 
 		return b
 	}

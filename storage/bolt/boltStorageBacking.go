@@ -417,8 +417,14 @@ func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) erro
 }
 
 //Set the root namespace
-func (b *BoltStorage) SetNamespace(namespace string) {
+func (b *BoltStorage) SetNamespace(namespace string) error {
 	b.rootBucket = []string{namespace}
+	err := b.setupMetadata()
+	if err != nil {
+		fmt.Printf("Couldn't set namespace `%s`, failed while setting up meta-data: %v", namespace, err)
+		return err
+	}
+	return err
 }
 
 func (b *BoltStorage) loadGlobalMetadata(bucket *bolt.Bucket) {
