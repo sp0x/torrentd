@@ -128,7 +128,7 @@ func (s *Server) torznabSearch(r *http.Request, query *torznab.Query, indexer in
 
 //Rewrites the download links so that the download goes through us.
 //This is required since only we can access the torrent ( the site might need authorization )
-func (s *Server) rewriteLinks(r *http.Request, items []search.ExternalResultItem) ([]search.ExternalResultItem, error) {
+func (s *Server) rewriteLinks(r *http.Request, items []search.ScrapeResultItem) ([]search.ScrapeResultItem, error) {
 	baseURL, err := s.baseURL(r, "/d")
 	if err != nil {
 		return nil, err
@@ -151,7 +151,7 @@ func (s *Server) rewriteLinks(r *http.Request, items []search.ExternalResultItem
 	return items, nil
 }
 
-func getTokenValue(item *search.ExternalResultItem, apiKey []byte) (string, error) {
+func getTokenValue(item *search.ScrapeResultItem, apiKey []byte) (string, error) {
 	sourceLink := item.SourceLink
 	if sourceLink == "" {
 		sourceLink = item.Link

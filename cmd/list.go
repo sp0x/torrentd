@@ -24,7 +24,7 @@ func init() {
 
 func listLatestTorrents(cmd *cobra.Command, args []string) {
 	store := storage.NewBuilder().
-		WithRecord(&search.ExternalResultItem{}).
+		WithRecord(&search.ScrapeResultItem{}).
 		Build()
 	defer store.Close()
 	tabWr := new(tabwriter.Writer)

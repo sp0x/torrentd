@@ -8,13 +8,13 @@ import (
 
 type ItemStorage interface {
 	Size() int64
-	Find(query indexing.Query, output *search.ExternalResultItem) error
+	Find(query indexing.Query, output *search.ScrapeResultItem) error
 	Add(item search.Record) error
 	AddUniqueIndex(key *indexing.Key)
 	NewWithKey(pk *indexing.Key) ItemStorage
 	Close()
 	SetKey(index *indexing.Key) error
-	GetLatest(count int) []search.ExternalResultItem
+	GetLatest(count int) []interface{}
 	ForEach(callback func(record interface{}))
 	GetStats(showDebugInfo bool) *stats.Stats
 }
@@ -31,7 +31,7 @@ type ItemStorageBacking interface {
 	//Size is the size of the storage, as in records count
 	Size() int64
 	//GetLatest returns the latest `count` of records.
-	GetLatest(count int) []search.ExternalResultItem
+	GetLatest(count int) []interface{}
 	Close()
 	ForEach(callback func(record interface{}))
 	GetStats(showDebugInfo bool) *stats.Stats

@@ -27,7 +27,7 @@ func (s *KeyedStorage) Close() {
 	s.backing.Close()
 }
 
-func (s *KeyedStorage) GetLatest(count int) []search.ExternalResultItem {
+func (s *KeyedStorage) GetLatest(count int) []interface{} {
 	return s.backing.GetLatest(count)
 }
 
@@ -41,7 +41,7 @@ func (s *KeyedStorage) getDefaultKey() *indexing.Key {
 	return key
 }
 
-func (s *KeyedStorage) Find(query indexing.Query, output *search.ExternalResultItem) error {
+func (s *KeyedStorage) Find(query indexing.Query, output *search.ScrapeResultItem) error {
 	if s.backing.Find(query, output) == nil {
 		return nil
 	}
@@ -66,7 +66,7 @@ func (s *KeyedStorage) SetKey(index *indexing.Key) error {
 
 //Add handles the discovery of the result, adding additional information like staleness state.
 func (s *KeyedStorage) Add(item search.Record) error {
-	var existingResult *search.ExternalResultItem
+	var existingResult *search.ScrapeResultItem
 	var existingQuery indexing.Query
 	//The key is what makes each result unique. If no key is provided you might end up with doubles, since UUIDValue is used.
 	key := &s.primaryKey
@@ -77,7 +77,7 @@ func (s *KeyedStorage) Add(item search.Record) error {
 	if keyHasValue {
 		existingQuery = indexing.GetKeyQueryFromItem(key, item)
 		if existingQuery != nil {
-			tmpResult := search.ExternalResultItem{}
+			tmpResult := search.ScrapeResultItem{}
 			if s.backing.Find(existingQuery, &tmpResult) == nil {
 				existingResult = &tmpResult
 			}

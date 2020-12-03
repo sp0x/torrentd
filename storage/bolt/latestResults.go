@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/boltdb/bolt"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/indexing"
+	"reflect"
 	"strconv"
 )
 
@@ -58,9 +58,9 @@ func (b *BoltStorage) getLatestResultsCursor(tx *bolt.Tx) (indexing.Cursor, erro
 }
 
 //GetLatest gets the newest results for all the indexes
-func (b *BoltStorage) GetLatest(count int) []search.ExternalResultItem {
-	var output []search.ExternalResultItem
+func (b *BoltStorage) GetLatest(count int) []interface{} {
 
+	var output []interface{}
 	_ = b.Database.View(func(tx *bolt.Tx) error {
 		cursor, err := b.getLatestResultsCursor(tx)
 		if err != nil {
@@ -68,7 +68,7 @@ func (b *BoltStorage) GetLatest(count int) []search.ExternalResultItem {
 		}
 		itemsFetched := 0
 		for _, value := cursor.First(); value != nil && cursor.CanContinue(value); _, value = cursor.Next() {
-			newItem := search.ExternalResultItem{}
+			newItem := reflect.New(b.recordType).Interface()
 			if err := b.marshaler.UnmarshalAt(value, &newItem); err != nil {
 				log.Warning("Couldn't deserialize item from bolt storage.")
 				break

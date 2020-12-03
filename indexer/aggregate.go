@@ -50,7 +50,7 @@ func (ag *Aggregate) GetDefinition() *IndexerDefinition {
 	return definition
 }
 
-func (ag *Aggregate) Open(s *search.ExternalResultItem) (*ResponseProxy, error) {
+func (ag *Aggregate) Open(s *search.ScrapeResultItem) (*ResponseProxy, error) {
 	//Find the Indexer
 	for _, ixr := range ag.Indexers {
 		nfo := ixr.Info()
@@ -121,7 +121,7 @@ func (ag *Aggregate) Check() error {
 
 func (ag *Aggregate) Search(query *torznab.Query, searchInstance search.Instance) (search.Instance, error) {
 	errorGroup := errgroup.Group{}
-	allResults := make([][]search.ExternalResultItem, len(ag.Indexers))
+	allResults := make([][]search.ResultItemBase, len(ag.Indexers))
 	maxLength := 0
 	if searchInstance == nil {
 		searchInstance = search.NewAggregatedSearch()
@@ -167,7 +167,7 @@ func (ag *Aggregate) Search(query *torznab.Query, searchInstance search.Instance
 		log.Warn(err)
 		return nil, err
 	}
-	var results []search.ExternalResultItem
+	var results []search.ResultItemBase
 
 	// interleave search results to preserve ordering
 	for i := 0; i <= maxLength; i++ {

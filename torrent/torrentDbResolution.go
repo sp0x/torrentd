@@ -10,9 +10,9 @@ import (
 )
 
 //Gets torrent information from a given tracker and updates the torrent db
-func ResolveTorrents(index indexer.Indexer, config config.Config) []search.ExternalResultItem {
+func ResolveTorrents(index indexer.Indexer, config config.Config) []search.ScrapeResultItem {
 	store := storage.NewBuilder().
-		WithRecord(&search.ExternalResultItem{}).
+		WithRecord(&search.ScrapeResultItem{}).
 		Build()
 	defer store.Close()
 	results := store.GetLatest(20)

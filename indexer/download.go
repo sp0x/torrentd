@@ -16,7 +16,7 @@ func (r *Runner) downloadsNeedResolution() bool {
 	return false
 }
 
-func (r *Runner) Open(s *search.ExternalResultItem) (*ResponseProxy, error) {
+func (r *Runner) Open(s *search.ScrapeResultItem) (*ResponseProxy, error) {
 	r.createBrowser()
 	if required, err := r.isLoginRequired(); required {
 		if err := r.login(); err != nil {
@@ -86,7 +86,7 @@ func (r *Runner) Open(s *search.ExternalResultItem) (*ResponseProxy, error) {
 }
 
 func (r *Runner) Download(u string) (*ResponseProxy, error) {
-	srcItem := search.ExternalResultItem{}
+	srcItem := search.ScrapeResultItem{}
 	srcItem.SourceLink = u
 	return r.Open(&srcItem)
 }

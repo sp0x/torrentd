@@ -132,7 +132,7 @@ func getIndexStorage(indexer Indexer, conf config.Config) storage.ItemStorage {
 			WithEndpoint(dbPath).
 			WithPK(entityType.GetKey()).
 			WithBacking(storageType).
-			WithRecord(&search.ExternalResultItem{}).
+			WithRecord(&search.ScrapeResultItem{}).
 			Build()
 	} else {
 		//All the results will be stored in a collection with the same name as the index.
@@ -141,7 +141,7 @@ func getIndexStorage(indexer Indexer, conf config.Config) storage.ItemStorage {
 			WithNamespace(definition.Name).
 			WithEndpoint(dbPath).
 			WithBacking(storageType).
-			WithRecord(&search.ExternalResultItem{}).
+			WithRecord(&search.ScrapeResultItem{}).
 			Build()
 	}
 
@@ -346,13 +346,13 @@ func (r *Runner) Capabilities() torznab.Capabilities {
 	return caps
 }
 
-// getLocalCategoriesMatchingQuery returns a slice of local categories that should be searched
+// getLocalCategoriesMatchingQuery returns a slice of local indexCategories that should be searched
 func (r *Runner) getLocalCategoriesMatchingQuery(query *torznab.Query) []string {
 	var localCats []string
 	set := make(map[string]struct{})
 	if len(query.Categories) > 0 {
 		queryCats := categories.AllCategories.Subset(query.Categories...)
-		// resolve query categories to the exact local, or the local based on parent cat
+		// resolve query indexCategories to the exact local, or the local based on parent cat
 		for _, id := range r.definition.Capabilities.CategoryMap.ResolveAll(queryCats.Items()...) {
 			//Add only if it doesn't exist
 			if _, ok := set[id]; !ok {
@@ -442,16 +442,23 @@ func (r *Runner) Check() error {
 	return err
 }
 
-func (r *Runner) getUniqueIndex(item *search.ExternalResultItem) *indexing.Key {
+func (r *Runner) getUniqueIndex(item search.ResultItemBase) *indexing.Key {
 	if item == nil {
 		return nil
 	}
 	key := indexing.NewKey()
+	scrapeItem := item.AsScrapeItem()
 	//Local id would be a good bet.
-	if len(item.LocalId) > 0 {
+	if len(scrapeItem.LocalId) > 0 {
 		key.Add("LocalId")
 	}
 	return key
+}
+
+type rowContext struct {
+	query           *torznab.Query
+	indexCategories []string
+	storage         storage.ItemStorage
 }
 
 //SearchKeywords for a given torrent
@@ -479,7 +486,7 @@ func (r *Runner) Search(query *torznab.Query, searchInstance search.Instance) (s
 			return nil, err
 		}
 	}
-	//Get the categories for this query based on the Indexer
+	//Get the indexCategories for this query based on the Indexer
 	localCats := r.getLocalCategoriesMatchingQuery(query)
 
 	//Context about the search
@@ -524,30 +531,26 @@ func (r *Runner) Search(query *torznab.Query, searchInstance search.Instance) (s
 			"offset":   query.Offset,
 		}).Debugf("Found %d rows", rows.Length())
 
-	var results []search.ExternalResultItem
+	var results []search.ResultItemBase
 	itemStorage := r.GetStorage()
 	defer itemStorage.Close()
+
+	rowContext := &rowContext{
+		query,
+		localCats,
+		itemStorage,
+	}
 	for i := 0; i < rows.Length(); i++ {
 		if query.Limit > 0 && len(results) >= query.Limit {
 			break
 		}
 		//Get the result from the row
-		item, err := r.extractItem(i+1, rows.Eq(i))
+		item, err := r.extractItem(i+1, rows.Eq(i), rowContext)
 		if err != nil {
 			continue
 		}
-		//Maybe don't do that always?
-		item.Fingerprint = search.GetResultFingerprint(&item)
-		if !r.resolveItemCategory(query, localCats, &item) {
-			_ = itemStorage.SetKey(r.getUniqueIndex(&item))
-			err = itemStorage.Add(&item)
-			if err != nil {
-				r.logger.Errorf("Found an item that doesn't match our search categories: %s\n", err)
-			}
-			continue
-		}
-		_ = itemStorage.SetKey(r.getUniqueIndex(&item))
-		err = itemStorage.Add(&item)
+		_ = itemStorage.SetKey(r.getUniqueIndex(item))
+		err = itemStorage.Add(item)
 		if err != nil {
 			r.logger.Errorf("Couldn't add item: %s\n", err)
 		}
@@ -561,28 +564,23 @@ func (r *Runner) Search(query *torznab.Query, searchInstance search.Instance) (s
 	return runCtx.Search, nil
 }
 
-func (r *Runner) resolveItemCategory(query *torznab.Query, localCats []string, item *search.ExternalResultItem) bool {
+func (r *Runner) resolveItemCategory(query *torznab.Query, localCats []string, item search.ResultItemBase) bool {
+	if !itemMatchesScheme("torrent", item) {
+		return false
+	}
+	torrentItem := item.(*search.TorrentResultItem)
 	if len(localCats) > 0 {
-		//The category doesn't match even 1 of the categories in the query.
-		if !r.itemMatchesLocalCategories(localCats, item) {
+		//The category doesn't match even 1 of the indexCategories in the query.
+		if !r.itemMatchesLocalCategories(localCats, torrentItem) {
 			r.logger.
-				WithFields(logrus.Fields{"category": item.LocalCategoryName, "categoryId": item.LocalCategoryID}).
-				Debugf("Skipping result because it's not contained in our needed categories.")
+				WithFields(logrus.Fields{"category": torrentItem.LocalCategoryName, "categoryId": torrentItem.LocalCategoryID}).
+				Debugf("Skipping result because it's not contained in our needed indexCategories.")
 			return false
 		}
 	}
-	//Try to map the category from the Indexer to the global categories
-	r.resolveCategory(item)
-	return !series.IsSeriesAndNotMatching(query, item)
-}
-
-func (r *Runner) itemMatchesLocalCategories(localCats []string, item *search.ExternalResultItem) bool {
-	for _, catId := range localCats {
-		if catId == item.LocalCategoryID {
-			return true
-		}
-	}
-	return false
+	//Try to map the category from the Indexer to the global indexCategories
+	r.populateCategory(item)
+	return !series.IsSeriesAndNotMatching(query, torrentItem)
 }
 
 func (r *Runner) clearDom(dom *goquery.Selection) error {

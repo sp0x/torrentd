@@ -113,11 +113,11 @@ var _ = Describe("Bolt storage", func() {
 		})
 
 		It("Should be able to store multiple search results", func() {
-			items := []search.ExternalResultItem{
-				{ResultItem: search.ResultItem{
+			items := []search.ScrapeResultItem{
+				{TorrentResultItem: search.TorrentResultItem{
 					Title: "a", Category: categories.CategoryBooks.ID, UUIDValue: "a",
 				}},
-				{ResultItem: search.ResultItem{
+				{TorrentResultItem: search.TorrentResultItem{
 					Title: "b", Category: categories.CategoryBooks.ID, UUIDValue: "b",
 				}},
 			}
@@ -137,11 +137,11 @@ var _ = Describe("Bolt storage", func() {
 		})
 
 		It("Should be able to store multiple uncategorized search results", func() {
-			items := []search.ExternalResultItem{
-				{ResultItem: search.ResultItem{
+			items := []search.ScrapeResultItem{
+				{TorrentResultItem: search.TorrentResultItem{
 					Title: "az", Category: -100, UUIDValue: "ag",
 				}},
-				{ResultItem: search.ResultItem{
+				{TorrentResultItem: search.TorrentResultItem{
 					Title: "bz", Category: -100, UUIDValue: "bg",
 				}},
 			}
@@ -200,7 +200,7 @@ func TestNewBoltStorage(t *testing.T) {
 
 func Test_getItemKey(t *testing.T) {
 	type args struct {
-		item search.ExternalResultItem
+		item *search.ScrapeResultItem
 	}
 	g := NewGomegaWithT(t)
 	tests := []struct {
@@ -210,14 +210,14 @@ func Test_getItemKey(t *testing.T) {
 		wantErr bool
 		notNil  bool
 	}{
-		{name: "1", args: args{item: search.ExternalResultItem{
-			ResultItem: search.ResultItem{Title: "a", UUIDValue: "x"},
+		{name: "1", args: args{item: &search.ScrapeResultItem{
+			TorrentResultItem: search.TorrentResultItem{Title: "a", UUIDValue: "x"},
 		}}, wantErr: false},
-		{name: "1", args: args{item: search.ExternalResultItem{
-			ResultItem: search.ResultItem{Title: "b", UUIDValue: "y"},
+		{name: "1", args: args{item: &search.ScrapeResultItem{
+			TorrentResultItem: search.TorrentResultItem{Title: "b", UUIDValue: "y"},
 		}}, wantErr: false},
-		{name: "1", args: args{item: search.ExternalResultItem{
-			ResultItem: search.ResultItem{Title: "a"},
+		{name: "1", args: args{item: &search.ScrapeResultItem{
+			TorrentResultItem: search.TorrentResultItem{Title: "a"},
 		}}, wantErr: true},
 	}
 	for _, tt := range tests {
@@ -276,10 +276,10 @@ func TestBoltStorage_Find(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	item := &search.ExternalResultItem{}
-	item.ExtraFields = make(map[string]interface{})
-	item.ExtraFields["a"] = "b"
-	item.ExtraFields["c"] = "b"
+	item := &search.ScrapeResultItem{}
+	item.ModelData = make(map[string]interface{})
+	item.ModelData["a"] = "b"
+	item.ModelData["c"] = "b"
 	//We create an item that would be indexed only by UUIDValue
 	err = storage.Create(item, nil)
 	if err != nil {
@@ -288,7 +288,7 @@ func TestBoltStorage_Find(t *testing.T) {
 	g.Expect(item.UUIDValue != "").To(BeTrue())
 
 	query := indexing.NewQuery()
-	searchResult := search.ExternalResultItem{}
+	searchResult := search.ScrapeResultItem{}
 
 	//Should be able to find it by UUIDValue, since it's the ID.
 	query.Put("UUID", item.UUIDValue)
@@ -300,10 +300,10 @@ func TestBoltStorage_Find(t *testing.T) {
 	g.Expect(storage.Find(query, &searchResult)).ToNot(BeNil())
 
 	//Should be able to create a new item with a custom ID
-	item = &search.ExternalResultItem{}
-	item.ExtraFields = make(map[string]interface{})
-	item.ExtraFields["a"] = "b"
-	item.ExtraFields["c"] = "b"
+	item = &search.ScrapeResultItem{}
+	item.ModelData = make(map[string]interface{})
+	item.ModelData["a"] = "b"
+	item.ModelData["c"] = "b"
 	err = storage.CreateWithId(indexing.NewKey("a"), item, nil)
 	g.Expect(err).To(BeNil())
 	//it shouldn't use the UUIDValue
@@ -312,32 +312,32 @@ func TestBoltStorage_Find(t *testing.T) {
 	query = indexing.NewQuery()
 	query.Put("a", "b")
 	g.Expect(storage.Find(query, &searchResult)).To(BeNil())
-	g.Expect(len(searchResult.ExtraFields)).To(Equal(2))
+	g.Expect(len(searchResult.ModelData)).To(Equal(2))
 
 	//Should be able to create records by UUIDValue
 	//and index them with another key field
-	item = &search.ExternalResultItem{}
-	item.ExtraFields = make(map[string]interface{})
-	item.ExtraFields["x"] = "b"
-	item.ExtraFields["c"] = "b"
+	item = &search.ScrapeResultItem{}
+	item.ModelData = make(map[string]interface{})
+	item.ModelData["x"] = "b"
+	item.ModelData["c"] = "b"
 	err = storage.Create(item, indexing.NewKey("x")) // Create it with UUID
 	g.Expect(err).To(BeNil())
 	query = indexing.NewQuery()
 	query.Put("x", "b") //We're indexed under UUID, but we can also use the `x` key.
-	searchResult = search.ExternalResultItem{}
+	searchResult = search.ScrapeResultItem{}
 	g.Expect(storage.Find(query, &searchResult)).To(BeNil())
-	g.Expect(len(searchResult.ExtraFields)).To(Equal(2))
+	g.Expect(len(searchResult.ModelData)).To(Equal(2))
 
 	//Should be able to update records with a custom key as an additional index
 	query = indexing.NewQuery()
 	query.Put("x", "b")
-	updateItem := &search.ExternalResultItem{}
-	updateItem.ExtraFields = make(map[string]interface{})
-	updateItem.ExtraFields["x"] = "b"
-	updateItem.ExtraFields["c"] = "b"
-	updateItem.ExtraFields["d"] = "ddb"
-	searchResult = search.ExternalResultItem{}
+	updateItem := &search.ScrapeResultItem{}
+	updateItem.ModelData = make(map[string]interface{})
+	updateItem.ModelData["x"] = "b"
+	updateItem.ModelData["c"] = "b"
+	updateItem.ModelData["d"] = "ddb"
+	searchResult = search.ScrapeResultItem{}
 	g.Expect(storage.Update(query, updateItem)).To(BeNil())
 	g.Expect(storage.Find(query, &searchResult)).To(BeNil())
-	g.Expect(len(searchResult.ExtraFields)).To(Equal(3))
+	g.Expect(len(searchResult.ModelData)).To(Equal(3))
 }

@@ -13,9 +13,9 @@ type SearchMode struct {
 //An instance of a search
 type Instance interface {
 	GetStartingIndex() int
-	GetResults() []ExternalResultItem
+	GetResults() []ResultItemBase
 	SetStartIndex(key interface{}, i int)
-	SetResults(extracted []ExternalResultItem)
+	SetResults(extracted []ResultItemBase)
 	SetId(val string)
 }
 
@@ -24,7 +24,7 @@ type Search struct {
 	Id          string
 	currentPage int
 	StartIndex  int
-	Results     []ExternalResultItem
+	Results     []ResultItemBase
 }
 
 func (s *Search) GetStartingIndex() int {
@@ -39,11 +39,11 @@ func (s *Search) SetStartIndex(key interface{}, i int) {
 	s.StartIndex = i
 }
 
-func (s *Search) GetResults() []ExternalResultItem {
+func (s *Search) GetResults() []ResultItemBase {
 	return s.Results
 }
 
-func (s *Search) SetResults(results []ExternalResultItem) {
+func (s *Search) SetResults(results []ResultItemBase) {
 	s.Results = results
 }
 

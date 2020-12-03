@@ -15,6 +15,7 @@ import (
 	"github.com/sp0x/torrentd/storage/serializers/json"
 	"os"
 	"path"
+	"reflect"
 	"time"
 )
 
@@ -39,6 +40,7 @@ type BoltStorage struct {
 	rootBucket []string
 	marshaler  *serializers.DynamicMarshaler
 	metadata   *Metadata
+	recordType reflect.Type
 }
 
 func ensurePathExists(dbPath string) {
@@ -55,21 +57,25 @@ func NewBoltStorage(dbPath string, recordTypePtr interface{}) (*BoltStorage, err
 	if dbPath == "" {
 		dbPath = DefaultBoltPath()
 	}
+	if reflect.TypeOf(recordTypePtr).Kind() != reflect.Ptr {
+		return nil, errors.New("recordTypePtr must be a pointer type")
+	}
 	ensurePathExists(dbPath)
 	dbx, err := GetBoltDb(dbPath)
 	if err != nil {
 		return nil, err
 	}
-	bls := &BoltStorage{
-		Database:  dbx,
-		marshaler: serializers.NewDynamicMarshaler(recordTypePtr, json.Serializer),
+	bolts := &BoltStorage{
+		Database:   dbx,
+		marshaler:  serializers.NewDynamicMarshaler(recordTypePtr, json.Serializer),
+		recordType: reflect.Indirect(reflect.ValueOf(recordTypePtr)).Type(),
 	}
-	err = bls.setupMetadata()
+	err = bolts.setupMetadata()
 	if err != nil {
-		bls.Close()
+		bolts.Close()
 		return nil, err
 	}
-	return bls, nil
+	return bolts, nil
 }
 
 func GetBoltDb(file string) (*bolt.DB, error) {
@@ -346,9 +352,9 @@ func (b *BoltStorage) GetRootBucket(tx *bolt.Tx, children ...string) *bolt.Bucke
 }
 
 //GetSearchResults by a given category id
-func (b *BoltStorage) GetSearchResults(categoryId int) ([]search.ExternalResultItem, error) {
+func (b *BoltStorage) GetSearchResults(categoryId int) ([]search.ScrapeResultItem, error) {
 	bdb := b.Database
-	var items []search.ExternalResultItem
+	var items []search.ScrapeResultItem
 	err := bdb.View(func(tx *bolt.Tx) error {
 		var catName string
 		if _, ok := categories.AllCategories[categoryId]; !ok {
@@ -362,7 +368,7 @@ func (b *BoltStorage) GetSearchResults(categoryId int) ([]search.ExternalResultI
 			return nil
 		}
 		return categoryBucket.ForEach(func(k, v []byte) error {
-			var newItem search.ExternalResultItem
+			var newItem search.ScrapeResultItem
 			err := b.marshaler.UnmarshalAt(v, &newItem)
 			if err != nil {
 				return err
@@ -375,22 +381,17 @@ func (b *BoltStorage) GetSearchResults(categoryId int) ([]search.ExternalResultI
 }
 
 //StoreSearchResults stores the given results
-func (b *BoltStorage) StoreSearchResults(items []search.ExternalResultItem) error {
+func (b *BoltStorage) StoreSearchResults(items []search.ScrapeResultItem) error {
 	db := b.Database
 	for ix, item := range items {
 		//the function passed to Batch may be called multiple times,
 		err := db.Batch(func(tx *bolt.Tx) error {
-			categoryObj := categories.AllCategories[item.Category]
-			var cgryKey []byte
-			if categoryObj == nil {
-				cgryKey = []byte("uncategorized")
-			} else {
-				cgryKey = []byte(categoryObj.Name)
-			}
+			categoryObj := item.GetFieldWithDefault("category", categories.Uncategorized).(*categories.Category)
+			cgryKey := []byte(categoryObj.Name)
 			//Use the category as a keyParts
 			categoriesBucket, _ := tx.CreateBucketIfNotExists([]byte(categoriesBucketName))
 			categoriesBucket, _ = categoriesBucket.CreateBucketIfNotExists(cgryKey)
-			key, err := GetPKValueFromRecord(item)
+			key, err := GetPKValueFromRecord(&item)
 			if err != nil {
 				return err
 			}

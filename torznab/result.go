@@ -16,7 +16,7 @@ type Info struct {
 
 type ResultFeed struct {
 	Info  Info
-	Items []search.ExternalResultItem
+	Items []search.ResultItemBase
 }
 
 func (rf ResultFeed) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -27,7 +27,7 @@ func (rf ResultFeed) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		Link        string   `xml:"link,omitempty"`
 		Language    string   `xml:"language,omitempty"`
 		Category    string   `xml:"category,omitempty"`
-		Items       []search.ExternalResultItem
+		Items       []search.ResultItemBase
 	}{
 		Title:       rf.Info.Title,
 		Description: rf.Info.Description,

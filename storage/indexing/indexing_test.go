@@ -8,7 +8,7 @@ import (
 
 func TestGetIndexValueFromItem(t *testing.T) {
 	g := gomega.NewWithT(t)
-	item := &search.ExternalResultItem{}
+	item := &search.ScrapeResultItem{}
 	item.ExtraFields = make(map[string]interface{})
 	item.ExtraFields["time"] = "33"
 	k := NewKey("ExtraFields.time")
