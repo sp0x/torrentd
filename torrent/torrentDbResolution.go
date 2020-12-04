@@ -10,7 +10,7 @@ import (
 )
 
 //Gets torrent information from a given tracker and updates the torrent db
-func ResolveTorrents(index indexer.Indexer, config config.Config) []search.ScrapeResultItem {
+func ResolveTorrents(index indexer.Indexer, config config.Config) []search.ResultItemBase {
 	store := storage.NewBuilder().
 		WithRecord(&search.ScrapeResultItem{}).
 		Build()
@@ -21,8 +21,9 @@ func ResolveTorrents(index indexer.Indexer, config config.Config) []search.Scrap
 		return nil
 	}
 	indexScope := indexer.NewScope()
-	for i, item := range results {
+	for i, searchItem := range results {
 		//Skip already resolved results.
+		item := searchItem.(*search.TorrentResultItem)
 		if item.Announce != "" {
 			continue
 		}
@@ -43,7 +44,7 @@ func ResolveTorrents(index indexer.Indexer, config config.Config) []search.Scrap
 				Warningf("Error while checking indexer.")
 			continue
 		}
-		responsePxy, err := index.Open(&item)
+		responsePxy, err := index.Open(item)
 		if err != nil {
 			log.Debugf("Couldn'item open result [%v] %v", item.LocalId, item.Title)
 			continue
@@ -64,7 +65,7 @@ func ResolveTorrents(index indexer.Indexer, config config.Config) []search.Scrap
 		perc := (float32(i) / float32(len(results))) * 100
 		log.WithFields(log.Fields{"id": item.LocalId, "title": item.Title}).
 			Infof("%f%% Resolved ", perc)
-		err = store.Add(&item)
+		err = store.Add(item)
 		if err != nil {
 			log.Errorf("Could not save result: %v", err)
 		}

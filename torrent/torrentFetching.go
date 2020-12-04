@@ -9,8 +9,8 @@ import (
 	"text/tabwriter"
 )
 
-//GetNewTorrents gets the latest torrents.
-func GetNewTorrents(client *indexer.Facade, fetchOptions *indexer.GenericSearchOptions) error {
+//GetNewScrapeItems gets the latest torrents.
+func GetNewScrapeItems(client *indexer.Facade, fetchOptions *indexer.GenericSearchOptions) error {
 	log.Info("Searching for new torrents")
 	if fetchOptions == nil {
 		fetchOptions = client.GetDefaultOptions()
@@ -37,29 +37,30 @@ func GetNewTorrents(client *indexer.Facade, fetchOptions *indexer.GenericSearchO
 			}
 		}
 		/*
-			Scan all pages every time. It's not safe to skip them by last torrent ID in the database,
+			Scan all pages every time. It's not safe to skip them by last scrapeItem ID in the database,
 			because some of them might be hidden at the previous run.
 		*/
 		counter := uint(0)
 		finished := false
-		for _, torrent := range currentSearch.GetResults() {
+		for _, scrapeItem := range currentSearch.GetResults() {
 			if finished {
 				break
 			}
-			if torrent.IsNew() || torrent.IsUpdate() {
-				if torrent.IsNew() && !torrent.IsUpdate() {
-					_, _ = fmt.Fprintf(tabWr, "Found new result #%s:\t%s\t[%s]:\t%s\n",
-						torrent.LocalId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Title)
+
+			if scrapeItem.IsNew() || scrapeItem.IsUpdate() {
+				if scrapeItem.IsNew() && !scrapeItem.IsUpdate() {
+					_, _ = fmt.Fprintf(tabWr, "Found new result #%s:\t%s\n",
+						scrapeItem.UUID(), scrapeItem.String())
 				} else {
-					_, _ = fmt.Fprintf(tabWr, "Updated result #%s:\t%s\t[%s]:\t%s\n",
-						torrent.LocalId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Title)
+					_, _ = fmt.Fprintf(tabWr, "Updated result #%s:\t%s\n",
+						scrapeItem.UUID(), scrapeItem.String())
 				}
 			} else {
-				_, _ = fmt.Fprintf(tabWr, "Result #%s:\t%s\t[%s]:\t%s\n",
-					torrent.LocalId, torrent.AddedOnStr(), "#", torrent.Title)
+				_, _ = fmt.Fprintf(tabWr, "Result #%s:\t%s\n",
+					scrapeItem.UUID(), scrapeItem.String())
 			}
 			_ = tabWr.Flush()
-			if !torrent.IsNew() && fetchOptions.StopOnStaleResults {
+			if !scrapeItem.IsNew() && fetchOptions.StopOnStaleResults {
 				finished = true
 				break
 			}

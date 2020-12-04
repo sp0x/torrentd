@@ -271,7 +271,7 @@ func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item search.Record, u
 }
 
 //ForEach Goes through all the records
-func (b *BoltStorage) ForEach(callback func(record interface{})) {
+func (b *BoltStorage) ForEach(callback func(record search.ResultItemBase)) {
 	_ = b.Database.View(func(tx *bolt.Tx) error {
 		bucket := b.GetBucket(tx, namespaceResultsBucketName)
 		cursor := ReversibleCursor{C: bucket.Cursor(), Reverse: false}
@@ -280,7 +280,7 @@ func (b *BoltStorage) ForEach(callback func(record interface{})) {
 			if err != nil {
 				return err
 			}
-			callback(result)
+			callback(result.(search.ResultItemBase))
 		}
 		return nil
 	})

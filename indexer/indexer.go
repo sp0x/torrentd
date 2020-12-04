@@ -29,7 +29,7 @@ type Indexer interface {
 	Capabilities() torznab.Capabilities
 	GetEncoding() string
 	ProcessRequest(req *http.Request) (*http.Response, error)
-	Open(s *search.ScrapeResultItem) (*ResponseProxy, error)
+	Open(s search.ResultItemBase) (*ResponseProxy, error)
 	//Check if the Indexer works.
 	//This might be needed to validate the search result extraction.
 	Check() error

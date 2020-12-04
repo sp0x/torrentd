@@ -14,8 +14,8 @@ type ItemStorage interface {
 	NewWithKey(pk *indexing.Key) ItemStorage
 	Close()
 	SetKey(index *indexing.Key) error
-	GetLatest(count int) []interface{}
-	ForEach(callback func(record interface{}))
+	GetLatest(count int) []search.ResultItemBase
+	ForEach(callback func(record search.ResultItemBase))
 	GetStats(showDebugInfo bool) *stats.Stats
 }
 type ItemStorageBacking interface {
@@ -31,8 +31,8 @@ type ItemStorageBacking interface {
 	//Size is the size of the storage, as in records count
 	Size() int64
 	//GetLatest returns the latest `count` of records.
-	GetLatest(count int) []interface{}
+	GetLatest(count int) []search.ResultItemBase
 	Close()
-	ForEach(callback func(record interface{}))
+	ForEach(callback func(record search.ResultItemBase))
 	GetStats(showDebugInfo bool) *stats.Stats
 }

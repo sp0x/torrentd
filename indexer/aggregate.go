@@ -50,12 +50,13 @@ func (ag *Aggregate) GetDefinition() *IndexerDefinition {
 	return definition
 }
 
-func (ag *Aggregate) Open(s *search.ScrapeResultItem) (*ResponseProxy, error) {
+func (ag *Aggregate) Open(scrapeItem search.ResultItemBase) (*ResponseProxy, error) {
 	//Find the Indexer
+	scrapeItemRoot := scrapeItem.AsScrapeItem()
 	for _, ixr := range ag.Indexers {
 		nfo := ixr.Info()
-		if nfo.GetTitle() == s.Site {
-			return ixr.Open(s)
+		if nfo.GetTitle() == scrapeItemRoot.Site {
+			return ixr.Open(scrapeItem)
 		}
 	}
 	return nil, errors.New("couldn't find Indexer")

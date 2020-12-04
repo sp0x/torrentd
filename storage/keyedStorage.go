@@ -27,7 +27,7 @@ func (s *KeyedStorage) Close() {
 	s.backing.Close()
 }
 
-func (s *KeyedStorage) GetLatest(count int) []interface{} {
+func (s *KeyedStorage) GetLatest(count int) []search.ResultItemBase {
 	return s.backing.GetLatest(count)
 }
 
@@ -48,7 +48,7 @@ func (s *KeyedStorage) Find(query indexing.Query, output *search.ScrapeResultIte
 	return errors.New("not found")
 }
 
-func (s *KeyedStorage) ForEach(callback func(record interface{})) {
+func (s *KeyedStorage) ForEach(callback func(record search.ResultItemBase)) {
 	s.backing.ForEach(callback)
 }
 
