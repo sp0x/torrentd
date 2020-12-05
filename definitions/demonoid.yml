@@ -1,5 +1,6 @@
 ---
   site: demonoid
+  scheme: torrent
   name: Demonoid
   description: Demonoid
   language: en-us

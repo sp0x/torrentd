@@ -1,6 +1,7 @@
 ---
   site: scenetime
   name: SceneTime
+  scheme: torrent
   description: "A general tracker"
   language: en-us
   encoding: windows-1252

@@ -1,5 +1,6 @@
 ---
   site: redacted
+  scheme: torrent
   name: Redacted
   description: "The music tracker"
   language: en-us

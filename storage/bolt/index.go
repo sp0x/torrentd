@@ -118,7 +118,7 @@ func (b *BoltStorage) indexQuery(bucketName string, query indexing.Query) error 
 	})
 }
 
-func GetPKValueFromRecord(item search.ExternalResultItem) ([]byte, error) {
+func GetPKValueFromRecord(item *search.ScrapeResultItem) ([]byte, error) {
 	if item.UUIDValue == "" {
 		return nil, errors.New("record has no keyParts")
 	}

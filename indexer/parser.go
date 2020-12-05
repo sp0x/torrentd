@@ -29,6 +29,7 @@ const (
 type IndexerDefinition struct {
 	Site         string                 `yaml:"site"`
 	Version      string                 `yaml:"version"`
+	Scheme       string                 `yaml:"scheme"`
 	Settings     []settingsField        `yaml:"settings"`
 	Name         string                 `yaml:"name"`
 	Description  string                 `yaml:"description"`
@@ -57,13 +58,31 @@ func (id *IndexerDefinition) Stats() IndexerDefinitionStats {
 	return id.stats
 }
 
+func (id *IndexerDefinition) getNewResultItem() search.ResultItemBase {
+	if id.Scheme == "" {
+		return &search.ScrapeResultItem{
+			ModelData: make(map[string]interface{}),
+		}
+	}
+	if id.Scheme == "torrent" {
+		return &search.TorrentResultItem{
+			ScrapeResultItem: search.ScrapeResultItem{
+				ModelData: make(map[string]interface{}),
+			},
+		}
+	}
+	return &search.ScrapeResultItem{
+		ModelData: make(map[string]interface{}),
+	}
+}
+
 //getSearchEntity gets the entity that's returned from a search.
 func (id *IndexerDefinition) getSearchEntity() *entityBlock {
 	entity := &entityBlock{}
 	entity.Name = searchEntity
 	key := id.Search.Key
 	localizedKey := make([]string, len(key))
-	t := reflect.ValueOf(search.ExternalResultItem{})
+	t := reflect.ValueOf(search.ScrapeResultItem{})
 	for ix, k := range key {
 		field := t.FieldByName(k)
 		if !field.IsValid() {
@@ -301,13 +320,13 @@ type capabilitiesBlock struct {
 // UnmarshalYAML implements the Unmarshaller interface.
 func (c *capabilitiesBlock) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var intermediate struct {
-		Categories map[string]string        `yaml:"categories"`
+		Categories map[string]string        `yaml:"indexCategories"`
 		Modes      map[string]stringorslice `yaml:"modes"`
 	}
 
 	if err := unmarshal(&intermediate); err == nil {
 		c.CategoryMap = categoryMap{}
-		//Map the found categories using our own Categories `torznab.AllCategories`.
+		//Map the found indexCategories using our own Categories `torznab.AllCategories`.
 		allCats := categories.AllCategories
 		for id, catName := range intermediate.Categories {
 			matchedCat := false

@@ -15,6 +15,10 @@ const (
 	CustomCategoryOffset = 100000
 )
 
+var (
+	Uncategorized = &Category{ID: 0, Name: "uncategorized"}
+)
+
 // Categories from the Newznab spec
 // https://github.com/nZEDb/nZEDb/blob/0.x/docs/newznab_api_specification.txt#L627
 var (

@@ -1,6 +1,7 @@
 ---
 language: bg-BG
 name: ArenaBG
+scheme: torrent
 links:
   - "https://arenabg.ch/"
 login:

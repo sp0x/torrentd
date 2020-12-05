@@ -2,10 +2,10 @@ package search
 
 type AggregatedSearch struct {
 	SearchContexts map[interface{}]Instance
-	results        []ExternalResultItem
+	results        []ResultItemBase
 }
 
-func (a *AggregatedSearch) GetResults() []ExternalResultItem {
+func (a *AggregatedSearch) GetResults() []ResultItemBase {
 	return a.results
 }
 
@@ -13,7 +13,7 @@ func (a *AggregatedSearch) GetStartingIndex() int {
 	panic("this is a stub")
 }
 
-func (s *AggregatedSearch) SetId(val string) {
+func (a *AggregatedSearch) SetId(val string) {
 	panic("this is a stub")
 }
 
@@ -25,7 +25,7 @@ func (a *AggregatedSearch) SetStartIndex(key interface{}, i int) {
 	srch.SetStartIndex(nil, i)
 }
 
-func (a *AggregatedSearch) SetResults(results []ExternalResultItem) {
+func (a *AggregatedSearch) SetResults(results []ResultItemBase) {
 	a.results = results
 }
 

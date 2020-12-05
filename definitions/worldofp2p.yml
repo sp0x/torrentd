@@ -1,6 +1,7 @@
 ---
   site: worldofp2p
   name: WorldOfP2P
+  scheme: torrent
   description: "A general tracker"
   language: en-us
   encoding: UTF-8

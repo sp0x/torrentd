@@ -114,9 +114,11 @@ func init() {
 			os.Exit(1)
 		}
 		//Set to the namespace of the builder(this may be the index)
-		err = b.SetNamespace(builder.namespace)
+		if len(builder.namespace) > 0 {
+			err = b.SetNamespace(builder.namespace)
+		}
 		if err != nil {
-			os.Exit(1)
+			panic(fmt.Sprintf("Couldn't set namespace: %s", err))
 		}
 
 		return b

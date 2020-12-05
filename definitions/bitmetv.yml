@@ -1,5 +1,6 @@
 ---
   site: bitmetv
+  scheme: torrent
   name: BitMeTV
   language: en-us
   links:

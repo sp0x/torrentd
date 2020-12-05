@@ -8,8 +8,8 @@ import (
 )
 
 //IteratePages goes over all the pages in an index and returns the results through a channel.
-func GetAllPagesFromIndex(facade *Facade, query *torznab.Query) <-chan *search.ExternalResultItem { //nolint:unused
-	outputChan := make(chan *search.ExternalResultItem)
+func GetAllPagesFromIndex(facade *Facade, query *torznab.Query) <-chan search.ResultItemBase { //nolint:unused
+	outputChan := make(chan search.ResultItemBase)
 	if query == nil {
 		query = &torznab.Query{}
 	}
@@ -33,7 +33,7 @@ func GetAllPagesFromIndex(facade *Facade, query *torznab.Query) <-chan *search.E
 			}
 			for _, result := range currentSearch.GetResults() {
 				tmpResult := result
-				outputChan <- &tmpResult
+				outputChan <- tmpResult
 			}
 			//Go to the next page
 			query.Page += 1
@@ -50,8 +50,8 @@ func GetAllPagesFromIndex(facade *Facade, query *torznab.Query) <-chan *search.E
 //Watch tracks an index for any new items, through all search pages(or max pages).
 //Whenever old results are found, or we've exhausted the number of pages, the search restarts from the start.
 //The interval is in seconds, it's used to sleep after each search for new results.
-func Watch(facade *Facade, initialQuery *torznab.Query, intervalSec int) <-chan *search.ExternalResultItem {
-	outputChan := make(chan *search.ExternalResultItem)
+func Watch(facade *Facade, initialQuery *torznab.Query, intervalSec int) <-chan search.ResultItemBase {
+	outputChan := make(chan search.ResultItemBase)
 	if initialQuery == nil {
 		initialQuery = &torznab.Query{}
 	}
@@ -84,7 +84,7 @@ func Watch(facade *Facade, initialQuery *torznab.Query, intervalSec int) <-chan 
 			}
 			for _, result := range currentSearch.GetResults() {
 				tmpResult := result
-				outputChan <- &tmpResult
+				outputChan <- tmpResult
 			}
 			//Parse the currentPage and see if there are any new torrents
 			//if there aren't any, sleep the intervalSec
@@ -95,11 +95,12 @@ func Watch(facade *Facade, initialQuery *torznab.Query, intervalSec int) <-chan 
 					break
 				}
 				if result.IsNew() || result.IsUpdate() {
+					scrapeItem := result.AsScrapeItem()
 					if result.IsNew() && !result.IsUpdate() {
-						log.WithFields(log.Fields{"id": result.LocalId, "name": result.Title, "pub": result.PublishDate}).
+						log.WithFields(log.Fields{"id": result.UUID(), "data": result.String(), "published": scrapeItem.PublishDate}).
 							Info("Found new result")
 					} else {
-						log.WithFields(log.Fields{"id": result.LocalId, "name": result.Title, "pub": result.PublishDate}).
+						log.WithFields(log.Fields{"id": result.UUID(), "data": result.String(), "published": scrapeItem.PublishDate}).
 							Info("Updated result")
 					}
 				}

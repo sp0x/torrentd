@@ -128,7 +128,7 @@ func (s *Server) torznabSearch(r *http.Request, query *torznab.Query, indexer in
 
 //Rewrites the download links so that the download goes through us.
 //This is required since only we can access the torrent ( the site might need authorization )
-func (s *Server) rewriteLinks(r *http.Request, items []search.ExternalResultItem) ([]search.ExternalResultItem, error) {
+func (s *Server) rewriteLinks(r *http.Request, items []search.ResultItemBase) ([]search.ResultItemBase, error) {
 	baseURL, err := s.baseURL(r, "/d")
 	if err != nil {
 		return nil, err
@@ -136,22 +136,23 @@ func (s *Server) rewriteLinks(r *http.Request, items []search.ExternalResultItem
 	apiKey := s.sharedKey()
 	// rewrite non-magnet links to use the server
 	for idx, item := range items {
-		if strings.HasPrefix(item.Link, "magnet:") {
+		scrapeItem := item.AsScrapeItem()
+		if strings.HasPrefix(scrapeItem.Link, "magnet:") {
 			continue
 		}
-		itemTmp := item
-		tokenValue, err := getTokenValue(&itemTmp, apiKey)
+		//itemTmp := item
+		tokenValue, err := getTokenValue(scrapeItem, apiKey)
 		if err != nil {
 			return nil, err
 		}
-		filename := strings.Replace(item.Title, "/", "-", -1)
-		items[idx].Link = fmt.Sprintf("%s/%s/%s.torrent", baseURL.String(), tokenValue, url.QueryEscape(filename))
+		filename := strings.Replace(item.UUID(), "/", "-", -1)
+		items[idx].AsScrapeItem().Link = fmt.Sprintf("%s/%s/%s.torrent", baseURL.String(), tokenValue, url.QueryEscape(filename))
 	}
 
 	return items, nil
 }
 
-func getTokenValue(item *search.ExternalResultItem, apiKey []byte) (string, error) {
+func getTokenValue(item *search.ScrapeResultItem, apiKey []byte) (string, error) {
 	sourceLink := item.SourceLink
 	if sourceLink == "" {
 		sourceLink = item.Link

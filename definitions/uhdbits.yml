@@ -1,6 +1,7 @@
 ﻿---
   site: uhdbits
   name: UHDBits
+  scheme: torrent
   description: "A vietnamese general tracker"
   language: en-us
   links:

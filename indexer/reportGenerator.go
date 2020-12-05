@@ -16,17 +16,18 @@ type ReportGenerator interface {
 
 func (st *StandardReportGenerator) GetLatestItems() []models.LatestResult {
 	store := storage.NewBuilder().
-		WithRecord(&search.ExternalResultItem{}).
+		WithRecord(&search.TorrentResultItem{}).
 		Build()
 	latest := store.GetLatest(20)
 	store.Close()
 	var latestResultItems []models.LatestResult
 	for _, late := range latest {
+		torrentItem := late.(*search.TorrentResultItem)
 		latestResultItems = append(latestResultItems, models.LatestResult{
-			Name:        late.Title,
-			Description: late.Description,
-			Site:        late.Site,
-			Link:        late.SourceLink,
+			Name:        torrentItem.Title,
+			Description: torrentItem.Description,
+			Site:        torrentItem.Site,
+			Link:        torrentItem.SourceLink,
 		})
 	}
 	return latestResultItems
@@ -35,7 +36,7 @@ func (st *StandardReportGenerator) GetLatestItems() []models.LatestResult {
 func (st *StandardReportGenerator) GetIndexesStatus(indexFacade *Facade) []models.IndexStatus {
 	var statuses []models.IndexStatus
 	store := storage.NewBuilder().
-		WithRecord(&search.ExternalResultItem{}).
+		WithRecord(&search.ScrapeResultItem{}).
 		Build()
 	storageStats := store.GetStats(false)
 	store.Close()

@@ -6,6 +6,7 @@ encoding: windows1251
 type: private
 language: bg-BG
 ratelimit: 1500
+scheme: torrent
 
 settings:
   - label: Cookie

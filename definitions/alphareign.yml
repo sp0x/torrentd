@@ -1,5 +1,6 @@
 ﻿---
   site: alphareign
+  scheme: torrent
   name: AlphaReign
   description: "A DHT only tracker"
   language: en-us

@@ -37,7 +37,7 @@ func main() {
 	defer func() {
 		_ = gormDb.Close()
 	}()
-	gormDb.AutoMigrate(&search.ExternalResultItem{})
+	gormDb.AutoMigrate(&search.ScrapeResultItem{})
 	err := rootCmd.Execute()
 	if err != nil {
 		fmt.Println(err)

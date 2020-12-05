@@ -218,7 +218,7 @@ func (mr *MockIndexerMockRecorder) ProcessRequest(req interface{}) *gomock.Call 
 }
 
 // Open mocks base method
-func (m *MockIndexer) Open(s *search.ExternalResultItem) (io.ReadCloser, error) {
+func (m *MockIndexer) Open(s *search.ScrapeResultItem) (io.ReadCloser, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Open", s)
 	ret0, _ := ret[0].(io.ReadCloser)

@@ -1,5 +1,6 @@
 ---
   site: hdspace
+  scheme: torrent
   name: HD-Space
   description: "a HD tracker"
   language: en-us

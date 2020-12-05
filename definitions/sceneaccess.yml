@@ -1,6 +1,7 @@
 ---
   site: sceneaccess
   name: sceneaccess
+  scheme: torrent
   language: en-us
   links:
     - https://sceneaccess.eu/

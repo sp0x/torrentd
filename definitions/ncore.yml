@@ -1,5 +1,6 @@
 ---
   site: ncore
+  scheme: torrent
   name: NCore
   language: en-us
   links:

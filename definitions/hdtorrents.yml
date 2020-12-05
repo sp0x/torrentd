@@ -1,5 +1,6 @@
 ---
   site: hdtorrents
+  scheme: torrent
   name: HD-Torrents
   language: en-us
   links:

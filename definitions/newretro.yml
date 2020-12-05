@@ -1,5 +1,6 @@
 ﻿---
   site: newretro
+  scheme: torrent
   name: The New Retro
   description: "A German gerneral tracker"
   language: de-de

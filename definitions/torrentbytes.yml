@@ -1,6 +1,7 @@
 ---
   site: torrentbytes
   name: TorrentBytes
+  scheme: torrent
   language: en-us
   links:
     - https://torrentbytes.net/

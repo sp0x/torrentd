@@ -1,5 +1,6 @@
 ---
   site: myspleen
+  scheme: torrent
   name: MySpleen
   language: en-us
   encoding: UTF-8

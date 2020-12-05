@@ -1,5 +1,6 @@
 ---
   site: eztv
+  scheme: torrent
   name: EZTV
   language: en-us
   encoding: UTF-8

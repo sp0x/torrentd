@@ -1,5 +1,6 @@
 ---
   site: filelist
+  scheme: torrent
   name: FileList
   language: en-us
   links:

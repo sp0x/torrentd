@@ -24,7 +24,7 @@ func init() {
 
 func listLatestTorrents(cmd *cobra.Command, args []string) {
 	store := storage.NewBuilder().
-		WithRecord(&search.ExternalResultItem{}).
+		WithRecord(&search.ScrapeResultItem{}).
 		Build()
 	defer store.Close()
 	tabWr := new(tabwriter.Writer)
@@ -32,7 +32,7 @@ func listLatestTorrents(cmd *cobra.Command, args []string) {
 
 	torrents := store.GetLatest(torrentCount)
 	for _, tr := range torrents {
-		_, _ = fmt.Fprintf(tabWr, "%s\t%s\t%s", tr.LocalCategoryID, tr.Title, tr.AddedOnStr())
+		_, _ = fmt.Fprintf(tabWr, "%s:\t%s", tr.UUID(), tr.String())
 		_ = tabWr.Flush()
 	}
 }

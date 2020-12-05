@@ -14,11 +14,11 @@ func NewDynamicMarshaler(recordPtr interface{}, underlayingMarshaler MarshalUnma
 	m := &DynamicMarshaler{
 		marshaler: underlayingMarshaler,
 	}
-	m.Record(recordPtr)
+	m.SetOutputType(recordPtr)
 	return m
 }
 
-func (d *DynamicMarshaler) Record(recordPtr interface{}) {
+func (d *DynamicMarshaler) SetOutputType(recordPtr interface{}) {
 	if reflect.TypeOf(recordPtr).Kind() != reflect.Ptr {
 		panic("ptr required")
 	}

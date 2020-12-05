@@ -1,5 +1,6 @@
 ---
   site: privatehd
+  scheme: torrent
   name: PrivateHD
   language: en-us
   links:

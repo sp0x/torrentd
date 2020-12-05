@@ -12,16 +12,16 @@ import (
 
 func TestKeyedStorage_Add(t *testing.T) {
 	g := NewWithT(t)
-	bolts, _ := bolt.NewBoltStorage(tempfile(), &search.ExternalResultItem{})
+	bolts, _ := bolt.NewBoltStorage(tempfile(), &search.ScrapeResultItem{})
 	//We'll use `a` as a primary key
 	storage := NewBuilder().
 		WithPK(indexing.NewKey("a")).
 		BackedBy(bolts).
-		WithRecord(&search.ExternalResultItem{}).
+		WithRecord(&search.ScrapeResultItem{}).
 		Build()
 	//We'll also define an index `ix`
 	storage.AddUniqueIndex(indexing.NewKey("ix"))
-	item := &search.ExternalResultItem{}
+	item := &search.ScrapeResultItem{}
 
 	item.ExtraFields = make(map[string]interface{})
 	item.ExtraFields["a"] = "b"
@@ -32,7 +32,7 @@ func TestKeyedStorage_Add(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	//Shouldn't be able to add a new record since IX is a unique index and we'll be breaking that rule
-	item = &search.ExternalResultItem{}
+	item = &search.ScrapeResultItem{}
 	item.ExtraFields = make(map[string]interface{})
 	item.ExtraFields["a"] = "bx"
 	item.ExtraFields["c"] = "b"
@@ -43,7 +43,7 @@ func TestKeyedStorage_Add(t *testing.T) {
 	g.Expect(err).ToNot(BeNil())
 
 	//Should be able to add a new record with an unique IX
-	item = &search.ExternalResultItem{}
+	item = &search.ScrapeResultItem{}
 	item.ExtraFields = make(map[string]interface{})
 	item.ExtraFields["a"] = "bx"
 	item.ExtraFields["c"] = "b"
@@ -55,7 +55,7 @@ func TestKeyedStorage_Add(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	//Should create a new item if the key field is not set.
-	item = &search.ExternalResultItem{}
+	item = &search.ScrapeResultItem{}
 	item.ExtraFields = make(map[string]interface{})
 	item.ExtraFields["c"] = "b"
 	item.ExtraFields["ix"] = "1"
@@ -122,7 +122,7 @@ func TestGetIndexValueFromItem(t *testing.T) {
 	g := NewWithT(t)
 	//Should use key values only, when generating the index value
 	key := indexing.NewKey("a")
-	item := &search.ExternalResultItem{}
+	item := &search.ScrapeResultItem{}
 	item.ExtraFields = make(map[string]interface{})
 	item.ExtraFields["a"] = "asdasd123"
 	item.ExtraFields["ab"] = "2"
@@ -134,11 +134,11 @@ func TestGetIndexValueFromItem(t *testing.T) {
 
 func TestKeyedStorage_NewWithKey(t *testing.T) {
 	g := NewWithT(t)
-	bolts, _ := bolt.NewBoltStorage(tempfile(), &search.ExternalResultItem{})
+	bolts, _ := bolt.NewBoltStorage(tempfile(), &search.ScrapeResultItem{})
 	storage := NewBuilder().
 		WithPK(indexing.NewKey("a")).
 		BackedBy(bolts).
-		WithRecord(&search.ExternalResultItem{}).
+		WithRecord(&search.ScrapeResultItem{}).
 		Build()
 	otherStorage := storage.NewWithKey(indexing.NewKey("keyb"))
 	//The storage backing in the second storage should be the same as in the first one.

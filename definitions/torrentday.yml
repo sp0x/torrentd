@@ -1,6 +1,7 @@
 ---
   site: torrentday
   name: TorrentDay
+  scheme: torrent
   language: en-us
   links:
     - https://www.torrentday.com/

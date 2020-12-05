@@ -1,6 +1,7 @@
 ﻿---
   site: shareisland
   name: Shareisland
+  scheme: torrent
   description: "A general italian tracker"
   language: it-it
   encoding: UTF-8

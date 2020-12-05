@@ -175,7 +175,7 @@ func TestRunner_Search(t *testing.T) {
 	g.Expect(len(srch.GetResults()) > 0).To(gomega.BeTrue())
 	firstDoc := srch.GetResults()[0]
 	g.Expect(firstDoc.UUIDValue != "").To(gomega.BeTrue())
-	var foundDoc search.ExternalResultItem
+	var foundDoc search.ScrapeResultItem
 	guidQuery := indexing.NewQuery()
 	guidQuery.Put("UUID", firstDoc.UUIDValue)
 	storage := getIndexStorage(runner, cfg)

@@ -1,5 +1,6 @@
 ﻿---
   site: eotforum
+  scheme: torrent
   name: EoT-Forum
   description: "A German gerneral tracker"
   language: de-de

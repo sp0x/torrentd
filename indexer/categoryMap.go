@@ -6,7 +6,7 @@ import (
 
 type categoryMap map[string]*categories.Category
 
-//Categories gets the collection of categories that this map contains
+//Categories gets the collection of indexCategories that this map contains
 func (mapping categoryMap) Categories() categories.Categories {
 	cats := categories.Categories{}
 	added := map[int]bool{}
@@ -37,7 +37,7 @@ func (mapping categoryMap) Resolve(cat *categories.Category) []string {
 		}
 	}
 
-	// check for matches on the parent categories of the mapped categories
+	// check for matches on the parent indexCategories of the mapped indexCategories
 	// e.g asked for Movies, but only had a more specific mapping for Movies/Blu-ray
 	if !matched {
 		for localID, mappedCat := range mapping {

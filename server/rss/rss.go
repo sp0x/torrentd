@@ -29,7 +29,7 @@ func SearchAndServe(ixr *indexer.Facade, options *indexer.GenericSearchOptions, 
 	currentPage := uint(0)
 	name := c.Param("name")
 	name = url.QueryEscape(name)
-	var items []search.ExternalResultItem
+	var items []*search.TorrentResultItem
 
 	for true {
 		var err error
@@ -48,7 +48,8 @@ func SearchAndServe(ixr *indexer.Facade, options *indexer.GenericSearchOptions, 
 		if currentPage >= options.PageCount {
 			break
 		}
-		for _, torrent := range srch.GetResults() {
+		for _, torrentItem := range srch.GetResults() {
+			torrent := torrentItem.(*search.TorrentResultItem)
 			if torrent.IsNew() || torrent.IsUpdate() {
 				if torrent.IsNew() && !torrent.IsUpdate() {
 					_, _ = fmt.Fprintf(tabWriter, "Found new result #%s:\t%s\t[%s]:\t%s\n",
@@ -112,7 +113,7 @@ func ServeMovies(c http2.Context) {
 	//SendRssFeed("", "movies", torrents, c)
 }
 
-func SendRssFeed(hostname, name string, torrents []search.ExternalResultItem, c http2.Context) {
+func SendRssFeed(hostname, name string, torrents []*search.TorrentResultItem, c http2.Context) {
 	feed := &feeds.Feed{
 		Title:       fmt.Sprintf("%s from Rutracker", name),
 		Link:        &feeds.Link{Href: fmt.Sprintf("http://%s/%s", hostname, name)},

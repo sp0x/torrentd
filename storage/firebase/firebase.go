@@ -89,7 +89,7 @@ func (f *FirestoreStorage) Find(query indexing.Query, result interface{}) error 
 	return document.DataTo(result)
 }
 
-func (f *FirestoreStorage) ForEach(callback func(record interface{})) {
+func (f *FirestoreStorage) ForEach(callback func(record search.ResultItemBase)) {
 	fireQuery := f.transformIndexQueryToFirestoreQuery(nil, 1)
 	documentIterator := fireQuery.Documents(f.context)
 	for true {
@@ -105,7 +105,7 @@ func (f *FirestoreStorage) ForEach(callback func(record interface{})) {
 		if err != nil {
 			break
 		}
-		callback(record)
+		callback(record.(search.ResultItemBase))
 	}
 
 }
@@ -196,27 +196,4 @@ func (f *FirestoreStorage) Size() int64 {
 	}
 	size := doc.Data()["count"]
 	return int64(size.(int))
-}
-
-//GetLatest returns the latest `count` of records.
-func (f *FirestoreStorage) GetLatest(count int) []search.ExternalResultItem {
-	var output []search.ExternalResultItem
-	collection := f.getCollection()
-	iter := collection.OrderBy("ID", firestore.Desc).Limit(count).Documents(f.context)
-	for {
-		doc, err := iter.Next()
-		if err == iterator.Done {
-			break
-		}
-		if doc == nil {
-			continue
-		}
-		newItem := search.ExternalResultItem{}
-		err = doc.DataTo(&newItem)
-		if err != nil {
-			continue
-		}
-		output = append(output, newItem)
-	}
-	return output
 }

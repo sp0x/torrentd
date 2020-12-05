@@ -6,6 +6,8 @@ type Equatable interface {
 
 type CanBeStale interface {
 	SetState(new, updated bool)
+	IsNew() bool
+	IsUpdate() bool
 }
 
 type UUIDed interface {

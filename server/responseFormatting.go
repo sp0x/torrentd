@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/feeds"
 	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/torznab"
 	"net/http"
 	"time"
@@ -36,7 +37,8 @@ func atomOutput(c *gin.Context, v *torznab.ResultFeed, encoding string) {
 		Created: time.Now(),
 	}
 	feed.Items = make([]*feeds.Item, len(v.Items), len(v.Items))
-	for i, torr := range v.Items {
+	for i, torrentItem := range v.Items {
+		torr := torrentItem.(*search.TorrentResultItem)
 		timep := torr.PublishDate
 		feedItem := &feeds.Item{
 			Title:       torr.Title,

@@ -1,6 +1,7 @@
 ﻿---
   site: skytorrents
   name: Sky torrents
+  scheme: torrent
   language: en-us
   encoding: UTF-8
   links:

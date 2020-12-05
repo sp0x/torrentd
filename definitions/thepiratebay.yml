@@ -1,6 +1,7 @@
 ---
   site: thepiratebay
   name: The Pirate Bay
+  scheme: torrent
   language: en-us
   encoding: UTF-8
   links:

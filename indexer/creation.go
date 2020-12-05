@@ -53,7 +53,7 @@ func (c *CachedScope) Lookup(config config.Config, key string) (Indexer, error) 
 	return c.indexes[key], nil
 }
 
-//CreateAggregateForCategories creates a new aggregate with the indexes that match a set of categories
+//CreateAggregateForCategories creates a new aggregate with the indexes that match a set of indexCategories
 func (c *CachedScope) CreateAggregateForCategories(config config.Config, selector *IndexerSelector, cats []categories.Category) (Indexer, error) {
 	ixrKeys, err := Loader.List(selector)
 	if err != nil {

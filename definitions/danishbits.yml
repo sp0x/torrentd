@@ -1,5 +1,6 @@
 ---
   site: danishbits
+  scheme: torrent
   name: DanishBits
   language: da-dk
   links:

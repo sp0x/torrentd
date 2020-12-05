@@ -1,6 +1,7 @@
 ﻿---
   site: yggtorrent
   name: YGGtorrent
+  scheme: torrent
   language: fr-fr
   encoding: UTF-8
   links:

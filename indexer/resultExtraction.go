@@ -68,7 +68,7 @@ func formatValues(field *fieldBlock, value interface{}, values map[string]interf
 
 //Extract the actual result item from it's row/col
 //TODO: refactor this to reduce #complexity
-func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.ExternalResultItem, error) {
+func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection, context *rowContext) (search.ResultItemBase, error) {
 	row := map[string]interface{}{}
 	nonFilteredRow := map[string]string{}
 	//html, _ := goquery.OuterHtml(selection)
@@ -104,13 +104,9 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 		row[item.Field] = value
 	}
 
-	item := search.ExternalResultItem{
-		ResultItem: search.ResultItem{
-			Site:        r.definition.Name,
-			Indexer:     r.getIndexer(),
-			ExtraFields: make(map[string]interface{}),
-		},
-	}
+	item := r.definition.getNewResultItem()
+	item.SetSite(r.definition.Site)
+	item.SetIndexer(r.getIndexer())
 
 	r.logger.WithFields(logrus.Fields{"row": rowIdx, "data": row}).
 		Debugf("Finished row %d", rowIdx)
@@ -119,170 +115,212 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection) (search.E
 	for key, val := range row {
 		formatValues(nil, val, row)
 
-		switch key {
-		case "id":
-			item.LocalId = firstString(val)
-		case "author":
-			item.Author = firstString(val)
-		case "download":
-			u, err := r.resolveIndexerPath(firstString(val))
-			if err != nil {
-				r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
-				continue
-			}
-			//item.Link = u
-			item.SourceLink = u
-		case "link":
-			u, err := r.resolveIndexerPath(firstString(val))
-			if err != nil {
-				r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
-				continue
-			}
-			item.Link = u
-		case "details":
-			u, err := r.resolveIndexerPath(firstString(val))
-			if err != nil {
-				r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
-				continue
-			}
-			//item.UUIDValue = u
-			item.Description = u
-			// comments is used by Sonarr for linking to
-			if item.Comments == "" {
-				item.Comments = u
-			}
-		case "comments":
-			u, err := r.resolveIndexerPath(firstString(val))
-			if err != nil {
-				r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
-				continue
-			}
-			item.Comments = u
-		case "title":
-			item.Title = firstString(val)
-			if _, ok := nonFilteredRow["title"]; ok {
-				v := nonFilteredRow["title"]
-				if strings.Contains(v, "{{") {
-					v2, err := applyTemplate("original_title", v, row)
-					if err == nil {
-						v = v2
-					}
-				}
-				item.OriginalTitle = v
-			}
-		case "shortTitle":
-			item.ShortTitle = firstString(val)
-		case "description":
-			item.Description = firstString(val)
-		case "category":
-			item.LocalCategoryID = firstString(val)
-		case "categoryName":
-			item.LocalCategoryName = firstString(val)
-		case "magnet":
-			murl, err := r.resolveIndexerPath(firstString(val))
-			if err != nil {
-				r.logger.Warningf("Couldn't resolve magnet url from value %s\n", val)
-				continue
-			} else {
-				item.MagnetLink = murl
-			}
-		case "size":
-			bytes, err := humanize.ParseBytes(strings.Replace(firstString(val), ",", "", -1))
-			if err != nil {
-				r.logger.Warnf("Row #%d has unparseable size %q: %v", rowIdx, val, err.Error())
-				continue
-			}
-			//r.logger.Debugf("After parsing, size is %v", bytes)
-			item.Size = uint32(bytes)
-		case "leechers":
-			leechers, err := strconv.Atoi(normalizeNumber(firstString(val)))
-			if err != nil {
-				r.logger.Warnf("Row #%d has unparseable leechers value %q in %s", rowIdx, val, key)
-				continue
-			}
-			item.Peers += leechers
-		case "seeders":
-			seeders, err := strconv.Atoi(normalizeNumber(firstString(val)))
-			if err != nil {
-				r.logger.Debugf("Row #%d has unparseable seeders value %q in %s", rowIdx, val, key)
-				continue
-			}
-			item.Seeders = seeders
-			item.Peers += seeders
-		case "authorId":
-			item.AuthorId = firstString(val)
-		case "date":
-			t, err := parseFuzzyTime(firstString(val), time.Now(), true)
-			if err != nil {
-				r.logger.Warnf("Row #%d has unparseable time %q in %s", rowIdx, val, key)
-				continue
-			}
-			item.PublishDate = t.Unix()
-		case "files":
-			files, err := strconv.Atoi(normalizeNumber(firstString(val)))
-			if err != nil {
-				r.logger.Warnf("Row #%d has unparseable files value %q in %s", rowIdx, val, key)
-				continue
-			}
-			item.Files = files
-		case "grabs":
-			grabs, err := strconv.Atoi(normalizeNumber(firstString(val)))
-			if err != nil {
-				r.logger.Warnf("Row #%d has unparseable grabs value %q in %s", rowIdx, val, key)
-				continue
-			}
-			item.Grabs = grabs
-		case "downloadvolumefactor":
-			downloadvolumefactor, err := strconv.ParseFloat(normalizeNumber(firstString(val)), 64)
-			if err != nil {
-				r.logger.Warnf("Row #%d has unparseable downloadvolumefactor value %q in %s", rowIdx, val, key)
-				continue
-			}
-			item.DownloadVolumeFactor = downloadvolumefactor
-		case "uploadvolumefactor":
-			uploadvolumefactor, err := strconv.ParseFloat(normalizeNumber(firstString(val)), 64)
-			if err != nil {
-				r.logger.Warnf("Row #%d has unparseable uploadvolumefactor value %q in %s", rowIdx, val, key)
-				continue
-			}
-			item.UploadVolumeFactor = uploadvolumefactor
-		case "minimumratio":
-			minimumratio, err := strconv.ParseFloat(normalizeNumber(firstString(val)), 64)
-			if err != nil {
-				r.logger.Warnf("Row #%d has unparseable minimumratio value %q in %s", rowIdx, val, key)
-				continue
-			}
-			item.MinimumRatio = minimumratio
-		case "minimumseedtime":
-			minimumseedtime, err := strconv.ParseFloat(normalizeNumber(firstString(val)), 64)
-			if err != nil {
-				r.logger.Warnf("Row #%d has unparseable minimumseedtime value %q in %s", rowIdx, val, key)
-				continue
-			}
-			item.MinimumSeedTime = time.Duration(minimumseedtime) * time.Second
-		case "banner":
-			banner, err := r.resolveIndexerPath(firstString(val))
-			if err != nil {
-				item.Banner = firstString(val)
-			} else {
-				item.Banner = banner
-			}
-		default:
-			//r.logger.Warnf("Row #%d has unknown field %s", rowIdx, key)
-			item.SetField(key, val)
+		if r.definition.Scheme == "torrent" {
+			r.populateTorrentItemField(item, key, val, row, nonFilteredRow, rowIdx)
+		} else {
+			r.populateScrapeItemField(item, key, val, row, rowIdx)
 		}
 	}
-	//if item.UUIDValue == "" && item.Link != "" {
-	//	item.UUIDValue = item.Link
-	//}
+
 	if r.hasDateHeader() {
 		date, err := r.extractDateHeader(selection)
 		if err != nil {
-			return search.ExternalResultItem{}, err
+			return &search.ScrapeResultItem{}, err
 		}
 
-		item.PublishDate = date.Unix()
+		item.SetPublishDate(date.Unix())
 	}
+	r.populateTorrentData(item, context)
 
 	return item, nil
+}
+
+func (r *Runner) populateTorrentData(resultItem search.ResultItemBase, context *rowContext) {
+	//Maybe don't do that always?
+	item := resultItem.(*search.TorrentResultItem)
+
+	item.Fingerprint = search.GetResultFingerprint(item)
+	if !r.resolveItemCategory(context.query, context.indexCategories, item) {
+		_ = context.storage.SetKey(r.getUniqueIndex(&item.ScrapeResultItem))
+		err := context.storage.Add(item)
+		if err != nil {
+			r.logger.Errorf("Found an item that doesn't match our search indexCategories: %s\n", err)
+		}
+
+	}
+}
+
+func (r *Runner) populateTorrentItemField(
+	itemToPopulate search.ResultItemBase,
+	key string, val interface{},
+	row map[string]interface{},
+	nonFilteredRow map[string]string,
+	rowIdx int) bool {
+
+	item := itemToPopulate.(*search.TorrentResultItem)
+
+	switch key {
+	case "author":
+		item.Author = firstString(val)
+	case "details":
+		u, err := r.resolveIndexerPath(firstString(val))
+		if err != nil {
+			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
+			return false
+		}
+		//item.UUIDValue = u
+		item.Description = u
+		// comments is used by Sonarr for linking to
+		if item.Comments == "" {
+			item.Comments = u
+		}
+	case "comments":
+		u, err := r.resolveIndexerPath(firstString(val))
+		if err != nil {
+			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
+			return false
+		}
+		item.Comments = u
+	case "title":
+		item.Title = firstString(val)
+		if _, ok := nonFilteredRow["title"]; ok {
+			v := nonFilteredRow["title"]
+			if strings.Contains(v, "{{") {
+				v2, err := applyTemplate("original_title", v, row)
+				if err == nil {
+					v = v2
+				}
+			}
+			item.OriginalTitle = v
+		}
+	case "shortTitle":
+		item.ShortTitle = firstString(val)
+	case "description":
+		item.Description = firstString(val)
+	case "category":
+		item.LocalCategoryID = firstString(val)
+	case "categoryName":
+		item.LocalCategoryName = firstString(val)
+	case "magnet":
+		murl, err := r.resolveIndexerPath(firstString(val))
+		if err != nil {
+			r.logger.Warningf("Couldn't resolve magnet url from value %s\n", val)
+			return false
+		} else {
+			item.MagnetLink = murl
+		}
+	case "size":
+		bytes, err := humanize.ParseBytes(strings.Replace(firstString(val), ",", "", -1))
+		if err != nil {
+			r.logger.Warnf("Row #%d has unparseable size %q: %v", rowIdx, val, err.Error())
+			return false
+		}
+		//r.logger.Debugf("After parsing, size is %v", bytes)
+		item.Size = uint32(bytes)
+	case "leechers":
+		leechers, err := strconv.Atoi(normalizeNumber(firstString(val)))
+		if err != nil {
+			r.logger.Warnf("Row #%d has unparseable leechers value %q in %s", rowIdx, val, key)
+			return false
+		}
+		item.Peers += leechers
+	case "seeders":
+		seeders, err := strconv.Atoi(normalizeNumber(firstString(val)))
+		if err != nil {
+			r.logger.Debugf("Row #%d has unparseable seeders value %q in %s", rowIdx, val, key)
+			return false
+		}
+		item.Seeders = seeders
+		item.Peers += seeders
+	case "authorId":
+		item.AuthorId = firstString(val)
+	case "date":
+		t, err := parseFuzzyTime(firstString(val), time.Now(), true)
+		if err != nil {
+			r.logger.Warnf("Row #%d has unparseable time %q in %s", rowIdx, val, key)
+			return false
+		}
+		item.PublishDate = t.Unix()
+	case "files":
+		files, err := strconv.Atoi(normalizeNumber(firstString(val)))
+		if err != nil {
+			r.logger.Warnf("Row #%d has unparseable files value %q in %s", rowIdx, val, key)
+			return false
+		}
+		item.Files = files
+	case "grabs":
+		grabs, err := strconv.Atoi(normalizeNumber(firstString(val)))
+		if err != nil {
+			r.logger.Warnf("Row #%d has unparseable grabs value %q in %s", rowIdx, val, key)
+			return false
+		}
+		item.Grabs = grabs
+	case "downloadvolumefactor":
+		downloadvolumefactor, err := strconv.ParseFloat(normalizeNumber(firstString(val)), 64)
+		if err != nil {
+			r.logger.Warnf("Row #%d has unparseable downloadvolumefactor value %q in %s", rowIdx, val, key)
+			return false
+		}
+		item.DownloadVolumeFactor = downloadvolumefactor
+	case "uploadvolumefactor":
+		uploadvolumefactor, err := strconv.ParseFloat(normalizeNumber(firstString(val)), 64)
+		if err != nil {
+			r.logger.Warnf("Row #%d has unparseable uploadvolumefactor value %q in %s", rowIdx, val, key)
+			return false
+		}
+		item.UploadVolumeFactor = uploadvolumefactor
+	case "minimumratio":
+		minimumratio, err := strconv.ParseFloat(normalizeNumber(firstString(val)), 64)
+		if err != nil {
+			r.logger.Warnf("Row #%d has unparseable minimumratio value %q in %s", rowIdx, val, key)
+			return false
+		}
+		item.MinimumRatio = minimumratio
+	case "minimumseedtime":
+		minimumseedtime, err := strconv.ParseFloat(normalizeNumber(firstString(val)), 64)
+		if err != nil {
+			r.logger.Warnf("Row #%d has unparseable minimumseedtime value %q in %s", rowIdx, val, key)
+			return false
+		}
+		item.MinimumSeedTime = time.Duration(minimumseedtime) * time.Second
+	case "banner":
+		banner, err := r.resolveIndexerPath(firstString(val))
+		if err != nil {
+			item.Banner = firstString(val)
+		} else {
+			item.Banner = banner
+		}
+	default:
+		populatedOk := r.populateScrapeItemField(&item.ScrapeResultItem, key, val, row, rowIdx)
+		if !populatedOk {
+			return false
+		}
+	}
+	return true
+}
+
+func (r *Runner) populateScrapeItemField(item search.ResultItemBase, key string, val interface{}, row map[string]interface{}, rowIdx int) bool {
+	scrapeItem := item.(*search.ScrapeResultItem)
+	switch key {
+	case "id":
+		scrapeItem.SetLocalId(firstString(val))
+	case "download":
+		u, err := r.resolveIndexerPath(firstString(val))
+		if err != nil {
+			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
+			return false
+		}
+		//item.Link = u
+		scrapeItem.SourceLink = u
+	case "link":
+		u, err := r.resolveIndexerPath(firstString(val))
+		if err != nil {
+			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
+			return false
+		}
+		scrapeItem.Link = u
+	default:
+		scrapeItem.SetField(key, val)
+	}
+	return true
 }

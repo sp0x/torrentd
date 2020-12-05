@@ -10,26 +10,26 @@ import (
 
 func TestKeyHasValue(t *testing.T) {
 	g := gomega.NewWithT(t)
-	item := &search.ExternalResultItem{}
+	item := &search.ScrapeResultItem{}
 	chat := &bots.Chat{}
 	item.ExtraFields = make(map[string]interface{})
 	item.ExtraFields["time"] = "33"
 	k := NewKey("ExtraFields.time")
 	g.Expect(KeyHasValue(k, item)).To(gomega.BeTrue())
 
-	item = &search.ExternalResultItem{}
+	item = &search.ScrapeResultItem{}
 	item.ExtraFields = make(map[string]interface{})
 	item.LocalId = "33"
 	k = NewKey("LocalId")
 	g.Expect(KeyHasValue(k, item)).To(gomega.BeTrue())
 
-	item = &search.ExternalResultItem{}
+	item = &search.ScrapeResultItem{}
 	item.ExtraFields = make(map[string]interface{})
 	item.ExtraFields["time"] = "33"
 	k = NewKey("time")
 	g.Expect(KeyHasValue(k, item)).To(gomega.BeTrue())
 
-	item = &search.ExternalResultItem{}
+	item = &search.ScrapeResultItem{}
 	item.ExtraFields = make(map[string]interface{})
 	item.ExtraFields["time"] = ""
 	k = NewKey("time")
@@ -42,7 +42,7 @@ func TestKeyHasValue(t *testing.T) {
 
 func TestGetKeyQueryFromItem(t *testing.T) {
 	g := gomega.NewWithT(t)
-	item := &search.ExternalResultItem{}
+	item := &search.ScrapeResultItem{}
 	item.ExtraFields = make(map[string]interface{})
 	item.ExtraFields["time"] = "33"
 	k := NewKey("ExtraFields.time")
@@ -53,7 +53,7 @@ func TestGetKeyQueryFromItem(t *testing.T) {
 	g.Expect(found).To(gomega.BeTrue())
 	g.Expect(val).To(gomega.Equal("33"))
 
-	item = &search.ExternalResultItem{}
+	item = &search.ScrapeResultItem{}
 	item.ExtraFields = make(map[string]interface{})
 	item.LocalId = "34"
 	k = NewKey("LocalId")

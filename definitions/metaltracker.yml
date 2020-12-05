@@ -1,5 +1,6 @@
 ﻿---
   site: metaltracker
+  scheme: torrent
   name: Metal Tracker
   description: "Metal Tracker is a Semi-Private site dedicated to HEAVY METAL MUSIC. This definition is for the English site."
   language: en-us
