@@ -68,11 +68,11 @@ func watchIndex(_ *cobra.Command, _ []string) {
 			continue
 		}
 		if item.IsNew() && !item.IsUpdate() {
-			_, _ = fmt.Fprintf(tabWr, "Found new result #%s:\t%s\t[%s]:\t%s\n",
-				item.LocalId, item.AddedOnStr(), item.Fingerprint, item.Title)
+			_, _ = fmt.Fprintf(tabWr, "Found new result #%s:\t%s\n",
+				item.UUID(), item.String())
 		} else {
-			_, _ = fmt.Fprintf(tabWr, "Updated torrent #%s:\t%s\t[%s]:\t%s\n",
-				item.LocalId, item.AddedOnStr(), item.Fingerprint, item.Title)
+			_, _ = fmt.Fprintf(tabWr, "Updated torrent #%s:\t%s\n",
+				item.UUID(), item.String())
 		}
 	}
 }

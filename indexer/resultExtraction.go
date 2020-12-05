@@ -115,11 +115,11 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection, context *
 	for key, val := range row {
 		formatValues(nil, val, row)
 
-		populatedOk := r.populateScrapeItem(item, key, val, row, rowIdx)
-		if !populatedOk {
-			continue
+		if r.definition.Scheme == "torrent" {
+			r.populateTorrentItem(item, key, val, row, nonFilteredRow, rowIdx)
+		} else {
+			r.populateScrapeItem(item, key, val, row, rowIdx)
 		}
-		populatedOk = r.populateTorrentItem(item, key, val, row, nonFilteredRow, rowIdx)
 	}
 
 	if r.hasDateHeader() {
@@ -158,6 +158,12 @@ func (r *Runner) populateTorrentItem(
 	rowIdx int) bool {
 
 	item := itemToPopulate.(*search.TorrentResultItem)
+
+	populatedOk := r.populateScrapeItem(&item.ScrapeResultItem, key, val, row, rowIdx)
+	if !populatedOk {
+		return false
+	}
+
 	switch key {
 	case "author":
 		item.Author = firstString(val)

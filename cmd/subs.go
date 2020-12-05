@@ -41,6 +41,7 @@ func findSubtitles(_ *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 	for _, r := range currentSearch.GetResults() {
-		fmt.Printf("%s - %s\n", r.TorrentResultItem.Title, r.Link)
+		scrape := r.AsScrapeItem()
+		fmt.Printf("%s - %s\n", r.String(), scrape.Link)
 	}
 }
