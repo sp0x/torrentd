@@ -1,5 +1,6 @@
 ﻿---
   site: ethor
+  scheme: torrent
   name: Ethor.net (Thor's Land)
   description: "A French gerneral tracker"
   language: fr-fr

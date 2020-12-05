@@ -1,6 +1,7 @@
 ---
   site: torrentleech
   name: TorrentLeech
+  scheme: torrent
   language: en-us
   links:
     - https://www.torrentleech.org/

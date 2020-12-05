@@ -1,5 +1,6 @@
 ---
   site: freshon
+  scheme: torrent
   name: FreshOnTV
   description: "TV Series anyone?"
   language: en-us

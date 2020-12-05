@@ -1,5 +1,6 @@
 ---
   site: kickasstorrent
+  scheme: torrent
   name: KickAssTorrent
   language: en-us
   encoding: UTF-8

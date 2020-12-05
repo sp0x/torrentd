@@ -1,5 +1,6 @@
 ---
   site: funfile
+  scheme: torrent
   name: FunFile
   description: "A general tracker"
   language: en-us

@@ -5,6 +5,7 @@ language: en-us
 encoding: windows1251
 links:
   - https://rutracker.org/forum/index.php
+scheme: torrent
 
 settings:
   - name: cookie

@@ -1,6 +1,7 @@
 ---
   site: t411
   name: Torrent411
+  scheme: torrent
   language: fr-fr
   encoding: UTF-8
   links:

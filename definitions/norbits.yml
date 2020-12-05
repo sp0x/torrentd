@@ -1,5 +1,6 @@
 ---
   site: norbits
+  scheme: torrent
   name: Norbits
   language: nb-no
   links:

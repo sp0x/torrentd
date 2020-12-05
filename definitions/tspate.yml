@@ -1,6 +1,7 @@
 ﻿---
   site: tspate
   name: Tspate
+  scheme: torrent
   description: "A French gerneral tracker"
   language: fr-fr
   links:

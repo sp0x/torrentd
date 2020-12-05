@@ -1,6 +1,7 @@
 ---
   site: torrentz2
   name: Torrentz2
+  scheme: torrent
   language: en-us
   type: public
   encoding: UTF-8

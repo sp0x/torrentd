@@ -1,5 +1,6 @@
 ---
   site: iptorrents
+  scheme: torrent
   name: IPTorrents
   description: "#1 Private Tracker"
   language: en-us

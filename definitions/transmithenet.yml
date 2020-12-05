@@ -1,6 +1,7 @@
 ﻿---
   site: transmithenet
   name: Transmithe.net
+  scheme: torrent
   description: "A TV tracker"
   language: en-us
   links:

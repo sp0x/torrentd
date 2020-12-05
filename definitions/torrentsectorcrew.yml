@@ -1,6 +1,7 @@
 ﻿---
   site: torrentsectorcrew
   name: Torrent Sector Crew
+  scheme: torrent
   description: "A German general tracker"
   language: de-de
   links:

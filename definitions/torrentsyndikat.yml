@@ -1,6 +1,7 @@
 ---
   site: torrentsyndikat
   name: Torrent-Syndikat
+  scheme: torrent
   description: "A German general tracker"
   language: de-de
   encoding: UTF-8

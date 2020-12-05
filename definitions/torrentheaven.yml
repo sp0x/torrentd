@@ -1,6 +1,7 @@
 ﻿---
   site: torrentheaven
   name: TorrentHeaven
+  scheme: torrent
   description: "A German general tracker"
   language: de-de
   links:

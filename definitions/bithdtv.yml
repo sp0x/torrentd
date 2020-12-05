@@ -1,5 +1,6 @@
 ---
   site: bithdtv
+  scheme: torrent
   name: BIT-HDTV
   description: Home of High Definition TV
   language: en-us

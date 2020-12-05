@@ -1,5 +1,6 @@
 ---
   site: hdme
+  scheme: torrent
   name: HDME
   language: en-us
   links:

@@ -1,5 +1,6 @@
 ---
   site: nethd
+  scheme: torrent
   name: NetHD
   description: "A vietnamese tracker"
   language: vi-vn

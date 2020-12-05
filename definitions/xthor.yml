@@ -1,6 +1,7 @@
 ---
   site: xthor
   name: Xthor
+  scheme: torrent
   language: fr-fr
   links:
     - https://xthor.bz/

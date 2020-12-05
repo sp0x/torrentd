@@ -1,5 +1,6 @@
 ---
   site: immortalseed
+  scheme: torrent
   name: Immortalseed
   description: "a general tracker"
   language: en-us

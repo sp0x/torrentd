@@ -1,5 +1,6 @@
 ---
   site: orpheus
+  scheme: torrent
   name: Orpheus
   description: "A music tracker"
   language: en-us

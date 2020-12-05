@@ -1,6 +1,7 @@
 ---
   site: speedcd
   name: speed.cd
+  scheme: torrent
   description: "TV Series anyone?"
   language: en-us
   links:

@@ -1,6 +1,7 @@
 ﻿---
   site: totheglory
   name: ToTheGlory
+  scheme: torrent
   description: "A chinese tracker"
   language: zh-cn
   encoding: UTF-8
