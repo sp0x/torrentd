@@ -116,9 +116,9 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection, context *
 		formatValues(nil, val, row)
 
 		if r.definition.Scheme == "torrent" {
-			r.populateTorrentItem(item, key, val, row, nonFilteredRow, rowIdx)
+			r.populateTorrentItemField(item, key, val, row, nonFilteredRow, rowIdx)
 		} else {
-			r.populateScrapeItem(item, key, val, row, rowIdx)
+			r.populateScrapeItemField(item, key, val, row, rowIdx)
 		}
 	}
 
@@ -150,7 +150,7 @@ func (r *Runner) populateTorrentData(resultItem search.ResultItemBase, context *
 	}
 }
 
-func (r *Runner) populateTorrentItem(
+func (r *Runner) populateTorrentItemField(
 	itemToPopulate search.ResultItemBase,
 	key string, val interface{},
 	row map[string]interface{},
@@ -159,7 +159,7 @@ func (r *Runner) populateTorrentItem(
 
 	item := itemToPopulate.(*search.TorrentResultItem)
 
-	populatedOk := r.populateScrapeItem(&item.ScrapeResultItem, key, val, row, rowIdx)
+	populatedOk := r.populateScrapeItemField(&item.ScrapeResultItem, key, val, row, rowIdx)
 	if !populatedOk {
 		return false
 	}
@@ -302,7 +302,7 @@ func (r *Runner) populateTorrentItem(
 	return true
 }
 
-func (r *Runner) populateScrapeItem(item search.ResultItemBase, key string, val interface{}, row map[string]interface{}, rowIdx int) bool {
+func (r *Runner) populateScrapeItemField(item search.ResultItemBase, key string, val interface{}, row map[string]interface{}, rowIdx int) bool {
 	scrapeItem := item.(*search.ScrapeResultItem)
 	switch key {
 	case "id":
@@ -322,6 +322,8 @@ func (r *Runner) populateScrapeItem(item search.ResultItemBase, key string, val 
 			return false
 		}
 		scrapeItem.Link = u
+	default:
+		scrapeItem.ModelData[key] = val
 	}
 	return true
 }
