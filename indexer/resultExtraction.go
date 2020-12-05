@@ -159,11 +159,6 @@ func (r *Runner) populateTorrentItemField(
 
 	item := itemToPopulate.(*search.TorrentResultItem)
 
-	populatedOk := r.populateScrapeItemField(&item.ScrapeResultItem, key, val, row, rowIdx)
-	if !populatedOk {
-		return false
-	}
-
 	switch key {
 	case "author":
 		item.Author = firstString(val)
@@ -296,8 +291,10 @@ func (r *Runner) populateTorrentItemField(
 			item.Banner = banner
 		}
 	default:
-		//r.logger.Warnf("Row #%d has unknown field %s", rowIdx, key)
-		item.SetField(key, val)
+		populatedOk := r.populateScrapeItemField(&item.ScrapeResultItem, key, val, row, rowIdx)
+		if !populatedOk {
+			return false
+		}
 	}
 	return true
 }
@@ -323,7 +320,7 @@ func (r *Runner) populateScrapeItemField(item search.ResultItemBase, key string,
 		}
 		scrapeItem.Link = u
 	default:
-		scrapeItem.ModelData[key] = val
+		scrapeItem.SetField(key, val)
 	}
 	return true
 }
