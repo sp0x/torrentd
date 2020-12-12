@@ -30,6 +30,12 @@ type Query struct {
 	Page     uint
 }
 
+func NewQuery() *Query {
+	q := &Query{}
+	q.PaginationSearch = &search.PaginationSearch{}
+	return q
+}
+
 // Episode returns either the season + episode in the format S00E00 or just the season as S00 if
 // no episode has been specified.
 func (query Query) Episode() (s string) {

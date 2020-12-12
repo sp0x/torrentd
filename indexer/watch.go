@@ -53,7 +53,7 @@ func GetAllPagesFromIndex(facade *Facade, query *torznab.Query) <-chan search.Re
 func Watch(facade *Facade, initialQuery *torznab.Query, intervalSec int) <-chan search.ResultItemBase {
 	outputChan := make(chan search.ResultItemBase)
 	if initialQuery == nil {
-		initialQuery = &torznab.Query{}
+		initialQuery = torznab.NewQuery()
 	}
 	go func() {
 		var currentSearch search.Instance
@@ -82,15 +82,13 @@ func Watch(facade *Facade, initialQuery *torznab.Query, intervalSec int) <-chan 
 				time.Sleep(time.Second * time.Duration(intervalSec))
 				continue
 			}
-			for _, result := range currentSearch.GetResults() {
-				tmpResult := result
-				outputChan <- tmpResult
-			}
+			sendSearchResults(currentSearch, outputChan)
 			//Parse the currentPage and see if there are any new torrents
 			//if there aren't any, sleep the intervalSec
 			finished := false
 			hasReachedStaleItems := false
-			for _, result := range currentSearch.GetResults() {
+			resultItems := currentSearch.GetResults()
+			for _, result := range resultItems {
 				if finished {
 					break
 				}
@@ -111,7 +109,9 @@ func Watch(facade *Facade, initialQuery *torznab.Query, intervalSec int) <-chan 
 				}
 			}
 			//If we have stale torrents we wait some time and try again
-			if hasReachedStaleItems {
+			if hasReachedStaleItems || len(resultItems) == 0 {
+				log.WithFields(log.Fields{"page": initialQuery.PageCount}).
+					Infof("Reached page with 0 results. Search is complete.")
 				time.Sleep(time.Second * time.Duration(intervalSec))
 				currentSearch = nil
 				initialQuery.Page = startingPage
@@ -130,4 +130,11 @@ func Watch(facade *Facade, initialQuery *torznab.Query, intervalSec int) <-chan 
 		}
 	}()
 	return outputChan
+}
+
+func sendSearchResults(currentSearch search.Instance, outputChan chan search.ResultItemBase) {
+	for _, result := range currentSearch.GetResults() {
+		tmpResult := result
+		outputChan <- tmpResult
+	}
 }
