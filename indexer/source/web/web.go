@@ -22,9 +22,14 @@ type ContentFetcher struct {
 	Browser            browser.Browsable
 	Cacher             ContentCacher
 	ConnectivityTester cache.ConnectivityTester
+	options            FetchOptions
 }
 
-func NewWebContentFetcher(browser browser.Browsable, contentCache ContentCacher, connectivityTester cache.ConnectivityTester) source.ContentFetcher {
+type FetchOptions struct {
+	DumpData bool
+}
+
+func NewWebContentFetcher(browser browser.Browsable, contentCache ContentCacher, connectivityTester cache.ConnectivityTester, options FetchOptions) source.ContentFetcher {
 	if connectivityTester == nil {
 		panic("a connectivity tester is required")
 	}
@@ -33,6 +38,7 @@ func NewWebContentFetcher(browser browser.Browsable, contentCache ContentCacher,
 		//We'll use the indexer to cache content.
 		Cacher:             contentCache,
 		ConnectivityTester: connectivityTester,
+		options:            options,
 	}
 }
 
@@ -81,7 +87,17 @@ func (w *ContentFetcher) Fetch(target *source.SearchTarget) error {
 	default:
 		return fmt.Errorf("unknown search method %q", target.Method)
 	}
+	w.postProcessData()
 	return nil
+}
+
+func (w *ContentFetcher) postProcessData() {
+	if !w.options.DumpData {
+		return
+	}
+	//todo: dump data
+	//use browser url
+	//w.Browser.Download()
 }
 
 func (w *ContentFetcher) get(targetUrl string) error {

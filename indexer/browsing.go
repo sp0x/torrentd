@@ -11,6 +11,7 @@ import (
 	"github.com/sp0x/surf/browser"
 	"github.com/sp0x/surf/jar"
 	"github.com/sp0x/torrentd/indexer/source/web"
+	"github.com/spf13/viper"
 	"golang.org/x/net/proxy"
 	"net"
 	"net/http"
@@ -94,8 +95,11 @@ func (r *Runner) createBrowser() *browser.Browser {
 	default:
 		panic("Unknown value for DEBUG_HTTP")
 	}
+	fetchOptions := web.FetchOptions{
+		DumpData: viper.GetBool("dump"),
+	}
 	r.connectivityTester.SetBrowser(bow)
-	r.contentFetcher = web.NewWebContentFetcher(bow, r, r.connectivityTester)
+	r.contentFetcher = web.NewWebContentFetcher(bow, r, r.connectivityTester, fetchOptions)
 	r.browser = bow
 	return bow
 }
