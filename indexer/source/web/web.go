@@ -5,11 +5,15 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/browser"
+	"github.com/sp0x/surf/jar"
 	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/source"
 	"net/url"
+	"os"
+	"path"
 	"regexp"
 	"strings"
+	"time"
 )
 
 const (
@@ -96,8 +100,36 @@ func (w *ContentFetcher) postProcessData() {
 		return
 	}
 	//todo: dump data
+	browserState := w.Browser.State()
+	fileName := fmt.Sprintf("%s_%d", browserState.Request.URL.Path, time.Now().Unix())
+	fileName = strings.Replace(fileName, "/", "_", -1)
+	fileName += "." + resolveDumpFormat(browserState)
+	dirName := browserState.Request.Host
+	if _, err := os.Stat(dirName); os.IsNotExist(err) {
+		os.Mkdir(dirName, 007)
+	}
+	outputPath := path.Join(dirName, fileName)
+
+	fileWriter, err := os.Create(outputPath)
+	if err != nil {
+		logrus.Warnf("could not dump file %s", outputPath)
+		return
+	}
 	//use browser url
-	//w.Browser.Download()
+	_, err = w.Browser.Download(fileWriter)
+
+}
+
+func resolveDumpFormat(state *jar.State) string {
+	contentType := state.Response.Header.Get("Content-Type")
+	if contentType == "" {
+		return "html"
+	}
+	switch contentType {
+	case "application/json":
+		return "json"
+	}
+	return "html"
 }
 
 func (w *ContentFetcher) get(targetUrl string) error {
