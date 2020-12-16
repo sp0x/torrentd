@@ -126,9 +126,13 @@ func (w *ContentFetcher) postProcessData() {
 	_, err = w.Browser.Download(responseFileWriter)
 	if requestExtension != "" {
 		requestFileWriter, _ := os.Create(requestBodyPath)
-		_, err = io.Copy(requestFileWriter, browserState.Request.Body)
+		getBody := browserState.Request.GetBody
+		copyBody, _ := getBody()
+		n, err := io.Copy(requestFileWriter, copyBody)
 		if err != nil {
 			logrus.Warnf("could not dump request body %s", requestBodyPath)
+		} else {
+			logrus.Debugf("written body with size %d bytes", n)
 		}
 	}
 
