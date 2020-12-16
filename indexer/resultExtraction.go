@@ -130,7 +130,10 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection, context *
 
 		item.SetPublishDate(date.Unix())
 	}
-	r.populateTorrentData(item, context)
+
+	if r.definition.Scheme == "torrent" {
+		r.populateTorrentData(item, context)
+	}
 
 	return item, nil
 }

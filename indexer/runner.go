@@ -627,7 +627,7 @@ func (r *Runner) extractSearchTarget(query *torznab.Query, localCats []string, c
 	if err != nil {
 		return nil, err
 	}
-	target := &source.SearchTarget{Url: searchURL, Values: vals}
+	target := &source.SearchTarget{Url: searchURL, Values: vals, Method: r.definition.Search.Method}
 	return target, nil
 }
 
