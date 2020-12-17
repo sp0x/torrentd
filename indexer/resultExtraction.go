@@ -105,9 +105,6 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection, context *
 	item.SetSite(r.definition.Site)
 	item.SetIndexer(r.getIndexer())
 
-	r.logger.WithFields(logrus.Fields{"row": rowIdx, "data": row}).
-		Debugf("Finished row %d", rowIdx)
-
 	//Fill in the extracted values
 	for key, val := range row {
 		formatValues(nil, val, row)
@@ -131,6 +128,9 @@ func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection, context *
 	if r.definition.Scheme == "torrent" {
 		r.populateTorrentData(item, context)
 	}
+
+	r.logger.WithFields(logrus.Fields{"row": rowIdx, "data": row}).
+		Debugf("Finished row %d", rowIdx)
 
 	return item, nil
 }
