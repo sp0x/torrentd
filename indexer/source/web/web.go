@@ -5,16 +5,11 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/browser"
-	"github.com/sp0x/surf/jar"
 	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/source"
-	"io"
 	"net/url"
-	"os"
-	"path"
 	"regexp"
 	"strings"
-	"time"
 )
 
 const (
@@ -92,77 +87,8 @@ func (w *ContentFetcher) Fetch(target *source.SearchTarget) error {
 	default:
 		return fmt.Errorf("unknown search method %q", target.Method)
 	}
-	w.postProcessData()
+	w.dumpFetchData()
 	return nil
-}
-
-func (w *ContentFetcher) postProcessData() {
-	if !w.options.DumpData {
-		return
-	}
-	//todo: dump data
-	browserState := w.Browser.State()
-	request := browserState.Request
-	dirPath := path.Join("dumps", request.Host)
-	dirPath = path.Join(dirPath,
-		strings.Replace(fmt.Sprintf("%s_%s", request.Method, request.URL.Path), "/", "_", -1))
-	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-		os.MkdirAll(dirPath, 007)
-	}
-	timeNow := fmt.Sprintf("%d", time.Now().Unix())
-	responseBodyFName := fmt.Sprintf("%s_resp.%s", timeNow, resolveResponseDumpFormat(browserState))
-	requestExtension := resolveRequestDumpFormat(browserState)
-	requestBodyFName := fmt.Sprintf("%s_req.%s", timeNow, requestExtension)
-
-	responseBodyPath := path.Join(dirPath, responseBodyFName)
-	requestBodyPath := path.Join(dirPath, requestBodyFName)
-
-	responseFileWriter, err := os.Create(responseBodyPath)
-	if err != nil {
-		logrus.Warnf("could not dump response %s", responseBodyPath)
-		return
-	}
-	//use browser url
-	_, err = w.Browser.Download(responseFileWriter)
-	if requestExtension != "" {
-		requestFileWriter, _ := os.Create(requestBodyPath)
-		getBody := browserState.Request.GetBody
-		copyBody, _ := getBody()
-		n, err := io.Copy(requestFileWriter, copyBody)
-		if err != nil {
-			logrus.Warnf("could not dump request body %s", requestBodyPath)
-		} else {
-			logrus.Debugf("written body with size %d bytes", n)
-		}
-	}
-
-}
-
-func resolveRequestDumpFormat(state *jar.State) string {
-	if state.Request.Method == "GET" {
-		return ""
-	}
-	contentType := state.Request.Header.Get("Content-Type")
-	if contentType == "" {
-		return ""
-	}
-	return contentTypeToFileExtension(contentType)
-}
-
-func resolveResponseDumpFormat(state *jar.State) string {
-	contentType := state.Response.Header.Get("Content-Type")
-	if contentType == "" {
-		return "html"
-	}
-	return contentTypeToFileExtension(contentType)
-}
-
-func contentTypeToFileExtension(contentType string) string {
-	switch contentType {
-	case "application/json":
-		return "json"
-	}
-	return "html"
 }
 
 func (w *ContentFetcher) get(targetUrl string) error {
