@@ -33,15 +33,17 @@ func (d *dumpData) Write() {
 		logrus.Debugf("written response body with size %d bytes", n)
 	}
 	requestExtension := path.Ext(d.RequestBodyFile)
-	if requestExtension != "" {
+	if requestExtension != "" && requestExtension != "." {
 		requestFileWriter, _ := os.Create(d.RequestBodyFile)
 		getBody := d.State.Request.GetBody
-		copyBody, _ := getBody()
-		n, err := io.Copy(requestFileWriter, copyBody)
-		if err != nil {
-			logrus.Warnf("could not dump request body %s", d.RequestBodyFile)
-		} else {
-			logrus.Debugf("written request body with size %d bytes", n)
+		if getBody != nil {
+			copyBody, _ := getBody()
+			n, err := io.Copy(requestFileWriter, copyBody)
+			if err != nil {
+				logrus.Warnf("could not dump request body %s", d.RequestBodyFile)
+			} else {
+				logrus.Debugf("written request body with size %d bytes", n)
+			}
 		}
 	}
 }
@@ -53,8 +55,9 @@ func (w *ContentFetcher) dumpFetchData() {
 	browserState := w.Browser.State()
 	request := browserState.Request
 	dirPath := path.Join("dumps", request.Host)
+	requestUrl := request.URL.Path + "__" + request.URL.RawQuery
 	dirPath = path.Join(dirPath,
-		strings.Replace(fmt.Sprintf("%s_%s", request.Method, request.URL.Path), "/", "_", -1))
+		strings.Replace(fmt.Sprintf("%s_%s", request.Method, requestUrl), "/", "_", -1))
 	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
 		os.MkdirAll(dirPath, 007)
 	}

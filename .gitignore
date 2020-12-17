@@ -7,3 +7,4 @@ keys
 **/bolt.db
 **/bolt.db.lock
 ignored
+dumps
