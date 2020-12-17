@@ -16,7 +16,7 @@ func ResolveTorrents(index indexer.Indexer, config config.Config) []search.Resul
 		Build()
 	defer store.Close()
 	results := store.GetLatest(20)
-	if err := index.Check(); err != nil {
+	if err := index.HealthCheck(); err != nil {
 		log.Errorf("Failed while checking indexer %s. Err: %s\n", reflect.TypeOf(index), err)
 		return nil
 	}
@@ -38,7 +38,7 @@ func ResolveTorrents(index indexer.Indexer, config config.Config) []search.Resul
 				Warningf("Couldn'item find indexer.")
 			continue
 		}
-		err = index.Check()
+		err = index.HealthCheck()
 		if err != nil {
 			log.WithFields(log.Fields{"err": err, "site": item.Site}).
 				Warningf("Error while checking indexer.")

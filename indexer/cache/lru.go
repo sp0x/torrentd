@@ -49,7 +49,7 @@ func (c *LRU) Clear() {
 //Add a key with a given value
 //returns true if an element was evicted so this one could be added
 func (c *LRU) Add(key, value interface{}) bool {
-	//Check if the key exists already, if so we'll move it to the front since it's modified
+	//HealthCheck if the key exists already, if so we'll move it to the front since it's modified
 	if ent, ok := c.items[key]; ok {
 		c.evictionList.MoveToFront(ent)
 		ent.Value.(*entry).value = value

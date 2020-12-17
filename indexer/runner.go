@@ -37,6 +37,8 @@ var (
 	errorTTL         = 2 * 24 * time.Hour
 )
 
+const indexVerificationSpan = time.Minute * 60 * 24
+
 type RunnerOpts struct {
 	Config     config.Config
 	CachePages bool
@@ -305,7 +307,7 @@ func (r *Runner) isLoginRequired() (bool, error) {
 		return true, nil
 	}
 	r.logger.Debug("Testing if login is needed")
-	//Check if the login page is valid
+	//HealthCheck if the login page is valid
 	match, err := r.matchPageTestBlock(r.definition.Login.Test)
 	if err != nil {
 		return true, err
@@ -429,17 +431,28 @@ func (r *Runner) GetEncoding() string {
 	return r.definition.Encoding
 }
 
-//Check sees if the index can be searched
-func (r *Runner) Check() error {
+//HealthCheck checks if the index can be searched.
+//Health checks for each index have a duration of 1 day.
+func (r *Runner) HealthCheck() error {
 	verifiedSpan := time.Since(r.lastVerified)
-	if verifiedSpan < time.Minute*60*24 {
+	if verifiedSpan < indexVerificationSpan {
 		return nil
 	}
-	_, err := r.Search(&torznab.Query{}, nil)
+	searchResult, err := r.Search(&torznab.Query{}, nil)
 	if err != nil {
-		r.lastVerified = time.Now()
+		return err
 	}
-	return err
+	if searchResult == nil {
+		return fmt.Errorf("search result was null")
+	}
+
+	resultItems := searchResult.GetResults()
+	if len(resultItems) == 0 {
+		return fmt.Errorf("failed health check. no items returned")
+	}
+
+	r.lastVerified = time.Now()
+	return nil
 }
 
 func (r *Runner) getUniqueIndex(item search.ResultItemBase) *indexing.Key {

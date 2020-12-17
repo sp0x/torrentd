@@ -232,18 +232,18 @@ func (mr *MockIndexerMockRecorder) Open(s interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Open", reflect.TypeOf((*MockIndexer)(nil).Open), s)
 }
 
-// Check mocks base method
+// HealthCheck mocks base method
 func (m *MockIndexer) Check() error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Check")
+	ret := m.ctrl.Call(m, "HealthCheck")
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Check indicates an expected call of Check
+// HealthCheck indicates an expected call of HealthCheck
 func (mr *MockIndexerMockRecorder) Check() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockIndexer)(nil).Check))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HealthCheck", reflect.TypeOf((*MockIndexer)(nil).Check))
 }
 
 // MaxSearchPages mocks base method

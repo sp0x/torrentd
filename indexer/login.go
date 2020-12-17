@@ -86,7 +86,7 @@ func (r *Runner) login() error {
 			return &LoginError{err}
 		}
 	}
-	//Check if the login went ok
+	//HealthCheck if the login went ok
 	match, err := r.matchPageTestBlock(r.definition.Login.Test)
 	if err != nil {
 		return err

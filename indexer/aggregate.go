@@ -98,8 +98,8 @@ func (ag *Aggregate) GetEncoding() string {
 	return "utf-8"
 }
 
-//Check checks all indexes, if they can be searched.
-func (ag *Aggregate) Check() error {
+//HealthCheck checks all indexes, if they can be searched.
+func (ag *Aggregate) HealthCheck() error {
 	g := errgroup.Group{}
 	for _, ixr := range ag.Indexers {
 		indexerID := ixr.Info().GetId()

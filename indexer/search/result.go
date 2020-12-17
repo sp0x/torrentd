@@ -139,7 +139,7 @@ func (i *ScrapeResultItem) Equals(other interface{}) bool {
 		(len(i.ModelData) != len(item.ModelData)) {
 		return false
 	}
-	//Check the extra fields
+	//HealthCheck the extra fields
 	for key, val := range i.ModelData {
 		otherVal, contained := item.ModelData[key]
 		if !contained {

@@ -30,9 +30,9 @@ type Indexer interface {
 	GetEncoding() string
 	ProcessRequest(req *http.Request) (*http.Response, error)
 	Open(s search.ResultItemBase) (*ResponseProxy, error)
-	//Check if the Indexer works.
+	//HealthCheck if the Indexer works.
 	//This might be needed to validate the search result extraction.
-	Check() error
+	HealthCheck() error
 	//The maximum number of pages we can search
 	MaxSearchPages() uint
 	SearchIsSinglePaged() bool
