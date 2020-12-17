@@ -4,6 +4,7 @@
 version: 2
 orbs:
   github-release: h-matsuo/github-release@0.1.1
+
 jobs:
   build:
     docker:
@@ -40,11 +41,11 @@ jobs:
       - run:
           name: "code coverage"
           command: bash <(curl -s https://codecov.io/bash)
-      - run:
-          name: "Publish release on GitHub"
-          command: |
-            go get github.com/tcnksm/ghr
-            export VERSION=v0.3.11
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
+#      - run:
+#          name: "Publish release on GitHub"
+#          command: |
+#            go get github.com/tcnksm/ghr
+#            export VERSION=v0.3.12
+#            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
       - store_artifacts:
           path: ./artifacts
