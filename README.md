@@ -56,6 +56,34 @@ indexers:
       #    password: "{{ .Config.password }}" 
 ```
 
+## Index definitions
+### Login
+Login is described with the following block
+```yaml
+login:
+  # Path that's used for the request
+  path: takelogin.php
+  # The method can be:
+  # post - a post request is sent using the form content-type
+  # form - similar as `post` but a specific form can be filled in
+  # cookie - a special cookie is set to act as a login session
+  method: post
+  # A selector can be used here to match a specific form in the page, that should be filled in
+  # This can be used only with the `form` login method
+  form: #my-form-id 
+  # The data that will be sent. Config patterns can be used here using {{ .Config.<field-name> }}
+  inputs:
+    username: "{{ .Config.username }}"
+    password: "{{ .Config.password }}"
+  # The error block describes where to look for login errors
+  error:
+    selector: d.embedded:has(h2:contains("failed"))
+  # If the selector has any matches this means that you're logged in
+  test:
+    selector: a[href="/logout.php"]
+
+```
+
 ## Caching
 By default, the server caches the following data:
 - Connectivity checks (LRU with Timeout)
