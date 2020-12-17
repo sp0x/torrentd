@@ -14,9 +14,10 @@ func (s *Server) setupRoutes(r *gin.Engine) {
 	r.GET("/music", func(c *gin.Context) { rss.ServeMusic(c) })
 	r.GET("/anime", func(c *gin.Context) { rss.ServeAnime(c) })
 	r.GET("/search/:name", func(c *gin.Context) {
-		rss.SearchAndServe(s.indexerFacade, s.indexerFacade.GetDefaultOptions(), c)
+		rss.SearchAndServe(s.indexerFacade, s.indexerFacade.GetDefaultSearchOptions(), c)
 	})
 	r.GET("/status", s.Status)
+	r.GET("/health", s.HealthCheck())
 
 	//Torznab
 	r.GET("torznab/:indexer", s.torznabHandler)

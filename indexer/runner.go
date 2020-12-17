@@ -67,6 +67,13 @@ func (r *Runner) GetDefinition() *IndexerDefinition {
 	return r.definition
 }
 
+func (r *Runner) Site() string {
+	if r.definition == nil {
+		return ""
+	}
+	return r.definition.Name
+}
+
 func (r *Runner) MaxSearchPages() uint {
 	p := uint(r.definition.Search.MaxPages)
 	if r.SearchIsSinglePaged() {

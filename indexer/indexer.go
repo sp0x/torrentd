@@ -38,4 +38,5 @@ type Indexer interface {
 	SearchIsSinglePaged() bool
 	Errors() []string
 	GetStorage() storage.ItemStorage
+	Site() string
 }

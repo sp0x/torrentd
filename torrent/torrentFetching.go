@@ -13,7 +13,7 @@ import (
 func GetNewScrapeItems(client *indexer.Facade, fetchOptions *indexer.GenericSearchOptions) error {
 	log.Info("Searching for new torrents")
 	if fetchOptions == nil {
-		fetchOptions = client.GetDefaultOptions()
+		fetchOptions = client.GetDefaultSearchOptions()
 	}
 
 	page := uint(0)

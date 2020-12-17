@@ -130,8 +130,8 @@ func (th *Facade) SearchKeywordsWithCategory(searchContext search.Instance, quer
 	return srch, nil
 }
 
-//GetDefaultOptions gets the default search options
-func (th *Facade) GetDefaultOptions() *GenericSearchOptions {
+//GetDefaultSearchOptions gets the default search options
+func (th *Facade) GetDefaultSearchOptions() *GenericSearchOptions {
 	return &GenericSearchOptions{
 		PageCount:            10,
 		StartingPage:         0,

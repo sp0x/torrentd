@@ -98,6 +98,15 @@ func (ag *Aggregate) GetEncoding() string {
 	return "utf-8"
 }
 
+func (ag *Aggregate) Site() string {
+	sites := ""
+	for _, indx := range ag.Indexers {
+		sites += indx.Site() + ","
+	}
+	sites = strings.TrimRight(sites, ",")
+	return sites
+}
+
 //HealthCheck checks all indexes, if they can be searched.
 func (ag *Aggregate) HealthCheck() error {
 	g := errgroup.Group{}
