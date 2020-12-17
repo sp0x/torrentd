@@ -109,12 +109,12 @@ func (ag *Aggregate) Site() string {
 
 //HealthCheck checks all indexes, if they can be searched.
 func (ag *Aggregate) HealthCheck() error {
-	g := errgroup.Group{}
+	errorGroup := errgroup.Group{}
 	for _, ixr := range ag.Indexers {
 		indexerID := ixr.Info().GetId()
 		//Run the Indexer in a goroutine
-		g.Go(func() error {
-			_, err := ixr.Search(&torznab.Query{}, nil)
+		errorGroup.Go(func() error {
+			err := ixr.HealthCheck()
 			if err != nil {
 				log.Warnf("Indexer %q failed: %s", indexerID, err)
 				return nil
@@ -122,7 +122,7 @@ func (ag *Aggregate) HealthCheck() error {
 			return nil
 		})
 	}
-	if err := g.Wait(); err != nil {
+	if err := errorGroup.Wait(); err != nil {
 		log.Warn(err)
 		return err
 	}
