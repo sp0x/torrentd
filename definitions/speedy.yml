@@ -1,0 +1,81 @@
+---
+name: speedy
+site: myspeedy.speedy.bg
+description: "Phone number lookup"
+type: private
+language: bg-BG
+ratelimit: 10
+
+links:
+  - https://myspeedy.speedy.bg/
+
+login:
+  path: login
+  method: post
+  init:
+    path: /
+  inputs:
+    originalURL: /
+    captchaRequired: false
+    j_username: "{{ .Config.username }}"
+    j_password: "{{ .Config.password }}"
+    j_submit: 1
+  test:
+    selector: "#contacts-menu"
+
+search:
+  method: get
+  pagesize: 20
+  path: /rest/client/servingSite
+  followredirect: true
+  inputs:
+    searchNonActive: "false"
+    searchActive: "true"
+    searchDomestic: "true"
+    searchForeign: "true"
+    localityId:
+    phone: "{{ .Query.Keywords }}"
+    name:
+    object:
+    type: "all"
+    retReceiverId:
+    distinctOffice: "false"
+    sort:
+    order: "asc"
+    page: "1"
+    pageSize: "10"
+
+  rows:
+    path: rows
+
+  fields:
+    fullAddress:
+      path: "mapUIFields.uiClientInfoAddress"
+    speedyType:
+      path: type
+    isOffice:
+      path: address.data.officeToggle
+    country:
+      path: address.data.countryName
+    neighborhood:
+      path: address.data.quarterName
+    postalCode:
+      path: address.data.postCode
+    city:
+      path: address.data.siteName
+    siteType:
+      path: address.data.siteType
+    latitude:
+      path: address.data.x
+    longitude:
+      path: address.data.y
+    blockNumber:
+      path: address.data.blockNo
+    municipality:
+      path: address.locality.municipality.value
+    region:
+      path: address.locality.region.value
+    phoneCode:
+      path: address.locality.phoneCode
+    fullRegion:
+      path: address.locality.details.value

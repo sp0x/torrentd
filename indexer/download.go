@@ -42,7 +42,7 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 		}
 		sourceLink = firstString(downloadLink)
 	}
-	fullUrl, err := r.resolveIndexerPath(sourceLink)
+	fullUrl, err := r.resolvePathInIndex(sourceLink)
 	if err != nil {
 		return nil, err
 	}

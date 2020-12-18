@@ -96,7 +96,8 @@ func (r *Runner) createBrowser() *browser.Browser {
 		panic("Unknown value for DEBUG_HTTP")
 	}
 	fetchOptions := web.FetchOptions{
-		DumpData: viper.GetBool("dump"),
+		ShouldDumpData: viper.GetBool("dump"),
+		FakeReferer:    true,
 	}
 	r.connectivityTester.SetBrowser(bow)
 	r.contentFetcher = web.NewWebContentFetcher(bow, r, r.connectivityTester, fetchOptions)

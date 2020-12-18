@@ -35,31 +35,38 @@ func (d *dumpData) Write() {
 	requestExtension := path.Ext(d.RequestBodyFile)
 	if requestExtension != "" && requestExtension != "." {
 		requestFileWriter, _ := os.Create(d.RequestBodyFile)
-		getBody := d.State.Request.GetBody
-		if getBody != nil {
-			copyBody, _ := getBody()
-			n, err := io.Copy(requestFileWriter, copyBody)
-			if err != nil {
-				logrus.Warnf("could not dump request body %s", d.RequestBodyFile)
-			} else {
-				logrus.Debugf("written request body with size %d bytes", n)
+		n := int64(0)
+		var err error = nil
+		if d.State.Request.Method == "GET" {
+			n, err = io.Copy(requestFileWriter, strings.NewReader(d.State.Request.URL.RawQuery))
+		} else {
+			getBody := d.State.Request.GetBody
+			if getBody != nil {
+				copyBody, _ := getBody()
+				n, err = io.Copy(requestFileWriter, copyBody)
 			}
 		}
+		if err != nil {
+			logrus.Warnf("could not dump request body %s", d.RequestBodyFile)
+		} else {
+			logrus.Debugf("written request body with size %d bytes", n)
+		}
+
 	}
 }
 
 func (w *ContentFetcher) dumpFetchData() {
-	if !w.options.DumpData {
+	if !w.options.ShouldDumpData {
 		return
 	}
 	browserState := w.Browser.State()
 	request := browserState.Request
 	dirPath := path.Join("dumps", request.Host)
-	requestUrl := request.URL.Path + "__" + request.URL.RawQuery
+	requestUrl := request.URL.Path
 	dirPath = path.Join(dirPath,
 		strings.Replace(fmt.Sprintf("%s_%s", request.Method, requestUrl), "/", "_", -1))
 	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-		os.MkdirAll(dirPath, 007)
+		_ = os.MkdirAll(dirPath, 007)
 	}
 	timeNow := fmt.Sprintf("%d", time.Now().Unix())
 	responseBodyFName := fmt.Sprintf("%s_resp.%s", timeNow, resolveResponseDumpFormat(browserState))
@@ -79,7 +86,7 @@ func (w *ContentFetcher) dumpFetchData() {
 
 func resolveRequestDumpFormat(state *jar.State) string {
 	if state.Request.Method == "GET" {
-		return ""
+		return "html"
 	}
 	contentType := state.Request.Header.Get("Content-Type")
 	if contentType == "" {
@@ -96,7 +103,9 @@ func resolveResponseDumpFormat(state *jar.State) string {
 	return contentTypeToFileExtension(contentType)
 }
 
-func contentTypeToFileExtension(contentType string) string {
+func contentTypeToFileExtension(fqContentType string) string {
+	contentTypeSplit := strings.Split(fqContentType, ";")
+	contentType := contentTypeSplit[0]
 	switch contentType {
 	case "application/json":
 		return "json"

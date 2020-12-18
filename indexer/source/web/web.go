@@ -7,6 +7,7 @@ import (
 	"github.com/sp0x/surf/browser"
 	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/source"
+	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
@@ -26,7 +27,8 @@ type ContentFetcher struct {
 }
 
 type FetchOptions struct {
-	DumpData bool
+	ShouldDumpData bool
+	FakeReferer    bool
 }
 
 func NewWebContentFetcher(browser browser.Browsable, contentCache ContentCacher, connectivityTester cache.ConnectivityTester, options FetchOptions) source.ContentFetcher {
@@ -112,13 +114,16 @@ func (w *ContentFetcher) get(targetUrl string) error {
 	return nil
 }
 
-func (w *ContentFetcher) Post(url string, data url.Values, log bool) error {
+func (w *ContentFetcher) Post(urlStr string, data url.Values, log bool) error {
 	if log {
 		logrus.
-			WithFields(logrus.Fields{"url": url, "vals": data.Encode()}).
+			WithFields(logrus.Fields{"urlStr": urlStr, "vals": data.Encode()}).
 			Debugf("Posting to page")
 	}
-	if err := w.Browser.PostForm(url, data); err != nil {
+	if w.options.FakeReferer {
+		w.fakeBrowserReferer(urlStr)
+	}
+	if err := w.Browser.PostForm(urlStr, data); err != nil {
 		return err
 	}
 	if w.Cacher != nil {
@@ -129,10 +134,23 @@ func (w *ContentFetcher) Post(url string, data url.Values, log bool) error {
 		Debugf("Finished request")
 
 	if err := w.handleMetaRefreshHeader(); err != nil {
-		w.ConnectivityTester.Invalidate(url)
+		w.ConnectivityTester.Invalidate(urlStr)
 		return err
 	}
+	w.dumpFetchData()
 	return nil
+}
+
+func (w *ContentFetcher) fakeBrowserReferer(urlStr string) {
+	state := w.Browser.State()
+	refUrl, _ := url.Parse(urlStr)
+	if state.Request == nil {
+		state.Request = &http.Request{}
+	}
+	state.Request.URL = refUrl
+	if state.Response != nil {
+		state.Response.Request.URL = refUrl
+	}
 }
 
 // this should eventually upstream into surf browser

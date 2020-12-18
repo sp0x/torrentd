@@ -212,8 +212,8 @@ func (r *Runner) testURLWorks(u string) bool {
 	return ok
 }
 
-//resolveIndexerPath resolve a relative url based on the working Indexer base url
-func (r *Runner) resolveIndexerPath(urlPath string) (string, error) {
+//resolvePathInIndex resolve a relative url based on the working Indexer base url
+func (r *Runner) resolvePathInIndex(urlPath string) (string, error) {
 	if strings.HasPrefix(urlPath, "magnet:") {
 		return urlPath, nil
 	}
@@ -271,7 +271,7 @@ func (r *Runner) matchPageTestBlock(p pageTestBlock) (bool, error) {
 	}
 	//Go to a path to verify
 	if p.Path != "" {
-		testUrl, err := r.resolveIndexerPath(p.Path)
+		testUrl, err := r.resolvePathInIndex(p.Path)
 		if err != nil {
 			return false, err
 		}
@@ -635,7 +635,7 @@ func (r *Runner) extractSearchTarget(query *torznab.Query, localCats []string, c
 		return nil, err
 	}
 	//Resolve the search url
-	searchURL, err = r.resolveIndexerPath(searchURL)
+	searchURL, err = r.resolvePathInIndex(searchURL)
 	if err != nil {
 		return nil, err
 	}
@@ -746,7 +746,7 @@ func (r *Runner) Ratio() (string, error) {
 		return "error", err
 	}
 
-	ratioUrl, err := r.resolveIndexerPath(r.definition.Ratio.Path)
+	ratioUrl, err := r.resolvePathInIndex(r.definition.Ratio.Path)
 	if err != nil {
 		return "error", err
 	}

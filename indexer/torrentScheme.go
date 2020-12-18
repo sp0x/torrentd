@@ -35,7 +35,7 @@ func (r *Runner) populateTorrentItemField(
 	case "author":
 		item.Author = firstString(val)
 	case "details":
-		u, err := r.resolveIndexerPath(firstString(val))
+		u, err := r.resolvePathInIndex(firstString(val))
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 			return false
@@ -47,7 +47,7 @@ func (r *Runner) populateTorrentItemField(
 			item.Comments = u
 		}
 	case "comments":
-		u, err := r.resolveIndexerPath(firstString(val))
+		u, err := r.resolvePathInIndex(firstString(val))
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 			return false
@@ -74,7 +74,7 @@ func (r *Runner) populateTorrentItemField(
 	case "categoryName":
 		item.LocalCategoryName = firstString(val)
 	case "magnet":
-		murl, err := r.resolveIndexerPath(firstString(val))
+		murl, err := r.resolvePathInIndex(firstString(val))
 		if err != nil {
 			r.logger.Warningf("Couldn't resolve magnet url from value %s\n", val)
 			return false
@@ -156,7 +156,7 @@ func (r *Runner) populateTorrentItemField(
 		}
 		item.MinimumSeedTime = time.Duration(minimumseedtime) * time.Second
 	case "banner":
-		banner, err := r.resolveIndexerPath(firstString(val))
+		banner, err := r.resolvePathInIndex(firstString(val))
 		if err != nil {
 			item.Banner = firstString(val)
 		} else {

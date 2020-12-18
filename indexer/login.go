@@ -11,7 +11,7 @@ import (
 func (r *Runner) extractInputLogins() (map[string]string, error) {
 	result := map[string]string{}
 	//Get configuration for the Indexer so we can login
-	cfg, err := r.opts.Config.GetSite(r.definition.Site)
+	cfg, err := r.opts.Config.GetSite(r.definition.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -49,12 +49,17 @@ func (r *Runner) login() error {
 		}
 	}
 	filterLogger = r.logger
-	loginUrl, err := r.resolveIndexerPath(r.definition.Login.Path)
+	loginUrl, err := r.resolvePathInIndex(r.definition.Login.Path)
 	if err != nil {
 		return err
 	}
 
 	loginValues, err := r.extractInputLogins()
+	if err != nil {
+		return err
+	}
+
+	err = r.initLogin()
 	if err != nil {
 		return err
 	}
@@ -77,7 +82,7 @@ func (r *Runner) login() error {
 			return err
 		}
 	default:
-		return fmt.Errorf("unknown login method %q", r.definition.Login.Method)
+		return fmt.Errorf("unknown login method %q for site %s", r.definition.Login.Method, r.Site())
 	}
 	// Get the error
 	if len(r.definition.Login.Error) > 0 {

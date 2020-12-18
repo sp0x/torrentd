@@ -16,7 +16,10 @@ type filterBlock struct {
 }
 
 type selectorBlock struct {
+	// The css selector to use to look for a match
 	Selector string `yaml:"selector"`
+	// The xml/json path to look for
+	Path string `yaml:"path"`
 	//
 	Pattern      string            `yaml:"pattern"`
 	TextVal      string            `yaml:"text"`

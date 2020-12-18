@@ -227,6 +227,7 @@ type loginBlock struct {
 	Inputs       inputsBlock       `yaml:"inputs,omitempty"`
 	Error        errorBlockOrSlice `yaml:"error,omitempty"`
 	Test         pageTestBlock     `yaml:"test,omitempty"`
+	Init         initBlock         `yaml:"init,omitempty"`
 }
 
 func (l *loginBlock) IsEmpty() bool {
@@ -245,6 +246,14 @@ func (l *loginBlock) hasError(browser browser.Browsable) error {
 	}
 
 	return nil
+}
+
+type initBlock struct {
+	Path string `yaml:"path"`
+}
+
+func (init *initBlock) IsEmpty() bool {
+	return init.Path == ""
 }
 
 type fieldBlock struct {
@@ -411,12 +420,6 @@ func (s *stringorslice) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	return errors.New("Failed to unmarshal stringorslice")
 }
-
-//
-//type contextBlock struct{
-//	fieldsListBlock
-//	Stub string
-//}
 
 type ratioBlock struct {
 	selectorBlock
