@@ -6,6 +6,7 @@ import (
 	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/indexer/status"
 	"github.com/sp0x/torrentd/server"
+	"github.com/sp0x/torrentd/torznab"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
@@ -21,10 +22,12 @@ func init() {
 		Run:   watchIndex,
 	}
 	storage := ""
+	query := ""
 	cmdFlags := cmdWatch.Flags()
 	cmdFlags.IntVarP(&watchInterval, "interval", "i", 10, "Interval between checks.")
 	cmdFlags.StringVarP(&storage, "storage", "o", "boltdb", `The storage backing to use.
 Currently supported storage backings: boltdb, firebase, sqlite`)
+	cmdFlags.StringVarP(&query, "query", "", "", `Query to use when searching`)
 	firebaseProject := ""
 	firebaseCredentials := ""
 	cmdFlags.StringVarP(&firebaseCredentials, "firebase_project", "", "", "The project id for firebase")
@@ -40,6 +43,8 @@ Currently supported storage backings: boltdb, firebase, sqlite`)
 	_ = viper.BindEnv("firebase_project")
 	_ = viper.BindPFlag("firebase_credentials_file", cmdFlags.Lookup("firebase_credentials_file"))
 	_ = viper.BindEnv("firebase_credentials_file")
+	_ = viper.BindPFlag("query", cmdFlags.Lookup("query"))
+	_ = viper.BindEnv("query")
 	rootCmd.AddCommand(cmdWatch)
 }
 
@@ -60,7 +65,9 @@ func watchIndex(_ *cobra.Command, _ []string) {
 
 	//Start watching the torrent tracker.
 	status.SetupPubsub(appConfig.GetString("firebase_project"))
-	resultChannel := indexer.Watch(facade, nil, watchInterval)
+	query := torznab.NewQuery()
+	query.Q = viper.GetString("query")
+	resultChannel := indexer.Watch(facade, query, watchInterval)
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 	for item := range resultChannel {
