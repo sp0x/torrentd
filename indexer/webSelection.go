@@ -37,12 +37,12 @@ func (s *selectorBlock) IsMatching(selection *goquery.Selection) bool {
 }
 
 //Match using the selector to get the text of that element
-func (s *selectorBlock) Match(from *goquery.Selection) (interface{}, error) {
+func (s *selectorBlock) Match(from RawScrapeItem) (interface{}, error) {
 	if s.TextVal != "" {
 		return s.TextVal, nil
 	}
 	if s.Selector != "" {
-		result := from.Find(s.Selector)
+		result := from.Find(s)
 		if result.Length() == 0 {
 			return "", fmt.Errorf("Failed to match selector %q", s.Selector)
 		}
@@ -104,7 +104,7 @@ func (s *selectorBlock) TextRaw(el *goquery.Selection) (string, error) {
 	return output, nil
 }
 
-func (s *selectorBlock) Texts(el *goquery.Selection) ([]string, error) {
+func (s *selectorBlock) Texts(element RawScrapeItem) ([]string, error) {
 	if s.TextVal != "" {
 		filterResult, err := s.ApplyFilters(s.TextVal)
 		if err != nil {
@@ -113,20 +113,20 @@ func (s *selectorBlock) Texts(el *goquery.Selection) ([]string, error) {
 		return []string{filterResult}, nil
 	}
 	if s.Remove != "" {
-		el.Find(s.Remove).Remove()
+		element.Find(s.Remove).Remove()
 	}
 	if s.Case != nil {
 		filterLogger.WithFields(logrus.Fields{"case": s.Case}).
 			Debugf("Applying case to selection")
 		for pattern, value := range s.Case {
-			if el.Is(pattern) || el.Has(pattern).Length() >= 1 {
+			if element.Is(pattern) || element.Has(pattern).Length() >= 1 {
 				value, _ := s.ApplyFilters(value)
 				return []string{value}, nil
 			}
 		}
 		return []string{}, errors.New("none of the cases match")
 	}
-	matches := el.Map(func(i int, selection *goquery.Selection) string {
+	matches := element.Map(func(i int, selection *goquery.Selection) string {
 		output := strings.TrimSpace(selection.Text())
 		output = spaceRx.ReplaceAllString(output, " ")
 		if s.Attribute != "" {

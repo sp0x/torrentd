@@ -3,14 +3,15 @@ package web
 import (
 	"errors"
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"github.com/sp0x/surf/browser"
-	"github.com/sp0x/torrentd/indexer/cache"
-	"github.com/sp0x/torrentd/indexer/source"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
+
+	"github.com/sirupsen/logrus"
+	"github.com/sp0x/surf/browser"
+	"github.com/sp0x/torrentd/indexer/cache"
+	"github.com/sp0x/torrentd/indexer/source"
 )
 
 const (
@@ -31,7 +32,10 @@ type FetchOptions struct {
 	FakeReferer    bool
 }
 
-func NewWebContentFetcher(browser browser.Browsable, contentCache ContentCacher, connectivityTester cache.ConnectivityTester, options FetchOptions) source.ContentFetcher {
+func NewWebContentFetcher(browser browser.Browsable,
+	contentCache ContentCacher,
+	connectivityTester cache.ConnectivityTester,
+	options FetchOptions) source.ContentFetcher {
 	if connectivityTester == nil {
 		panic("a connectivity tester is required")
 	}
@@ -62,9 +66,9 @@ func (w *ContentFetcher) FetchUrl(url string) error {
 }
 
 //Gets the content from which we'll extract the search results
-func (w *ContentFetcher) Fetch(target *source.SearchTarget) error {
+func (w *ContentFetcher) Fetch(target *source.SearchTarget) (source.FetchResult, error) {
 	if target == nil {
-		return errors.New("target is required for searching")
+		return nil, errors.New("target is required for searching")
 	}
 	defer func() {
 		//After we're done we'll cleanup the history of the browser.
@@ -78,19 +82,50 @@ func (w *ContentFetcher) Fetch(target *source.SearchTarget) error {
 		}
 		if err = w.get(target.Url); err != nil {
 			w.ConnectivityTester.Invalidate(target.Url)
-			return err
+			return nil, err
 		}
 	case searchMethodPost:
 		if err = w.Post(target.Url, target.Values, true); err != nil {
 			w.ConnectivityTester.Invalidate(target.Url)
-			return err
+			return nil, err
 		}
 
 	default:
-		return fmt.Errorf("unknown search method %q", target.Method)
+		return nil, fmt.Errorf("unknown search method %q", target.Method)
 	}
 	w.dumpFetchData()
-	return nil
+
+	return extractResponseResult(w.Browser), nil
+}
+
+func extractResponseResult(browser browser.Browsable) source.FetchResult {
+	state := browser.State()
+	if state.Response == nil {
+		return &HttpResult{}
+	}
+	fqContentType := state.Response.Header.Get("content-type")
+	contentSplit := strings.Split(fqContentType, ";")
+	contentEncoding := "utf8"
+	if len(contentSplit) > 1 {
+		contentEncoding = contentSplit[1]
+	}
+	rootFetchResult := HttpResult{
+		contentType: contentSplit[0],
+		encoding:    contentEncoding,
+		Response:    state.Response,
+	}
+
+	if contentSplit[0] == "application/json" {
+		return &JsonFetchResult{
+			HttpResult: rootFetchResult,
+			Body:       browser.RawBody(),
+		}
+	}
+
+	return &HtmlFetchResult{
+		HttpResult: rootFetchResult,
+		Dom:        state.Dom,
+	}
 }
 
 func (w *ContentFetcher) get(targetUrl string) error {

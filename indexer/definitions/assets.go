@@ -44,6 +44,7 @@
 // definitions/shareisland.yml
 // definitions/skytorrents.yml
 // definitions/speedcd.yml
+// definitions/speedy.yml
 // definitions/subsunacs.yml
 // definitions/t411.yml
 // definitions/thepiratebay.yml
@@ -154,7 +155,7 @@ func gzipBindataDefinitionsAbnormalyml() (*gzipAsset, error) {
 		size:        2691,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183670, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -199,7 +200,7 @@ func gzipBindataDefinitionsAlpharatioyml() (*gzipAsset, error) {
 		size:        1913,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183678, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -241,7 +242,7 @@ func gzipBindataDefinitionsAlphareignyml() (*gzipAsset, error) {
 		size:        2712,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183707, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -310,7 +311,7 @@ func gzipBindataDefinitionsArenabgyml() (*gzipAsset, error) {
 		size:        4118,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183652, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -345,7 +346,7 @@ func gzipBindataDefinitionsAvistazyml() (*gzipAsset, error) {
 		size:        1207,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183707, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -390,7 +391,7 @@ func gzipBindataDefinitionsBeyondhdyml() (*gzipAsset, error) {
 		size:        2314,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183707, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -429,7 +430,7 @@ func gzipBindataDefinitionsBithdtvyml() (*gzipAsset, error) {
 		size:        1406,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183717, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -467,7 +468,7 @@ func gzipBindataDefinitionsBitmetvyml() (*gzipAsset, error) {
 		size:        1571,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183717, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -526,7 +527,7 @@ func gzipBindataDefinitionsBlubitsyml() (*gzipAsset, error) {
 		size:        3784,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183721, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -561,7 +562,7 @@ func gzipBindataDefinitionsCinemazyml() (*gzipAsset, error) {
 		size:        1207,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183724, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -651,7 +652,7 @@ func gzipBindataDefinitionsDanishbitsyml() (*gzipAsset, error) {
 		size:        2543,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183735, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -696,7 +697,7 @@ func gzipBindataDefinitionsDemonoidyml() (*gzipAsset, error) {
 		size:        1929,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183880, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -766,7 +767,7 @@ func gzipBindataDefinitionsEotforumyml() (*gzipAsset, error) {
 		size:        4564,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183888, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -821,7 +822,7 @@ func gzipBindataDefinitionsEthoryml() (*gzipAsset, error) {
 		size:        2769,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183895, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -853,7 +854,7 @@ func gzipBindataDefinitionsEztvyml() (*gzipAsset, error) {
 		size:        941,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183901, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -893,7 +894,7 @@ func gzipBindataDefinitionsFilelistyml() (*gzipAsset, error) {
 		size:        1813,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183906, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -930,7 +931,7 @@ func gzipBindataDefinitionsFreshonyml() (*gzipAsset, error) {
 		size:        1321,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183913, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -975,7 +976,7 @@ func gzipBindataDefinitionsFunfileyml() (*gzipAsset, error) {
 		size:        1720,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183929, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -1018,7 +1019,7 @@ func gzipBindataDefinitionsHdareayml() (*gzipAsset, error) {
 		size:        1884,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183938, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -1070,7 +1071,7 @@ func gzipBindataDefinitionsHdmeyml() (*gzipAsset, error) {
 		size:        2495,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183943, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -1118,7 +1119,7 @@ func gzipBindataDefinitionsHdspaceyml() (*gzipAsset, error) {
 		size:        2288,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183946, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -1160,7 +1161,7 @@ func gzipBindataDefinitionsHdtorrentsyml() (*gzipAsset, error) {
 		size:        1826,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183949, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -1209,7 +1210,7 @@ func gzipBindataDefinitionsImmortalseedyml() (*gzipAsset, error) {
 		size:        2225,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183957, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -1256,7 +1257,7 @@ func gzipBindataDefinitionsIptorrentsyml() (*gzipAsset, error) {
 		size:        2369,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183961, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -1292,7 +1293,7 @@ func gzipBindataDefinitionsKickasstorrentyml() (*gzipAsset, error) {
 		size:        1254,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183964, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -1337,7 +1338,7 @@ func gzipBindataDefinitionsMetaltrackeryml() (*gzipAsset, error) {
 		size:        1773,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183968, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -1374,7 +1375,7 @@ func gzipBindataDefinitionsMorethantvyml() (*gzipAsset, error) {
 		size:        1427,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183972, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -1431,7 +1432,7 @@ func gzipBindataDefinitionsMyanonamouseyml() (*gzipAsset, error) {
 		size:        4059,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183975, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -1476,7 +1477,7 @@ func gzipBindataDefinitionsMyspleenyml() (*gzipAsset, error) {
 		size:        2099,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183982, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -1521,7 +1522,7 @@ func gzipBindataDefinitionsNcoreyml() (*gzipAsset, error) {
 		size:        2062,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183985, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -1569,7 +1570,7 @@ func gzipBindataDefinitionsNethdyml() (*gzipAsset, error) {
 		size:        2285,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183988, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -1631,7 +1632,7 @@ func gzipBindataDefinitionsNewretroyml() (*gzipAsset, error) {
 		size:        3487,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183991, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -1672,7 +1673,7 @@ func gzipBindataDefinitionsNorbitsyml() (*gzipAsset, error) {
 		size:        1697,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183997, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -1720,7 +1721,7 @@ func gzipBindataDefinitionsOrpheusyml() (*gzipAsset, error) {
 		size:        2193,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184000, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -1766,7 +1767,7 @@ func gzipBindataDefinitionsPretomeyml() (*gzipAsset, error) {
 		size:        1952,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184005, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -1801,7 +1802,7 @@ func gzipBindataDefinitionsPrivatehdyml() (*gzipAsset, error) {
 		size:        1210,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184009, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -1847,7 +1848,7 @@ func gzipBindataDefinitionsRedactedyml() (*gzipAsset, error) {
 		size:        2054,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184012, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -2227,7 +2228,7 @@ func gzipBindataDefinitionsRutrackerorgyaml() (*gzipAsset, error) {
 		size:        37451,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607183597, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -2276,7 +2277,7 @@ func gzipBindataDefinitionsSceneaccessyml() (*gzipAsset, error) {
 		size:        2581,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184019, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -2326,7 +2327,7 @@ func gzipBindataDefinitionsScenetimeyml() (*gzipAsset, error) {
 		size:        2351,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184023, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -2392,7 +2393,7 @@ func gzipBindataDefinitionsShareislandyml() (*gzipAsset, error) {
 		size:        4160,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184026, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -2426,7 +2427,7 @@ func gzipBindataDefinitionsSkytorrentsyml() (*gzipAsset, error) {
 		size:        1105,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184029, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -2472,7 +2473,48 @@ func gzipBindataDefinitionsSpeedcdyml() (*gzipAsset, error) {
 		size:        1934,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184033, 0),
+		modTime:     time.Unix(1607208376, 0),
+	}
+
+	a := &gzipAsset{bytes: bytes, info: info}
+
+	return a, nil
+}
+
+var _gzipBindataDefinitionsSpeedyyml = []byte(
+	"\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x94\xc1\x72\xdb\x20\x10\x86\xef\x3c\x05\xa3\x9e\x2d\x27\x3d\xea\x96" +
+		"\xa6\x93\x4e\xa6\x9d\xb4\x75\x92\x73\x07\xc3\x0a\x6d\x82\x40\x81\xc5\xa9\x9a\xc9\xbb\x77\x00\x49\xb5\x93\xd4\xed" +
+		"\xc9\x66\xf7\xfb\x05\xfb\xef\xc2\x6a\xb5\x62\x56\xf4\xd0\xf0\x30\x00\xa8\x91\x05\x24\x68\x78\x3f\x96\x65\x3d\xfd" +
+		"\x6c\x35\x53\x10\xa4\xc7\x81\xd0\xd9\x86\x57\xdf\x3a\x67\x81\xdb\xd8\x6f\xc1\x73\xe3\xdc\x7d\x1c\x2a\x46\xe3\x00" +
+		"\x0d\x1f\x3c\xee\x04\x01\x33\xc2\xea\x28\x34\x34\x7c\xab\x57\x1f\x3e\x31\x2f\x08\x0c\xf6\x48\x0d\x3f\x3d\x61\xcc" +
+		"\xa0\xbd\x0f\x0d\xe3\x7c\xc5\x3b\xa2\x21\x34\xeb\xf5\xeb\x5d\xd7\x8c\x19\xa7\xd1\x26\x6e\x10\xd4\x35\x3c\x2f\x19" +
+		"\xe7\x3d\x50\xe7\x54\xc3\x07\x17\x88\x71\x8e\x16\x29\x41\x33\xb6\xce\xb1\x21\x52\x28\x51\xe7\x51\xa3\x15\xe6\x76" +
+		"\xf3\xa5\x24\x39\x97\x62\x20\xd9\x89\x0d\x3c\x44\xf4\xa0\x1a\xde\x0a\x13\x20\xa7\xee\x7e\xc4\x00\xbe\xf8\x52\x3d" +
+		"\x3d\xf1\xfa\xdc\xd9\x16\x75\x3d\x47\xf9\xf3\x73\x35\x81\x83\x08\xe1\xd1\x79\x75\x08\xce\xd1\x3d\x30\xc4\x6d\xa9" +
+		"\x9d\x71\x4e\x10\xa6\xd3\x06\x30\x20\xc9\xf9\x86\x57\xef\xa4\xb3\x24\x24\x85\x55\x0f\x36\x56\x8c\x05\x10\x5e\x76" +
+		"\xcd\x5e\xb1\x1a\x28\x1b\xa1\x21\xe0\x2f\x68\xf8\xfb\x93\xc5\x97\xb5\x87\x40\x6b\x69\x10\x2c\xad\x03\xf8\x1d\x5a" +
+		"\x7d\x8d\x94\xea\x69\x9d\x31\xee\xd1\x83\x42\x0f\x92\x1a\x4e\x3e\xc2\x0b\x7b\xca\x56\x57\xce\x9e\x49\xc2\x5d\xaa" +
+		"\x3a\x9b\x51\xed\x25\x97\x4c\x92\xef\x27\x3e\xba\x1e\x02\xa1\x7c\x23\x75\xe1\x3c\xa0\xb6\x07\x19\xe3\xa4\x30\x48" +
+		"\xe3\xa5\x9a\xfa\x95\x26\x69\x72\xef\x7b\x04\x3f\xd6\x9f\x61\x4c\xde\x85\xc5\xbc\xdc\x88\xd2\xc6\xed\x5d\x2a\x21" +
+		"\xff\x2f\xd3\x56\x09\x63\x0a\xe5\x81\x36\x20\x01\x77\xe0\xe7\x6f\x2b\x0c\x84\x56\xd2\xd7\xb6\x45\xf9\xb2\x2a\xe7" +
+		"\x69\x9e\x0d\x05\xa9\x01\x22\xc8\x6a\x1a\xa1\x34\xb5\xd5\xe9\x9f\xd5\x75\xb6\xbb\x3a\x3d\xa9\x18\xe3\xdc\xbb\xc7" +
+		"\xb0\x3f\x6c\x69\x9d\xe2\x2d\x82\x51\x53\xa6\x8d\xc6\x9c\x29\xe5\x21\x4c\x81\x19\xae\x7a\x31\xdc\x5e\x5e\x64\xb4" +
+		"\x8e\x78\x9e\x3b\x76\x69\x5b\x37\xd1\xd3\xe9\xf2\x0d\xb8\x49\x25\x1e\xa8\x53\xd1\x39\x80\x61\x2a\xea\x20\x2d\xca" +
+		"\x37\x6a\x25\x48\xd4\x2e\x03\x37\x4e\x6b\x53\x34\xd2\x45\x4b\x7e\x3c\x22\x99\x88\x2b\xd1\x17\x85\x05\xd4\xdd\xd6" +
+		"\xf9\xce\x39\x75\x44\xf6\x10\x85\x27\xf0\x8b\x2c\x5d\x4a\x61\xce\x9d\x3a\x76\xbc\x04\x25\xa4\x1c\x0d\xe9\xd8\xb9" +
+		"\xd2\xab\xb4\x7c\x3d\x2d\x5e\x3b\xf3\x8a\xbf\x99\xad\x32\x82\x90\xe2\xd1\xb3\xfc\x9c\x46\xd3\xea\x7f\x91\x63\x4e" +
+		"\x6d\x8d\x93\xf7\x57\xf9\xf5\x3b\xc2\x16\xca\x65\xa0\x8f\x16\x25\x0e\x79\xf4\xdf\x96\xcc\x17\xa3\xde\x47\xeb\x9d" +
+		"\x30\x11\xa6\xf9\xd6\xe9\xed\x3d\xae\x2d\xd0\x9e\x2a\x5f\xaf\xbf\x77\x62\x11\x2e\xdc\x32\xbd\x9b\xff\xd9\x4f\x01" +
+		"\x09\x34\xa1\x6c\xf8\x3b\x00\x00\xff\xff\x32\x61\x32\x68\x4d\x06\x00\x00")
+
+func gzipBindataDefinitionsSpeedyyml() (*gzipAsset, error) {
+	bytes := _gzipBindataDefinitionsSpeedyyml
+	info := gzipBindataFileInfo{
+		name:        "definitions/speedy.yml",
+		size:        1613,
+		md5checksum: "",
+		mode:        os.FileMode(511),
+		modTime:     time.Unix(1608292640, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -2563,7 +2605,7 @@ func gzipBindataDefinitionsT411yml() (*gzipAsset, error) {
 		size:        2382,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184048, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -2601,7 +2643,7 @@ func gzipBindataDefinitionsThepiratebayyml() (*gzipAsset, error) {
 		size:        1473,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184054, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -2668,7 +2710,7 @@ func gzipBindataDefinitionsTheshinningyml() (*gzipAsset, error) {
 		size:        3546,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184058, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -2720,7 +2762,7 @@ func gzipBindataDefinitionsTorrentbytesyml() (*gzipAsset, error) {
 		size:        2609,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184061, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -2773,7 +2815,7 @@ func gzipBindataDefinitionsTorrentdayyml() (*gzipAsset, error) {
 		size:        2965,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184065, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -2840,7 +2882,7 @@ func gzipBindataDefinitionsTorrentheavenyml() (*gzipAsset, error) {
 		size:        3846,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184074, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -2888,7 +2930,7 @@ func gzipBindataDefinitionsTorrentleechyml() (*gzipAsset, error) {
 		size:        2270,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184081, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -2957,7 +2999,7 @@ func gzipBindataDefinitionsTorrentsectorcrewyml() (*gzipAsset, error) {
 		size:        4051,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184084, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -3015,7 +3057,7 @@ func gzipBindataDefinitionsTorrentsyndikatyml() (*gzipAsset, error) {
 		size:        2977,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184088, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -3057,7 +3099,7 @@ func gzipBindataDefinitionsTorrentz2yml() (*gzipAsset, error) {
 		size:        1824,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184094, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -3128,7 +3170,7 @@ func gzipBindataDefinitionsTothegloryyml() (*gzipAsset, error) {
 		size:        3917,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184099, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -3175,7 +3217,7 @@ func gzipBindataDefinitionsTransmithenetyml() (*gzipAsset, error) {
 		size:        2262,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184102, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -3242,7 +3284,7 @@ func gzipBindataDefinitionsTspateyml() (*gzipAsset, error) {
 		size:        4008,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184105, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -3292,7 +3334,7 @@ func gzipBindataDefinitionsUhdbitsyml() (*gzipAsset, error) {
 		size:        3091,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184110, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -3356,7 +3398,7 @@ func gzipBindataDefinitionsWorldofp2pyml() (*gzipAsset, error) {
 		size:        3587,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184113, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -3417,7 +3459,7 @@ func gzipBindataDefinitionsXthoryml() (*gzipAsset, error) {
 		size:        3809,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184116, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -3503,7 +3545,7 @@ func gzipBindataDefinitionsYggtorrentyml() (*gzipAsset, error) {
 		size:        7410,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1607184119, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -3578,7 +3620,7 @@ func gzipBindataDefinitionsZamundayml() (*gzipAsset, error) {
 		size:        4243,
 		md5checksum: "",
 		mode:        os.FileMode(511),
-		modTime:     time.Unix(1606943241, 0),
+		modTime:     time.Unix(1607208376, 0),
 	}
 
 	a := &gzipAsset{bytes: bytes, info: info}
@@ -3685,6 +3727,7 @@ var _gzipbindata = map[string]func() (*gzipAsset, error){
 	"definitions/shareisland.yml":       gzipBindataDefinitionsShareislandyml,
 	"definitions/skytorrents.yml":       gzipBindataDefinitionsSkytorrentsyml,
 	"definitions/speedcd.yml":           gzipBindataDefinitionsSpeedcdyml,
+	"definitions/speedy.yml":            gzipBindataDefinitionsSpeedyyml,
 	"definitions/subsunacs.yml":         gzipBindataDefinitionsSubsunacsyml,
 	"definitions/t411.yml":              gzipBindataDefinitionsT411yml,
 	"definitions/thepiratebay.yml":      gzipBindataDefinitionsThepiratebayyml,
@@ -3800,6 +3843,7 @@ var _gzipbintree = &gzipBintree{Func: nil, Children: map[string]*gzipBintree{
 		"shareisland.yml":       {Func: gzipBindataDefinitionsShareislandyml, Children: map[string]*gzipBintree{}},
 		"skytorrents.yml":       {Func: gzipBindataDefinitionsSkytorrentsyml, Children: map[string]*gzipBintree{}},
 		"speedcd.yml":           {Func: gzipBindataDefinitionsSpeedcdyml, Children: map[string]*gzipBintree{}},
+		"speedy.yml":            {Func: gzipBindataDefinitionsSpeedyyml, Children: map[string]*gzipBintree{}},
 		"subsunacs.yml":         {Func: gzipBindataDefinitionsSubsunacsyml, Children: map[string]*gzipBintree{}},
 		"t411.yml":              {Func: gzipBindataDefinitionsT411yml, Children: map[string]*gzipBintree{}},
 		"thepiratebay.yml":      {Func: gzipBindataDefinitionsThepiratebayyml, Children: map[string]*gzipBintree{}},

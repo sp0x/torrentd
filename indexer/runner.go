@@ -276,7 +276,7 @@ func (r *Runner) matchPageTestBlock(p pageTestBlock) (bool, error) {
 			return false, err
 		}
 
-		err = r.contentFetcher.Fetch(source.NewTarget(testUrl))
+		_, err = r.contentFetcher.Fetch(source.NewTarget(testUrl))
 		if err != nil {
 			r.logger.WithError(err).Warn("Failed to open page")
 			return false, nil
@@ -523,26 +523,17 @@ func (r *Runner) Search(query *torznab.Query, searchInstance search.Instance) (s
 	}
 	timer := time.Now()
 	//Get the content
-	err = r.contentFetcher.Fetch(target)
+	fetchResult, err := r.contentFetcher.Fetch(target)
 	if err != nil {
 		status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.ContentError, err, r.definition))
 		return nil, err
 	}
-	r.logger.
-		WithFields(logrus.Fields{}).
-		Debugf("Fetched Indexer page.\n")
+	r.logger.Debugf("Fetched Indexer page.\n")
 
-	dom := r.browser.Dom()
-	if dom == nil {
-		return nil, errors.New("DOM was nil")
+	rows, err := r.getRows(fetchResult, &runCtx)
+	if rows == nil {
+		return nil, fmt.Errorf("result items could not be enumerated")
 	}
-	setupContext(r, &runCtx, dom)
-	// merge following rows for After selector
-	err = r.clearDom(dom)
-	if err != nil {
-		return nil, err
-	}
-	rows := dom.Find(r.definition.Search.Rows.Selector)
 	r.logger.
 		WithFields(logrus.Fields{
 			"rows":     rows.Length(),
@@ -565,7 +556,7 @@ func (r *Runner) Search(query *torznab.Query, searchInstance search.Instance) (s
 			break
 		}
 		//Get the result from the row
-		item, err := r.extractItem(i+1, rows.Eq(i), rowContext)
+		item, err := r.extractItem(i+1, rows.Get(i), rowContext)
 		if err != nil {
 			continue
 		}
@@ -751,7 +742,7 @@ func (r *Runner) Ratio() (string, error) {
 		return "error", err
 	}
 
-	err = r.contentFetcher.Fetch(source.NewTarget(ratioUrl))
+	_, err = r.contentFetcher.Fetch(source.NewTarget(ratioUrl))
 	if err != nil {
 		r.logger.WithError(err).Warn("Failed to open page")
 		return "error", nil

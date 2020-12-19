@@ -65,7 +65,7 @@ func formatValues(field *fieldBlock, value interface{}, values map[string]interf
 
 //Extract the actual result item from it's row/col
 //TODO: refactor this to reduce #complexity
-func (r *Runner) extractItem(rowIdx int, selection *goquery.Selection, context *rowContext) (search.ResultItemBase, error) {
+func (r *Runner) extractItem(rowIdx int, selection RawScrapeItem, context *rowContext) (search.ResultItemBase, error) {
 	row := map[string]interface{}{}
 	nonFilteredRow := map[string]string{}
 	r.logger.WithFields(logrus.Fields{}).
