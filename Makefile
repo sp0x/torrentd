@@ -17,7 +17,8 @@ ifneq ($(origin CI), undefined)
 	WORKDIR := $(GOPATH)/src/github.com/$(AUTHOR)/$(NAME)
 endif
 
-
+lint:
+	golint ./...
 
 build:
 	go build -o $(NAME) ./cmd

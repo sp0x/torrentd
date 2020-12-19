@@ -15,8 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
-
 	"gopkg.in/yaml.v2"
 )
 
@@ -195,7 +193,7 @@ func (e *errorBlock) matchPage(browser browser.Browsable) bool {
 	return false
 }
 
-func (e *errorBlock) errorText(from *goquery.Selection) (string, error) {
+func (e *errorBlock) errorText(from RawScrapeItem) (string, error) {
 	if !e.Message.IsEmpty() {
 		matchError, err := e.Message.Match(from)
 		return matchError.(string), err
@@ -237,7 +235,7 @@ func (l *loginBlock) IsEmpty() bool {
 func (l *loginBlock) hasError(browser browser.Browsable) error {
 	for _, e := range l.Error {
 		if e.matchPage(browser) {
-			msg, err := e.errorText(browser.Dom())
+			msg, err := e.errorText(&DomScrapeItem{browser.Dom()})
 			if err != nil {
 				return err
 			}

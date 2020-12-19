@@ -163,7 +163,7 @@ func (r *Runner) populateTorrentItemField(
 			item.Banner = banner
 		}
 	default:
-		populatedOk := r.populateScrapeItemField(&item.ScrapeResultItem, key, val, row, rowIdx)
+		populatedOk := r.populateScrapeItemField(&item.ScrapeResultItem, key, val, rowIdx)
 		if !populatedOk {
 			return false
 		}

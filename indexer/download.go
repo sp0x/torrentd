@@ -36,7 +36,8 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 		if err != nil {
 			return nil, err
 		}
-		downloadLink, err := r.extractField(r.browser.Dom(), &downloadItem)
+		scrapeItem := &DomScrapeItem{r.browser.Dom()}
+		downloadLink, err := r.extractField(scrapeItem, &downloadItem)
 		if err != nil {
 			return nil, nil
 		}

@@ -2,14 +2,13 @@ package indexer
 
 import (
 	"errors"
-	"github.com/PuerkitoBio/goquery"
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer/search"
 	"strings"
 )
 
 //Extracts a field's value from the given selection
-func (r *Runner) extractField(selection *goquery.Selection, field *fieldBlock) (interface{}, error) {
+func (r *Runner) extractField(selection RawScrapeItem, field *fieldBlock) (interface{}, error) {
 	if field == nil {
 		return "", errors.New("no field given")
 	}

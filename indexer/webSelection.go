@@ -42,7 +42,7 @@ func (s *selectorBlock) Match(from RawScrapeItem) (interface{}, error) {
 		return s.TextVal, nil
 	}
 	if s.Selector != "" {
-		result := from.Find(s)
+		result := from.FindWithSelector(s)
 		if result.Length() == 0 {
 			return "", fmt.Errorf("Failed to match selector %q", s.Selector)
 		}
@@ -55,15 +55,26 @@ func (s *selectorBlock) Match(from RawScrapeItem) (interface{}, error) {
 	if s.Pattern != "" {
 		return s.Pattern, nil
 	}
+	if s.Path != "" {
+		result := from.Find(s.Path)
+		if result.Length() == 0 {
+			return "", fmt.Errorf("Failed to match selector %q", s.Selector)
+		}
+		if s.All {
+			return s.Texts(result)
+		} else {
+			return s.Text(result)
+		}
+	}
 	return s.Text(from)
 }
 
-func (s *selectorBlock) MatchRawText(from *goquery.Selection) (string, error) {
+func (s *selectorBlock) MatchRawText(from RawScrapeItem) (string, error) {
 	if s.TextVal != "" {
 		return s.TextVal, nil
 	}
 	if s.Selector != "" {
-		result := from.Find(s.Selector)
+		result := from.FindWithSelector(s)
 		if result.Length() == 0 {
 			return "", fmt.Errorf("Failed to match selector %q", s.Selector)
 		}
@@ -75,7 +86,7 @@ func (s *selectorBlock) MatchRawText(from *goquery.Selection) (string, error) {
 	return s.TextRaw(from)
 }
 
-func (s *selectorBlock) TextRaw(el *goquery.Selection) (string, error) {
+func (s *selectorBlock) TextRaw(el RawScrapeItem) (string, error) {
 	if s.TextVal != "" {
 		return s.TextVal, nil
 	}
@@ -126,7 +137,7 @@ func (s *selectorBlock) Texts(element RawScrapeItem) ([]string, error) {
 		}
 		return []string{}, errors.New("none of the cases match")
 	}
-	matches := element.Map(func(i int, selection *goquery.Selection) string {
+	matches := element.Map(func(i int, selection RawScrapeItem) string {
 		output := strings.TrimSpace(selection.Text())
 		output = spaceRx.ReplaceAllString(output, " ")
 		if s.Attribute != "" {
@@ -146,7 +157,7 @@ func (s *selectorBlock) Texts(element RawScrapeItem) ([]string, error) {
 }
 
 //Text extracts text from the selection, applying all filters
-func (s *selectorBlock) Text(el *goquery.Selection) (string, error) {
+func (s *selectorBlock) Text(el RawScrapeItem) (string, error) {
 	if s.TextVal != "" {
 		return s.ApplyFilters(s.TextVal)
 	}

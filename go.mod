@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	cloud.google.com/go/firestore v1.2.0
+	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/bcampbell/fuzzytime v0.0.0-20191010161914-05ea0010feac
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect

@@ -1,13 +1,12 @@
 package indexer
 
 import (
-	"github.com/PuerkitoBio/goquery"
 	"github.com/sirupsen/logrus"
 )
 
 //Read anything from the content that's needed
 //so we can extract info about our run
-func setupContext(r *Runner, ctx *RunContext, dom *goquery.Selection) {
+func setupContext(r *Runner, ctx *RunContext, dom RawScrapeItem) {
 	//ctx.SearchKeywords.DOM = dom
 	for _, item := range r.definition.Search.Context {
 		r.logger.

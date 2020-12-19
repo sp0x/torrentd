@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sp0x/torrentd/indexer/source/series"
+	"github.com/sp0x/torrentd/indexer/source/web"
 	"github.com/sp0x/torrentd/indexer/status"
 
 	"github.com/sp0x/torrentd/config"
@@ -537,7 +538,7 @@ func (r *Runner) Search(query *torznab.Query, searchInstance search.Instance) (s
 	r.logger.
 		WithFields(logrus.Fields{
 			"rows":     rows.Length(),
-			"selector": r.definition.Search.Rows.Selector,
+			"selector": r.definition.Search.Rows,
 			"limit":    query.Limit,
 			"offset":   query.Offset,
 		}).Debugf("Found %d rows", rows.Length())
@@ -698,7 +699,7 @@ func (r *Runner) hasDateHeader() bool {
 	return !r.definition.Search.Rows.DateHeaders.IsEmpty()
 }
 
-func (r *Runner) extractDateHeader(selection *goquery.Selection) (time.Time, error) {
+func (r *Runner) extractDateHeader(selection RawScrapeItem) (time.Time, error) {
 	dateHeaders := r.definition.Search.Rows.DateHeaders
 
 	r.logger.
@@ -742,15 +743,21 @@ func (r *Runner) Ratio() (string, error) {
 		return "error", err
 	}
 
-	_, err = r.contentFetcher.Fetch(source.NewTarget(ratioUrl))
+	resultData, err := r.contentFetcher.Fetch(source.NewTarget(ratioUrl))
 	if err != nil {
 		r.logger.WithError(err).Warn("Failed to open page")
 		return "error", nil
 	}
 
-	ratio, err := r.definition.Ratio.Match(r.browser.Dom())
-	if err != nil {
-		return ratio.(string), err
+	var ratio interface{}
+	switch value := resultData.(type) {
+	case *web.HtmlFetchResult:
+		ratio, err := r.definition.Ratio.Match(&DomScrapeItem{value.Dom.First()})
+		if err != nil {
+			return ratio.(string), err
+		}
+	default:
+		return "", errors.New("response was not html")
 	}
 
 	return strings.Trim(ratio.(string), "- "), nil

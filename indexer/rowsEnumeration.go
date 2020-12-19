@@ -3,6 +3,8 @@ package indexer
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/PaesslerAG/jsonpath"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/sp0x/torrentd/indexer/source"
 	"github.com/sp0x/torrentd/indexer/source/web"
@@ -14,7 +16,11 @@ type RawScrapeItems interface {
 }
 
 type RawScrapeItem interface {
-	Find(block *selectorBlock) RawScrapeItem
+	// FindWithSelector finds a child element using a selector block
+	FindWithSelector(block *selectorBlock) RawScrapeItem
+	// Find a child element using a selector or path.
+	Find(selectorOrPath string) RawScrapeItem
+	// Length of the child elements
 	Length() int
 
 	// Is checks the current matched set of elements against a selector and
@@ -30,14 +36,27 @@ type RawScrapeItem interface {
 	// element in that selection starting at 0, and a *Selection that contains
 	// only that element.
 	Map(f func(int, RawScrapeItem) string) []string
+	// Text gets the combined text contents of each element in the set of matched
+	// elements, including their descendants.
+	Text() string
+	// Attr gets the specified attribute's value for the first element in the
+	// Selection. To get the value for each element individually, use a looping
+	// construct such as Each or Map method.
+	Attr(attributeName string) (string, bool)
+	// Remove removes the set of matched elements from the document.
+	// It returns the same selection, now consisting of nodes not in the document.
+	Remove() RawScrapeItem
+	// PrevAllFiltered gets all the preceding siblings of each element in the
+	// Selection filtered by a selector. It returns a new Selection object
+	// containing the matched elements.
+	PrevAllFiltered(selector string) RawScrapeItem
+	First() RawScrapeItem
 }
+
+//region Scrape items collection
 
 type JsonScrapeItems struct {
 	items []interface{}
-}
-
-type DomScrapeItems struct {
-	items *goquery.Selection
 }
 
 func (j *JsonScrapeItems) Length() int {
@@ -48,6 +67,10 @@ func (j *JsonScrapeItems) Get(i int) RawScrapeItem {
 	return &JsonScrapeItem{item: j.items[i]}
 }
 
+type DomScrapeItems struct {
+	items *goquery.Selection
+}
+
 func (d *DomScrapeItems) Length() int {
 	return d.items.Length()
 }
@@ -56,16 +79,100 @@ func (d *DomScrapeItems) Get(i int) RawScrapeItem {
 	return &DomScrapeItem{selection: d.items.Eq(i)}
 }
 
+//endregion
+
 //region Scrape item
-type DomScrapeItem struct {
-	selection *goquery.Selection
-}
+
 type JsonScrapeItem struct {
 	item interface{}
 }
 
-func (d *DomScrapeItem) Find(block *selectorBlock) RawScrapeItem {
+func (j *JsonScrapeItem) First() RawScrapeItem {
+	panic("implement me")
+}
+
+func (j *JsonScrapeItem) PrevAllFiltered(selector string) RawScrapeItem {
+	panic("implement me")
+}
+
+func (j *JsonScrapeItem) Find(selectorOrPath string) RawScrapeItem {
+	match, err := jsonpath.Get(selectorOrPath, j.item)
+	if err != nil {
+		return &JsonScrapeItem{item: nil}
+	}
+	return &JsonScrapeItem{item: match}
+}
+
+func (j *JsonScrapeItem) Has(selector string) RawScrapeItem {
+	panic("implement me")
+}
+
+func (j *JsonScrapeItem) Map(f func(int, RawScrapeItem) string) []string {
+	panic("implement me")
+}
+
+func (j *JsonScrapeItem) Text() string {
+	return fmt.Sprint(j.item)
+}
+
+func (j *JsonScrapeItem) Attr(attributeName string) (string, bool) {
+	return "", false
+}
+
+func (j *JsonScrapeItem) Remove() RawScrapeItem {
+	panic("implement me")
+}
+
+func (j *JsonScrapeItem) FindWithSelector(block *selectorBlock) RawScrapeItem {
+	match, err := jsonpath.Get(block.Path, j.item)
+	if err != nil {
+		return &JsonScrapeItem{item: nil}
+	}
+	return &JsonScrapeItem{item: match}
+}
+
+func (j *JsonScrapeItem) Length() int {
+	switch value := j.item.(type) {
+	case []interface{}:
+		return len(value)
+	default:
+		return 1
+	}
+}
+
+// Is checks the current matched set of elements against a selector and
+// returns true if at least one of these elements matches.
+func (j *JsonScrapeItem) Is(_ string) bool {
+	return false
+}
+
+type DomScrapeItem struct {
+	selection *goquery.Selection
+}
+
+func (d *DomScrapeItem) FindWithSelector(block *selectorBlock) RawScrapeItem {
 	return &DomScrapeItem{selection: d.selection.Find(block.Selector)}
+}
+
+func (d *DomScrapeItem) Find(pathOrSelector string) RawScrapeItem {
+	return &DomScrapeItem{selection: d.selection.Find(pathOrSelector)}
+}
+
+// Text gets the combined text contents of each element in the set of matched
+// elements, including their descendants.
+func (d *DomScrapeItem) Text() string {
+	return d.selection.Text()
+}
+
+// PrevAllFiltered gets all the preceding siblings of each element in the
+// Selection filtered by a selector. It returns a new Selection object
+// containing the matched elements.
+func (d *DomScrapeItem) PrevAllFiltered(selector string) RawScrapeItem {
+	return &DomScrapeItem{d.selection.PrevAllFiltered(selector)}
+}
+
+func (d *DomScrapeItem) First() RawScrapeItem {
+	return &DomScrapeItem{d.selection.First()}
 }
 
 func (d *DomScrapeItem) Length() int {
@@ -89,18 +196,15 @@ func (d *DomScrapeItem) Is(selector string) bool {
 	return d.selection.Is(selector)
 }
 
-func (j *JsonScrapeItem) Find(block *selectorBlock) RawScrapeItem {
-	return &JsonScrapeItem{item: j.item[block.Path]}
+// Attr gets the specified attribute's value for the first element in the
+// Selection. To get the value for each element individually, use a looping
+// construct such as Each or Map method.
+func (d *DomScrapeItem) Attr(name string) (string, bool) {
+	return d.selection.Attr(name)
 }
 
-func (j *JsonScrapeItem) Length() int {
-	return 1
-}
-
-// Is checks the current matched set of elements against a selector and
-// returns true if at least one of these elements matches.
-func (j *JsonScrapeItem) Is(_ string) bool {
-	return false
+func (d *DomScrapeItem) Remove() RawScrapeItem {
+	return &DomScrapeItem{d.selection.Remove()}
 }
 
 //endregion
@@ -132,7 +236,7 @@ func (r *Runner) getRowsFromDom(dom *goquery.Selection, runCtx *RunContext) (*Do
 	if dom == nil {
 		return nil, errors.New("DOM was nil")
 	}
-	setupContext(r, runCtx, dom)
+	setupContext(r, runCtx, &DomScrapeItem{dom.First()})
 	// merge following rows for After selector
 	err := r.clearDom(dom)
 	if err != nil {
