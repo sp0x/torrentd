@@ -88,7 +88,12 @@ type JsonScrapeItem struct {
 }
 
 func (j *JsonScrapeItem) First() RawScrapeItem {
-	panic("implement me")
+	switch value := j.item.(type) {
+	case []interface{}:
+		return &JsonScrapeItem{value[0]}
+	default:
+		return j
+	}
 }
 
 func (j *JsonScrapeItem) PrevAllFiltered(selector string) RawScrapeItem {
@@ -104,11 +109,24 @@ func (j *JsonScrapeItem) Find(selectorOrPath string) RawScrapeItem {
 }
 
 func (j *JsonScrapeItem) Has(selector string) RawScrapeItem {
-	panic("implement me")
+	match, err := jsonpath.Get(selector, j.item)
+	if match == nil || err != nil {
+		return nil
+	}
+	return &JsonScrapeItem{match}
 }
 
 func (j *JsonScrapeItem) Map(f func(int, RawScrapeItem) string) []string {
-	panic("implement me")
+	switch value := j.item.(type) {
+	case []interface{}:
+		output := make([]string, len(value))
+		for i, item := range value {
+			output[i] = f(i, &JsonScrapeItem{item})
+		}
+		return output
+	default:
+		return []string{f(0, &JsonScrapeItem{j.item})}
+	}
 }
 
 func (j *JsonScrapeItem) Text() string {
