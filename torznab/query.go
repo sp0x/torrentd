@@ -28,7 +28,10 @@ type Query struct {
 	TVMazeID string
 	TraktID  string
 	Page     uint
+	Fields   map[string]interface{}
 }
+
+type rangeField []string
 
 func NewQuery() *Query {
 	q := &Query{}
@@ -178,8 +181,72 @@ func (query Query) UniqueKey() interface{} {
 func ParseQueryString(query string) Query {
 	q := Query{}
 	q.Type = "search"
-	q.Q = query
+	q.Fields = make(map[string]interface{})
+	if queryIsDynamic(query) {
+		parseDynamicQuery(&q, query)
+	} else {
+		q.Q = query
+	}
 	return q
+}
+
+func parseDynamicQuery(q *Query, pattern string) {
+	parts := strings.Split(pattern, ";")
+	for _, part := range parts {
+		partSplit := strings.SplitN(part, ":", 2)
+		field := partSplit[0][1:]
+		fieldValue := partSplit[1]
+		if function := parseQueryFunction(fieldValue); function != nil {
+			evalQueryFunction(q, field, function)
+		} else {
+
+		}
+	}
+}
+
+type queryFunction struct {
+	name   string
+	params []string
+}
+
+func trimSpaces(params []string) []string {
+	for i, val := range params {
+		params[i] = strings.Trim(val, " \t\n")
+	}
+	return params
+}
+
+func parseQueryFunction(str string) *queryFunction {
+	if strings.Contains(str, "(") && strings.Contains(str, ")") {
+		split := strings.SplitN(str, "(", 2)
+		funcName := split[0]
+		if funcName == "range" {
+			paramsStr := split[1][0 : len(split[1])-1]
+			params := strings.Split(paramsStr, ",")
+			params = trimSpaces(params)
+			return &queryFunction{
+				name:   funcName,
+				params: params,
+			}
+		}
+	}
+	return nil
+}
+
+func evalQueryFunction(q *Query, field string, function *queryFunction) {
+	if function.name == "range" {
+		q.Fields[field] = rangeField(function.params)
+	}
+}
+
+func queryIsDynamic(query string) bool {
+	parts := strings.Split(query, ";")
+	for _, part := range parts {
+		if strings.HasPrefix(part, "$") {
+			return true
+		}
+	}
+	return false
 }
 
 // ParseQuery takes the query string parameters for a torznab query and parses them

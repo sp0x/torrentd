@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/sp0x/torrentd/db"
-	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
@@ -39,11 +37,6 @@ func init() {
 
 func main() {
 	_ = os.MkdirAll("./db", os.ModePerm)
-	gormDb := db.GetOrmDb("")
-	defer func() {
-		_ = gormDb.Close()
-	}()
-	gormDb.AutoMigrate(&search.ScrapeResultItem{})
 	err := rootCmd.Execute()
 	if err != nil {
 		fmt.Println(err)

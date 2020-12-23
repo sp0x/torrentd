@@ -10,10 +10,10 @@ import (
 )
 
 //GetNewScrapeItems gets the latest torrents.
-func GetNewScrapeItems(client *indexer.Facade, fetchOptions *indexer.GenericSearchOptions) error {
+func GetNewScrapeItems(facade *indexer.Facade, fetchOptions *indexer.GenericSearchOptions) error {
 	log.Info("Searching for new torrents")
 	if fetchOptions == nil {
-		fetchOptions = client.GetDefaultSearchOptions()
+		fetchOptions = facade.GetDefaultSearchOptions()
 	}
 
 	page := uint(0)
@@ -25,9 +25,9 @@ func GetNewScrapeItems(client *indexer.Facade, fetchOptions *indexer.GenericSear
 		log.Infof("Getting page %d\n", page)
 		var err error
 		if currentSearch == nil {
-			currentSearch, err = client.SearchKeywords(nil, "", page)
+			currentSearch, err = facade.SearchKeywords(nil, "", page)
 		} else {
-			currentSearch, err = client.SearchKeywords(currentSearch, "", page)
+			currentSearch, err = facade.SearchKeywords(currentSearch, "", page)
 		}
 		if err != nil {
 			log.Warningf("Could not fetch page %d\n", page)
@@ -69,8 +69,8 @@ func GetNewScrapeItems(client *indexer.Facade, fetchOptions *indexer.GenericSear
 		if finished {
 			break
 		}
-		//if counter != client.pageSize {
-		//	log.Errorf("No results while parsing page %d: got %d torrents instead of %d\n", page, counter, client.pageSize)
+		//if counter != facade.pageSize {
+		//	log.Errorf("No results while parsing page %d: got %d torrents instead of %d\n", page, counter, facade.pageSize)
 		//}
 	}
 	return nil

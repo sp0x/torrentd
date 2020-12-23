@@ -16,6 +16,6 @@ func init() {
 }
 
 func fetchTorrents(_ *cobra.Command, _ []string) {
-	client := indexer.NewFacadeFromConfiguration(&appConfig)
-	_ = torrent.GetNewScrapeItems(client, nil)
+	facade := indexer.NewFacadeFromConfiguration(&appConfig)
+	_ = torrent.GetNewScrapeItems(facade, nil)
 }

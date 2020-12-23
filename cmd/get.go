@@ -14,16 +14,14 @@ import (
 )
 
 func init() {
-	cmdWatch := &cobra.Command{
-		Use:   "watch",
-		Short: "Watches the torrent tracker for new torrents.",
-		Run:   watchIndex,
+	cmdGet := &cobra.Command{
+		Use:   "get",
+		Short: "Run a query or get results from index(es)",
+		Run:   getCommand,
 	}
 	storage := ""
 	query := ""
-	cmdFlags := cmdWatch.Flags()
-	watchInterval := 0
-	cmdFlags.IntVarP(&watchInterval, "interval", "i", 10, "Interval between checks.")
+	cmdFlags := cmdGet.Flags()
 	cmdFlags.StringVarP(&storage, "storage", "o", "boltdb", `The storage backing to use.
 Currently supported storage backings: boltdb, firebase, sqlite`)
 	cmdFlags.StringVarP(&query, "query", "", "", `Query to use when searching`)
@@ -44,30 +42,18 @@ Currently supported storage backings: boltdb, firebase, sqlite`)
 	_ = viper.BindEnv("firebase_credentials_file")
 	_ = viper.BindPFlag("query", cmdFlags.Lookup("query"))
 	_ = viper.BindEnv("query")
-	_ = viper.BindPFlag("interval", cmdFlags.Lookup("interval"))
-	rootCmd.AddCommand(cmdWatch)
+	rootCmd.AddCommand(cmdGet)
 }
 
-func watchIndex(_ *cobra.Command, _ []string) {
+func getCommand(_ *cobra.Command, _ []string) {
 	facade := indexer.NewFacadeFromConfiguration(&appConfig)
 	if facade == nil {
 		log.Error("Couldn't initialize torrent facade.")
 		return
 	}
-	//Init the server
-	go func() {
-		rserver := server.NewServer(&appConfig)
-		err := rserver.Listen(facade)
-		if err != nil {
-			fmt.Print(err)
-		}
-	}()
-
 	//Start watching the torrent tracker.
 	status.SetupPubsub(appConfig.GetString("firebase_project"))
-	query := torznab.NewQuery()
-	query.Q = viper.GetString("query")
-	watchInterval := viper.GetInt("interval")
+	query := torznab.ParseQueryString(viper.GetString("query"))
 	resultChannel := indexer.Watch(facade, query, watchInterval)
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
