@@ -213,8 +213,8 @@ func (r *Runner) testURLWorks(u string) bool {
 	return ok
 }
 
-//resolvePathInIndex resolve a relative url based on the working Indexer base url
-func (r *Runner) resolvePathInIndex(urlPath string) (string, error) {
+//getFullUrlInIndex resolve a relative url based on the working Indexer base url
+func (r *Runner) getFullUrlInIndex(urlPath string) (string, error) {
 	if strings.HasPrefix(urlPath, "magnet:") {
 		return urlPath, nil
 	}
@@ -272,7 +272,7 @@ func (r *Runner) matchPageTestBlock(p pageTestBlock) (bool, error) {
 	}
 	//Go to a path to verify
 	if p.Path != "" {
-		testUrl, err := r.resolvePathInIndex(p.Path)
+		testUrl, err := r.getFullUrlInIndex(p.Path)
 		if err != nil {
 			return false, err
 		}
@@ -379,6 +379,7 @@ func (r *Runner) getLocalCategoriesMatchingQuery(query *torznab.Query) []string 
 	return localCats
 }
 
+// If the query is for an item id from an external service, then resolve the query keywords.
 func (r *Runner) fillInAdditionalQueryParameters(query *torznab.Query) (*torznab.Query, error) {
 	var show *tvmaze.Show
 	var movie *imdbscraper.Movie
@@ -620,14 +621,14 @@ func (r *Runner) clearDom(dom *goquery.Selection) error {
 
 func (r *Runner) extractSearchTarget(query *torznab.Query, localCats []string, context RunContext) (*source.SearchTarget, error) {
 	//Exposed fields to add:
-	templateCtx := r.getRunnerContext(query, localCats, context)
-	//Apply our context to the search path
-	searchURL, err := applyTemplate("search_path", r.definition.Search.Path, templateCtx)
+	templateData := r.getSearchTemplateData(query, localCats, context)
+	//ApplyTo our context to the search path
+	searchURL, err := templateData.ApplyTo("search_path", r.definition.Search.Path)
 	if err != nil {
 		return nil, err
 	}
 	//Resolve the search url
-	searchURL, err = r.resolvePathInIndex(searchURL)
+	searchURL, err = r.getFullUrlInIndex(searchURL)
 	if err != nil {
 		return nil, err
 	}
@@ -635,7 +636,7 @@ func (r *Runner) extractSearchTarget(query *torznab.Query, localCats []string, c
 		WithFields(logrus.Fields{"query": query.Encode()}).
 		Debugf("Searching Indexer")
 	//Get our Indexer url values
-	vals, err := r.extractUrlValues(templateCtx)
+	vals, err := r.extractUrlValues(templateData)
 	if err != nil {
 		return nil, err
 	}
@@ -643,56 +644,64 @@ func (r *Runner) extractSearchTarget(query *torznab.Query, localCats []string, c
 	return target, nil
 }
 
-func (r *Runner) extractUrlValues(templateCtx RunnerPatternData) (url.Values, error) {
+func (r *Runner) extractUrlValues(templateData SearchTemplateData) (url.Values, error) {
 	//Parse the values that will be used in the url for the search
-	vals := url.Values{}
-	for name, val := range r.definition.Search.Inputs {
-		resolved, err := applyTemplate("search_inputs", val, templateCtx)
+	urlValues := url.Values{}
+	for inputName, inputValue := range r.definition.Search.Inputs {
+		resolveInputValue, err := templateData.ApplyTo("search_inputs", inputValue)
 		if err != nil {
 			return nil, err
 		}
-		switch name {
+		switch inputName {
 		case "$raw":
-			parsedVals, err := url.ParseQuery(resolved)
+			err := evalRawSearchInputs(resolveInputValue, r, urlValues)
 			if err != nil {
-				r.logger.WithError(err).Warn(err)
-				return nil, fmt.Errorf("Error parsing $raw input: %s", err.Error())
-			}
-
-			r.logger.
-				WithFields(logrus.Fields{"source": val, "parsed": parsedVals}).
-				Debugf("Processed $raw input")
-
-			for k, values := range parsedVals {
-				for _, val := range values {
-					vals.Add(k, val)
-				}
+				return urlValues, err
 			}
 		default:
-			vals.Add(name, resolved)
+			urlValues.Add(inputName, resolveInputValue)
 		}
 	}
-	return vals, nil
+	return urlValues, nil
 }
 
-type RunnerPatternData struct {
+func evalRawSearchInputs(resolvedInputValue string, r *Runner, vals url.Values) error {
+	parsedVals, err := url.ParseQuery(resolvedInputValue)
+	if err != nil {
+		r.logger.WithError(err).Warn(err)
+		return fmt.Errorf("error parsing $raw input: %s", err.Error())
+	}
+
+	for k, values := range parsedVals {
+		for _, val := range values {
+			vals.Add(k, val)
+		}
+	}
+	return nil
+}
+
+type SearchTemplateData struct {
 	Query      *torznab.Query
 	Keywords   string
 	Categories []string
 	Context    RunContext
 }
 
+func (s *SearchTemplateData) ApplyTo(name string, templateText string) (string, error) {
+	return applyTemplate(name, templateText, s)
+}
+
 //Get the default run context
-func (r *Runner) getRunnerContext(query *torznab.Query, localCats []string, context RunContext) RunnerPatternData {
+func (r *Runner) getSearchTemplateData(query *torznab.Query, localCats []string, context RunContext) SearchTemplateData {
 	startIndex := int(query.Page) * r.definition.Search.PageSize
 	context.Search.SetStartIndex(r, startIndex)
-	templateCtx := RunnerPatternData{
+	data := SearchTemplateData{
 		query,
 		query.Keywords(),
 		localCats,
 		context,
 	}
-	return templateCtx
+	return data
 }
 
 func (r *Runner) hasDateHeader() bool {
@@ -738,7 +747,7 @@ func (r *Runner) Ratio() (string, error) {
 		return "error", err
 	}
 
-	ratioUrl, err := r.resolvePathInIndex(r.definition.Ratio.Path)
+	ratioUrl, err := r.getFullUrlInIndex(r.definition.Ratio.Path)
 	if err != nil {
 		return "error", err
 	}

@@ -140,7 +140,7 @@ func (r *Runner) populateScrapeItemField(item search.ResultItemBase, key string,
 	case "id":
 		scrapeItem.SetLocalId(firstString(val))
 	case "download":
-		u, err := r.resolvePathInIndex(firstString(val))
+		u, err := r.getFullUrlInIndex(firstString(val))
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 			return false
@@ -148,7 +148,7 @@ func (r *Runner) populateScrapeItemField(item search.ResultItemBase, key string,
 		//item.Link = u
 		scrapeItem.SourceLink = u
 	case "link":
-		u, err := r.resolvePathInIndex(firstString(val))
+		u, err := r.getFullUrlInIndex(firstString(val))
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 			return false

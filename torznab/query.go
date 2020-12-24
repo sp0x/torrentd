@@ -36,6 +36,7 @@ type rangeField []string
 func NewQuery() *Query {
 	q := &Query{}
 	q.PaginationSearch = &search.PaginationSearch{}
+	q.Fields = make(map[string]interface{})
 	return q
 }
 
@@ -178,12 +179,12 @@ func (query Query) UniqueKey() interface{} {
 	return encoded
 }
 
-func ParseQueryString(query string) Query {
-	q := Query{}
+func ParseQueryString(query string) *Query {
+	q := NewQuery()
 	q.Type = "search"
 	q.Fields = make(map[string]interface{})
 	if queryIsDynamic(query) {
-		parseDynamicQuery(&q, query)
+		parseDynamicQuery(q, query)
 	} else {
 		q.Q = query
 	}

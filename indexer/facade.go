@@ -115,7 +115,7 @@ func (th *Facade) Search(searchContext search.Instance, query *torznab.Query) (s
 func (th *Facade) SearchKeywords(searchContext search.Instance, query string, page uint) (search.Instance, error) {
 	qrobj := torznab.ParseQueryString(query)
 	qrobj.Page = page
-	return th.Search(searchContext, &qrobj)
+	return th.Search(searchContext, qrobj)
 }
 
 //SearchKeywordsWithCategory Search for *keywords* matching the needed category.
@@ -123,7 +123,7 @@ func (th *Facade) SearchKeywordsWithCategory(searchContext search.Instance, quer
 	qrobj := torznab.ParseQueryString(query)
 	qrobj.Page = page
 	qrobj.Categories = []int{cat.ID}
-	srch, err := th.Indexer.Search(&qrobj, searchContext)
+	srch, err := th.Indexer.Search(qrobj, searchContext)
 	if err != nil {
 		return nil, err
 	}

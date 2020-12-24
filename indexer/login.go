@@ -49,7 +49,7 @@ func (r *Runner) login() error {
 		}
 	}
 	filterLogger = r.logger
-	loginUrl, err := r.resolvePathInIndex(r.definition.Login.Path)
+	loginUrl, err := r.getFullUrlInIndex(r.definition.Login.Path)
 	if err != nil {
 		return err
 	}

@@ -7,11 +7,11 @@ import (
 )
 
 //Evaluate a template
-func applyTemplate(name, tpl string, ctx interface{}) (string, error) {
+func applyTemplate(name, templateText string, ctx interface{}) (string, error) {
 	funcMap := template.FuncMap{
 		"replace": strings.Replace,
 	}
-	tmpl, err := template.New(name).Funcs(funcMap).Parse(tpl)
+	tmpl, err := template.New(name).Funcs(funcMap).Parse(templateText)
 	if err != nil {
 		return "", err
 	}

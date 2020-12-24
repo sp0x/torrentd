@@ -5,12 +5,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/indexer/status"
-	"github.com/sp0x/torrentd/server"
 	"github.com/sp0x/torrentd/torznab"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
-	"text/tabwriter"
 )
 
 func init() {
@@ -54,19 +52,9 @@ func getCommand(_ *cobra.Command, _ []string) {
 	//Start watching the torrent tracker.
 	status.SetupPubsub(appConfig.GetString("firebase_project"))
 	query := torznab.ParseQueryString(viper.GetString("query"))
-	resultChannel := indexer.Watch(facade, query, watchInterval)
-	tabWr := new(tabwriter.Writer)
-	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
-	for item := range resultChannel {
-		if !item.IsNew() && !item.IsUpdate() {
-			continue
-		}
-		if item.IsNew() && !item.IsUpdate() {
-			_, _ = fmt.Fprintf(tabWr, "Found new result #%s:\t%s\n",
-				item.UUID(), item.String())
-		} else {
-			_, _ = fmt.Fprintf(tabWr, "Updated torrent #%s:\t%s\n",
-				item.UUID(), item.String())
-		}
+	err := indexer.Get(facade, query)
+	if err != nil {
+		fmt.Printf("Couldn't get results: ")
+		os.Exit(1)
 	}
 }

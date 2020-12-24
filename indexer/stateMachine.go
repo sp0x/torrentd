@@ -5,7 +5,7 @@ func (r *Runner) initLogin() error {
 		return nil
 	}
 
-	initUrl, err := r.resolvePathInIndex(r.definition.Login.Init.Path)
+	initUrl, err := r.getFullUrlInIndex(r.definition.Login.Init.Path)
 	if err != nil {
 		return err
 	}
