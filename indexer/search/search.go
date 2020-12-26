@@ -84,7 +84,7 @@ func (s *Search) GetDocument() *goquery.Selection {
 	return s.DOM
 }
 
-func (s *Search) SetStartIndex(key interface{}, i int) {
+func (s *Search) SetStartIndex(_ interface{}, i int) {
 	s.StartIndex = i
 }
 
