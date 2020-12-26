@@ -7,7 +7,6 @@ import (
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
-	"github.com/sp0x/torrentd/torznab"
 	"os"
 )
 
@@ -103,7 +102,7 @@ func NewAggregateFacadeWithCategories(config config.Config, cats ...categories.C
 }
 
 //Search using a given query. The search covers only 1 page.
-func (th *Facade) Search(searchContext search.Instance, query *torznab.Query) (search.Instance, error) {
+func (th *Facade) Search(searchContext search.Instance, query *search.Query) (search.Instance, error) {
 	srch, err := th.Indexer.Search(query, searchContext)
 	if err != nil {
 		return nil, err
@@ -113,14 +112,14 @@ func (th *Facade) Search(searchContext search.Instance, query *torznab.Query) (s
 
 //SearchKeywords performs a search for a given page
 func (th *Facade) SearchKeywords(searchContext search.Instance, query string, page uint) (search.Instance, error) {
-	qrobj := torznab.ParseQueryString(query)
+	qrobj := search.ParseQueryString(query)
 	qrobj.Page = page
 	return th.Search(searchContext, qrobj)
 }
 
 //SearchKeywordsWithCategory Search for *keywords* matching the needed category.
 func (th *Facade) SearchKeywordsWithCategory(searchContext search.Instance, query string, cat categories.Category, page uint) (search.Instance, error) {
-	qrobj := torznab.ParseQueryString(query)
+	qrobj := search.ParseQueryString(query)
 	qrobj.Page = page
 	qrobj.Categories = []int{cat.ID}
 	srch, err := th.Indexer.Search(qrobj, searchContext)

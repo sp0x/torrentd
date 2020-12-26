@@ -29,8 +29,8 @@ func TestParseQueryString_GivenDynamicQueryThenItShouldBeParsed(t *testing.T) {
 	g.Expect(q.Q).To(BeEmpty())
 	g.Expect(q.Fields).ToNot(BeNil())
 	g.Expect(q.Fields["phone"]).ToNot(BeNil())
-	g.Expect(q.Fields["phone"]).To(BeAssignableToTypeOf(rangeField{}))
-	ranged := q.Fields["phone"].(rangeField)
+	g.Expect(q.Fields["phone"]).To(BeAssignableToTypeOf(RangeField{}))
+	ranged := q.Fields["phone"].(RangeField)
 	g.Expect(ranged[0]).To(BeEquivalentTo("1"))
 	g.Expect(ranged[1]).To(BeEquivalentTo("200"))
 }

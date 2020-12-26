@@ -3,15 +3,14 @@ package indexer
 import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer/search"
-	"github.com/sp0x/torrentd/torznab"
 	"time"
 )
 
 //IteratePages goes over all the pages in an index and returns the results through a channel.
-func GetAllPagesFromIndex(facade *Facade, query *torznab.Query) <-chan search.ResultItemBase { //nolint:unused
+func GetAllPagesFromIndex(facade *Facade, query *search.Query) <-chan search.ResultItemBase { //nolint:unused
 	outputChan := make(chan search.ResultItemBase)
 	if query == nil {
-		query = &torznab.Query{}
+		query = search.NewQuery()
 	}
 	go func() {
 		var currentSearch search.Instance
@@ -50,10 +49,10 @@ func GetAllPagesFromIndex(facade *Facade, query *torznab.Query) <-chan search.Re
 //Watch tracks an index for any new items, through all search pages(or max pages).
 //Whenever old results are found, or we've exhausted the number of pages, the search restarts from the start.
 //The interval is in seconds, it's used to sleep after each search for new results.
-func Watch(facade *Facade, initialQuery *torznab.Query, intervalSec int) <-chan search.ResultItemBase {
+func Watch(facade *Facade, initialQuery *search.Query, intervalSec int) <-chan search.ResultItemBase {
 	outputChan := make(chan search.ResultItemBase)
 	if initialQuery == nil {
-		initialQuery = torznab.NewQuery()
+		initialQuery = search.NewQuery()
 	}
 	go func() {
 		var currentSearch search.Instance

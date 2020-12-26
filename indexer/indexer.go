@@ -24,7 +24,7 @@ type ResponseProxy struct {
 type Indexer interface {
 	Info() Info
 	GetDefinition() *IndexerDefinition
-	Search(query *torznab.Query, srch search.Instance) (search.Instance, error)
+	Search(query *search.Query, srch search.Instance) (search.Instance, error)
 	Download(urlStr string) (*ResponseProxy, error)
 	Capabilities() torznab.Capabilities
 	GetEncoding() string

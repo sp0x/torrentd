@@ -129,7 +129,7 @@ func (ag *Aggregate) HealthCheck() error {
 	return nil
 }
 
-func (ag *Aggregate) Search(query *torznab.Query, searchInstance search.Instance) (search.Instance, error) {
+func (ag *Aggregate) Search(query *search.Query, searchInstance search.Instance) (search.Instance, error) {
 	errorGroup := errgroup.Group{}
 	allResults := make([][]search.ResultItemBase, len(ag.Indexers))
 	maxLength := 0

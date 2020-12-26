@@ -60,7 +60,7 @@ func (s *Server) torznabHandler(c *gin.Context) {
 
 	switch t {
 	case "search", "tvsearch", "tv-search", "movie", "movie-search", "moviesearch":
-		query, err := torznab.ParseQuery(c.Request.URL.Query())
+		query, err := search.ParseQuery(c.Request.URL.Query())
 		if err != nil {
 			torznab.Error(c, "Invalid query", torznab.ErrInsufficientPrivs)
 			return
@@ -96,7 +96,7 @@ func formatEncoding(nm string) string {
 	return nm
 }
 
-func (s *Server) torznabSearch(r *http.Request, query *torznab.Query, indexer indexer.Indexer) (*torznab.ResultFeed, error) {
+func (s *Server) torznabSearch(r *http.Request, query *search.Query, indexer indexer.Indexer) (*torznab.ResultFeed, error) {
 	srch, err := indexer.Search(query, nil)
 	if err != nil {
 		return nil, err

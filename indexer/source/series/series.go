@@ -4,11 +4,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/mediareleaseinfo"
 	"github.com/sp0x/torrentd/indexer/search"
-	"github.com/sp0x/torrentd/torznab"
 )
 
 //Checks if the result is a series result, and ignores it if the title of the series is different.
-func IsSeriesAndNotMatching(query *torznab.Query, item *search.TorrentResultItem) bool {
+func IsSeriesAndNotMatching(query *search.Query, item *search.TorrentResultItem) bool {
 	if query.Series != "" {
 		info, err := releaseinfo.Parse(item.Title)
 		if err != nil {

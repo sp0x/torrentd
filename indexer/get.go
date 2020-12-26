@@ -4,14 +4,13 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer/search"
-	"github.com/sp0x/torrentd/torznab"
 	"os"
 	"text/tabwriter"
 )
 
-func Get(facade *Facade, query *torznab.Query) error {
+func Get(facade *Facade, query *search.Query) error {
 	if query == nil {
-		query = torznab.NewQuery()
+		query = search.NewQuery()
 	}
 	page := uint(0)
 	tabWr := new(tabwriter.Writer)
@@ -22,7 +21,7 @@ func Get(facade *Facade, query *torznab.Query) error {
 		pagesToFetch = 10
 	}
 	for page = 0; page < pagesToFetch; page++ {
-		log.Infof("Getting page %d\n", page)
+		log.Infof("Getting page %d", page)
 		var err error
 		if currentSearch == nil {
 			currentSearch, err = facade.Search(nil, query)

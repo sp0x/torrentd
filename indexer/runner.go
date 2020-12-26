@@ -357,7 +357,7 @@ func (r *Runner) Capabilities() torznab.Capabilities {
 }
 
 // getLocalCategoriesMatchingQuery returns a slice of local indexCategories that should be searched
-func (r *Runner) getLocalCategoriesMatchingQuery(query *torznab.Query) []string {
+func (r *Runner) getLocalCategoriesMatchingQuery(query *search.Query) []string {
 	var localCats []string
 	set := make(map[string]struct{})
 	if len(query.Categories) > 0 {
@@ -380,7 +380,7 @@ func (r *Runner) getLocalCategoriesMatchingQuery(query *torznab.Query) []string 
 }
 
 // If the query is for an item id from an external service, then resolve the query keywords.
-func (r *Runner) fillInAdditionalQueryParameters(query *torznab.Query) (*torznab.Query, error) {
+func (r *Runner) fillInAdditionalQueryParameters(query *search.Query) (*search.Query, error) {
 	var show *tvmaze.Show
 	var movie *imdbscraper.Movie
 	var err error
@@ -447,7 +447,7 @@ func (r *Runner) HealthCheck() error {
 	if verifiedSpan < indexVerificationSpan {
 		return nil
 	}
-	searchResult, err := r.Search(&torznab.Query{}, nil)
+	searchResult, err := r.Search(search.NewQuery(), nil)
 	if err != nil {
 		return err
 	}
@@ -478,13 +478,13 @@ func (r *Runner) getUniqueIndex(item search.ResultItemBase) *indexing.Key {
 }
 
 type rowContext struct {
-	query           *torznab.Query
+	query           *search.Query
 	indexCategories []string
 	storage         storage.ItemStorage
 }
 
 //SearchKeywords for a given torrent
-func (r *Runner) Search(query *torznab.Query, searchInstance search.Instance) (search.Instance, error) {
+func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (search.Instance, error) {
 	r.createBrowser()
 	if !r.keepSessions {
 		defer r.releaseBrowser()
@@ -513,7 +513,7 @@ func (r *Runner) Search(query *torznab.Query, searchInstance search.Instance) (s
 
 	//Context about the search
 	if searchInstance == nil {
-		searchInstance = &search.Search{}
+		searchInstance = search.NewSearch(query)
 	}
 	runCtx := RunContext{
 		Search: searchInstance.(*search.Search),
@@ -577,7 +577,7 @@ func (r *Runner) Search(query *torznab.Query, searchInstance search.Instance) (s
 	return runCtx.Search, nil
 }
 
-func (r *Runner) resolveItemCategory(query *torznab.Query, localCats []string, item search.ResultItemBase) bool {
+func (r *Runner) resolveItemCategory(query *search.Query, localCats []string, item search.ResultItemBase) bool {
 	if !itemMatchesScheme("torrent", item) {
 		return false
 	}
@@ -619,7 +619,7 @@ func (r *Runner) clearDom(dom *goquery.Selection) error {
 	return nil
 }
 
-func (r *Runner) extractSearchTarget(query *torznab.Query, localCats []string, context RunContext) (*source.SearchTarget, error) {
+func (r *Runner) extractSearchTarget(query *search.Query, localCats []string, context RunContext) (*source.SearchTarget, error) {
 	//Exposed fields to add:
 	templateData := r.getSearchTemplateData(query, localCats, context)
 	//ApplyTo our context to the search path
@@ -644,11 +644,15 @@ func (r *Runner) extractSearchTarget(query *torznab.Query, localCats []string, c
 	return target, nil
 }
 
-func (r *Runner) extractUrlValues(templateData SearchTemplateData) (url.Values, error) {
+func (r *Runner) extractUrlValues(templateData *SearchTemplateData) (url.Values, error) {
 	//Parse the values that will be used in the url for the search
 	urlValues := url.Values{}
-	for inputName, inputValue := range r.definition.Search.Inputs {
-		resolveInputValue, err := templateData.ApplyTo("search_inputs", inputValue)
+	for inputName, inputValueFromScheme := range r.definition.Search.Inputs {
+		if templateData.HasQueryField(inputName) {
+			inputValueFromScheme = templateData.ApplyField(inputName)
+		}
+		resolveInputValue, err := templateData.ApplyTo("search_inputs", inputValueFromScheme)
+
 		if err != nil {
 			return nil, err
 		}
@@ -680,27 +684,11 @@ func evalRawSearchInputs(resolvedInputValue string, r *Runner, vals url.Values) 
 	return nil
 }
 
-type SearchTemplateData struct {
-	Query      *torznab.Query
-	Keywords   string
-	Categories []string
-	Context    RunContext
-}
-
-func (s *SearchTemplateData) ApplyTo(name string, templateText string) (string, error) {
-	return applyTemplate(name, templateText, s)
-}
-
 //Get the default run context
-func (r *Runner) getSearchTemplateData(query *torznab.Query, localCats []string, context RunContext) SearchTemplateData {
+func (r *Runner) getSearchTemplateData(query *search.Query, localCats []string, context RunContext) *SearchTemplateData {
 	startIndex := int(query.Page) * r.definition.Search.PageSize
 	context.Search.SetStartIndex(r, startIndex)
-	data := SearchTemplateData{
-		query,
-		query.Keywords(),
-		localCats,
-		context,
-	}
+	data := newSearchTemplateData(query, localCats, context)
 	return data
 }
 

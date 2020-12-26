@@ -4,9 +4,9 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer"
+	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/indexer/status"
 	"github.com/sp0x/torrentd/server"
-	"github.com/sp0x/torrentd/torznab"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
@@ -48,7 +48,7 @@ Currently supported storage backings: boltdb, firebase, sqlite`)
 	rootCmd.AddCommand(cmdWatch)
 }
 
-func watchIndex(_ *cobra.Command, _ []string) {
+func watchIndex(c *cobra.Command, _ []string) {
 	facade := indexer.NewFacadeFromConfiguration(&appConfig)
 	if facade == nil {
 		log.Error("Couldn't initialize torrent facade.")
@@ -65,8 +65,7 @@ func watchIndex(_ *cobra.Command, _ []string) {
 
 	//Start watching the torrent tracker.
 	status.SetupPubsub(appConfig.GetString("firebase_project"))
-	query := torznab.NewQuery()
-	query.Q = viper.GetString("query")
+	query := search.ParseQueryString(c.Flag("query").Value.String())
 	watchInterval := viper.GetInt("interval")
 	resultChannel := indexer.Watch(facade, query, watchInterval)
 	tabWr := new(tabwriter.Writer)
