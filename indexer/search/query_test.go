@@ -1,4 +1,4 @@
-package torznab
+package search
 
 import (
 	. "github.com/onsi/gomega"
