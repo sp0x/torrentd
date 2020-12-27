@@ -4,14 +4,11 @@ import (
 	"fmt"
 	"github.com/boltdb/bolt"
 	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"github.com/sp0x/torrentd/bots"
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
 	. "github.com/sp0x/torrentd/storage/bolt"
 	"github.com/sp0x/torrentd/storage/indexing"
-	"io/ioutil"
-	"os"
 	"testing"
 )
 
@@ -112,16 +109,19 @@ var _ = Describe("Bolt storage", func() {
 			}
 		})
 
-		It("Should be able to store multiple search results", func() {
-			items := []search.ScrapeResultItem{
-				{TorrentResultItem: search.TorrentResultItem{
-					Title: "a", Category: categories.CategoryBooks.ID, UUIDValue: "a",
-				}},
-				{TorrentResultItem: search.TorrentResultItem{
-					Title: "b", Category: categories.CategoryBooks.ID, UUIDValue: "b",
-				}},
+		It("Should be able to store multiple search results and fetch them by a category id", func() {
+			items := []search.Record{
+				&search.TorrentResultItem{
+					Title: "a", Category: categories.CategoryBooks.ID,
+				},
+				&search.TorrentResultItem{
+					Title: "b", Category: categories.CategoryBooks.ID,
+				},
 			}
-			err := bstore.StoreSearchResults(items)
+			items[0].SetUUID("a")
+			items[1].SetUUID("b")
+
+			err := bstore.AddAll(items)
 			if err != nil {
 				Fail(fmt.Sprintf("failed to save multiple search results: %v", err))
 				return
@@ -137,15 +137,17 @@ var _ = Describe("Bolt storage", func() {
 		})
 
 		It("Should be able to store multiple uncategorized search results", func() {
-			items := []search.ScrapeResultItem{
-				{TorrentResultItem: search.TorrentResultItem{
-					Title: "az", Category: -100, UUIDValue: "ag",
-				}},
-				{TorrentResultItem: search.TorrentResultItem{
-					Title: "bz", Category: -100, UUIDValue: "bg",
-				}},
+			items := []search.Record{
+				&search.TorrentResultItem{
+					Title: "az", Category: -100,
+				},
+				&search.TorrentResultItem{
+					Title: "bz", Category: -100,
+				},
 			}
-			err := bstore.StoreSearchResults(items)
+			items[0].SetUUID("ag")
+			items[1].SetUUID("bg")
+			err := bstore.AddAll(items)
 			if err != nil {
 				Fail(fmt.Sprintf("failed to save multiple search results: %v", err))
 				return
@@ -165,18 +167,20 @@ var _ = Describe("Bolt storage", func() {
 })
 
 // tempfile returns a temporary file path.
-func tempfile() string {
-	f, err := ioutil.TempFile("", "bolt-")
-	if err != nil {
-		panic(err)
-	}
-	if err := f.Close(); err != nil {
-		panic(err)
-	}
-	if err := os.Remove(f.Name()); err != nil {
-		panic(err)
-	}
-	return f.Name()
+func
+tempfile()
+string{
+f, err := ioutil.TempFile("", "bolt-")
+if err != nil{
+panic(err)
+}
+if err := f.Close(); err != nil{
+panic(err)
+}
+if err := os.Remove(f.Name()); err != nil{
+panic(err)
+}
+return f.Name()
 }
 
 func TestNewBoltStorage(t *testing.T) {
@@ -198,7 +202,8 @@ func TestNewBoltStorage(t *testing.T) {
 	}
 }
 
-func Test_getItemKey(t *testing.T) {
+func
+Test_getItemKey(t *testing.T) {
 	type args struct {
 		item *search.ScrapeResultItem
 	}
@@ -235,7 +240,8 @@ func Test_getItemKey(t *testing.T) {
 	}
 }
 
-func TestBoltStorage_GetBucket(t *testing.T) {
+func
+TestBoltStorage_GetBucket(t *testing.T) {
 	g := NewGomegaWithT(t)
 	storage, err := NewBoltStorage(tempfile(), &bots.Chat{})
 	if err != nil {
@@ -270,7 +276,8 @@ func TestBoltStorage_GetBucket(t *testing.T) {
 	g.Expect(storage.GetBucket(tx, "newbucket")).ToNot(BeNil())
 }
 
-func TestBoltStorage_Find(t *testing.T) {
+func
+TestBoltStorage_Find(t *testing.T) {
 	g := NewGomegaWithT(t)
 	storage, err := NewBoltStorage(tempfile(), &bots.Chat{})
 	if err != nil {

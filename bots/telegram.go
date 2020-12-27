@@ -3,9 +3,11 @@ package bots
 import (
 	"errors"
 	"fmt"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/config"
+	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage"
 	"github.com/sp0x/torrentd/storage/indexing"
 	"github.com/spf13/viper"
@@ -15,8 +17,6 @@ type TelegramRunner struct {
 	bot     *tgbotapi.BotAPI
 	updates tgbotapi.UpdatesChannel
 	storage storage.ItemStorage
-
-	//bolts   *bolt.BoltStorage
 }
 
 type TelegramProvider func(token string) (*tgbotapi.BotAPI, error)
@@ -93,13 +93,13 @@ func (t *TelegramRunner) Run() error {
 }
 
 //ForEachChat goes over all the persisted chats and invokes the callback on them.
-func (t *TelegramRunner) ForEachChat(callback func(chat interface{})) {
+func (t *TelegramRunner) ForEachChat(callback func(chat search.Record)) {
 	t.storage.ForEach(callback)
 }
 
 //Broadcast a message to all active chats.
 func (t *TelegramRunner) Broadcast(message *ChatMessage) {
-	t.ForEachChat(func(obj interface{}) {
+	t.ForEachChat(func(obj search.Record) {
 		chat := obj.(*Chat)
 		msg := tgbotapi.NewMessage(chat.ChatId, message.Text)
 		msg.DisableWebPagePreview = false

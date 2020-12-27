@@ -13,7 +13,6 @@ import (
 	"github.com/sp0x/torrentd/indexer/source"
 	mocks2 "github.com/sp0x/torrentd/indexer/source/mocks"
 	"github.com/sp0x/torrentd/storage/indexing"
-	"github.com/sp0x/torrentd/torznab"
 	"strings"
 	"testing"
 )
@@ -174,19 +173,20 @@ func TestRunner_Search(t *testing.T) {
 	g.Expect(srch).ToNot(gomega.BeNil())
 	g.Expect(len(srch.GetResults()) > 0).To(gomega.BeTrue())
 	firstDoc := srch.GetResults()[0]
-	g.Expect(firstDoc.UUIDValue != "").To(gomega.BeTrue())
+
+	g.Expect(firstDoc.UUID() != "").To(gomega.BeTrue())
 	var foundDoc search.ScrapeResultItem
 	guidQuery := indexing.NewQuery()
-	guidQuery.Put("UUID", firstDoc.UUIDValue)
+	guidQuery.Put("UUID", firstDoc.UUID())
 	storage := getIndexStorage(runner, cfg)
 	g.Expect(storage.Find(guidQuery, &foundDoc)).To(gomega.BeNil())
-	g.Expect(foundDoc.UUIDValue).To(gomega.Equal(firstDoc.UUIDValue))
-	g.Expect(foundDoc.ExtraFields["fieldA"]).To(gomega.Equal("sd"))
+	g.Expect(foundDoc.UUIDValue).To(gomega.Equal(firstDoc.UUID()))
+	g.Expect(foundDoc.ModelData["fieldA"]).To(gomega.Equal("sd"))
 	storage.Close()
 
 }
 
-var emptyQuery = &torznab.Query{}
+var emptyQuery = &search.Query{}
 
 func Test_ShouldUseUniqueIndexes(t *testing.T) {
 	g := gomega.NewWithT(t)

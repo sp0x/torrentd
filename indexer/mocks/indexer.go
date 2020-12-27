@@ -8,8 +8,8 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	indexer "github.com/sp0x/torrentd/indexer"
 	search "github.com/sp0x/torrentd/indexer/search"
+	storage "github.com/sp0x/torrentd/storage"
 	torznab "github.com/sp0x/torrentd/torznab"
-	io "io"
 	http "net/http"
 	reflect "reflect"
 )
@@ -145,7 +145,7 @@ func (mr *MockIndexerMockRecorder) GetDefinition() *gomock.Call {
 }
 
 // Search mocks base method
-func (m *MockIndexer) Search(query *torznab.Query, srch search.Instance) (search.Instance, error) {
+func (m *MockIndexer) Search(query *search.Query, srch search.Instance) (search.Instance, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Search", query, srch)
 	ret0, _ := ret[0].(search.Instance)
@@ -160,10 +160,10 @@ func (mr *MockIndexerMockRecorder) Search(query, srch interface{}) *gomock.Call 
 }
 
 // Download mocks base method
-func (m *MockIndexer) Download(urlStr string) (io.ReadCloser, error) {
+func (m *MockIndexer) Download(urlStr string) (*indexer.ResponseProxy, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Download", urlStr)
-	ret0, _ := ret[0].(io.ReadCloser)
+	ret0, _ := ret[0].(*indexer.ResponseProxy)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -218,10 +218,10 @@ func (mr *MockIndexerMockRecorder) ProcessRequest(req interface{}) *gomock.Call 
 }
 
 // Open mocks base method
-func (m *MockIndexer) Open(s *search.ScrapeResultItem) (io.ReadCloser, error) {
+func (m *MockIndexer) Open(s search.ResultItemBase) (*indexer.ResponseProxy, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Open", s)
-	ret0, _ := ret[0].(io.ReadCloser)
+	ret0, _ := ret[0].(*indexer.ResponseProxy)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -233,7 +233,7 @@ func (mr *MockIndexerMockRecorder) Open(s interface{}) *gomock.Call {
 }
 
 // HealthCheck mocks base method
-func (m *MockIndexer) Check() error {
+func (m *MockIndexer) HealthCheck() error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HealthCheck")
 	ret0, _ := ret[0].(error)
@@ -241,9 +241,9 @@ func (m *MockIndexer) Check() error {
 }
 
 // HealthCheck indicates an expected call of HealthCheck
-func (mr *MockIndexerMockRecorder) Check() *gomock.Call {
+func (mr *MockIndexerMockRecorder) HealthCheck() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HealthCheck", reflect.TypeOf((*MockIndexer)(nil).Check))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HealthCheck", reflect.TypeOf((*MockIndexer)(nil).HealthCheck))
 }
 
 // MaxSearchPages mocks base method
@@ -286,4 +286,32 @@ func (m *MockIndexer) Errors() []string {
 func (mr *MockIndexerMockRecorder) Errors() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Errors", reflect.TypeOf((*MockIndexer)(nil).Errors))
+}
+
+// GetStorage mocks base method
+func (m *MockIndexer) GetStorage() storage.ItemStorage {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStorage")
+	ret0, _ := ret[0].(storage.ItemStorage)
+	return ret0
+}
+
+// GetStorage indicates an expected call of GetStorage
+func (mr *MockIndexerMockRecorder) GetStorage() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStorage", reflect.TypeOf((*MockIndexer)(nil).GetStorage))
+}
+
+// Site mocks base method
+func (m *MockIndexer) Site() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Site")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Site indicates an expected call of Site
+func (mr *MockIndexerMockRecorder) Site() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Site", reflect.TypeOf((*MockIndexer)(nil).Site))
 }

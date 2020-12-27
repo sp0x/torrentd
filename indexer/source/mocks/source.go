@@ -11,6 +11,57 @@ import (
 	reflect "reflect"
 )
 
+// MockFetchResult is a mock of FetchResult interface
+type MockFetchResult struct {
+	ctrl     *gomock.Controller
+	recorder *MockFetchResultMockRecorder
+}
+
+// MockFetchResultMockRecorder is the mock recorder for MockFetchResult
+type MockFetchResultMockRecorder struct {
+	mock *MockFetchResult
+}
+
+// NewMockFetchResult creates a new mock instance
+func NewMockFetchResult(ctrl *gomock.Controller) *MockFetchResult {
+	mock := &MockFetchResult{ctrl: ctrl}
+	mock.recorder = &MockFetchResultMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockFetchResult) EXPECT() *MockFetchResultMockRecorder {
+	return m.recorder
+}
+
+// ContentType mocks base method
+func (m *MockFetchResult) ContentType() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ContentType")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// ContentType indicates an expected call of ContentType
+func (mr *MockFetchResultMockRecorder) ContentType() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ContentType", reflect.TypeOf((*MockFetchResult)(nil).ContentType))
+}
+
+// Encoding mocks base method
+func (m *MockFetchResult) Encoding() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Encoding")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Encoding indicates an expected call of Encoding
+func (mr *MockFetchResultMockRecorder) Encoding() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Encoding", reflect.TypeOf((*MockFetchResult)(nil).Encoding))
+}
+
 // MockContentFetcher is a mock of ContentFetcher interface
 type MockContentFetcher struct {
 	ctrl     *gomock.Controller
@@ -47,11 +98,12 @@ func (mr *MockContentFetcherMockRecorder) Cleanup() *gomock.Call {
 }
 
 // Fetch mocks base method
-func (m *MockContentFetcher) Fetch(target *source.SearchTarget) error {
+func (m *MockContentFetcher) Fetch(target *source.SearchTarget) (source.FetchResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Fetch", target)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(source.FetchResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Fetch indicates an expected call of Fetch

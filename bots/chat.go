@@ -36,3 +36,10 @@ func (c Chat) SetState(new, updated bool) {
 	c.isNew = new
 	c.isUpdate = updated
 }
+
+func (c *Chat) IsNew() bool {
+	return c.isNew
+}
+func (c *Chat) IsUpdate() bool {
+	return c.isUpdate
+}

@@ -48,7 +48,7 @@ func (s *KeyedStorage) Find(query indexing.Query, output *search.ScrapeResultIte
 	return errors.New("not found")
 }
 
-func (s *KeyedStorage) ForEach(callback func(record search.ResultItemBase)) {
+func (s *KeyedStorage) ForEach(callback func(record search.Record)) {
 	s.backing.ForEach(callback)
 }
 

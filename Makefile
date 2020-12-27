@@ -1,4 +1,6 @@
 # General
+
+CURRENT_OS = $(shell uname | tr A-Z a-z)
 WORKDIR = $(PWD)
 
 # Go parameters
@@ -13,12 +15,31 @@ AUTHOR=sp0x
 ARCH=amd64
 OS=linux darwin windows
 
+#Dependency versions
+
+GOLANGCI_VERSION = 1.33.0
+
 ifneq ($(origin CI), undefined)
 	WORKDIR := $(GOPATH)/src/github.com/$(AUTHOR)/$(NAME)
 endif
 
-lint:
+bin/golangci-lint: bin/golangci-lint-${GOLANGCI_VERSION}
+	@ln -sf golangci-lint-${GOLANGCI_VERSION} bin/golangci-lint
+bin/golangci-lint-${GOLANGCI_VERSION}:
+	@mkdir -p bin
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b ./bin/ v${GOLANGCI_VERSION}
+	@mv bin/golangci-lint "$@"
+
+golint:
 	golint ./...
+
+.PHONY: lint
+lint: bin/golangci-lint ## Run linter
+	bin/golangci-lint run
+
+.PHONY: fix
+fix: bin/golangci-lint ## Fix lint violations
+	bin/golangci-lint run --fix
 
 build:
 	go build -o $(NAME) ./cmd

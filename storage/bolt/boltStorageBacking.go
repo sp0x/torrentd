@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/boltdb/bolt"
 	"github.com/google/uuid"
-	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/indexing"
@@ -16,7 +15,6 @@ import (
 	"os"
 	"path"
 	"reflect"
-	"time"
 )
 
 /**
@@ -175,6 +173,43 @@ func (b *BoltStorage) Update(query indexing.Query, item interface{}) error {
 
 }
 
+//StoreSearchResults stores the given results
+//func (b *BoltStorage) StoreSearchResults(items []search.ScrapeResultItem) error {
+//	db := b.Database
+//	for ix, item := range items {
+//		//the function passed to Batch may be called multiple times,
+//		err := db.Batch(func(tx *bolt.Tx) error {
+//			categoryObj := item.GetFieldWithDefault("category", categories.Uncategorized).(*categories.Category)
+//			cgryKey := []byte(categoryObj.Name)
+//			//Use the category as a keyParts
+//			categoriesBucket, _ := tx.CreateBucketIfNotExists([]byte(categoriesBucketName))
+//			categoriesBucket, _ = categoriesBucket.CreateBucketIfNotExists(cgryKey)
+//			key, err := GetPKValueFromRecord(&item)
+//			if err != nil {
+//				return err
+//			}
+//			nextId, _ := categoriesBucket.NextSequence()
+//			item.ID = uint32(nextId)
+//			buf, err := b.marshaler.Marshal(item)
+//			if err != nil {
+//				return err
+//			}
+//			item.CreatedAt = time.Now()
+//			err = categoriesBucket.Put(key, buf)
+//			if err != nil {
+//				item.ID = 0
+//				log.Error(fmt.Sprintf("Error while inserting %d-th item. %s", ix, err))
+//				return err
+//			}
+//			return nil
+//		})
+//		if err != nil {
+//			return err
+//		}
+//	}
+//	return nil
+//}
+
 //Create a new record. This uses a new random UUID in order to identify the record.
 func (b *BoltStorage) Create(item search.Record, additionalPK *indexing.Key) error {
 	item.SetUUID(uuid.New().String())
@@ -205,6 +240,30 @@ func (b *BoltStorage) Create(item search.Record, additionalPK *indexing.Key) err
 	})
 }
 
+// AddAll adds all the records to the db
+func (b *BoltStorage) AddAll(items []search.Record) error {
+	db := b.Database
+	primaryKey := getDefaultPK()
+	return db.Batch(func(tx *bolt.Tx) error {
+		bucket, err := b.assertNamespaceBucket(tx, namespaceResultsBucketName)
+		primaryIndex, err := b.GetUniqueIndexFromKeys(bucket, primaryKey)
+
+		if err != nil {
+			return err
+		}
+		for _, item := range items {
+			item.SetUUID(uuid.New().String())
+
+			indexValue := indexing.GetIndexValueFromItem(primaryKey, item)
+			_, _, err := b.createWithAutoIncrementingId(bucket, item, primaryIndex, indexValue)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
 //CreateWithId a new record for a result.
 //The key is used if you have a custom object that uses a different key, not the UUIDValue
 func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item search.Record, uniqueIndexKeys *indexing.Key) error {
@@ -223,55 +282,84 @@ func (b *BoltStorage) CreateWithId(keyParts *indexing.Key, item search.Record, u
 		if err != nil {
 			return err
 		}
-		var uniqueIndex indexing.Index
-		if uniqueIndexKeys != nil && !uniqueIndexKeys.IsEmpty() {
-			uniqueIndex, err = b.GetUniqueIndexFromKeys(bucket, uniqueIndexKeys)
-			if err != nil {
-				return err
-			}
-			existingUniqueVal := uniqueIndex.Get(uniqueIndexValue)
-			if existingUniqueVal != nil {
-				return fmt.Errorf("can't add record, this would break unique index: %s", uniqueIndexKeys)
-			}
-		}
 
-		//We increment the ID, the ID is used to avoid long seeking times
-		nextId, _ := bucket.NextSequence()
-		item.SetId(uint32(nextId))
-
-		//We serialize the ID
-		idBytes, err := toBytes(item.Id(), b.marshaler)
-		if err != nil {
-			return err
-		}
-		//Save the primaryIndex for the id of the result.
-		err = primaryIndex.Add(indexValue, idBytes)
+		idBytes, serializedValue, err := b.createWithAutoIncrementingId(bucket, item, primaryIndex, indexValue)
 		if err != nil {
 			return err
 		}
 
-		//Save the actual result, using the ID, not the key. The key is indexed so you can easily look up the ID
-		serializedValue, err := b.marshaler.Marshal(item)
+		err = b.addUniqueIndexRecord(bucket, uniqueIndexKeys, uniqueIndexValue, idBytes)
 		if err != nil {
 			return err
-		}
-		err = bucket.Put(idBytes, serializedValue)
-		if err != nil {
-			return err
-		}
-		if uniqueIndex != nil {
-			err = uniqueIndex.Add(uniqueIndexValue, idBytes)
-		}
-		if err != nil {
-			return nil
 		}
 
 		return b.PushToLatestItems(tx, serializedValue)
 	})
 }
 
+func (b *BoltStorage) createWithAutoIncrementingId(bucket *bolt.Bucket, item search.Record, primaryIndex indexing.Index, indexValue []byte) ([]byte, []byte, error) {
+	b.assignAutoIncrementingId(bucket, item)
+
+	//We serialize the ID
+	idBytes, err := toBytes(item.Id(), b.marshaler)
+	if err != nil {
+		return nil, nil, err
+	}
+	//Save the primaryIndex for the id of the result.
+	err = primaryIndex.Add(indexValue, idBytes)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	//Save the actual result, using the ID, not the key. The key is indexed so you can easily look up the ID
+	serializedValue, err := b.marshaler.Marshal(item)
+	if err != nil {
+		return nil, nil, err
+	}
+	err = bucket.Put(idBytes, serializedValue)
+	if err != nil {
+		return nil, nil, err
+	}
+	return idBytes, serializedValue, nil
+}
+
+func (b *BoltStorage) addUniqueIndexRecord(bucket *bolt.Bucket, uniqueIndexKeys *indexing.Key, uniqueIndexValue []byte, idBytes []byte) error {
+	uniqueIndex, err := b.getUniqueIndexFromKeys(bucket, uniqueIndexKeys, uniqueIndexValue)
+	if err != nil {
+		return err
+	}
+	if uniqueIndex != nil {
+		err = uniqueIndex.Add(uniqueIndexValue, idBytes)
+	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (b *BoltStorage) assignAutoIncrementingId(bucket *bolt.Bucket, item search.Record) {
+	//We increment the ID, the ID is used to avoid long seeking times
+	nextId, _ := bucket.NextSequence()
+	item.SetId(uint32(nextId))
+}
+
+func (b *BoltStorage) getUniqueIndexFromKeys(bucket *bolt.Bucket, uniqueIndexKeys *indexing.Key, uniqueIndexValue []byte) (indexing.Index, error) {
+	if uniqueIndexKeys != nil && !uniqueIndexKeys.IsEmpty() {
+		uniqueIndex, err := b.GetUniqueIndexFromKeys(bucket, uniqueIndexKeys)
+		if err != nil {
+			return nil, err
+		}
+		existingUniqueVal := uniqueIndex.Get(uniqueIndexValue)
+		if existingUniqueVal != nil {
+			return nil, fmt.Errorf("can't add record, this would break unique index: %s", uniqueIndexKeys)
+		}
+		return uniqueIndex, nil
+	}
+	return nil, nil
+}
+
 //ForEach Goes through all the records
-func (b *BoltStorage) ForEach(callback func(record search.ResultItemBase)) {
+func (b *BoltStorage) ForEach(callback func(record search.Record)) {
 	_ = b.Database.View(func(tx *bolt.Tx) error {
 		bucket := b.GetBucket(tx, namespaceResultsBucketName)
 		cursor := ReversibleCursor{C: bucket.Cursor(), Reverse: false}
@@ -378,43 +466,6 @@ func (b *BoltStorage) GetSearchResults(categoryId int) ([]search.ScrapeResultIte
 		})
 	})
 	return items, err
-}
-
-//StoreSearchResults stores the given results
-func (b *BoltStorage) StoreSearchResults(items []search.ScrapeResultItem) error {
-	db := b.Database
-	for ix, item := range items {
-		//the function passed to Batch may be called multiple times,
-		err := db.Batch(func(tx *bolt.Tx) error {
-			categoryObj := item.GetFieldWithDefault("category", categories.Uncategorized).(*categories.Category)
-			cgryKey := []byte(categoryObj.Name)
-			//Use the category as a keyParts
-			categoriesBucket, _ := tx.CreateBucketIfNotExists([]byte(categoriesBucketName))
-			categoriesBucket, _ = categoriesBucket.CreateBucketIfNotExists(cgryKey)
-			key, err := GetPKValueFromRecord(&item)
-			if err != nil {
-				return err
-			}
-			nextId, _ := categoriesBucket.NextSequence()
-			item.ID = uint32(nextId)
-			buf, err := b.marshaler.Marshal(item)
-			if err != nil {
-				return err
-			}
-			item.CreatedAt = time.Now()
-			err = categoriesBucket.Put(key, buf)
-			if err != nil {
-				item.ID = 0
-				log.Error(fmt.Sprintf("Error while inserting %d-th item. %s", ix, err))
-				return err
-			}
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 //Set the root namespace

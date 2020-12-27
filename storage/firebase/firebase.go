@@ -89,7 +89,7 @@ func (f *FirestoreStorage) Find(query indexing.Query, result interface{}) error 
 	return document.DataTo(result)
 }
 
-func (f *FirestoreStorage) ForEach(callback func(record search.ResultItemBase)) {
+func (f *FirestoreStorage) ForEach(callback func(record search.Record)) {
 	fireQuery := f.transformIndexQueryToFirestoreQuery(nil, 1)
 	documentIterator := fireQuery.Documents(f.context)
 	for true {

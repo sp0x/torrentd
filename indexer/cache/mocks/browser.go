@@ -34,6 +34,10 @@ func (b *MockedBrowser) SetAttribute(_ browser.Attribute, _ bool) {
 
 }
 
+func (b *MockedBrowser) RawBody() []byte {
+	return nil
+}
+
 // SetAttributes is used to set all the browser attributes.
 func (b *MockedBrowser) SetAttributes(_ browser.AttributeMap) {
 

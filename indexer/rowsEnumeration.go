@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/sp0x/torrentd/indexer/source"

@@ -8,3 +8,4 @@ keys
 **/bolt.db.lock
 ignored
 dumps
+bin

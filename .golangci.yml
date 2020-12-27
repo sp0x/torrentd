@@ -1,0 +1,45 @@
+run:
+  timeout: 5m
+
+linters-settings:
+  gci:
+    local-prefixes: github.com/sp0x/torrentd
+  golint:
+    min-confidence: 0
+  goimports:
+    local-prefixes: github.com/sp0x/torrentd
+
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - deadcode
+    - dogsled
+    - dupl
+    - exhaustive
+    - exportloopref
+    - gci
+    - goconst
+    - gofmt
+    - gofumpt
+    - goimports
+    - golint
+    - goprintffuncname
+    - govet
+    - ineffassign
+    - misspell
+    - nakedret
+    - noctx
+    - nolintlint
+    - prealloc
+    - rowserrcheck
+    - sqlclosecheck
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace

@@ -11,9 +11,9 @@ func TestSendRssFeed(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	context := mocks.NewMockContext(ctrl)
-	var items []search.ScrapeResultItem
-	items = append(items, search.ScrapeResultItem{TorrentResultItem: search.TorrentResultItem{Title: "A"}})
-	items = append(items, search.ScrapeResultItem{TorrentResultItem: search.TorrentResultItem{Title: "B"}})
+	var items []*search.TorrentResultItem
+	items = append(items, &search.TorrentResultItem{Title: "A"})
+	items = append(items, &search.TorrentResultItem{Title: "B"})
 	context.EXPECT().Header("Content-Type", "application/xml;")
 	context.EXPECT().String(200, gomock.Any()).
 		AnyTimes()

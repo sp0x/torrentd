@@ -23,8 +23,8 @@ func TestKeyedStorage_Add(t *testing.T) {
 	storage.AddUniqueIndex(indexing.NewKey("ix"))
 	item := &search.ScrapeResultItem{}
 
-	item.ExtraFields = make(map[string]interface{})
-	item.ExtraFields["a"] = "b"
+	item.ModelData = make(map[string]interface{})
+	item.ModelData["a"] = "b"
 	err := storage.Add(item)
 	g.Expect(item.IsNew()).To(BeTrue())
 	//Since we're using a custom key, UUIDValue should be nil
@@ -33,9 +33,9 @@ func TestKeyedStorage_Add(t *testing.T) {
 
 	//Shouldn't be able to add a new record since IX is a unique index and we'll be breaking that rule
 	item = &search.ScrapeResultItem{}
-	item.ExtraFields = make(map[string]interface{})
-	item.ExtraFields["a"] = "bx"
-	item.ExtraFields["c"] = "b"
+	item.ModelData = make(map[string]interface{})
+	item.ModelData["a"] = "bx"
+	item.ModelData["c"] = "b"
 	err = storage.Add(item)
 	g.Expect(item.IsNew()).To(BeFalse())
 	g.Expect(item.IsUpdate()).To(BeFalse())
@@ -44,10 +44,10 @@ func TestKeyedStorage_Add(t *testing.T) {
 
 	//Should be able to add a new record with an unique IX
 	item = &search.ScrapeResultItem{}
-	item.ExtraFields = make(map[string]interface{})
-	item.ExtraFields["a"] = "bx"
-	item.ExtraFields["c"] = "b"
-	item.ExtraFields["ix"] = "bbbb"
+	item.ModelData = make(map[string]interface{})
+	item.ModelData["a"] = "bx"
+	item.ModelData["c"] = "b"
+	item.ModelData["ix"] = "bbbb"
 	err = storage.Add(item)
 	g.Expect(item.IsNew()).To(BeTrue())
 	g.Expect(item.IsUpdate()).To(BeFalse())
@@ -56,9 +56,9 @@ func TestKeyedStorage_Add(t *testing.T) {
 
 	//Should create a new item if the key field is not set.
 	item = &search.ScrapeResultItem{}
-	item.ExtraFields = make(map[string]interface{})
-	item.ExtraFields["c"] = "b"
-	item.ExtraFields["ix"] = "1"
+	item.ModelData = make(map[string]interface{})
+	item.ModelData["c"] = "b"
+	item.ModelData["ix"] = "1"
 	err = storage.Add(item)
 	g.Expect(item.IsNew()).To(BeTrue())
 	g.Expect(item.IsUpdate()).To(BeFalse())
@@ -123,11 +123,11 @@ func TestGetIndexValueFromItem(t *testing.T) {
 	//Should use key values only, when generating the index value
 	key := indexing.NewKey("a")
 	item := &search.ScrapeResultItem{}
-	item.ExtraFields = make(map[string]interface{})
-	item.ExtraFields["a"] = "asdasd123"
-	item.ExtraFields["ab"] = "2"
-	item.ExtraFields["ax"] = time.Now()
-	item.ExtraFields["55"] = time.Now().Unix()
+	item.ModelData = make(map[string]interface{})
+	item.ModelData["a"] = "asdasd123"
+	item.ModelData["ab"] = "2"
+	item.ModelData["ax"] = time.Now()
+	item.ModelData["55"] = time.Now().Unix()
 	indexValue := indexing.GetIndexValueFromItem(key, item)
 	g.Expect(string(indexValue)).To(Equal("asdasd123"))
 }

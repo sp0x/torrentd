@@ -19,7 +19,8 @@ func Test_ShouldMatchTextForSimpleSelectors(t *testing.T) {
 		t.Fail()
 		return
 	}
-	result, err := selector.Match(doc.Contents())
+	selection := &DomScrapeItem{doc.Contents()}
+	result, err := selector.Match(selection)
 	g.Expect(err).To(BeNil())
 	g.Expect(result).To(Equal("Inner Text"))
 }
@@ -37,7 +38,7 @@ func Test_ShouldMatchTextForSelectorsWithMultipleMatches(t *testing.T) {
 		return
 	}
 	selection := doc.Contents()
-	result, err := selector.Match(selection)
+	result, err := selector.Match(&DomScrapeItem{selection})
 	g.Expect(err).To(BeNil())
 	g.Expect(result.([]string)).ToNot(BeNil())
 	resultArray := result.([]string)
