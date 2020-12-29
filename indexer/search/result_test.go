@@ -1,7 +1,6 @@
 package search
 
 import (
-	"github.com/onsi/gomega"
 	"testing"
 )
 
@@ -28,5 +27,4 @@ func TestExternalResultItem_Equals(t *testing.T) {
 	b.ModelData = make(map[string]interface{})
 	b.ModelData["a"] = 3
 	g.Expect(a.Equals(b)).To(gomega.BeTrue())
-
 }

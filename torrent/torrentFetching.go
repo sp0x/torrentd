@@ -2,14 +2,16 @@ package torrent
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/indexer"
-	"github.com/sp0x/torrentd/indexer/search"
 	"os"
 	"text/tabwriter"
+
+	log "github.com/sirupsen/logrus"
+
+	"github.com/sp0x/torrentd/indexer"
+	"github.com/sp0x/torrentd/indexer/search"
 )
 
-//GetNewScrapeItems gets the latest torrents.
+// GetNewScrapeItems gets the latest torrents.
 func GetNewScrapeItems(facade *indexer.Facade, fetchOptions *indexer.GenericSearchOptions) error {
 	log.Info("Searching for new torrents")
 	if fetchOptions == nil {

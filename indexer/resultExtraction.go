@@ -2,12 +2,14 @@ package indexer
 
 import (
 	"errors"
-	"github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/indexer/search"
 	"strings"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/sp0x/torrentd/indexer/search"
 )
 
-//Extracts a field's value from the given selection
+// Extracts a field's value from the given selection
 func (r *Runner) extractField(selection RawScrapeItem, field *fieldBlock) (interface{}, error) {
 	if field == nil {
 		return "", errors.New("no field given")
@@ -19,7 +21,7 @@ func (r *Runner) extractField(selection RawScrapeItem, field *fieldBlock) (inter
 	return val, err
 }
 
-//formatValues formats a field's value (singular or multiple)
+// formatValues formats a field's value (singular or multiple)
 func formatValues(field *fieldBlock, value interface{}, values map[string]interface{}) interface{} {
 	if value == nil && field == nil {
 		return nil
@@ -49,7 +51,7 @@ func formatValues(field *fieldBlock, value interface{}, values map[string]interf
 		}
 		strValue = updated
 	} else {
-		//Don't format non-patterns
+		// Don't format non-patterns
 		return strValue
 	}
 	if field != nil {
@@ -62,8 +64,8 @@ func formatValues(field *fieldBlock, value interface{}, values map[string]interf
 	return strValue
 }
 
-//Extract the actual result item from it's row/col
-//TODO: refactor this to reduce #complexity
+// Extract the actual result item from it's row/col
+// TODO: refactor this to reduce #complexity
 func (r *Runner) extractItem(rowIdx int, selection RawScrapeItem, context *rowContext) (search.ResultItemBase, error) {
 	row := map[string]interface{}{}
 	nonFilteredRow := map[string]string{}
@@ -92,7 +94,7 @@ func (r *Runner) extractItem(rowIdx int, selection RawScrapeItem, context *rowCo
 		row[item.Field] = val
 	}
 
-	//Evaluate pattern items
+	// Evaluate pattern items
 	for _, item := range r.definition.Search.Fields {
 		value := row[item.Field]
 		currentItem := item
@@ -104,7 +106,7 @@ func (r *Runner) extractItem(rowIdx int, selection RawScrapeItem, context *rowCo
 	item.SetSite(r.definition.Site)
 	item.SetIndexer(r.getIndexer())
 
-	//Fill in the extracted values
+	// Fill in the extracted values
 	for key, val := range row {
 		formatValues(nil, val, row)
 
@@ -145,7 +147,7 @@ func (r *Runner) populateScrapeItemField(item search.ResultItemBase, key string,
 			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 			return false
 		}
-		//item.Link = u
+		// item.Link = u
 		scrapeItem.SourceLink = u
 	case "link":
 		u, err := r.getFullUrlInIndex(firstString(val))

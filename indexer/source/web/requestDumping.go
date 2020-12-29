@@ -2,14 +2,15 @@ package web
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"github.com/sp0x/surf/browser"
-	"github.com/sp0x/surf/jar"
 	"io"
 	"os"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/sirupsen/logrus"
+	"github.com/sp0x/surf/browser"
+	"github.com/sp0x/surf/jar"
 )
 
 type dumpData struct {
@@ -51,7 +52,6 @@ func (d *dumpData) Write() {
 		} else {
 			logrus.Debugf("written request body with size %d bytes", n)
 		}
-
 	}
 }
 

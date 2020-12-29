@@ -1,11 +1,13 @@
 package serializers_test
 
 import (
+	"testing"
+
 	"github.com/onsi/gomega"
+
 	"github.com/sp0x/torrentd/bots"
 	"github.com/sp0x/torrentd/storage/serializers"
 	"github.com/sp0x/torrentd/storage/serializers/json"
-	"testing"
 )
 
 func TestDynamicMarshaler_Unmarshal(t *testing.T) {

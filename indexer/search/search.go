@@ -2,8 +2,9 @@ package search
 
 import (
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
 	"strconv"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 type SearchMode struct {
@@ -12,7 +13,7 @@ type SearchMode struct {
 	SupportedParams []string
 }
 
-//An instance of a search
+// An instance of a search
 type Instance interface {
 	GetStartingIndex() int
 	GetResults() []ResultItemBase

@@ -2,12 +2,13 @@ package indexer
 
 import (
 	"fmt"
-	"github.com/sp0x/torrentd/indexer/definitions"
 	"path"
 	"strings"
+
+	"github.com/sp0x/torrentd/indexer/definitions"
 )
 
-//An indexer definition loader that uses embedded definitions.
+// An indexer definition loader that uses embedded definitions.
 type DefinitionDataLoader func(key string) ([]byte, error)
 
 type AssetLoader struct {
@@ -38,7 +39,7 @@ func getDefaultEmbeddedDefinitionSource() DefinitionLoader {
 	return &src
 }
 
-//CreateEmbeddedDefinitionSource creates a new definition loader from a set of resource names and a loader.
+// CreateEmbeddedDefinitionSource creates a new definition loader from a set of resource names and a loader.
 func CreateEmbeddedDefinitionSource(definitionNames []string, loader DefinitionDataLoader) DefinitionLoader {
 	defLoader := &AssetLoader{}
 	defLoader.Names = definitionNames
@@ -46,7 +47,7 @@ func CreateEmbeddedDefinitionSource(definitionNames []string, loader DefinitionD
 	return defLoader
 }
 
-//List all the names of the embedded definitions
+// List all the names of the embedded definitions
 func (l *AssetLoader) List(selector *IndexerSelector) ([]string, error) {
 	var results []string
 	for _, name := range l.Names {
@@ -79,7 +80,7 @@ func (l *AssetLoader) ListWithNames(names []string) ([]string, error) {
 	return results, nil
 }
 
-//Load a definition with a given name
+// Load a definition with a given name
 func (l *AssetLoader) Load(key string) (*IndexerDefinition, error) {
 	data, err := l.Resolver(key)
 	if err != nil {

@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage"
-	"github.com/spf13/cobra"
 	"os"
 	"text/tabwriter"
+
+	"github.com/spf13/cobra"
 )
 
 var dumpAdditionalInfo = false

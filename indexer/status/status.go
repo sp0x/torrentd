@@ -3,18 +3,21 @@ package status
 import (
 	"context"
 	"fmt"
+
 	"github.com/lileio/pubsub"
 	"github.com/lileio/pubsub/middleware/defaults"
 	"github.com/lileio/pubsub/providers/google"
 	log "github.com/sirupsen/logrus"
 )
 
-const schemeTopic = "scrapescheme"
-const schemeErrorTopic = "scheme.topic"
-const LoginError = "login"
-const TargetError = "bad-target"
-const ContentError = "cant-fetch-content"
-const Ok = "ok"
+const (
+	schemeTopic      = "scrapescheme"
+	schemeErrorTopic = "scheme.topic"
+	LoginError       = "login"
+	TargetError      = "bad-target"
+	ContentError     = "cant-fetch-content"
+	Ok               = "ok"
+)
 
 type ScrapeSchemeMessage struct {
 	SchemeVersion string
@@ -22,6 +25,7 @@ type ScrapeSchemeMessage struct {
 	Code          string
 	ResultsFound  int
 }
+
 type SchemeErrorMessage struct {
 	Code          string
 	Message       string
@@ -36,7 +40,7 @@ func SetupPubsub(projectId string) {
 		fmt.Printf("couldn't initialize google pubsub provider. status will not be published\n")
 		return
 	}
-	//Service credentials exposed through: GOOGLE_APPLICATION_CREDENTIALS
+	// Service credentials exposed through: GOOGLE_APPLICATION_CREDENTIALS
 	pubsub.SetClient(&pubsub.Client{
 		ServiceName: "ihcph",
 		Provider:    provider,

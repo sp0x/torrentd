@@ -3,14 +3,15 @@ package indexer
 import (
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/indexer/search"
-	"github.com/sp0x/torrentd/storage"
-	"github.com/sp0x/torrentd/torznab"
 	"net/http"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/storage"
+	"github.com/sp0x/torrentd/torznab"
 )
 
 type Aggregate struct {
@@ -51,7 +52,7 @@ func (ag *Aggregate) GetDefinition() *IndexerDefinition {
 }
 
 func (ag *Aggregate) Open(scrapeItem search.ResultItemBase) (*ResponseProxy, error) {
-	//Find the Indexer
+	// Find the Indexer
 	scrapeItemRoot := scrapeItem.AsScrapeItem()
 	for _, ixr := range ag.Indexers {
 		nfo := ixr.Info()
@@ -62,7 +63,7 @@ func (ag *Aggregate) Open(scrapeItem search.ResultItemBase) (*ResponseProxy, err
 	return nil, errors.New("couldn't find Indexer")
 }
 
-//MaxSearchPages returns the maximum number of pages that this aggregate can search, this is using the maximum paged index in the aggregate.
+// MaxSearchPages returns the maximum number of pages that this aggregate can search, this is using the maximum paged index in the aggregate.
 func (ag *Aggregate) MaxSearchPages() uint {
 	maxValue := uint(0)
 	for _, index := range ag.Indexers {
@@ -73,9 +74,9 @@ func (ag *Aggregate) MaxSearchPages() uint {
 	return maxValue
 }
 
-//SearchIsSinglePaged this is true only if all indexes inside the aggregate are single paged.
+// SearchIsSinglePaged this is true only if all indexes inside the aggregate are single paged.
 func (ag *Aggregate) SearchIsSinglePaged() bool {
-	//For this, all indexes must be single paged
+	// For this, all indexes must be single paged
 	for _, index := range ag.Indexers {
 		if !index.SearchIsSinglePaged() {
 			return false
@@ -107,12 +108,12 @@ func (ag *Aggregate) Site() string {
 	return sites
 }
 
-//HealthCheck checks all indexes, if they can be searched.
+// HealthCheck checks all indexes, if they can be searched.
 func (ag *Aggregate) HealthCheck() error {
 	errorGroup := errgroup.Group{}
 	for _, ixr := range ag.Indexers {
 		indexerID := ixr.Info().GetId()
-		//Run the Indexer in a goroutine
+		// Run the Indexer in a goroutine
 		errorGroup.Go(func() error {
 			err := ixr.HealthCheck()
 			if err != nil {
@@ -142,14 +143,14 @@ func (ag *Aggregate) Search(query *search.Query, searchInstance search.Instance)
 		return nil, errors.New("can't use normal search on an aggregate")
 	}
 	aggregatedSearch := searchInstance.(*search.AggregatedSearch)
-	//indexerSearches := make(map[int]*search.SearchKeywords)
+	// indexerSearches := make(map[int]*search.SearchKeywords)
 	// fetch all results
 	if ag.Indexers == nil {
 		log.Warnf("searching an aggregate[%s] that has no indexes", ag.selector)
 		return nil, errors.New("no indexes are set for this aggregate")
 	}
 	for idx, pIndexer := range ag.Indexers {
-		//Run the Indexer in a goroutine
+		// Run the Indexer in a goroutine
 		i, pIndex := idx, pIndexer
 		if len(pIndexer.Errors()) > 0 {
 			log.WithFields(log.Fields{"index": pIndexer}).Debug("Skipping index because it has errors")
@@ -214,12 +215,15 @@ type AggregateInfo struct{}
 func (a *AggregateInfo) GetLanguage() string {
 	return "en-US"
 }
+
 func (a *AggregateInfo) GetLink() string {
 	return ""
 }
+
 func (a *AggregateInfo) GetTitle() string {
 	return "Aggregated Indexer"
 }
+
 func (a *AggregateInfo) GetId() string {
 	return "aggregate"
 }

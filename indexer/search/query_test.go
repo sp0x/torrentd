@@ -1,9 +1,11 @@
 package search
 
 import (
-	. "github.com/onsi/gomega"
-	"github.com/sp0x/torrentd/indexer/categories"
 	"testing"
+
+	. "github.com/onsi/gomega"
+
+	"github.com/sp0x/torrentd/indexer/categories"
 )
 
 func TestQuery_AddCategory(t *testing.T) {

@@ -11,7 +11,7 @@ type HttpResult struct {
 	Response    *http.Response
 }
 
-func (fr *HttpResult) ContentType() string{
+func (fr *HttpResult) ContentType() string {
 	return fr.contentType
 }
 

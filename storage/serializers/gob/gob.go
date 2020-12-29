@@ -7,7 +7,7 @@ import (
 
 const name = "gob"
 
-// Codec serializing objects using the gob package.
+// Serializer serializing objects using the gob package.
 // See https://golang.org/pkg/encoding/gob/
 var Serializer = new(gobCodec)
 

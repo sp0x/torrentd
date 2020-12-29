@@ -14,8 +14,8 @@ type IndexerSelector struct {
 	parts    []string
 }
 
-//ResolveIndexId resolves the global aggregate index ID to a allowed index in the given scope
-//If no ID is given then the first aggregate is used. If an aggregate is not available, then the first working index is used.
+// ResolveIndexId resolves the global aggregate index ID to a allowed index in the given scope
+// If no ID is given then the first aggregate is used. If an aggregate is not available, then the first working index is used.
 func ResolveIndexId(scope Scope, id string) string {
 	isGlobalAggregate := id == "" || id == "aggregate" || id == "all"
 	if !isGlobalAggregate {
@@ -24,7 +24,7 @@ func ResolveIndexId(scope Scope, id string) string {
 	indexes := scope.Indexes()
 	shouldChooseFirstIndex := id == ""
 	var firstWorkingIndex string
-	//We're searching for the first index
+	// We're searching for the first index
 	for ixId, ix := range indexes {
 		hasErrors := len(ix.Errors()) > 0
 		_, isAggregate := ix.(*Aggregate)

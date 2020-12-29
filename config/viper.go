@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+
 	"github.com/spf13/viper"
 )
 
@@ -25,7 +26,6 @@ func (v *ViperConfig) GetSiteOption(name, key string) (string, bool, error) {
 	} else {
 		return a.(string), b, nil
 	}
-
 }
 
 func (v *ViperConfig) GetSite(name string) (map[string]string, error) {

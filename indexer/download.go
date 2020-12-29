@@ -3,10 +3,10 @@ package indexer
 import (
 	"bytes"
 	"fmt"
-	//"bytes"
 	"github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/indexer/search"
 	"io"
+
+	"github.com/sp0x/torrentd/indexer/search"
 )
 
 func (r *Runner) downloadsNeedResolution() bool {
@@ -28,9 +28,9 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 	}
 	scrapeItem := scrapeResultItem.AsScrapeItem()
 	sourceLink := scrapeItem.SourceLink
-	//If the download needs to be resolved
+	// If the download needs to be resolved
 	if scrapeItem.SourceLink == "" || r.downloadsNeedResolution() {
-		//Resolve the url
+		// Resolve the url
 		downloadItem := r.failingSearchFields["download"]
 		err := r.contentFetcher.FetchUrl(scrapeItem.Link)
 		if err != nil {
@@ -58,7 +58,7 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 		Reader:            pipeR,
 		ContentLengthChan: make(chan int64),
 	}
-	//Start a goroutine and write the response of the download to the pipe
+	// Start a goroutine and write the response of the download to the pipe
 	go func() {
 		defer func() {
 			errx := pipeW.Close()

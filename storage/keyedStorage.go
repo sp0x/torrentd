@@ -2,6 +2,7 @@ package storage
 
 import (
 	"errors"
+
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/indexing"
 	"github.com/sp0x/torrentd/storage/stats"
@@ -14,7 +15,7 @@ type KeyedStorage struct {
 	indexKeysCache map[string]interface{}
 }
 
-//NewWithKey gets a storage backed in the same way, with a different key.
+// NewWithKey gets a storage backed in the same way, with a different key.
 func (s *KeyedStorage) NewWithKey(key *indexing.Key) ItemStorage {
 	storage := s.backing
 	return &KeyedStorage{
@@ -36,7 +37,7 @@ func (s *KeyedStorage) Size() int64 {
 }
 
 func (s *KeyedStorage) getDefaultKey() *indexing.Key {
-	//Use the ID from the result as a key
+	// Use the ID from the result as a key
 	key := indexing.NewKey("UUID")
 	return key
 }
@@ -56,6 +57,10 @@ func (s *KeyedStorage) GetStats(showDebugInfo bool) *stats.Stats {
 	return s.backing.GetStats(showDebugInfo)
 }
 
+func (s *KeyedStorage) Truncate() error {
+	return s.backing.Truncate()
+}
+
 func (s *KeyedStorage) SetKey(index *indexing.Key) error {
 	if index.IsEmpty() {
 		return errors.New("primary key was empty")
@@ -64,11 +69,11 @@ func (s *KeyedStorage) SetKey(index *indexing.Key) error {
 	return nil
 }
 
-//Add handles the discovery of the result, adding additional information like staleness state.
+// Add handles the discovery of the result, adding additional information like staleness state.
 func (s *KeyedStorage) Add(item search.Record) error {
 	var existingResult *search.ScrapeResultItem
 	var existingQuery indexing.Query
-	//The key is what makes each result unique. If no key is provided you might end up with doubles, since UUIDValue is used.
+	// The key is what makes each result unique. If no key is provided you might end up with doubles, since UUIDValue is used.
 	key := &s.primaryKey
 	if key.IsEmpty() {
 		key = s.getDefaultKey()
@@ -89,7 +94,7 @@ func (s *KeyedStorage) Add(item search.Record) error {
 		isNew = true
 		var err error
 		if keyHasValue {
-			err = s.backing.CreateWithId(key, item, &s.indexKeys)
+			err = s.backing.CreateWithID(key, item, &s.indexKeys)
 		} else {
 			err = s.backing.Create(item, &s.indexKeys)
 		}
@@ -97,19 +102,19 @@ func (s *KeyedStorage) Add(item search.Record) error {
 			return err
 		}
 	} else if !existingResult.Equals(item) {
-		//This must be an update
+		// This must be an update
 		isUpdate = true
 		err := s.backing.Update(existingQuery, item)
 		if err != nil {
 			return err
 		}
 	}
-	//We set the result's state so it's known later on whenever it's used.
+	// We set the result's state so it's known later on whenever it's used.
 	item.SetState(isNew, isUpdate)
 	return nil
 }
 
-//AddUniqueIndex adds a new key set as unique for this storage.
+// AddUniqueIndex adds a new key set as unique for this storage.
 func (s *KeyedStorage) AddUniqueIndex(key *indexing.Key) {
 	s.indexKeys.AddKeys(key)
 }

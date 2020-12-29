@@ -7,6 +7,7 @@ import (
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/PuerkitoBio/goquery"
+
 	"github.com/sp0x/torrentd/indexer/source"
 	"github.com/sp0x/torrentd/indexer/source/web"
 )
@@ -54,7 +55,7 @@ type RawScrapeItem interface {
 	First() RawScrapeItem
 }
 
-//region Scrape items collection
+// region Scrape items collection
 
 type JsonScrapeItems struct {
 	items []interface{}
@@ -80,9 +81,9 @@ func (d *DomScrapeItems) Get(i int) RawScrapeItem {
 	return &DomScrapeItem{selection: d.items.Eq(i)}
 }
 
-//endregion
+// endregion
 
-//region Scrape item
+// region Scrape item
 
 type JsonScrapeItem struct {
 	item interface{}
@@ -226,7 +227,7 @@ func (d *DomScrapeItem) Remove() RawScrapeItem {
 	return &DomScrapeItem{d.selection.Remove()}
 }
 
-//endregion
+// endregion
 
 func (r *Runner) getRows(result source.FetchResult, runCtx *RunContext) (RawScrapeItems, error) {
 	switch value := result.(type) {

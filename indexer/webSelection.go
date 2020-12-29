@@ -3,11 +3,11 @@ package indexer
 import (
 	"errors"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"regexp"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/sirupsen/logrus"
 )
 
 type filterBlock struct {
@@ -28,7 +28,7 @@ type selectorBlock struct {
 	Filters      []filterBlock     `yaml:"filters,omitempty"`
 	Case         map[string]string `yaml:"case,omitempty"`
 	FilterConfig map[string]string `yaml:"filterconfig"`
-	//If we'll use all the values
+	// If we'll use all the values
 	All bool `yaml:"all"`
 }
 
@@ -36,7 +36,7 @@ func (s *selectorBlock) IsMatching(selection *goquery.Selection) bool {
 	return !s.IsEmpty() && (selection.Find(s.Selector).Length() > 0 || s.TextVal != "")
 }
 
-//Match using the selector to get the text of that element
+// Match using the selector to get the text of that element
 func (s *selectorBlock) Match(from RawScrapeItem) (interface{}, error) {
 	if s.TextVal != "" {
 		return s.TextVal, nil
@@ -94,7 +94,7 @@ func (s *selectorBlock) TextRaw(el RawScrapeItem) (string, error) {
 		el.Find(s.Remove).Remove()
 	}
 	if s.Case != nil {
-		//filterLogger.WithFields(logrus.Fields{"case": s.Case}).
+		// filterLogger.WithFields(logrus.Fields{"case": s.Case}).
 		//	Debugf("Applying case to selection")
 		for pattern, value := range s.Case {
 			if el.Is(pattern) || el.Has(pattern).Length() >= 1 {
@@ -156,7 +156,7 @@ func (s *selectorBlock) Texts(element RawScrapeItem) ([]string, error) {
 	return matches, nil
 }
 
-//Text extracts text from the selection, applying all filters
+// Text extracts text from the selection, applying all filters
 func (s *selectorBlock) Text(el RawScrapeItem) (string, error) {
 	if s.TextVal != "" {
 		return s.ApplyFilters(s.TextVal)
@@ -189,7 +189,7 @@ func (s *selectorBlock) Text(el RawScrapeItem) (string, error) {
 	return s.ApplyFilters(output)
 }
 
-//Filter the value through a list of filters
+// Filter the value through a list of filters
 func (s *selectorBlock) ApplyFilters(val string) (string, error) {
 	prevFilterFailed := false
 	var prevFilter filterBlock
@@ -197,7 +197,7 @@ func (s *selectorBlock) ApplyFilters(val string) (string, error) {
 		var shouldFilter bool
 		switch f.Name {
 		case "dateparseAlt":
-			//This is ran only if there has been a failure before.
+			// This is ran only if there has been a failure before.
 			shouldFilter = prevFilterFailed && prevFilter.Name == "dateparse"
 		default:
 			shouldFilter = true
@@ -219,9 +219,9 @@ func (s *selectorBlock) ApplyFilters(val string) (string, error) {
 			prevFilterFailed = true
 			prevFilter = f
 			continue
-			//return "", err
+			// return "", err
 		}
-		//If we've got a template
+		// If we've got a template
 		if strings.Contains(newVal, "{{") {
 			filterContext := struct {
 				Config map[string]string
@@ -230,7 +230,7 @@ func (s *selectorBlock) ApplyFilters(val string) (string, error) {
 			}
 			newVal, err = applyTemplate("filter_template", newVal, filterContext)
 			if err != nil {
-				//We revert back..
+				// We revert back..
 				newVal = val
 			}
 		}

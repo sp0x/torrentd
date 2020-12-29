@@ -1,15 +1,17 @@
 package indexer
 
 import (
-	"github.com/dustin/go-humanize"
-	"github.com/sp0x/torrentd/indexer/search"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/dustin/go-humanize"
+
+	"github.com/sp0x/torrentd/indexer/search"
 )
 
 func (r *Runner) populateTorrentData(resultItem search.ResultItemBase, context *rowContext) {
-	//Maybe don't do that always?
+	// Maybe don't do that always?
 	item := resultItem.(*search.TorrentResultItem)
 
 	item.Fingerprint = search.GetResultFingerprint(item)
@@ -28,7 +30,6 @@ func (r *Runner) populateTorrentItemField(
 	row map[string]interface{},
 	nonFilteredRow map[string]string,
 	rowIdx int) bool {
-
 	item := itemToPopulate.(*search.TorrentResultItem)
 
 	switch key {
@@ -40,7 +41,7 @@ func (r *Runner) populateTorrentItemField(
 			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 			return false
 		}
-		//item.UUIDValue = u
+		// item.UUIDValue = u
 		item.Description = u
 		// comments is used by Sonarr for linking to
 		if item.Comments == "" {
@@ -87,7 +88,7 @@ func (r *Runner) populateTorrentItemField(
 			r.logger.Warnf("Row #%d has unparseable size %q: %v", rowIdx, val, err.Error())
 			return false
 		}
-		//r.logger.Debugf("After parsing, size is %v", bytes)
+		// r.logger.Debugf("After parsing, size is %v", bytes)
 		item.Size = uint32(bytes)
 	case "leechers":
 		leechers, err := strconv.Atoi(normalizeNumber(firstString(val)))

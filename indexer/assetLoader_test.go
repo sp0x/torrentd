@@ -2,9 +2,11 @@ package indexer
 
 import (
 	"fmt"
-	. "github.com/onsi/gomega"
-	"github.com/sp0x/torrentd/indexer/definitions"
 	"testing"
+
+	. "github.com/onsi/gomega"
+
+	"github.com/sp0x/torrentd/indexer/definitions"
 )
 
 func TestAssetLoader_List(t *testing.T) {

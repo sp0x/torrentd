@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
 )
 
 var rootCmd = &cobra.Command{
@@ -14,7 +15,7 @@ var rootCmd = &cobra.Command{
 var configFile = ""
 
 func init() {
-	//Init our db
+	// Init our db
 	cobra.OnInitialize(initConfig)
 	flags := rootCmd.PersistentFlags()
 	var verbose bool

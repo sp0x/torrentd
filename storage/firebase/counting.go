@@ -1,20 +1,21 @@
 package firebase
 
 import (
-	"cloud.google.com/go/firestore"
 	"context"
 	"fmt"
-	"google.golang.org/api/iterator"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"math/rand"
 	"strconv"
 	"time"
+
+	"cloud.google.com/go/firestore"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type counter struct {
 	numOfShards int
 }
+
 type counterShard struct {
 	Count int
 }
@@ -50,37 +51,37 @@ func (c *counter) initCounter(ctx context.Context, docRef *firestore.DocumentRef
 	return nil
 }
 
-//Increment the count
+// Increment the count
 func (c *counter) incrementCounter(ctx context.Context, docRef *firestore.DocumentRef) (*firestore.WriteResult, error) {
-	//Chose a random shard
+	// Chose a random shard
 	docID := strconv.Itoa(rand.Intn(c.numOfShards))
-	//Get it
+	// Get it
 	shardRef := docRef.Collection("shards").Doc(docID)
-	//Increment it
+	// Increment it
 	return shardRef.Update(ctx, []firestore.Update{
 		{Path: "Count", Value: firestore.Increment(1)},
 	})
 }
 
 // getCount returns a total count across all shards.
-func (c *counter) getCount(ctx context.Context, docRef *firestore.DocumentRef) (int64, error) {
-	var total int64
-	shards := docRef.Collection("shards").Documents(ctx)
-	for {
-		doc, err := shards.Next()
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			return 0, fmt.Errorf("next: %v", err)
-		}
-
-		vTotal := doc.Data()["Count"]
-		shardCount, ok := vTotal.(int64)
-		if !ok {
-			return 0, fmt.Errorf("firestore: invalid dataType %T, want int64", vTotal)
-		}
-		total += shardCount
-	}
-	return total, nil
-}
+//func (c *counter) getCount(ctx context.Context, docRef *firestore.DocumentRef) (int64, error) {
+//	var total int64
+//	shards := docRef.Collection("shards").Documents(ctx)
+//	for {
+//		doc, err := shards.Next()
+//		if err == iterator.Done {
+//			break
+//		}
+//		if err != nil {
+//			return 0, fmt.Errorf("next: %v", err)
+//		}
+//
+//		vTotal := doc.Data()["Count"]
+//		shardCount, ok := vTotal.(int64)
+//		if !ok {
+//			return 0, fmt.Errorf("firestore: invalid dataType %T, want int64", vTotal)
+//		}
+//		total += shardCount
+//	}
+//	return total, nil
+//}

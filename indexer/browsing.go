@@ -1,8 +1,14 @@
 package indexer
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
+	"net"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/f2prateek/train"
 	trainlog "github.com/f2prateek/train/log"
 	"github.com/sirupsen/logrus"
@@ -10,19 +16,16 @@ import (
 	"github.com/sp0x/surf/agent"
 	"github.com/sp0x/surf/browser"
 	"github.com/sp0x/surf/jar"
-	"github.com/sp0x/torrentd/indexer/source/web"
 	"github.com/spf13/viper"
 	"golang.org/x/net/proxy"
-	"net"
-	"net/http"
-	"os"
-	"time"
+
+	"github.com/sp0x/torrentd/indexer/source/web"
 )
 
 func (r *Runner) createTransport() (http.RoundTripper, error) {
 	var t http.Transport
 	var custom bool
-	//If we have a proxy to use
+	// If we have a proxy to use
 	if proxyAddr, isset := os.LookupEnv("SOCKS_PROXY"); isset {
 		r.logger.
 			WithFields(logrus.Fields{"addr": proxyAddr}).
@@ -33,7 +36,11 @@ func (r *Runner) createTransport() (http.RoundTripper, error) {
 			return nil, fmt.Errorf("can't connect to the proxy %s: %v", proxyAddr, err)
 		}
 
-		t.Dial = dialer.Dial
+		dc := dialer.(interface {
+			DialContext(ctx context.Context, network, addr string) (net.Conn, error)
+		})
+
+		t.DialContext = dc.DialContext
 		custom = true
 	}
 
@@ -56,7 +63,7 @@ func (r *Runner) createTransport() (http.RoundTripper, error) {
 
 func (r *Runner) createBrowser() *browser.Browser {
 	if r.keepSessions {
-		//No need to recreate browsers if we're keeping the session
+		// No need to recreate browsers if we're keeping the session
 		if r.browser != nil {
 			return nil
 		}
@@ -74,7 +81,7 @@ func (r *Runner) createBrowser() *browser.Browser {
 	bow.SetAttribute(browser.MetaRefreshHandling, true)
 	bow.SetCookieJar(r.cookies)
 	bow.SetRateLimit(r.definition.RateLimit)
-	//bow.SetTimeout(time.Second * 10)
+	// bow.SetTimeout(time.Second * 10)
 
 	transport, err := r.createTransport()
 	if err != nil {

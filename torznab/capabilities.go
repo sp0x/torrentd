@@ -2,11 +2,12 @@ package torznab
 
 import (
 	"encoding/xml"
-	"github.com/sp0x/torrentd/indexer/categories"
-	"github.com/sp0x/torrentd/indexer/search"
 	"net/http"
 	"sort"
 	"strings"
+
+	"github.com/sp0x/torrentd/indexer/categories"
+	"github.com/sp0x/torrentd/indexer/search"
 )
 
 type Capabilities struct {

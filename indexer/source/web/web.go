@@ -10,6 +10,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/browser"
+
 	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/source"
 )
@@ -19,7 +20,7 @@ const (
 	searchMethodGet  = "get"
 )
 
-//ContentFetcher is a content fetcher that deals with the state of sources
+// ContentFetcher is a content fetcher that deals with the state of sources
 type ContentFetcher struct {
 	Browser            browser.Browsable
 	Cacher             ContentCacher
@@ -41,7 +42,7 @@ func NewWebContentFetcher(browser browser.Browsable,
 	}
 	return &ContentFetcher{
 		Browser: browser,
-		//We'll use the indexer to cache content.
+		// We'll use the indexer to cache content.
 		Cacher:             contentCache,
 		ConnectivityTester: connectivityTester,
 		options:            options,
@@ -65,13 +66,13 @@ func (w *ContentFetcher) FetchUrl(url string) error {
 	return err
 }
 
-//Gets the content from which we'll extract the search results
+// Gets the content from which we'll extract the search results
 func (w *ContentFetcher) Fetch(target *source.SearchTarget) (source.FetchResult, error) {
 	if target == nil {
 		return nil, errors.New("target is required for searching")
 	}
 	defer func() {
-		//After we're done we'll cleanup the history of the browser.
+		// After we're done we'll cleanup the history of the browser.
 		w.Cleanup()
 	}()
 	var err error
@@ -189,7 +190,7 @@ func (w *ContentFetcher) fakeBrowserReferer(urlStr string) {
 }
 
 // this should eventually upstream into surf browser
-//Handle a header like: Refresh: 0;url=my_view_page.php
+// Handle a header like: Refresh: 0;url=my_view_page.php
 func (w *ContentFetcher) handleMetaRefreshHeader() error {
 	h := w.Browser.ResponseHeaders()
 	if refresh := h.Get("Refresh"); refresh != "" {

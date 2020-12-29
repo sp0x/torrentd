@@ -6,7 +6,7 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-//GetLatest returns the latest `count` of records.
+// GetLatest returns the latest `count` of records.
 func (f *FirestoreStorage) GetLatest(count int) []search.ResultItemBase {
 	var output []search.ResultItemBase
 	collection := f.getCollection()

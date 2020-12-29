@@ -6,7 +6,7 @@ import (
 	"text/template"
 )
 
-//Evaluate a template
+// Evaluate a template
 func applyTemplate(name, templateText string, ctx interface{}) (string, error) {
 	funcMap := template.FuncMap{
 		"replace": strings.Replace,
@@ -16,7 +16,7 @@ func applyTemplate(name, templateText string, ctx interface{}) (string, error) {
 		return "", err
 	}
 	b := &bytes.Buffer{}
-	err = tmpl.Execute(b, ctx) //Evaluate the template
+	err = tmpl.Execute(b, ctx) // Evaluate the template
 	if err != nil {
 		return "", err
 	}

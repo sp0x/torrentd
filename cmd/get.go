@@ -2,13 +2,15 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
 	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/indexer/status"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"os"
 )
 
 func init() {
@@ -27,10 +29,10 @@ Currently supported storage backings: boltdb, firebase, sqlite`)
 	firebaseCredentials := ""
 	cmdFlags.StringVarP(&firebaseCredentials, "firebase_project", "", "", "The project id for firebase")
 	cmdFlags.StringVarP(&firebaseProject, "firebase_credentials_file", "", "", "The service credentials for firebase")
-	//Storage config
+	// Storage config
 	_ = viper.BindPFlag("storage", cmdFlags.Lookup("storage"))
 	_ = viper.BindEnv("storage")
-	//Firebase related
+	// Firebase related
 	_ = viper.BindPFlag("firebase_project", cmdFlags.Lookup("firebase_project"))
 	_ = viper.BindEnv("firebase_project")
 	_ = viper.BindPFlag("firebase_credentials_file", cmdFlags.Lookup("firebase_credentials_file"))
@@ -47,7 +49,7 @@ func getCommand(c *cobra.Command, _ []string) {
 		log.Error("Couldn't initialize torrent facade.")
 		return
 	}
-	//Start watching the torrent tracker.
+	// Start watching the torrent tracker.
 	status.SetupPubsub(appConfig.GetString("firebase_project"))
 	queryStr := c.Flag("query").Value.String()
 	query := search.ParseQueryString(queryStr)

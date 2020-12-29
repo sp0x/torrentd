@@ -1,14 +1,16 @@
 package firebase
 
 import (
-	"cloud.google.com/go/firestore"
 	"context"
 	"errors"
+
+	"cloud.google.com/go/firestore"
+	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
+
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/indexing"
 	"github.com/sp0x/torrentd/storage/serializers"
-	"google.golang.org/api/iterator"
-	"google.golang.org/api/option"
 )
 
 type FirestoreConfig struct {
@@ -31,7 +33,7 @@ const (
 	counterDoc        = "__count"
 )
 
-//NewFirestoreStorage creates a new firestore backed storage
+// NewFirestoreStorage creates a new firestore backed storage
 func NewFirestoreStorage(conf *FirestoreConfig, typePtr interface{}) (*FirestoreStorage, error) {
 	ctx := context.Background()
 	var options []option.ClientOption
@@ -68,7 +70,27 @@ func (f *FirestoreStorage) getCollection() *firestore.CollectionRef {
 }
 
 func (f *FirestoreStorage) Close() {
-	//This is just a stub
+	// This is just a stub
+}
+
+func (f *FirestoreStorage) Truncate() error {
+	collection := f.getCollection()
+	tmpQuery := collection.Offset(0)
+	docIterator := tmpQuery.Documents(f.context)
+	for true {
+		doc, err := docIterator.Next()
+		if err != nil {
+			return err
+		}
+		if doc == nil {
+			return nil
+		}
+		_, err = doc.Ref.Delete(f.context)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (f *FirestoreStorage) HasIndex(meta *indexing.IndexMetadata) bool {
@@ -107,7 +129,6 @@ func (f *FirestoreStorage) ForEach(callback func(record search.Record)) {
 		}
 		callback(record.(search.ResultItemBase))
 	}
-
 }
 
 func (f *FirestoreStorage) transformIndexQueryToFirestoreQuery(query indexing.Query, limit int) *firestore.Query {
@@ -145,23 +166,23 @@ func (f *FirestoreStorage) Update(query indexing.Query, item interface{}) error 
 	return err
 }
 
-//Create a new record.
-//This uses the UUIDValue for identifying records, upon creation a new UUID is generated.
+// Create a new record.
+// This uses the UUIDValue for identifying records, upon creation a new UUID is generated.
 func (f *FirestoreStorage) Create(item search.Record, additionalIndex *indexing.Key) error {
-	err := f.CreateWithId(nil, item, additionalIndex)
+	err := f.CreateWithID(nil, item, additionalIndex)
 	if err != nil {
 		return err
 	}
 	if additionalIndex.IsEmpty() {
 		return nil
 	}
-	//Right now we don't do anything with that index.....
+	// Right now we don't do anything with that index.....
 	return err
 }
 
-//CreateWithId creates a new record using a custom key.
-//If a key isn't provided, a random uuid is generated in it's place, and stored in the UUIDValue field.
-func (f *FirestoreStorage) CreateWithId(key *indexing.Key, item search.Record, uniqueIndexKeys *indexing.Key) error {
+// CreateWithID creates a new record using a custom key.
+// If a key isn't provided, a random uuid is generated in it's place, and stored in the UUIDValue field.
+func (f *FirestoreStorage) CreateWithID(key *indexing.Key, item search.Record, uniqueIndexKeys *indexing.Key) error {
 	collection := f.getCollection()
 	indexValue := ""
 	var doc *firestore.DocumentRef
@@ -175,19 +196,19 @@ func (f *FirestoreStorage) CreateWithId(key *indexing.Key, item search.Record, u
 		doc = collection.Doc(indexValue)
 	}
 	if key == nil || key.IsEmpty() {
-		//Since this is a new item we'll need to create a new ID, if there's no key.
+		// Since this is a new item we'll need to create a new ID, if there's no key.
 		item.SetUUID(doc.ID)
 	}
 	_, err := doc.Create(f.context, item)
 	if err != nil {
 		return err
 	}
-	//Update the meta, incrementing the count
+	// Update the meta, incrementing the count
 	_, err = f.counter.incrementCounter(f.context, collection.Doc(counterDoc))
 	return err
 }
 
-//Size is the size of the storage, as in records count
+// Size is the size of the storage, as in records count
 func (f *FirestoreStorage) Size() int64 {
 	collection := f.getCollection()
 	doc, err := collection.Doc(metaDoc).Get(f.context)

@@ -29,14 +29,14 @@ func First(index Index, indexKey []byte) []byte {
 	return results[0]
 }
 
-//IndexMetadata is used to describe an index
+// IndexMetadata is used to describe an index
 type IndexMetadata struct {
 	Name     string `json:"name"`
 	Unique   bool   `json:"unique"`
 	Location string
 }
 
-//GetIndexNameFromQuery gets the name of an index from a query.
+// GetIndexNameFromQuery gets the name of an index from a query.
 func GetIndexNameFromQuery(query Query) string {
 	name := ""
 	querySize := query.Size()
@@ -50,7 +50,7 @@ func GetIndexNameFromQuery(query Query) string {
 	return name
 }
 
-//GetIndexValueFromItem gets the index value from a key set and an item.
+// GetIndexValueFromItem gets the index value from a key set and an item.
 func GetIndexValueFromItem(keyParts *Key, item interface{}) []byte {
 	if keyParts == nil {
 		return []byte{}
@@ -82,15 +82,14 @@ func GetIndexValueFromItem(keyParts *Key, item interface{}) []byte {
 		if value, found := fieldsField.Interface().(map[string]interface{})[parsedFieldName]; found {
 			valueParts[ix] = serializeKeyValue(value)
 		}
-
 	}
 	output := strings.Join(valueParts, "\000")
 	return []byte(output)
 }
 
-//GetIndexValueFromQuery get the value of an index by a query.
+// GetIndexValueFromQuery get the value of an index by a query.
 func GetIndexValueFromQuery(query Query) []byte {
-	//indexValue := make([]byte, 0, 0)
+	// indexValue := make([]byte, 0, 0)
 	valueParts := make([]string, query.Size())
 	i := 0
 	for _, v := range query.Values() {

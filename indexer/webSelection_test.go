@@ -1,8 +1,6 @@
 package indexer
 
 import (
-	"github.com/PuerkitoBio/goquery"
-	. "github.com/onsi/gomega"
 	"strings"
 	"testing"
 )

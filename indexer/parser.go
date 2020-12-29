@@ -4,18 +4,19 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"github.com/sp0x/surf/browser"
-	"github.com/sp0x/torrentd/indexer/categories"
-	"github.com/sp0x/torrentd/indexer/search"
-	"github.com/sp0x/torrentd/torznab"
 	"io/ioutil"
 	"os"
 	"reflect"
 	"strings"
 	"time"
 
+	"github.com/sirupsen/logrus"
+	"github.com/sp0x/surf/browser"
 	"gopkg.in/yaml.v2"
+
+	"github.com/sp0x/torrentd/indexer/categories"
+	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/torznab"
 )
 
 var defaultRateLimit = 500
@@ -39,9 +40,9 @@ type IndexerDefinition struct {
 	Search       searchBlock            `yaml:"search"`
 	stats        IndexerDefinitionStats `yaml:"-"`
 	Encoding     string                 `yaml:"encoding"`
-	//Entities that the index contains
+	// Entities that the index contains
 	Entities []entityBlock `yaml:"entities"`
-	//The ms to wait between each request.
+	// The ms to wait between each request.
 	RateLimit int `yaml:"ratelimit"`
 }
 
@@ -74,7 +75,7 @@ func (id *IndexerDefinition) getNewResultItem() search.ResultItemBase {
 	}
 }
 
-//getSearchEntity gets the entity that's returned from a search.
+// getSearchEntity gets the entity that's returned from a search.
 func (id *IndexerDefinition) getSearchEntity() *entityBlock {
 	entity := &entityBlock{}
 	entity.Name = searchEntity
@@ -98,7 +99,7 @@ type settingsField struct {
 	Label string `yaml:"label"`
 }
 
-//ParseDefinitionFile loads an Indexer's definition from a file
+// ParseDefinitionFile loads an Indexer's definition from a file
 func ParseDefinitionFile(f *os.File) (*IndexerDefinition, error) {
 	b, err := ioutil.ReadFile(f.Name())
 	if err != nil {
@@ -333,7 +334,7 @@ func (c *capabilitiesBlock) UnmarshalYAML(unmarshal func(interface{}) error) err
 
 	if err := unmarshal(&intermediate); err == nil {
 		c.CategoryMap = categoryMap{}
-		//Map the found indexCategories using our own Categories `torznab.AllCategories`.
+		// Map the found indexCategories using our own Categories `torznab.AllCategories`.
 		allCats := categories.AllCategories
 		for id, catName := range intermediate.Categories {
 			matchedCat := false
@@ -350,7 +351,7 @@ func (c *capabilitiesBlock) UnmarshalYAML(unmarshal func(interface{}) error) err
 					WithFields(logrus.Fields{"name": catName, "id": id}).
 					Warn("Unknown category")
 				continue
-				//return fmt.Errorf("Unknown category %q", catName)
+				// return fmt.Errorf("Unknown category %q", catName)
 			}
 		}
 
@@ -366,7 +367,7 @@ func (c *capabilitiesBlock) UnmarshalYAML(unmarshal func(interface{}) error) err
 	return errors.New("Failed to unmarshal capabilities block")
 }
 
-//ToTorznab converts a capabilities def. block to torznab capabilities object.
+// ToTorznab converts a capabilities def. block to torznab capabilities object.
 func (c *capabilitiesBlock) ToTorznab() torznab.Capabilities {
 	caps := torznab.Capabilities{
 		Categories:  c.CategoryMap.Categories(),

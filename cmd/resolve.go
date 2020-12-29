@@ -2,9 +2,10 @@ package main
 
 import (
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+
 	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/torrent"
-	"github.com/spf13/cobra"
 )
 
 var resolutionHours int

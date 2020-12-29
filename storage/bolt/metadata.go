@@ -3,9 +3,11 @@ package bolt
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/boltdb/bolt"
-	"github.com/sp0x/torrentd/storage/indexing"
 	"os"
+
+	"github.com/boltdb/bolt"
+
+	"github.com/sp0x/torrentd/storage/indexing"
 )
 
 type Metadata struct {

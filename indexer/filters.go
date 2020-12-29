@@ -3,8 +3,6 @@ package indexer
 import (
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/indexer/formatting"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -12,6 +10,9 @@ import (
 	"text/scanner"
 	"time"
 	"unicode"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/torrentd/indexer/formatting"
 
 	"github.com/bcampbell/fuzzytime"
 )
@@ -28,7 +29,7 @@ func defaultFilterConfig() map[string]string {
 	}
 }
 
-//Filter out whatever's needed
+// Filter out whatever's needed
 func invokeFilter(name string, args interface{}, value string) (string, error) {
 	switch name {
 	case "querystring":
@@ -193,7 +194,7 @@ func filterRegexp(pattern string, value string) (string, error) {
 		return "", errors.New("No matches found for pattern")
 	}
 	filterLogger.WithFields(log.Fields{"matches": matches}).Debug("Regex matched")
-	//If we have groups, use the groups concatenated by a space
+	// If we have groups, use the groups concatenated by a space
 	if len(matches) > 1 {
 		matches = matches[1:]
 		return strings.Join(matches, " "), nil
@@ -374,7 +375,7 @@ func parseFuzzyTime(src string, now time.Time, allowPartialDate bool) (time.Time
 		}
 	}
 
-	//If we dont support partial dates, we return an error
+	// If we dont support partial dates, we return an error
 	if !allowPartialDate && !dt.HasFullDate() {
 		return time.Time{}, fmt.Errorf("found only partial date %v", dt.ISOFormat())
 	}

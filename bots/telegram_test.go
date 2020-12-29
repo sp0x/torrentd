@@ -1,14 +1,16 @@
 package bots
 
 import (
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	. "github.com/onsi/gomega"
-	"github.com/sp0x/torrentd/config"
 	"reflect"
 	"testing"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	. "github.com/onsi/gomega"
+
+	"github.com/sp0x/torrentd/config"
 )
 
-//A mock for a telegram provider.
+// A mock for a telegram provider.
 func MockedApiProvider(string) (*tgbotapi.BotAPI, error) {
 	api := &tgbotapi.BotAPI{}
 	return api, nil

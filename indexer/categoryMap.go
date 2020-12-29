@@ -6,7 +6,7 @@ import (
 
 type categoryMap map[string]*categories.Category
 
-//Categories gets the collection of indexCategories that this map contains
+// Categories gets the collection of indexCategories that this map contains
 func (mapping categoryMap) Categories() categories.Categories {
 	cats := categories.Categories{}
 	added := map[int]bool{}
@@ -22,10 +22,10 @@ func (mapping categoryMap) Categories() categories.Categories {
 	return cats
 }
 
-//Resolve the names of the category
+// Resolve the names of the category
 func (mapping categoryMap) Resolve(cat *categories.Category) []string {
 	var matched bool
-	var results = []string{}
+	results := []string{}
 	if cat == nil {
 		return results
 	}

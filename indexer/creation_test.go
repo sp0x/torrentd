@@ -1,8 +1,6 @@
 package indexer
 
 import (
-	"github.com/onsi/gomega"
-	"github.com/sp0x/torrentd/config"
 	"testing"
 	"time"
 )

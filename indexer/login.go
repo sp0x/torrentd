@@ -7,10 +7,10 @@ import (
 	"net/url"
 )
 
-//extractInputLogins gets the configured input fields and vals for the login.
+// extractInputLogins gets the configured input fields and vals for the login.
 func (r *Runner) extractInputLogins() (map[string]string, error) {
 	result := map[string]string{}
-	//Get configuration for the Indexer so we can login
+	// Get configuration for the Indexer so we can login
 	cfg, err := r.opts.Config.GetSite(r.definition.Name)
 	if err != nil {
 		return nil, err
@@ -91,7 +91,7 @@ func (r *Runner) login() error {
 			return &LoginError{err}
 		}
 	}
-	//HealthCheck if the login went ok
+	// HealthCheck if the login went ok
 	match, err := r.matchPageTestBlock(r.definition.Login.Test)
 	if err != nil {
 		return err
@@ -133,8 +133,8 @@ func (r *Runner) loginViaForm(loginURL, formSelector string, vals map[string]str
 		}
 	}
 	r.logger.Debug("Submitting login form")
-	//Maybe we don't need to cache the current brower page
-	//defer r.cachePage()
+	// Maybe we don't need to cache the current brower page
+	// defer r.cachePage()
 	if err = fm.Submit(); err != nil {
 		r.logger.WithError(err).Error("Login failed")
 		return err

@@ -8,9 +8,9 @@ import (
 //HttpContexts allows us to use gin's context
 //go:generate mockgen -source interfaces.go -destination=mocks/mock_httpContext.go -package=mocks
 type Context interface {
-	//Set a header
+	// Set a header
 	Header(name, value string)
-	//Send a string
+	// Send a string
 	String(code int, format string, values ...interface{})
 	Param(s string) string
 	Error(err error) *gin.Error

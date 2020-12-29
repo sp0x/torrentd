@@ -3,7 +3,9 @@ package bolt
 import (
 	"bytes"
 	"errors"
+
 	"github.com/boltdb/bolt"
+
 	"github.com/sp0x/torrentd/storage/indexing"
 )
 
@@ -13,7 +15,7 @@ func (e *IndexDoesNotExistAndNotWritable) Error() string {
 	return "index does not exist and couln't be created"
 }
 
-//NewUniqueIndex creates a new unique index bucket
+// NewUniqueIndex creates a new unique index bucket
 func NewUniqueIndex(parentBucket *bolt.Bucket, name []byte) (*UniqueIndex, error) {
 	var err error
 	if parentBucket == nil {
@@ -35,14 +37,14 @@ func NewUniqueIndex(parentBucket *bolt.Bucket, name []byte) (*UniqueIndex, error
 	}, nil
 }
 
-//UniqueIndex ensures the indexed values are all unique.
+// UniqueIndex ensures the indexed values are all unique.
 type UniqueIndex struct {
 	ParentBucket *bolt.Bucket
 	IndexBucket  *bolt.Bucket
 }
 
-//Add a value to the unique index. We're using the index value as a keyParts
-//and we're storing the id in there.
+// Add a value to the unique index. We're using the index value as a keyParts
+// and we're storing the id in there.
 func (ix *UniqueIndex) Add(indexValue []byte, id []byte) error {
 	if indexValue == nil {
 		return errors.New("indexValue is required")
@@ -60,12 +62,12 @@ func (ix *UniqueIndex) Add(indexValue []byte, id []byte) error {
 	return ix.IndexBucket.Put(indexValue, id)
 }
 
-//Remove a index value from the unique index.
+// Remove a index value from the unique index.
 func (ix *UniqueIndex) Remove(indexValue []byte) error {
 	return ix.IndexBucket.Delete(indexValue)
 }
 
-//RemoveById removes the first id from the index that matches the given id.
+// RemoveById removes the first id from the index that matches the given id.
 func (ix *UniqueIndex) RemoveById(id []byte) error {
 	cursor := ix.IndexBucket.Cursor()
 	for value, otherId := cursor.First(); value != nil; value, otherId = cursor.Next() {
@@ -76,13 +78,13 @@ func (ix *UniqueIndex) RemoveById(id []byte) error {
 	return nil
 }
 
-//Get the id behind an indexed value.
+// Get the id behind an indexed value.
 func (ix *UniqueIndex) Get(indexValue []byte) []byte {
 	return ix.IndexBucket.Get(indexValue)
 }
 
-//All returns all the IDs corresponding to the given index value.
-//For unique indexes this should be a single ID.
+// All returns all the IDs corresponding to the given index value.
+// For unique indexes this should be a single ID.
 func (ix *UniqueIndex) All(indexValue []byte, _ *indexing.CursorOptions) [][]byte {
 	id := ix.IndexBucket.Get(indexValue)
 	if id != nil {
@@ -91,7 +93,7 @@ func (ix *UniqueIndex) All(indexValue []byte, _ *indexing.CursorOptions) [][]byt
 	return nil
 }
 
-//AllRecords returns all the IDs.
+// AllRecords returns all the IDs.
 func (ix *UniqueIndex) AllRecords(ops *indexing.CursorOptions) [][]byte {
 	shouldReverse := ops != nil && ops.Reverse
 	c := &ReversibleCursor{
@@ -101,7 +103,7 @@ func (ix *UniqueIndex) AllRecords(ops *indexing.CursorOptions) [][]byte {
 	return scanCursor(c, ops)
 }
 
-//Range gets the IDs in the given range.
+// Range gets the IDs in the given range.
 func (ix *UniqueIndex) Range(min []byte, max []byte, ops *indexing.CursorOptions) [][]byte {
 	shouldReverse := ops != nil && ops.Reverse
 	c := &RangeCursor{
@@ -116,7 +118,7 @@ func (ix *UniqueIndex) Range(min []byte, max []byte, ops *indexing.CursorOptions
 	return scanCursor(c, ops)
 }
 
-//AllWithPrefix finds all the IDs that are prefixed with a given byte array
+// AllWithPrefix finds all the IDs that are prefixed with a given byte array
 func (ix *UniqueIndex) AllWithPrefix(prefix []byte, ops *indexing.CursorOptions) [][]byte {
 	c := &PrefixCursor{
 		C:       ix.IndexBucket.Cursor(),

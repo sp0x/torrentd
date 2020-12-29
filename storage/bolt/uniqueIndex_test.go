@@ -2,17 +2,19 @@ package bolt
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/boltdb/bolt"
 	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/require"
+
 	"github.com/sp0x/torrentd/storage/indexing"
 	"github.com/sp0x/torrentd/storage/serializers/gob"
-	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestUniqueIndex(t *testing.T) {
 	g := NewWithT(t)
-	db, _ := GetBoltDb(tempfile())
+	db, _ := GetBoltDB(tempfile())
 	defer func() {
 		_ = db.Close()
 	}()
@@ -117,7 +119,7 @@ func TestUniqueIndex(t *testing.T) {
 }
 
 func TestUniqueIndexRange(t *testing.T) {
-	db, _ := GetBoltDb(tempfile())
+	db, _ := GetBoltDB(tempfile())
 	defer func() {
 		_ = db.Close()
 	}()
@@ -190,7 +192,7 @@ func TestUniqueIndexRange(t *testing.T) {
 }
 
 func TestUniqueIndexPrefix(t *testing.T) {
-	db, _ := GetBoltDb(tempfile())
+	db, _ := GetBoltDB(tempfile())
 	defer func() {
 		_ = db.Close()
 	}()

@@ -1,7 +1,6 @@
 package indexer
 
 import (
-	. "github.com/onsi/gomega"
 	"testing"
 )
 
@@ -46,7 +45,8 @@ func Test_formatValue_ShouldFilterArrays(t *testing.T) {
 		{
 			Name: "number",
 			Args: nil,
-		}}
+		},
+	}
 	value := formatValues(field, []string{
 		"val{{.a}}",
 		"val{{.b}}",

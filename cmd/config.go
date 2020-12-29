@@ -1,18 +1,19 @@
 package main
 
 import (
-	"github.com/mitchellh/go-homedir"
-	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/config"
-	"github.com/spf13/viper"
 	"os"
 	"path"
+
+	"github.com/mitchellh/go-homedir"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 var appConfig config.ViperConfig
 
 func initConfig() {
-	//We load the default config file
+	// We load the default config file
 	homeDir, _ := homedir.Dir()
 	if configFile != "" {
 		viper.SetConfigFile(configFile)
@@ -39,5 +40,4 @@ func initConfig() {
 	if viper.GetBool("verbose") {
 		log.SetLevel(log.DebugLevel)
 	}
-
 }

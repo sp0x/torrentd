@@ -2,7 +2,9 @@ package indexer
 
 import (
 	"errors"
+
 	log "github.com/sirupsen/logrus"
+
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/categories"
 )
@@ -19,27 +21,27 @@ type CachedScope struct {
 	indexes map[string]Indexer
 }
 
-//NewScope creates a new scope for indexer runners
+// NewScope creates a new scope for indexer runners
 func NewScope() Scope {
 	sc := &CachedScope{}
 	sc.indexes = make(map[string]Indexer)
 	return sc
 }
 
-//Indexes returns the currently loaded indexes
+// Indexes returns the currently loaded indexes
 func (c *CachedScope) Indexes() map[string]Indexer {
 	return c.indexes
 }
 
-//Lookup finds the matching Indexer.
+// Lookup finds the matching Indexer.
 func (c *CachedScope) Lookup(config config.Config, key string) (Indexer, error) {
-	//If we already have that indexer running, we don't create a new one.
+	// If we already have that indexer running, we don't create a new one.
 	selector := newIndexerSelector(key)
 	log.Debugf("Looking up scoped index: %v\n", selector)
 	if _, ok := c.indexes[key]; !ok {
 		var indexer Indexer
 		var err error
-		//If we're looking up an aggregate indexer, we just create an aggregate
+		// If we're looking up an aggregate indexer, we just create an aggregate
 		if selector.isAggregate() {
 			indexer, err = c.CreateAggregate(config, selector)
 		} else {
@@ -53,7 +55,7 @@ func (c *CachedScope) Lookup(config config.Config, key string) (Indexer, error) 
 	return c.indexes[key], nil
 }
 
-//CreateAggregateForCategories creates a new aggregate with the indexes that match a set of indexCategories
+// CreateAggregateForCategories creates a new aggregate with the indexes that match a set of indexCategories
 func (c *CachedScope) CreateAggregateForCategories(config config.Config, selector *IndexerSelector, cats []categories.Category) (Indexer, error) {
 	ixrKeys, err := Loader.List(selector)
 	if err != nil {
@@ -74,8 +76,8 @@ func (c *CachedScope) CreateAggregateForCategories(config config.Config, selecto
 	return result, nil
 }
 
-//CreateAggregate creates an aggregate of all the valid configured indexes
-//this includes indexes that don't need a login.
+// CreateAggregate creates an aggregate of all the valid configured indexes
+// this includes indexes that don't need a login.
 func (c *CachedScope) CreateAggregate(config config.Config, selector *IndexerSelector) (Indexer, error) {
 	var keysToLoad []string
 	var err error
@@ -95,8 +97,8 @@ func (c *CachedScope) CreateAggregate(config config.Config, selector *IndexerSel
 		result.selector = &selectorCopy
 	}
 	for _, key := range keysToLoad {
-		//Get the site configuration, we only use configured indexes
-		indexConfig, _ := config.GetSite(key) //Get all the configured indexes
+		// Get the site configuration, we only use configured indexes
+		indexConfig, _ := config.GetSite(key) // Get all the configured indexes
 		if indexConfig != nil {
 			index, err := c.Lookup(config, key)
 			if err != nil {
@@ -115,7 +117,7 @@ func (c *CachedScope) CreateAggregate(config config.Config, selector *IndexerSel
 	return result, nil
 }
 
-//CreateIndexer creates a new Indexer or aggregate Indexer with the given configuration.
+// CreateIndexer creates a new Indexer or aggregate Indexer with the given configuration.
 func CreateIndexer(config config.Config, indexerName string) (Indexer, error) {
 	def, err := Loader.Load(indexerName)
 	if err != nil {

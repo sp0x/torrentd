@@ -3,12 +3,14 @@ package bolt
 import (
 	"errors"
 	"fmt"
-	"github.com/boltdb/bolt"
-	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/indexer/search"
-	"github.com/sp0x/torrentd/storage/indexing"
 	"reflect"
 	"strconv"
+
+	"github.com/boltdb/bolt"
+	log "github.com/sirupsen/logrus"
+
+	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/storage/indexing"
 )
 
 const (
@@ -17,7 +19,7 @@ const (
 	latestResultsBucketSize = 20
 )
 
-//PushToLatestItems updates a bucket with the latest 20 results. the items are unordered
+// PushToLatestItems updates a bucket with the latest 20 results. the items are unordered
 func (b *BoltStorage) PushToLatestItems(tx *bolt.Tx, serializedItem []byte) error {
 	if serializedItem == nil {
 		return errors.New("serialized value is required")
@@ -58,9 +60,8 @@ func (b *BoltStorage) getLatestResultsCursor(tx *bolt.Tx) (indexing.Cursor, erro
 	}}, nil
 }
 
-//GetLatest gets the newest results for all the indexes
+// GetLatest gets the newest results for all the indexes
 func (b *BoltStorage) GetLatest(count int) []search.ResultItemBase {
-
 	var output []search.ResultItemBase
 	_ = b.Database.View(func(tx *bolt.Tx) error {
 		cursor, err := b.getLatestResultsCursor(tx)

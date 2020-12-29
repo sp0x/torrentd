@@ -2,15 +2,17 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"text/tabwriter"
+
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
 	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/indexer/status"
 	"github.com/sp0x/torrentd/server"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"os"
-	"text/tabwriter"
 )
 
 func init() {
@@ -34,10 +36,10 @@ Currently supported storage backings: boltdb, firebase, sqlite`)
 	viper.SetDefault("port", 5000)
 	_ = viper.BindEnv("port")
 	_ = viper.BindEnv("api_key")
-	//Storage config
+	// Storage config
 	_ = viper.BindPFlag("storage", cmdFlags.Lookup("storage"))
 	_ = viper.BindEnv("storage")
-	//Firebase related
+	// Firebase related
 	_ = viper.BindPFlag("firebase_project", cmdFlags.Lookup("firebase_project"))
 	_ = viper.BindEnv("firebase_project")
 	_ = viper.BindPFlag("firebase_credentials_file", cmdFlags.Lookup("firebase_credentials_file"))
@@ -54,7 +56,7 @@ func watchIndex(c *cobra.Command, _ []string) {
 		log.Error("Couldn't initialize torrent facade.")
 		return
 	}
-	//Init the server
+	// Init the server
 	go func() {
 		rserver := server.NewServer(&appConfig)
 		err := rserver.Listen(facade)
@@ -63,7 +65,7 @@ func watchIndex(c *cobra.Command, _ []string) {
 		}
 	}()
 
-	//Start watching the torrent tracker.
+	// Start watching the torrent tracker.
 	status.SetupPubsub(appConfig.GetString("firebase_project"))
 	query := search.ParseQueryString(c.Flag("query").Value.String())
 	watchInterval := viper.GetInt("interval")

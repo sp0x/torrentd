@@ -1,10 +1,11 @@
 package config
 
 import (
-	"github.com/mitchellh/go-homedir"
 	"os"
 	"path"
 	"path/filepath"
+
+	"github.com/mitchellh/go-homedir"
 )
 
 var appname = "torrentd"

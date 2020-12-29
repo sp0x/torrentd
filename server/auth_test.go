@@ -1,10 +1,12 @@
 package server
 
 import (
+	"testing"
+
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/gomega"
+
 	"github.com/sp0x/torrentd/config/mocks"
-	"testing"
 )
 
 func TestServer_checkAPIKey(t *testing.T) {
@@ -15,7 +17,7 @@ func TestServer_checkAPIKey(t *testing.T) {
 	config.EXPECT().GetInt("port").Return(3333).Times(1)
 	config.EXPECT().GetString("hostname").Return("").Times(1)
 	config.EXPECT().GetBytes("api_key").Return(nil).Times(1)
-	//Test
+	// Test
 	s := NewServer(config)
 	g.Expect(s.checkAPIKey("")).Should(BeFalse())
 
@@ -40,7 +42,7 @@ func TestServer_sharedKey(t *testing.T) {
 	config.EXPECT().GetInt("port").Return(3333).Times(1)
 	config.EXPECT().GetString("hostname").Return("").Times(1)
 	config.EXPECT().GetBytes("api_key").Return(nil).Times(1)
-	//Test
+	// Test
 	s := NewServer(config)
 	bytes := s.sharedKey()
 	bytes2 := s.sharedKey()

@@ -2,12 +2,14 @@ package storage
 
 import (
 	"fmt"
+	"os"
+
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+
 	"github.com/sp0x/torrentd/storage/bolt"
 	"github.com/sp0x/torrentd/storage/firebase"
 	"github.com/sp0x/torrentd/storage/indexing"
-	"github.com/spf13/viper"
-	"os"
 )
 
 var storageBackingMap = make(map[string]func(builder *Builder) ItemStorageBacking)
@@ -17,7 +19,7 @@ func NewBuilder() *Builder {
 	return b.WithDefaultBacking()
 }
 
-//Builder for ItemStorage
+// Builder for ItemStorage
 type Builder struct {
 	backingType   string
 	primaryKey    *indexing.Key
@@ -27,43 +29,43 @@ type Builder struct {
 	recordTypePtr interface{}
 }
 
-//WithBacking set the data backing type. ex: boltdb, firebase, sqlite.
+// WithBacking set the data backing type. ex: boltdb, firebase, sqlite.
 func (b *Builder) WithBacking(backingType string) *Builder {
 	b.backingType = backingType
 	return b
 }
 
-//WithRecord set the type of the items you'll be working with, this is needed for unmarshaling and querying.
+// WithRecord set the type of the items you'll be working with, this is needed for unmarshaling and querying.
 func (b *Builder) WithRecord(recordTypePtr interface{}) *Builder {
 	b.recordTypePtr = recordTypePtr
 	return b
 }
 
-//BackedBy can be used if you already have an initialized storage backing.
+// BackedBy can be used if you already have an initialized storage backing.
 func (b *Builder) BackedBy(backing ItemStorageBacking) *Builder {
 	b.backing = backing
 	return b
 }
 
-//WithDefaultBacking sets the storage backing to `boltdb`
+// WithDefaultBacking sets the storage backing to `boltdb`
 func (b *Builder) WithDefaultBacking() *Builder {
 	b.backingType = "boltdb"
 	return b
 }
 
-//WithPK use a primary key to store the data. By default an UUID is used.
+// WithPK use a primary key to store the data. By default an UUID is used.
 func (b *Builder) WithPK(keyFields *indexing.Key) *Builder {
 	b.primaryKey = keyFields
 	return b
 }
 
-//WithEndpoint if your storage location has a specific location (ex: db path)
+// WithEndpoint if your storage location has a specific location (ex: db path)
 func (b *Builder) WithEndpoint(endpoint string) *Builder {
 	b.endpoint = endpoint
 	return b
 }
 
-//WithNamespace make sure all data is in that namespace
+// WithNamespace make sure all data is in that namespace
 func (b *Builder) WithNamespace(ns string) *Builder {
 	if ns == "" {
 		panic("namespace must be non-empty")
@@ -72,7 +74,7 @@ func (b *Builder) WithNamespace(ns string) *Builder {
 	return b
 }
 
-//Build the storage object
+// Build the storage object
 func (b *Builder) Build() ItemStorage {
 	backing := b.backing
 	if b.recordTypePtr == nil {
@@ -113,7 +115,7 @@ func init() {
 			fmt.Printf("Couldn't construct boltdb storage.")
 			os.Exit(1)
 		}
-		//Set to the namespace of the builder(this may be the index)
+		// Set to the namespace of the builder(this may be the index)
 		if len(builder.namespace) > 0 {
 			err = b.SetNamespace(builder.namespace)
 		}
@@ -136,7 +138,5 @@ func init() {
 	}
 	storageBackingMap["sqlite"] = func(builder *Builder) ItemStorageBacking {
 		panic("sqlite storage is deprecated and shouldn't be used anymore")
-		//b := &sqlite.DBStorage{}
-		//return b
 	}
 }

@@ -4,7 +4,7 @@ import "encoding/json"
 
 const name = "json"
 
-//Serializer is a json serializer.
+// Serializer is a json serializer.
 var Serializer = new(jsonSerializer)
 
 type jsonSerializer int

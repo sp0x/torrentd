@@ -12,7 +12,7 @@ func defaultMultiLoader() *MultipleDefinitionLoader {
 	return &MultipleDefinitionLoader{
 		defaultFsLoader(),
 		embeddedLoader(),
-		//escLoader{http.Dir("")},
+		// escLoader{http.Dir("")},
 	}
 }
 
@@ -61,10 +61,10 @@ func (ml MultipleDefinitionLoader) String() string {
 	return "loaders[" + str + "]"
 }
 
-//Load an indexer with the matching name
+// Load an indexer with the matching name
 func (ml MultipleDefinitionLoader) Load(key string) (*IndexerDefinition, error) {
 	var def *IndexerDefinition
-	//Go over each loader, until we reach the one that contains the definition for the indexer.
+	// Go over each loader, until we reach the one that contains the definition for the indexer.
 	for _, loader := range ml {
 		if loader == nil {
 			continue
@@ -74,7 +74,7 @@ func (ml MultipleDefinitionLoader) Load(key string) (*IndexerDefinition, error) 
 			log.Debugf("Couldn't load the Indexer `%s` using %s. Error : %s\n", key, loader, err)
 			continue
 		}
-		//If it's newer than our last one
+		// If it's newer than our last one
 		if def == nil || loaded.Stats().ModTime.After(def.Stats().ModTime) { // If no definition is loaded so far, or the new one is newer
 			def = loaded
 		}

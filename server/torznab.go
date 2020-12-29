@@ -2,16 +2,18 @@ package server
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/indexer"
-	"github.com/sp0x/torrentd/indexer/cache"
-	"github.com/sp0x/torrentd/indexer/search"
-	"github.com/sp0x/torrentd/torznab"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
+
+	"github.com/sp0x/torrentd/indexer"
+	"github.com/sp0x/torrentd/indexer/cache"
+	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/torznab"
 )
 
 func (s *Server) aggregatesStatus(c *gin.Context) {
@@ -33,7 +35,7 @@ func (s *Server) aggregatesStatus(c *gin.Context) {
 
 var searchCache, _ = cache.NewTTL(100, 1*time.Hour)
 
-//Handle queries
+// Handle queries
 func (s *Server) torznabHandler(c *gin.Context) {
 	_ = c.Params
 	indexerID := indexer.ResolveIndexId(s.indexerFacade.Scope, c.Param("searchIndex"))
@@ -126,8 +128,8 @@ func (s *Server) torznabSearch(r *http.Request, query *search.Query, indexer ind
 	return feed, err
 }
 
-//Rewrites the download links so that the download goes through us.
-//This is required since only we can access the torrent ( the site might need authorization )
+// Rewrites the download links so that the download goes through us.
+// This is required since only we can access the torrent ( the site might need authorization )
 func (s *Server) rewriteLinks(r *http.Request, items []search.ResultItemBase) ([]search.ResultItemBase, error) {
 	baseURL, err := s.baseURL(r, "/d")
 	if err != nil {
@@ -140,7 +142,7 @@ func (s *Server) rewriteLinks(r *http.Request, items []search.ResultItemBase) ([
 		if strings.HasPrefix(scrapeItem.Link, "magnet:") {
 			continue
 		}
-		//itemTmp := item
+		// itemTmp := item
 		tokenValue, err := getTokenValue(scrapeItem, apiKey)
 		if err != nil {
 			return nil, err
@@ -163,7 +165,7 @@ func getTokenValue(item *search.ScrapeResultItem, apiKey []byte) (string, error)
 	} else {
 		indexerName = item.Site
 	}
-	//Encode the site and source of the torrent as a JWT token
+	// Encode the site and source of the torrent as a JWT token
 	t := &token{
 		IndexName: indexerName,
 		Link:      sourceLink,

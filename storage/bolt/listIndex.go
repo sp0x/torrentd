@@ -3,7 +3,9 @@ package bolt
 import (
 	"bytes"
 	"errors"
+
 	"github.com/boltdb/bolt"
+
 	"github.com/sp0x/torrentd/storage/indexing"
 )
 
@@ -11,7 +13,7 @@ const (
 	idsIndex = "__ids"
 )
 
-//NewListIndex creates a new list index with it's sub-buckets.
+// NewListIndex creates a new list index with it's sub-buckets.
 func NewListIndex(parent *bolt.Bucket, name []byte) (*ListIndex, error) {
 	var err error
 	b := parent.Bucket(name)
@@ -35,21 +37,21 @@ func NewListIndex(parent *bolt.Bucket, name []byte) (*ListIndex, error) {
 	}, nil
 }
 
-//ListIndex is an index that references values and the matching IDs
+// ListIndex is an index that references values and the matching IDs
 type ListIndex struct {
 	ParentBucket *bolt.Bucket
-	//Bucket that contains all the index values, with values being the ID
+	// Bucket that contains all the index values, with values being the ID
 	IndexBucket *bolt.Bucket
-	//An index that contains all of our IDs, with values being the index values
+	// An index that contains all of our IDs, with values being the index values
 	IDs *UniqueIndex
 }
 
-//Add a new index for an id.
+// Add a new index for an id.
 func (ix *ListIndex) Add(val []byte, id []byte) error {
 	if val == nil || id == nil {
 		return errors.New("value and id are required")
 	}
-	//Figure out if the id already exists, if it does we'll remove it.
+	// Figure out if the id already exists, if it does we'll remove it.
 	idKey := ix.IDs.Get(id)
 	if idKey != nil {
 		err := ix.IndexBucket.Delete(idKey)
@@ -60,10 +62,8 @@ func (ix *ListIndex) Add(val []byte, id []byte) error {
 		if err != nil {
 			return err
 		}
-		//Clear out the id
-		idKey = idKey[:0]
 	}
-	//We create the new key
+	// We create the new key
 	idKey = generatePrefix(val)
 	idKey = append(idKey, id...)
 	err := ix.IDs.Add(id, idKey)
@@ -73,7 +73,7 @@ func (ix *ListIndex) Add(val []byte, id []byte) error {
 	return ix.IndexBucket.Put(idKey, id)
 }
 
-//List indexes are formed like this: <index value>__<id>
+// List indexes are formed like this: <index value>__<id>
 func generatePrefix(indexValue []byte) []byte {
 	prefix := make([]byte, len(indexValue)+2)
 	var i int
@@ -85,7 +85,7 @@ func generatePrefix(indexValue []byte) []byte {
 	return prefix
 }
 
-//Remove an index
+// Remove an index
 func (ix *ListIndex) Remove(indexValue []byte) error {
 	var err error
 	var indexKeysToBeDeleted [][]byte
@@ -94,7 +94,7 @@ func (ix *ListIndex) Remove(indexValue []byte) error {
 	for key, _ := c.Seek(prefix); bytes.HasPrefix(key, prefix); key, _ = c.Next() {
 		indexKeysToBeDeleted = append(indexKeysToBeDeleted, key)
 	}
-	//Remove all the indexes.
+	// Remove all the indexes.
 	for _, key := range indexKeysToBeDeleted {
 		err = ix.IndexBucket.Delete(key)
 		if err != nil {
@@ -104,15 +104,15 @@ func (ix *ListIndex) Remove(indexValue []byte) error {
 	return ix.IDs.RemoveById(indexValue)
 }
 
-//RemoveById removes an index and the matching ID using an ID.
+// RemoveById removes an index and the matching ID using an ID.
 func (ix *ListIndex) RemoveById(id []byte) error {
-	//We get the index value
+	// We get the index value
 	indexValue := ix.IDs.Get(id)
-	//We don't have that index
+	// We don't have that index
 	if indexValue == nil {
 		return nil
 	}
-	//We delete the index
+	// We delete the index
 	err := ix.IndexBucket.Delete(indexValue)
 	if err != nil {
 		return err
@@ -120,7 +120,7 @@ func (ix *ListIndex) RemoveById(id []byte) error {
 	return ix.IDs.Remove(id)
 }
 
-//Get the first ID corresponding to the given value
+// Get the first ID corresponding to the given value
 func (ix *ListIndex) Get(indexValue []byte) []byte {
 	c := ix.IndexBucket.Cursor()
 	prefix := generatePrefix(indexValue)
@@ -138,7 +138,7 @@ func (ix *ListIndex) All(indexValue []byte, opts *indexing.CursorOptions) [][]by
 		C:       indexCursor,
 		Reverse: opts != nil && opts.Reverse,
 	}
-	//All IDs are prefixed with the index value
+	// All IDs are prefixed with the index value
 	prefix := generatePrefix(indexValue)
 	k, id := indexCursor.Seek(prefix)
 	if cur.Reverse {
@@ -154,7 +154,7 @@ func (ix *ListIndex) All(indexValue []byte, opts *indexing.CursorOptions) [][]by
 		}
 		results = make([][]byte, 0, count)
 	}
-	//While the cursor is in our prefixed area.
+	// While the cursor is in our prefixed area.
 	for ; bytes.HasPrefix(k, prefix); k, id = cur.Next() {
 		if opts != nil && opts.Skip > 0 {
 			opts.Skip--

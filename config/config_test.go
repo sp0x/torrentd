@@ -1,12 +1,13 @@
 package config
 
 import (
-	"github.com/mitchellh/go-homedir"
 	"os"
 	"path"
 	"path/filepath"
 	"reflect"
 	"testing"
+
+	"github.com/mitchellh/go-homedir"
 )
 
 func TestGetCachePath(t *testing.T) {
@@ -33,5 +34,4 @@ func TestGetDefinitionDirs(t *testing.T) {
 }
 
 func TestSetDefaults(t *testing.T) {
-
 }

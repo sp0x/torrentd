@@ -13,9 +13,7 @@ const (
 	MIN_TIMER_INTERVAL = 1 * time.Millisecond
 )
 
-var (
-	nextAddSeq uint = 1
-)
+var nextAddSeq uint = 1
 
 type Timer struct {
 	fireTime time.Time
@@ -42,7 +40,7 @@ func (h *_TimerHeap) Len() int {
 }
 
 func (h *_TimerHeap) Less(i, j int) bool {
-	//log.Println(h.timers[i].fireTime, h.timers[j].fireTime)
+	// log.Println(h.timers[i].fireTime, h.timers[j].fireTime)
 	t1, t2 := h.timers[i].fireTime, h.timers[j].fireTime
 	if t1.Before(t2) {
 		return true
@@ -133,7 +131,7 @@ func Tick() {
 		}
 
 		nextFireTime := timerHeap.timers[0].fireTime
-		//fmt.Printf(">>> nextFireTime %s, now is %s\n", nextFireTime, now)
+		// fmt.Printf(">>> nextFireTime %s, now is %s\n", nextFireTime, now)
 		if nextFireTime.After(now) {
 			break
 		}

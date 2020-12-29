@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/feeds"
 	log "github.com/sirupsen/logrus"
+
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/torznab"
-	"net/http"
-	"time"
 )
 
 func xmlOutput(c *gin.Context, feed *torznab.ResultFeed, encoding string) {
@@ -33,7 +35,7 @@ func atomOutput(c *gin.Context, v *torznab.ResultFeed, encoding string) {
 		Title:       v.Info.Title,
 		Link:        &feeds.Link{Href: v.Info.Link},
 		Description: v.Info.Description,
-		//Author:      &feeds.Author{},
+		// Author:      &feeds.Author{},
 		Created: time.Now(),
 	}
 	feed.Items = make([]*feeds.Item, len(v.Items), len(v.Items))

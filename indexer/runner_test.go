@@ -1,11 +1,15 @@
 package indexer
 
 import (
+	"strings"
+	"testing"
+
 	"github.com/PuerkitoBio/goquery"
 	"github.com/golang/mock/gomock"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/jar"
+
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/cache/mocks"
@@ -13,16 +17,16 @@ import (
 	"github.com/sp0x/torrentd/indexer/source"
 	mocks2 "github.com/sp0x/torrentd/indexer/source/mocks"
 	"github.com/sp0x/torrentd/storage/indexing"
-	"strings"
-	"testing"
 )
 
-var runnerSiteUrl = "http://localhost/"
-var index = &IndexerDefinition{
-	Site:  "zamunda.net",
-	Name:  "zamunda",
-	Links: []string{runnerSiteUrl},
-}
+var (
+	runnerSiteUrl = "http://localhost/"
+	index         = &IndexerDefinition{
+		Site:  "zamunda.net",
+		Name:  "zamunda",
+		Links: []string{runnerSiteUrl},
+	}
+)
 
 //
 //func TestRunner_SearchShouldWorkWithAnOptimisticCache(t *testing.T) {
@@ -109,9 +113,9 @@ func TestRunner_Search(t *testing.T) {
 	defer ctrl.Finish()
 	connectivityTester := mocks.NewMockConnectivityTester(ctrl)
 	contentFetcher := mocks2.NewMockContentFetcher(ctrl)
-	//The browser should be set
+	// The browser should be set
 	connectivityTester.EXPECT().SetBrowser(gomock.Any()).AnyTimes()
-	//The correct url should be tested
+	// The correct url should be tested
 	connectivityTester.EXPECT().IsOkAndSet(runnerSiteUrl, gomock.Any()).
 		Return(true).AnyTimes()
 
@@ -123,11 +127,11 @@ func TestRunner_Search(t *testing.T) {
 		CachePages: false,
 		Transport:  nil,
 	})
-	//Patch with our mocks
+	// Patch with our mocks
 	runner.connectivityTester = connectivityTester
 	runner.createBrowser()
 	runner.contentFetcher = contentFetcher
-	//In order to use our custom content fetcher.
+	// In order to use our custom content fetcher.
 	runner.keepSessions = true
 
 	contentFetcher.EXPECT().Fetch(gomock.Any()).
@@ -141,16 +145,16 @@ func TestRunner_Search(t *testing.T) {
 			runner.browser.SetState(fakeState)
 		})
 
-	//Shouldn't be able to search with an index that has no urls
+	// Shouldn't be able to search with an index that has no urls
 	_, err := runner.Search(emptyQuery, nil)
 	g.Expect(err).ToNot(gomega.BeNil())
 
-	//Shouldn't be able to search with an index that has no search urls
+	// Shouldn't be able to search with an index that has no search urls
 	index.Links = []string{runnerSiteUrl}
 	_, err = runner.Search(emptyQuery, nil)
 	g.Expect(err).ToNot(gomega.BeNil())
 
-	//Shouldn't be able to search with an index that has no search urls
+	// Shouldn't be able to search with an index that has no search urls
 	index.Links = []string{runnerSiteUrl}
 	index.Search = searchBlock{
 		Path: "/",
@@ -167,7 +171,7 @@ func TestRunner_Search(t *testing.T) {
 		}},
 	}
 	runner.contentFetcher = contentFetcher
-	//We need to mock our content fetching also
+	// We need to mock our content fetching also
 	srch, err := runner.Search(emptyQuery, nil)
 	g.Expect(err).To(gomega.BeNil())
 	g.Expect(srch).ToNot(gomega.BeNil())
@@ -183,7 +187,6 @@ func TestRunner_Search(t *testing.T) {
 	g.Expect(foundDoc.UUIDValue).To(gomega.Equal(firstDoc.UUID()))
 	g.Expect(foundDoc.ModelData["fieldA"]).To(gomega.Equal("sd"))
 	storage.Close()
-
 }
 
 var emptyQuery = &search.Query{}
@@ -195,9 +198,9 @@ func Test_ShouldUseUniqueIndexes(t *testing.T) {
 	index := &IndexerDefinition{Site: "zamunda.net", Name: "zamunda"}
 	contentFetcher := mocks2.NewMockContentFetcher(ctrl)
 	connectivityTester := mocks.NewMockConnectivityTester(ctrl)
-	//The browser should be set
+	// The browser should be set
 	connectivityTester.EXPECT().SetBrowser(gomock.Any()).AnyTimes()
-	//The correct url should be tested
+	// The correct url should be tested
 	connectivityTester.EXPECT().IsOkAndSet(runnerSiteUrl, gomock.Any()).
 		Return(true).AnyTimes()
 
@@ -236,7 +239,7 @@ func Test_ShouldUseUniqueIndexes(t *testing.T) {
 		CachePages: false,
 		Transport:  nil,
 	})
-	//Patch with our mocks
+	// Patch with our mocks
 	runner.connectivityTester = connectivityTester
 	runner.createBrowser()
 	runner.contentFetcher = contentFetcher
@@ -262,7 +265,6 @@ func TestRunner_testURLWorks_ShouldReturnFalseIfTheUrlIsDown(t *testing.T) {
 	cachedCon, _ := cache.NewConnectivityCache()
 	r.connectivityTester = cachedCon
 	g.Expect(r.testURLWorks("http://example.com")).To(gomega.BeFalse())
-
 }
 
 func TestRunner_testUrlWorks_ShouldWorkWithOptimisticCaching(t *testing.T) {
@@ -274,5 +276,4 @@ func TestRunner_testUrlWorks_ShouldWorkWithOptimisticCaching(t *testing.T) {
 	r.connectivityTester = optimisticCacheCon
 	g.Expect(r.testURLWorks(url)).To(gomega.BeTrue())
 	r.connectivityTester.Invalidate(url)
-
 }

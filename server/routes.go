@@ -2,12 +2,13 @@ package server
 
 import (
 	"github.com/gin-gonic/gin"
+
 	"github.com/sp0x/torrentd/server/rss"
 )
 
 //http://localhost:5000/torznab/rutracker.org?apikey=210fc7bb818639a&t=search&q=bad%20boys
 func (s *Server) setupRoutes(r *gin.Engine) {
-	//Rss
+	// Rss
 	r.GET("/all", func(c *gin.Context) { rss.ServerAll(c) })
 	r.GET("/movies", func(c *gin.Context) { rss.ServeMovies(c) })
 	r.GET("/shows", func(c *gin.Context) { rss.ServeShows(c) })
@@ -19,10 +20,10 @@ func (s *Server) setupRoutes(r *gin.Engine) {
 	r.GET("/status", s.Status)
 	r.GET("/health", s.HealthCheck())
 
-	//Torznab
+	// Torznab
 	r.GET("torznab/:indexer", s.torznabHandler)
 	r.GET("torznab/:indexer/api", s.torznabHandler)
-	//Aggregated indexers info
+	// Aggregated indexers info
 	r.GET("t/all/status", s.aggregatesStatus)
 
 	// download routes

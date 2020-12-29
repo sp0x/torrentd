@@ -35,7 +35,7 @@ var (
 )
 
 func Error(c *gin.Context, description string, err err) {
-	var resp = struct {
+	resp := struct {
 		XMLName     struct{} `xml:"error"`
 		Code        int      `xml:"code"`
 		Description string   `xml:"description"`

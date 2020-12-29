@@ -1,13 +1,17 @@
 package cache
 
 import (
-	"github.com/onsi/gomega"
-	"github.com/sp0x/torrentd/indexer/cache/mocks"
 	"testing"
+
+	"github.com/onsi/gomega"
+
+	"github.com/sp0x/torrentd/indexer/cache/mocks"
 )
 
-var optimisticUrl = "http://example.com"
-var optimisticUrl2 = "http://example2.com"
+var (
+	optimisticUrl  = "http://example.com"
+	optimisticUrl2 = "http://example2.com"
+)
 
 func Test_NewOptimisticConnectivityCache(t *testing.T) {
 	g := gomega.NewWithT(t)
@@ -40,7 +44,7 @@ func Test_OptimisticCache_ShouldReturnFalseIfInvalidated(t *testing.T) {
 	conCache.Invalidate(optimisticUrl)
 	g.Expect(conCache.IsOk(optimisticUrl)).To(gomega.BeFalse())
 
-	//Second case
+	// Second case
 	conCache, _ = NewOptimisticConnectivityCache()
 	conCache.Invalidate(optimisticUrl)
 	g.Expect(conCache.IsOk(optimisticUrl)).To(gomega.BeFalse())
@@ -55,9 +59,9 @@ func Test_OptimisticCache_ShouldTestUrlsOnceTheyWereInvalidated(t *testing.T) {
 	conCache.SetBrowser(br)
 	g.Expect(conCache.IsOk(optimisticUrl)).To(gomega.BeTrue())
 	conCache.Invalidate(optimisticUrl)
-	//After this point urls should be tested
+	// After this point urls should be tested
 	g.Expect(conCache.IsOk(optimisticUrl)).To(gomega.BeFalse())
-	//We will test the url, which would be OK, so the invalidation is removed.
+	// We will test the url, which would be OK, so the invalidation is removed.
 	g.Expect(conCache.Test(optimisticUrl)).To(gomega.BeNil())
 	g.Expect(conCache.IsOk(optimisticUrl)).To(gomega.BeTrue())
 }
@@ -69,7 +73,7 @@ func Test_OptimisticCache_ShouldWorkWithOkAndSet(t *testing.T) {
 	br.CanOpen = true
 	conCache.SetBrowser(br)
 
-	//Do this like that so it's locked.
+	// Do this like that so it's locked.
 	ok := conCache.IsOkAndSet(optimisticUrl, func() bool {
 		err := conCache.Test(optimisticUrl)
 		return err == nil
@@ -84,13 +88,13 @@ func Test_OptimisticCache_InvalidationShouldWorkWithOkAndSet(t *testing.T) {
 	br.CanOpen = true
 	conCache.SetBrowser(br)
 
-	//Do this like that so it's locked.
+	// Do this like that so it's locked.
 	conCache.Invalidate(optimisticUrl)
 	ok := conCache.IsOkAndSet(optimisticUrl, func() bool {
 		err := conCache.Test(optimisticUrl)
 		return err == nil
 	})
-	//We should be able to connect
+	// We should be able to connect
 	g.Expect(ok).To(gomega.BeTrue())
 }
 
@@ -103,7 +107,6 @@ func Test_OptimisticCache_BadUrlsShouldBeInvalidated(t *testing.T) {
 	err := conCache.Test(optimisticUrl)
 	g.Expect(err).ToNot(gomega.BeNil())
 	g.Expect(conCache.IsOk(optimisticUrl))
-
 }
 
 func Test_OptimisticCache_BadUrlsShouldStayInvalidated(t *testing.T) {
@@ -113,14 +116,14 @@ func Test_OptimisticCache_BadUrlsShouldStayInvalidated(t *testing.T) {
 	br.CanOpen = false
 	conCache.SetBrowser(br)
 
-	//Initially the url should seem like it's OK
+	// Initially the url should seem like it's OK
 	ok := conCache.IsOkAndSet(optimisticUrl, func() bool {
 		err := conCache.Test(optimisticUrl)
 		return err == nil
 	})
-	//It should seem like we're able to connect
+	// It should seem like we're able to connect
 	g.Expect(ok).To(gomega.BeTrue())
-	//But if we invalidate it
+	// But if we invalidate it
 	conCache.Invalidate(optimisticUrl)
 
 	ok = conCache.IsOkAndSet(optimisticUrl, func() bool {

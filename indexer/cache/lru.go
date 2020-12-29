@@ -7,7 +7,7 @@ import (
 
 type EvictionCallback func(key interface{}, value interface{})
 
-//LRU is a non-thread safe fixed size LRU cache
+// LRU is a non-thread safe fixed size LRU cache
 type LRU struct {
 	size         int
 	evictionList *list.List
@@ -15,13 +15,13 @@ type LRU struct {
 	onEviction   EvictionCallback
 }
 
-//entry is used to hold value in an evictionList
+// entry is used to hold value in an evictionList
 type entry struct {
 	key   interface{}
 	value interface{}
 }
 
-//NewLRU creates a new LRU of the given size
+// NewLRU creates a new LRU of the given size
 func NewLRU(size int, onEviction EvictionCallback) (*LRU, error) {
 	if size < 0 {
 		return nil, errors.New("size must be > 0")
@@ -34,7 +34,7 @@ func NewLRU(size int, onEviction EvictionCallback) (*LRU, error) {
 	}, nil
 }
 
-//Clear the cahce
+// Clear the cahce
 func (c *LRU) Clear() {
 	for k, v := range c.items {
 		if c.onEviction != nil {
@@ -42,25 +42,25 @@ func (c *LRU) Clear() {
 		}
 		delete(c.items, k)
 	}
-	//Initialize the list again.
+	// Initialize the list again.
 	c.evictionList.Init()
 }
 
-//Add a key with a given value
-//returns true if an element was evicted so this one could be added
+// Add a key with a given value
+// returns true if an element was evicted so this one could be added
 func (c *LRU) Add(key, value interface{}) bool {
-	//HealthCheck if the key exists already, if so we'll move it to the front since it's modified
+	// HealthCheck if the key exists already, if so we'll move it to the front since it's modified
 	if ent, ok := c.items[key]; ok {
 		c.evictionList.MoveToFront(ent)
 		ent.Value.(*entry).value = value
 		return false
 	}
 	ent := &entry{key, value}
-	//Add the item to the eviction list
+	// Add the item to the eviction list
 	entry := c.evictionList.PushFront(ent)
-	//Store the actual entry
+	// Store the actual entry
 	c.items[key] = entry
-	//If we have more items than we can store
+	// If we have more items than we can store
 	shouldEvict := c.evictionList.Len() > c.size
 	if shouldEvict {
 		c.evictOldest()
@@ -108,7 +108,7 @@ func (c *LRU) Remove(key interface{}) (present bool) {
 	return false
 }
 
-//RemoveOldest removes the oldest item in the cache
+// RemoveOldest removes the oldest item in the cache
 func (c *LRU) RemoveOldest() (key, value interface{}, ok bool) {
 	ent := c.evictionList.Back()
 	if ent != nil {
@@ -119,7 +119,7 @@ func (c *LRU) RemoveOldest() (key, value interface{}, ok bool) {
 	return nil, nil, false
 }
 
-//GetOldest returns the oldest item in the cache.
+// GetOldest returns the oldest item in the cache.
 func (c *LRU) GetOldest() (key interface{}, value interface{}, ok bool) {
 	ent := c.evictionList.Back()
 	if ent != nil {
@@ -129,7 +129,7 @@ func (c *LRU) GetOldest() (key interface{}, value interface{}, ok bool) {
 	return nil, nil, false
 }
 
-//Keys returns the cache keys.
+// Keys returns the cache keys.
 func (c *LRU) Keys() []interface{} {
 	i := 0
 	keys := make([]interface{}, len(c.items))
@@ -140,19 +140,19 @@ func (c *LRU) Keys() []interface{} {
 	return keys
 }
 
-//Len returns the number of items in the cache
+// Len returns the number of items in the cache
 func (c *LRU) Len() int {
 	return c.evictionList.Len()
 }
 
-//Resize changes the cache size
-//returns the number of items removed when the cache shrinks
+// Resize changes the cache size
+// returns the number of items removed when the cache shrinks
 func (c *LRU) Resize(newSize int) int {
 	diff := c.Len() - newSize
 	if diff < 0 {
 		diff = 0
 	}
-	//Remove items that aren't needed, if the cache is shrunk
+	// Remove items that aren't needed, if the cache is shrunk
 	for i := 0; i < diff; i++ {
 		c.evictOldest()
 	}
@@ -161,19 +161,19 @@ func (c *LRU) Resize(newSize int) int {
 }
 
 func (c *LRU) evictOldest() {
-	//Get the oldest item
+	// Get the oldest item
 	entry := c.evictionList.Back()
 	if entry != nil {
 		c.remove(entry)
 	}
 }
 
-//remove an element from the cache and from our items
+// remove an element from the cache and from our items
 func (c *LRU) remove(e *list.Element) {
-	//Uncache it
+	// Uncache it
 	c.evictionList.Remove(e)
 	ent := e.Value.(*entry)
-	//Remove actual item
+	// Remove actual item
 	delete(c.items, ent.key)
 	if c.onEviction != nil {
 		c.onEviction(ent.key, ent.value)

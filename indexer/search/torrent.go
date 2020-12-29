@@ -47,16 +47,16 @@ func (t *TorrentResultItem) String() string {
 	return fmt.Sprintf("[%s]%s", t.LocalId, t.Title)
 }
 
-//AddedOnStr gets the publish date of this result as a string
+// AddedOnStr gets the publish date of this result as a string
 func (t *TorrentResultItem) AddedOnStr() string {
 	tm := time.Unix(t.PublishDate, 0)
 	return tm.String()
 }
 
-//MarshalXML marshals the item to xml
+// MarshalXML marshals the item to xml
 func (t TorrentResultItem) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
-	//The info view enclosure
-	var enclosure = struct {
+	// The info view enclosure
+	enclosure := struct {
 		URL    string `xml:"url,attr,omitempty"`
 		Length uint32 `xml:"length,attr,omitempty"`
 		Type   string `xml:"type,attr,omitempty"`
@@ -65,7 +65,7 @@ func (t TorrentResultItem) MarshalXML(e *xml.Encoder, _ xml.StartElement) error 
 		Length: t.Size,
 		Type:   "application/x-bittorrent",
 	}
-	var atomLink = struct {
+	atomLink := struct {
 		XMLName string `xml:"atom:link"`
 		Href    string `xml:"href,attr"`
 		Rel     string `xml:"rel,attr"`
@@ -73,7 +73,7 @@ func (t TorrentResultItem) MarshalXML(e *xml.Encoder, _ xml.StartElement) error 
 	}{
 		Href: "", Rel: "self", Type: "application/rss+xml",
 	}
-	var itemView = struct {
+	itemView := struct {
 		XMLName  struct{} `xml:"item"`
 		AtomLink interface{}
 		// standard rss elements
@@ -121,7 +121,7 @@ func (t TorrentResultItem) MarshalXML(e *xml.Encoder, _ xml.StartElement) error 
 	return nil
 }
 
-//Equals checks if the other object is equal.
+// Equals checks if the other object is equal.
 func (t *TorrentResultItem) Equals(other interface{}) bool {
 	otherTItem, isOkType := other.(*TorrentResultItem)
 	if !isOkType {
@@ -132,7 +132,7 @@ func (t *TorrentResultItem) Equals(other interface{}) bool {
 	if !thisScrapeItem.Equals(otherScrapeItem) {
 		return false
 	}
-	//Doing this in this way because it's more performant
+	// Doing this in this way because it's more performant
 	if t.IsMagnet != otherTItem.IsMagnet {
 		return false
 	} else if t.Size != otherTItem.Size {

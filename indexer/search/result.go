@@ -83,13 +83,13 @@ func (i *ScrapeResultItem) SetUUID(u string) {
 	i.UUIDValue = u
 }
 
-//SetState sets the staleness state of this result.
+// SetState sets the staleness state of this result.
 func (i *ScrapeResultItem) SetState(isNew bool, update bool) {
 	i.isNew = isNew
 	i.isUpdate = update
 }
 
-//IsNew whether the result is new to us.
+// IsNew whether the result is new to us.
 func (i *ScrapeResultItem) IsNew() bool {
 	return i.isNew
 }
@@ -97,21 +97,22 @@ func (i *ScrapeResultItem) IsNew() bool {
 func (i *ScrapeResultItem) Id() uint32 {
 	return i.ID
 }
+
 func (i *ScrapeResultItem) SetId(id uint32) {
 	i.ID = id
 }
 
-//IsUpdate whether the result is an update to an existing one.
+// IsUpdate whether the result is an update to an existing one.
 func (i *ScrapeResultItem) IsUpdate() bool {
 	return i.isUpdate
 }
 
-//SetField sets the value of an extra fields
+// SetField sets the value of an extra fields
 func (i *ScrapeResultItem) SetField(key string, val interface{}) {
 	i.ModelData[key] = val
 }
 
-//GetField by a key, use this for extra fields.
+// GetField by a key, use this for extra fields.
 func (i *ScrapeResultItem) GetField(key string) interface{} {
 	val, ok := i.ModelData[key]
 	if !ok {
@@ -128,7 +129,7 @@ func (i *ScrapeResultItem) GetFieldWithDefault(key string, defValue interface{})
 	return val
 }
 
-//Equals checks if this item matches the other one exactly(excluding the ID)
+// Equals checks if this item matches the other one exactly(excluding the ID)
 func (i *ScrapeResultItem) Equals(other interface{}) bool {
 	item, isOkType := other.(*ScrapeResultItem)
 	if !isOkType {
@@ -139,7 +140,7 @@ func (i *ScrapeResultItem) Equals(other interface{}) bool {
 		(len(i.ModelData) != len(item.ModelData)) {
 		return false
 	}
-	//HealthCheck the extra fields
+	// HealthCheck the extra fields
 	for key, val := range i.ModelData {
 		otherVal, contained := item.ModelData[key]
 		if !contained {
@@ -159,5 +160,5 @@ func (i *ScrapeResultItem) String() string {
 
 type ResultIndexer struct {
 	Id   string `xml:"id,attr"`
-	Name string `xml:",chardata"` //make the name the value
+	Name string `xml:",chardata"` // make the name the value
 }

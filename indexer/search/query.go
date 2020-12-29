@@ -3,11 +3,13 @@ package search
 import (
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/indexer/categories"
 	"net/url"
 	"strconv"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
+
+	"github.com/sp0x/torrentd/indexer/categories"
 )
 
 type Query struct {
@@ -57,7 +59,6 @@ func parseDynamicQuery(q *Query, pattern string) {
 		if function := parseQueryFunction(fieldValue); function != nil {
 			evalQueryFunction(q, field, function)
 		} else {
-
 		}
 	}
 }
@@ -251,7 +252,7 @@ func (query *Query) Episode() (s string) {
 	return s
 }
 
-//AddCategory adds a category to the query
+// AddCategory adds a category to the query
 func (query *Query) AddCategory(cat categories.Category) {
 	if query.Categories == nil {
 		query.Categories = []int{}

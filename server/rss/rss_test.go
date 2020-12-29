@@ -1,10 +1,12 @@
 package rss
 
 import (
+	"testing"
+
 	"github.com/golang/mock/gomock"
+
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/server/http/mocks"
-	"testing"
 )
 
 func TestSendRssFeed(t *testing.T) {

@@ -2,6 +2,7 @@ package torznab
 
 import (
 	"encoding/xml"
+
 	"github.com/sp0x/torrentd/indexer/search"
 )
 
@@ -20,7 +21,7 @@ type ResultFeed struct {
 }
 
 func (rf ResultFeed) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	var channelView = struct {
+	channelView := struct {
 		XMLName     struct{} `xml:"channel"`
 		Title       string   `xml:"title,omitempty"`
 		Description string   `xml:"description,omitempty"`

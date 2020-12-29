@@ -2,20 +2,24 @@ package bolt_test
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"testing"
+
 	"github.com/boltdb/bolt"
 	. "github.com/onsi/ginkgo"
+	"github.com/onsi/gomega"
+
 	"github.com/sp0x/torrentd/bots"
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
 	. "github.com/sp0x/torrentd/storage/bolt"
 	"github.com/sp0x/torrentd/storage/indexing"
-	"testing"
 )
 
 var _ = Describe("Bolt storage", func() {
-
 	It("Should be able to open a db", func() {
-		db, err := GetBoltDb(tempfile())
+		db, err := GetBoltDB(tempfile())
 		if err != nil {
 			Fail(fmt.Sprintf("Couldn't open a db: %v", err))
 			return
@@ -32,7 +36,7 @@ var _ = Describe("Bolt storage", func() {
 		var db *bolt.DB
 		bstore := &BoltStorage{}
 		key := indexing.NewKey("ChatId")
-		//Init db
+		// Init db
 		BeforeEach(func() {
 			tmpBstore, err := NewBoltStorage(tempfile(), &bots.Chat{})
 			if err != nil {
@@ -46,10 +50,10 @@ var _ = Describe("Bolt storage", func() {
 			db = tmpBstore.Database
 			bstore = tmpBstore
 		})
-		//Teardown db
+		// Teardown db
 		AfterEach(func() {
 			if db != nil {
-				err := bstore.TruncateDb()
+				err := bstore.Truncate()
 				if err != nil {
 					Fail("couldn't teardown bolt storage")
 				}
@@ -98,7 +102,7 @@ var _ = Describe("Bolt storage", func() {
 				Fail("couldn't store chat 2")
 			}
 			cnt := 0
-			bstore.ForEach(func(obj interface{}) {
+			bstore.ForEach(func(obj search.Record) {
 				chat := obj.(*bots.Chat)
 				if chat.ChatId == c1.ChatId || chat.ChatId == c2.ChatId {
 					cnt += 1
@@ -161,30 +165,26 @@ var _ = Describe("Bolt storage", func() {
 				Fail("mismatch in restoring search results")
 			}
 		})
-
 	})
-
 })
 
 // tempfile returns a temporary file path.
-func
-tempfile()
-string{
-f, err := ioutil.TempFile("", "bolt-")
-if err != nil{
-panic(err)
-}
-if err := f.Close(); err != nil{
-panic(err)
-}
-if err := os.Remove(f.Name()); err != nil{
-panic(err)
-}
-return f.Name()
+func tempfile() string {
+	f, err := ioutil.TempFile("", "bolt-")
+	if err != nil {
+		panic(err)
+	}
+	if err := f.Close(); err != nil {
+		panic(err)
+	}
+	if err := os.Remove(f.Name()); err != nil {
+		panic(err)
+	}
+	return f.Name()
 }
 
 func TestNewBoltStorage(t *testing.T) {
-	g := NewGomegaWithT(t)
+	g := gomega.NewGomegaWithT(t)
 	tests := []struct {
 		name    string
 		want    *BoltStorage
@@ -193,21 +193,20 @@ func TestNewBoltStorage(t *testing.T) {
 		{"", nil, false},
 	}
 	for _, tt := range tests {
-		//Run as a subtest
+		// Run as a subtest
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := NewBoltStorage(tempfile(), &bots.Chat{})
-			g.Expect(err).ShouldNot(HaveOccurred())
-			g.Expect(got).ShouldNot(BeNil())
+			g.Expect(err).ShouldNot(gomega.HaveOccurred())
+			g.Expect(got).ShouldNot(gomega.BeNil())
 		})
 	}
 }
 
-func
-Test_getItemKey(t *testing.T) {
+func Test_getItemKey(t *testing.T) {
 	type args struct {
-		item *search.ScrapeResultItem
+		item search.Record
 	}
-	g := NewGomegaWithT(t)
+	g := gomega.NewGomegaWithT(t)
 	tests := []struct {
 		name    string
 		args    args
@@ -215,34 +214,28 @@ Test_getItemKey(t *testing.T) {
 		wantErr bool
 		notNil  bool
 	}{
-		{name: "1", args: args{item: &search.ScrapeResultItem{
-			TorrentResultItem: search.TorrentResultItem{Title: "a", UUIDValue: "x"},
-		}}, wantErr: false},
-		{name: "1", args: args{item: &search.ScrapeResultItem{
-			TorrentResultItem: search.TorrentResultItem{Title: "b", UUIDValue: "y"},
-		}}, wantErr: false},
-		{name: "1", args: args{item: &search.ScrapeResultItem{
-			TorrentResultItem: search.TorrentResultItem{Title: "a"},
-		}}, wantErr: true},
+		{name: "1", args: args{&search.TorrentResultItem{Title: "a"}}, wantErr: false},
+		{name: "1", args: args{&search.TorrentResultItem{Title: "b"}}, wantErr: false},
+		{name: "1", args: args{&search.TorrentResultItem{Title: "a"}}, wantErr: true},
 	}
+	tests[0].args.item.SetUUID("x")
+	tests[1].args.item.SetUUID("y")
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := GetPKValueFromRecord(tt.args.item)
 			if tt.wantErr {
-				g.Expect(err).ShouldNot(BeNil())
+				g.Expect(err).ShouldNot(gomega.BeNil())
 			} else {
 				if tt.notNil {
-					g.Expect(got).ShouldNot(BeNil())
+					g.Expect(got).ShouldNot(gomega.BeNil())
 				}
-
 			}
 		})
 	}
 }
 
-func
-TestBoltStorage_GetBucket(t *testing.T) {
-	g := NewGomegaWithT(t)
+func TestBoltStorage_GetBucket(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
 	storage, err := NewBoltStorage(tempfile(), &bots.Chat{})
 	if err != nil {
 		t.Fatal(err)
@@ -252,19 +245,19 @@ TestBoltStorage_GetBucket(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	g.Expect(storage.GetBucket(tx, "none")).To(BeNil())
+	g.Expect(storage.GetBucket(tx, "none")).To(gomega.BeNil())
 	bucket, err := tx.CreateBucketIfNotExists([]byte("newbucket"))
-	g.Expect(bucket).Should(BeNil())
-	g.Expect(err).ToNot(BeNil())
+	g.Expect(bucket).Should(gomega.BeNil())
+	g.Expect(err).ToNot(gomega.BeNil())
 	_ = tx.Rollback()
 	tx, err = db.Begin(true)
 	if err != nil {
 		t.Fatal(err)
 	}
-	g.Expect(storage.GetBucket(tx, "none")).To(BeNil())
+	g.Expect(storage.GetBucket(tx, "none")).To(gomega.BeNil())
 	bucket, err = tx.CreateBucketIfNotExists([]byte("newbucket"))
-	g.Expect(bucket).ToNot(BeNil())
-	g.Expect(err).To(BeNil())
+	g.Expect(bucket).ToNot(gomega.BeNil())
+	g.Expect(err).To(gomega.BeNil())
 	err = tx.Commit()
 	if err != nil {
 		t.Fatal(err)
@@ -273,12 +266,11 @@ TestBoltStorage_GetBucket(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	g.Expect(storage.GetBucket(tx, "newbucket")).ToNot(BeNil())
+	g.Expect(storage.GetBucket(tx, "newbucket")).ToNot(gomega.BeNil())
 }
 
-func
-TestBoltStorage_Find(t *testing.T) {
-	g := NewGomegaWithT(t)
+func TestBoltStorage_Find(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
 	storage, err := NewBoltStorage(tempfile(), &bots.Chat{})
 	if err != nil {
 		t.Fatal(err)
@@ -287,55 +279,55 @@ TestBoltStorage_Find(t *testing.T) {
 	item.ModelData = make(map[string]interface{})
 	item.ModelData["a"] = "b"
 	item.ModelData["c"] = "b"
-	//We create an item that would be indexed only by UUIDValue
+	// We create an item that would be indexed only by UUIDValue
 	err = storage.Create(item, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	g.Expect(item.UUIDValue != "").To(BeTrue())
+	g.Expect(item.UUIDValue != "").To(gomega.BeTrue())
 
 	query := indexing.NewQuery()
 	searchResult := search.ScrapeResultItem{}
 
-	//Should be able to find it by UUIDValue, since it's the ID.
+	// Should be able to find it by UUIDValue, since it's the ID.
 	query.Put("UUID", item.UUIDValue)
-	g.Expect(storage.Find(query, &searchResult)).To(BeNil())
+	g.Expect(storage.Find(query, &searchResult)).To(gomega.BeNil())
 
-	//Should not find an item that's not indexed in that way.
+	// Should not find an item that's not indexed in that way.
 	query = indexing.NewQuery()
 	query.Put("a", "b")
-	g.Expect(storage.Find(query, &searchResult)).ToNot(BeNil())
+	g.Expect(storage.Find(query, &searchResult)).ToNot(gomega.BeNil())
 
-	//Should be able to create a new item with a custom ID
+	// Should be able to create a new item with a custom ID
 	item = &search.ScrapeResultItem{}
 	item.ModelData = make(map[string]interface{})
 	item.ModelData["a"] = "b"
 	item.ModelData["c"] = "b"
-	err = storage.CreateWithId(indexing.NewKey("a"), item, nil)
-	g.Expect(err).To(BeNil())
-	//it shouldn't use the UUIDValue
-	g.Expect(item.UUIDValue != "").To(BeFalse())
-	//and find it after that, using that custom ID
+	err = storage.CreateWithID(indexing.NewKey("a"), item, nil)
+	g.Expect(err).To(gomega.BeNil())
+	// it shouldn't use the UUIDValue
+	g.Expect(item.UUIDValue != "").To(gomega.BeFalse())
+	// and find it after that, using that custom ID
 	query = indexing.NewQuery()
 	query.Put("a", "b")
-	g.Expect(storage.Find(query, &searchResult)).To(BeNil())
-	g.Expect(len(searchResult.ModelData)).To(Equal(2))
+	g.Expect(storage.Find(query, &searchResult)).To(gomega.BeNil())
+	g.Expect(len(searchResult.ModelData)).To(gomega.Equal(2))
 
-	//Should be able to create records by UUIDValue
-	//and index them with another key field
+	// Should be able to create records by UUIDValue
+	// and index them with another key field
 	item = &search.ScrapeResultItem{}
 	item.ModelData = make(map[string]interface{})
 	item.ModelData["x"] = "b"
 	item.ModelData["c"] = "b"
 	err = storage.Create(item, indexing.NewKey("x")) // Create it with UUID
-	g.Expect(err).To(BeNil())
+	g.Expect(err).To(gomega.BeNil())
 	query = indexing.NewQuery()
-	query.Put("x", "b") //We're indexed under UUID, but we can also use the `x` key.
+	query.Put("x", "b") // We're indexed under UUID, but we can also use the `x` key.
 	searchResult = search.ScrapeResultItem{}
-	g.Expect(storage.Find(query, &searchResult)).To(BeNil())
-	g.Expect(len(searchResult.ModelData)).To(Equal(2))
+	g.Expect(storage.Find(query, &searchResult)).To(gomega.BeNil())
+	g.Expect(len(searchResult.ModelData)).To(gomega.Equal(2))
 
-	//Should be able to update records with a custom key as an additional index
+	// Should be able to update records with a custom key as an additional index
 	query = indexing.NewQuery()
 	query.Put("x", "b")
 	updateItem := &search.ScrapeResultItem{}
@@ -344,7 +336,7 @@ TestBoltStorage_Find(t *testing.T) {
 	updateItem.ModelData["c"] = "b"
 	updateItem.ModelData["d"] = "ddb"
 	searchResult = search.ScrapeResultItem{}
-	g.Expect(storage.Update(query, updateItem)).To(BeNil())
-	g.Expect(storage.Find(query, &searchResult)).To(BeNil())
-	g.Expect(len(searchResult.ModelData)).To(Equal(3))
+	g.Expect(storage.Update(query, updateItem)).To(gomega.BeNil())
+	g.Expect(storage.Find(query, &searchResult)).To(gomega.BeNil())
+	g.Expect(len(searchResult.ModelData)).To(gomega.Equal(3))
 }

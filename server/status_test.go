@@ -2,13 +2,15 @@ package server
 
 import (
 	"encoding/json"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/onsi/gomega"
+
 	"github.com/sp0x/torrentd/indexer/mocks"
 	"github.com/sp0x/torrentd/indexer/status/models"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestServer_Status(t *testing.T) {
@@ -17,7 +19,7 @@ func TestServer_Status(t *testing.T) {
 	defer ctrl.Finish()
 	testObj := &Server{}
 	reportGen := mocks.NewMockReportGenerator(ctrl)
-	//Mocks
+	// Mocks
 	reportGen.EXPECT().GetLatestItems().Return([]models.LatestResult{})
 	reportGen.EXPECT().GetIndexesStatus(gomock.Any()).Return([]models.IndexStatus{})
 	testObj.status = reportGen

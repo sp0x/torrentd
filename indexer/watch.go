@@ -1,12 +1,14 @@
 package indexer
 
 import (
-	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/indexer/search"
 	"time"
+
+	log "github.com/sirupsen/logrus"
+
+	"github.com/sp0x/torrentd/indexer/search"
 )
 
-//IteratePages goes over all the pages in an index and returns the results through a channel.
+// IteratePages goes over all the pages in an index and returns the results through a channel.
 func GetAllPagesFromIndex(facade *Facade, query *search.Query) <-chan search.ResultItemBase { //nolint:unused
 	outputChan := make(chan search.ResultItemBase)
 	if query == nil {
@@ -34,9 +36,9 @@ func GetAllPagesFromIndex(facade *Facade, query *search.Query) <-chan search.Res
 				tmpResult := result
 				outputChan <- tmpResult
 			}
-			//Go to the next page
+			// Go to the next page
 			query.Page += 1
-			//If we've reached the end we stop
+			// If we've reached the end we stop
 			if maxPages == query.Page {
 				break
 			}
@@ -46,9 +48,9 @@ func GetAllPagesFromIndex(facade *Facade, query *search.Query) <-chan search.Res
 	return outputChan
 }
 
-//Watch tracks an index for any new items, through all search pages(or max pages).
-//Whenever old results are found, or we've exhausted the number of pages, the search restarts from the start.
-//The interval is in seconds, it's used to sleep after each search for new results.
+// Watch tracks an index for any new items, through all search pages(or max pages).
+// Whenever old results are found, or we've exhausted the number of pages, the search restarts from the start.
+// The interval is in seconds, it's used to sleep after each search for new results.
 func Watch(facade *Facade, initialQuery *search.Query, intervalSec int) <-chan search.ResultItemBase {
 	outputChan := make(chan search.ResultItemBase)
 	if initialQuery == nil {
@@ -58,7 +60,7 @@ func Watch(facade *Facade, initialQuery *search.Query, intervalSec int) <-chan s
 		var currentSearch search.Instance
 		startingPage := initialQuery.Page
 		maxPages := facade.Indexer.MaxSearchPages()
-		//Go over all pages
+		// Go over all pages
 		for {
 			var err error
 			if currentSearch == nil {
@@ -82,8 +84,8 @@ func Watch(facade *Facade, initialQuery *search.Query, intervalSec int) <-chan s
 				continue
 			}
 			sendSearchResults(currentSearch, outputChan)
-			//Parse the currentPage and see if there are any new torrents
-			//if there aren't any, sleep the intervalSec
+			// Parse the currentPage and see if there are any new torrents
+			// if there aren't any, sleep the intervalSec
 			finished := false
 			hasReachedStaleItems := false
 			resultItems := currentSearch.GetResults()
@@ -107,7 +109,7 @@ func Watch(facade *Facade, initialQuery *search.Query, intervalSec int) <-chan s
 					break
 				}
 			}
-			//If we have stale torrents we wait some time and try again
+			// If we have stale torrents we wait some time and try again
 			if hasReachedStaleItems || len(resultItems) == 0 {
 				log.WithFields(log.Fields{"page": initialQuery.PageCount}).
 					Infof("Reached page with 0 results. Search is complete.")
@@ -116,9 +118,9 @@ func Watch(facade *Facade, initialQuery *search.Query, intervalSec int) <-chan s
 				initialQuery.Page = startingPage
 				continue
 			}
-			//Otherwise we proceed to the next currentPage if there's any
+			// Otherwise we proceed to the next currentPage if there's any
 			initialQuery.Page += 1
-			//We've exceeded the pages, sleep and go to the start
+			// We've exceeded the pages, sleep and go to the start
 			if maxPages == initialQuery.Page {
 				initialQuery.Page = startingPage
 				currentSearch = nil

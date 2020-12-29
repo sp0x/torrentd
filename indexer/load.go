@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"errors"
+
 	"github.com/spf13/viper"
 )
 
@@ -11,12 +12,12 @@ var (
 	Loader                  DefinitionLoader
 )
 
-//ListBuiltInIndexes returns a list of all the embedded indexes that are supported.
+// ListBuiltInIndexes returns a list of all the embedded indexes that are supported.
 func ListBuiltInIndexes() ([]string, error) {
 	return DefaultDefinitionLoader.List(nil)
 }
 
-//LoadEnabledDefinitions loads all of the definitions that are covered by the current definition loader (`Loader`).
+// LoadEnabledDefinitions loads all of the definitions that are covered by the current definition loader (`Loader`).
 func LoadEnabledDefinitions(conf interface{}) ([]*IndexerDefinition, error) {
 	keys, err := Loader.List(nil)
 	if err != nil {
@@ -36,16 +37,16 @@ func LoadEnabledDefinitions(conf interface{}) ([]*IndexerDefinition, error) {
 	return defs, nil
 }
 
-//DefinitionLoader loads an index definition by name or lists the names of the supported indexes.
+// DefinitionLoader loads an index definition by name or lists the names of the supported indexes.
 type DefinitionLoader interface {
-	//List - Lists available trackers.
+	// List - Lists available trackers.
 	List(selector *IndexerSelector) ([]string, error)
-	//Load - Load a definition of an Indexer from it's name
+	// Load - Load a definition of an Indexer from it's name
 	Load(key string) (*IndexerDefinition, error)
 }
 
 func init() {
 	DefaultDefinitionLoader = defaultMultiLoader()
-	//Start with the default loader.
+	// Start with the default loader.
 	Loader = DefaultDefinitionLoader
 }

@@ -2,19 +2,21 @@ package indexer
 
 import (
 	"fmt"
-	"github.com/mitchellh/go-homedir"
-	"github.com/sp0x/torrentd/config"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/mitchellh/go-homedir"
+
+	"github.com/sp0x/torrentd/config"
 )
 
 type FileIndexLoader struct {
 	Directories []string
 }
 
-//NewFsLoader creates a new file index loader which looks for definitions in ~/.#{appName}/indexes and ./indexes
+// NewFsLoader creates a new file index loader which looks for definitions in ~/.#{appName}/indexes and ./indexes
 func NewFsLoader(appName string) *FileIndexLoader {
 	localDirectory := ""
 	entityName := "indexes"
@@ -100,7 +102,7 @@ func (fs *FileIndexLoader) String() string {
 	return "dirs{" + buff + "}"
 }
 
-//Load - Load a definition of an Indexer from it's name
+// Load - Load a definition of an Indexer from it's name
 func (fs *FileIndexLoader) Load(key string) (*IndexerDefinition, error) {
 	defs, err := fs.walkDirectories()
 	if err != nil {

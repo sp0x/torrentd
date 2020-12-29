@@ -2,16 +2,18 @@ package bolt
 
 import (
 	"fmt"
-	"github.com/boltdb/bolt"
-	"github.com/sp0x/torrentd/storage/stats"
 	"time"
+
+	"github.com/boltdb/bolt"
+
+	"github.com/sp0x/torrentd/storage/stats"
 )
 
-func (b *BoltStorage) GetStats(dumpDb bool) *stats.Stats {
-	if dumpDb {
-		b.dumpDbBuckets()
+func (b *BoltStorage) GetStats(shouldDumpDB bool) *stats.Stats {
+	if shouldDumpDB {
+		b.dumpDBBuckets()
 	}
-	//Go over each namespace
+	// Go over each namespace
 	output := &stats.Stats{}
 	_ = b.Database.View(func(tx *bolt.Tx) error {
 		for _, ns := range b.getNamespaces(tx) {
@@ -28,7 +30,7 @@ func (b *BoltStorage) GetStats(dumpDb bool) *stats.Stats {
 	return output
 }
 
-func (b *BoltStorage) dumpDbBuckets() {
+func (b *BoltStorage) dumpDBBuckets() {
 	_ = b.Database.View(func(tx *bolt.Tx) error {
 		return tx.ForEach(func(name []byte, bucket *bolt.Bucket) error {
 			bucketStats := bucket.Stats()
@@ -61,7 +63,7 @@ func getNamespaceSize(tx *bolt.Tx, b *BoltStorage, name string) int {
 	return bucketStats.KeyN
 }
 
-//Size gets the record count in this namespace's results bucket
+// Size gets the record count in this namespace's results bucket
 func (b *BoltStorage) Size() int64 {
 	var count *int
 	count = new(int)

@@ -1,11 +1,12 @@
 package formatting
 
 import (
-	log "github.com/sirupsen/logrus"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func NormalizeSpace(raw string) string {
@@ -38,7 +39,7 @@ func fixMonths(str string) string {
 }
 
 func FormatTime(str string) time.Time {
-	//7-Апр-20 00:06
+	// 7-Апр-20 00:06
 	str = strings.Trim(str, " \t\n\r")
 	str = strings.Replace(str, "  ", " ", -1)
 	str = strings.Replace(str, "  ", " ", -1)
@@ -70,7 +71,7 @@ func ExtractAttributeFromQuery(uri string, param string) string {
 func StripToNumber(str string) string {
 	chars := "0123456789.,"
 	var validChars []rune
-	for _, c := range []rune(str) {
+	for _, c := range str {
 		if strings.ContainsRune(chars, c) {
 			validChars = append(validChars, c)
 		}
@@ -96,7 +97,7 @@ func SizeStrToBytes(str string) uint64 {
 	str = strings.Replace(str, "kb", "", -1)
 	chars := "1203456789.,"
 	var validChars []rune
-	for _, c := range []rune(str) {
+	for _, c := range str {
 		if strings.ContainsRune(chars, c) {
 			validChars = append(validChars, c)
 		}

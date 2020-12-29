@@ -5,28 +5,32 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
-	"github.com/jackpal/bencode-go"
-	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/surf/browser/encoding"
-	"github.com/sp0x/torrentd/indexer"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/jackpal/bencode-go"
+	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/surf/browser/encoding"
+
+	"github.com/sp0x/torrentd/indexer"
 )
 
-var rxMagnet, _ = regexp.Compile("^(stream-)?magnet:")
-var rxHex, _ = regexp.Compile("^[a-f0-9]{40}$")
-var rxBase32, _ = regexp.Compile("^[a-z2-7]{32}")
+var (
+	rxMagnet, _ = regexp.Compile("^(stream-)?magnet:")
+	rxHex, _    = regexp.Compile("^[a-f0-9]{40}$")
+	rxBase32, _ = regexp.Compile("^[a-z2-7]{32}")
+)
 
 func ParseTorrentFromStream(stream io.ReadCloser) (*Definition, error) {
 	body, err := ioutil.ReadAll(stream)
 	if err != nil {
 		return nil, err
 	}
-	//ioutil.WriteFile("/tmp/rss.torrent", body, os.ModePerm)
+	// ioutil.WriteFile("/tmp/rss.torrent", body, os.ModePerm)
 	return ParseTorrent(string(body))
 }
 
@@ -46,7 +50,7 @@ func ParseTorrentFromUrl(h *indexer.Facade, torrentUrl string) (*Definition, err
 
 func ParseTorrent(torrent string) (*Definition, error) {
 	if rxMagnet.MatchString(torrent) {
-		//Torrent is a magnet
+		// Torrent is a magnet
 		return parseMagnet(torrent)
 		//if d.InfoHash == "" {
 		//	return nil, errors.New("could not parse magnet torrent id")
@@ -56,22 +60,19 @@ func ParseTorrent(torrent string) (*Definition, error) {
 		// if info is a hash (hex/base-32 str)
 		return parseMagnet("magnet:?xt=urn:btih:" + torrent)
 	} else if len(torrent) == 20 && isTorrentBuff(torrent) {
-		//if .torrent file buffer
 		return parseMagnet("magnet:?xt=urn:btih:" + torrent)
 	} else if isTorrentBuff(torrent) {
 		return decodeTorrentBuff([]byte(torrent))
 	} else {
 		return nil, errors.New("invalid torrent")
 	}
-
-	return nil, nil
 }
 
 func isTorrentBuff(buff string) bool {
 	return true
 }
 
-//Parse a torrent file's content to get more information about it
+// Parse a torrent file's content to get more information about it
 func decodeTorrentBuff(buff []byte) (*Definition, error) {
 	reader := bytes.NewReader(buff)
 	var data Definition

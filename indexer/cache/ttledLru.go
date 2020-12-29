@@ -134,7 +134,7 @@ func (t *CacheWithTTL) Dispose() {
 }
 
 func (t *CacheWithTTL) removeStales() {
-	//TODO: add termination way
+	// TODO: add termination way
 	ticker := time.NewTicker(200 * time.Millisecond)
 	for {
 		select {
@@ -143,7 +143,7 @@ func (t *CacheWithTTL) removeStales() {
 				t.lock.Lock()
 				val, ok := t.LRU.Get(key)
 				t.lock.Unlock()
-				//If there's a value behind the key and it's a stale one, exceeding the ttl for the cache
+				// If there's a value behind the key and it's a stale one, exceeding the ttl for the cache
 				if ok && time.Now().After(val.(ttledCacheValue).lastAccessTime.Add(t.TTL)) {
 					t.Remove(key)
 				}

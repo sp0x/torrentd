@@ -2,13 +2,14 @@ package mocks
 
 import (
 	"errors"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/sp0x/surf/browser"
-	"github.com/sp0x/surf/jar"
 	"io"
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/PuerkitoBio/goquery"
+	"github.com/sp0x/surf/browser"
+	"github.com/sp0x/surf/jar"
 )
 
 type MockedBrowser struct {
@@ -18,20 +19,17 @@ type MockedBrowser struct {
 
 // SetUserAgent sets the user agent.
 func (b *MockedBrowser) SetUserAgent(_ string) {
-
 }
 
-//SetEncoding sets the encoding to use after a page is fetched
+// SetEncoding sets the encoding to use after a page is fetched
 func (b *MockedBrowser) SetEncoding(_ string) {
-
 }
-func (b *MockedBrowser) SetRateLimit(_ int) {
 
+func (b *MockedBrowser) SetRateLimit(_ int) {
 }
 
 // SetAttribute sets a browser instruction attribute.
 func (b *MockedBrowser) SetAttribute(_ browser.Attribute, _ bool) {
-
 }
 
 func (b *MockedBrowser) RawBody() []byte {
@@ -40,7 +38,6 @@ func (b *MockedBrowser) RawBody() []byte {
 
 // SetAttributes is used to set all the browser attributes.
 func (b *MockedBrowser) SetAttributes(_ browser.AttributeMap) {
-
 }
 
 // SetState sets the init browser state.
@@ -55,7 +52,6 @@ func (b *MockedBrowser) State() *jar.State {
 
 // SetBookmarksJar sets the bookmarks jar the browser uses.
 func (b *MockedBrowser) SetBookmarksJar(_ jar.BookmarksJar) {
-
 }
 
 // BookmarksJar returns the bookmarks jar the browser uses.
@@ -65,7 +61,6 @@ func (b *MockedBrowser) BookmarksJar() jar.BookmarksJar {
 
 // SetCookieJar is used to set the cookie jar the browser uses.
 func (b *MockedBrowser) SetCookieJar(_ http.CookieJar) {
-
 }
 
 // CookieJar returns the cookie jar the browser uses.
@@ -75,7 +70,6 @@ func (b *MockedBrowser) CookieJar() http.CookieJar {
 
 // SetHistoryJar is used to set the history jar the browser uses.
 func (b *MockedBrowser) SetHistoryJar(_ jar.History) {
-
 }
 
 // HistoryJar returns the history jar the browser uses.
@@ -85,22 +79,18 @@ func (b *MockedBrowser) HistoryJar() jar.History {
 
 // SetHeadersJar sets the headers the browser sends with each request.
 func (b *MockedBrowser) SetHeadersJar(_ http.Header) {
-
 }
 
 // SetTimeout sets the timeout for requests.
 func (b *MockedBrowser) SetTimeout(_ time.Duration) {
-
 }
 
 // SetTransport sets the http library transport mechanism for each request.
 func (b *MockedBrowser) SetTransport(http.RoundTripper) {
-
 }
 
 // AddRequestHeader adds a header the browser sends with each request.
 func (b *MockedBrowser) AddRequestHeader(string, string) {
-
 }
 
 // Open requests the given URL using the GET method.

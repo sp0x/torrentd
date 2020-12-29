@@ -23,7 +23,7 @@ type Server struct {
 	indexerFacade *indexer.Facade
 	tabWriter     *tabwriter.Writer
 	status        indexer.ReportGenerator
-	//Params    Params
+	// Params    Params
 	config     config.Config
 	Port       int
 	Hostname   string
@@ -67,7 +67,7 @@ func (s *Server) Listen(tracker *indexer.Facade) error {
 	s.indexerFacade = tracker
 	s.tabWriter = tabWr
 	r := gin.Default()
-	//Register pprof so we can profile our app.
+	// Register pprof so we can profile our app.
 	pprof.Register(r)
 	s.setupRoutes(r)
 	log.Info("Starting server...")

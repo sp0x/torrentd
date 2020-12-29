@@ -1,11 +1,12 @@
 package indexer
 
 import (
+	"io"
+	"net/http"
+
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage"
 	"github.com/sp0x/torrentd/torznab"
-	"io"
-	"net/http"
 )
 
 type Info interface {
@@ -30,10 +31,10 @@ type Indexer interface {
 	GetEncoding() string
 	ProcessRequest(req *http.Request) (*http.Response, error)
 	Open(s search.ResultItemBase) (*ResponseProxy, error)
-	//HealthCheck if the Indexer works.
-	//This might be needed to validate the search result extraction.
+	// HealthCheck if the Indexer works.
+	// This might be needed to validate the search result extraction.
 	HealthCheck() error
-	//The maximum number of pages we can search
+	// The maximum number of pages we can search
 	MaxSearchPages() uint
 	SearchIsSinglePaged() bool
 	Errors() []string

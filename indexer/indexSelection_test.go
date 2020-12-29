@@ -1,9 +1,10 @@
 package indexer
 
 import (
+	"testing"
+
 	"github.com/golang/mock/gomock"
 	"github.com/onsi/gomega"
-	"testing"
 )
 
 func TestResolveIndexId_ShouldWorkWithCommaIndexes(t *testing.T) {

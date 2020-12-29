@@ -2,16 +2,18 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"strings"
+
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+
 	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
-	"github.com/spf13/cobra"
-	"os"
-	"strings"
 )
 
-//var subtitleIndexer string
+// var subtitleIndexer string
 
 func init() {
 	cmdFetchTorrents := &cobra.Command{
@@ -33,7 +35,7 @@ func findSubtitles(_ *cobra.Command, args []string) {
 	}
 	var currentSearch search.Instance
 	var err error
-	var searchQuery = strings.Join(args, " ")
+	searchQuery := strings.Join(args, " ")
 	subCat := categories.Subtitle
 	currentSearch, err = helper.SearchKeywordsWithCategory(nil, searchQuery, subCat, 0)
 	if err != nil {

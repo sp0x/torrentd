@@ -1,11 +1,12 @@
 package db
 
 import (
+	"os"
+	"path"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
-	"os"
-	"path"
 )
 
 func GetOrmDb(pth string) *gorm.DB {

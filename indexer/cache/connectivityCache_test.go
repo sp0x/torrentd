@@ -1,9 +1,11 @@
 package cache
 
 import (
-	"github.com/onsi/gomega"
-	"github.com/sp0x/torrentd/indexer/cache/mocks"
 	"testing"
+
+	"github.com/onsi/gomega"
+
+	"github.com/sp0x/torrentd/indexer/cache/mocks"
 )
 
 func TestConnectivityCache_IsOk(t *testing.T) {

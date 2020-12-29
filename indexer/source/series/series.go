@@ -3,10 +3,11 @@ package series
 import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/mediareleaseinfo"
+
 	"github.com/sp0x/torrentd/indexer/search"
 )
 
-//Checks if the result is a series result, and ignores it if the title of the series is different.
+// Checks if the result is a series result, and ignores it if the title of the series is different.
 func IsSeriesAndNotMatching(query *search.Query, item *search.TorrentResultItem) bool {
 	if query.Series != "" {
 		info, err := releaseinfo.Parse(item.Title)

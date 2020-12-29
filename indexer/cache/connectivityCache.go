@@ -2,22 +2,23 @@ package cache
 
 import (
 	"errors"
-	"github.com/sp0x/surf/browser"
 	"sync"
 	"time"
+
+	"github.com/sp0x/surf/browser"
 )
 
-//ConnectivityCache is a invalidatedCache for URL connectivity.
+// ConnectivityCache is a invalidatedCache for URL connectivity.
 type ConnectivityCache struct {
 	browser browser.Browsable
 	lock    sync.RWMutex
-	//invalidatedCache   map[string]CacheInfo
+	// invalidatedCache   map[string]CacheInfo
 	cache LRUCache
 }
 
 func NewConnectivityCache() (*ConnectivityCache, error) {
 	c := ConnectivityCache{}
-	//Connection statuses are kept for 60 minutes, we keep at most 10k urls
+	// Connection statuses are kept for 60 minutes, we keep at most 10k urls
 	cache, err := NewTTL(10000, time.Minute*60)
 	if err != nil {
 		return nil, err
@@ -26,19 +27,19 @@ func NewConnectivityCache() (*ConnectivityCache, error) {
 	return &c, nil
 }
 
-//Invalidate a invalidatedCache entry by removing it from the invalidatedCache.
+// Invalidate a invalidatedCache entry by removing it from the invalidatedCache.
 func (c *ConnectivityCache) Invalidate(url string) {
 	c.cache.Remove(url)
 }
 
-//IsOk returns whether the invalidatedCache contains a successful response for the url
+// IsOk returns whether the invalidatedCache contains a successful response for the url
 func (c *ConnectivityCache) IsOk(url string) bool {
 	ok := c.cache.Contains(url)
 	return ok
 }
 
-//IsOkAndSet checks if the `u` value is contained, if it's not it checks it.
-//This operation is thread safe, you can use it to modify the invalidatedCache state in the function.
+// IsOkAndSet checks if the `u` value is contained, if it's not it checks it.
+// This operation is thread safe, you can use it to modify the invalidatedCache state in the function.
 func (c *ConnectivityCache) IsOkAndSet(u string, f func() bool) bool {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
@@ -52,7 +53,7 @@ func (c *ConnectivityCache) IsOkAndSet(u string, f func() bool) bool {
 	return result
 }
 
-//Test the connectivity for an url.
+// Test the connectivity for an url.
 func (c *ConnectivityCache) Test(u string) error {
 	if c.browser == nil {
 		return errors.New("connectivity invalidatedCache has no browser. call SetBrowser first")

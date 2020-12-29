@@ -1,9 +1,10 @@
 package indexing
 
 import (
-	"github.com/emirpasic/gods/maps/linkedhashmap"
 	"reflect"
 	"strings"
+
+	"github.com/emirpasic/gods/maps/linkedhashmap"
 )
 
 //Key is a primary key or an indexing key, this can be a composite key as well
@@ -11,15 +12,15 @@ import (
 type Key struct {
 	Fields      []string
 	fieldsCache map[string]interface{}
-	//This can be used to prefix the value of the key.
-	//ValuePrefix string
+	// This can be used to prefix the value of the key.
+	// ValuePrefix string
 }
 
 func (k *Key) IsEmpty() bool {
 	return len(k.Fields) == 0
 }
 
-//NewKey creates a new keyParts using an array of fields.
+// NewKey creates a new keyParts using an array of fields.
 func NewKey(fieldNames ...string) *Key {
 	var key Key
 	key.fieldsCache = make(map[string]interface{})
@@ -39,7 +40,7 @@ func NewKey(fieldNames ...string) *Key {
 //	return k
 //}
 
-//AddKeys adds multiple keys
+// AddKeys adds multiple keys
 func (k *Key) AddKeys(newKeys *Key) {
 	if k.fieldsCache == nil {
 		k.fieldsCache = make(map[string]interface{})
@@ -54,7 +55,7 @@ func (k *Key) AddKeys(newKeys *Key) {
 	}
 }
 
-//Add a new key field
+// Add a new key field
 func (k *Key) Add(s string) {
 	_, exists := k.fieldsCache[s]
 	if exists {
@@ -64,7 +65,7 @@ func (k *Key) Add(s string) {
 	k.fieldsCache[s] = true
 }
 
-//KeyHasValue checks if all the key fields in an item have a value.
+// KeyHasValue checks if all the key fields in an item have a value.
 func KeyHasValue(key *Key, item interface{}) bool {
 	val := reflect.ValueOf(item).Elem()
 	fieldsField := val.FieldByName("ExtraFields")
@@ -107,7 +108,7 @@ func NewQuery() Query {
 	return query
 }
 
-//GetKeyQueryFromItem gets the query that matches an item with the given keyParts.
+// GetKeyQueryFromItem gets the query that matches an item with the given keyParts.
 func GetKeyQueryFromItem(keyParts *Key, item interface{}) Query {
 	output := NewQuery()
 	val := reflect.ValueOf(item).Elem()

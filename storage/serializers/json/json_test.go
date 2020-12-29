@@ -1,7 +1,6 @@
 package json
 
 import (
-	"github.com/sp0x/torrentd/storage/internal"
 	"testing"
 )
 

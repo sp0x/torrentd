@@ -2,23 +2,24 @@ package rss
 
 import (
 	"fmt"
-	"github.com/gorilla/feeds"
-	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/indexer"
-	"github.com/sp0x/torrentd/indexer/search"
-	http2 "github.com/sp0x/torrentd/server/http"
-
 	"net/http"
 	"net/url"
 	"os"
 	"text/tabwriter"
 	"time"
+
+	"github.com/gorilla/feeds"
+	log "github.com/sirupsen/logrus"
+
+	"github.com/sp0x/torrentd/indexer"
+	"github.com/sp0x/torrentd/indexer/search"
+	http2 "github.com/sp0x/torrentd/server/http"
 )
 
 func ServerAll(c http2.Context) {
-	//keyedStorage := storage.NewKeyedStorage(nil)
-	//torrents := sqlite.DefaultStorageBacking().GetTorrentsInCategories([]int{})
-	//SendRssFeed("", "torrents", torrents, c)
+	// keyedStorage := storage.NewKeyedStorage(nil)
+	// torrents := sqlite.DefaultStorageBacking().GetTorrentsInCategories([]int{})
+	// SendRssFeed("", "torrents", torrents, c)
 }
 
 func SearchAndServe(ixr *indexer.Facade, options *indexer.GenericSearchOptions, c http2.Context) {
@@ -118,7 +119,7 @@ func SendRssFeed(hostname, name string, torrents []*search.TorrentResultItem, c 
 		Title:       fmt.Sprintf("%s from Rutracker", name),
 		Link:        &feeds.Link{Href: fmt.Sprintf("http://%s/%s", hostname, name)},
 		Description: name,
-		//Author:      &feeds.Author{},
+		// Author:      &feeds.Author{},
 		Created: time.Now(),
 	}
 	feed.Items = make([]*feeds.Item, len(torrents))

@@ -3,37 +3,39 @@ package indexer
 import (
 	"errors"
 	"fmt"
+	"os"
+
 	log "github.com/sirupsen/logrus"
+
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
-	"os"
 )
 
 const (
 	noIndexError = "no index configured. you have to pick an index"
 )
 
-//Facade for an indexer/aggregate, helps manage the scope of the index, it's configuration and the index itself.
+// Facade for an indexer/aggregate, helps manage the scope of the index, it's configuration and the index itself.
 type Facade struct {
-	//The indexer that we're using
+	// The indexer that we're using
 	Indexer Indexer
-	//Configuration for the indexer.
+	// Configuration for the indexer.
 	Config config.Config
 	Scope  Scope
 }
 
-//GenericSearchOptions options for the search.
+// GenericSearchOptions options for the search.
 type GenericSearchOptions struct {
-	//The count of pages we can fetch
+	// The count of pages we can fetch
 	PageCount uint
-	//The initial search page
+	// The initial search page
 	StartingPage         uint
 	MaxRequestsPerSecond uint
 	StopOnStaleResults   bool
 }
 
-//NewFacadeFromConfiguration Creates a new facade using the configuration
+// NewFacadeFromConfiguration Creates a new facade using the configuration
 func NewFacadeFromConfiguration(config config.Config) *Facade {
 	facade := NewEmptyFacade(config)
 	indexerName := config.GetString("index")
@@ -51,7 +53,7 @@ func NewFacadeFromConfiguration(config config.Config) *Facade {
 	return facade
 }
 
-//NewEmptyFacade creates a new indexer facade with it's own scope and config.
+// NewEmptyFacade creates a new indexer facade with it's own scope and config.
 func NewEmptyFacade(config config.Config) *Facade {
 	facade := &Facade{}
 	facade.Scope = NewScope()
@@ -59,9 +61,9 @@ func NewEmptyFacade(config config.Config) *Facade {
 	return facade
 }
 
-//NewFacade Creates a new facade for an indexer with the given name and config.
-//If any indexCategories are given, the facade must be for an indexer that supports these indexCategories.
-//If you don't provide a name or name is `all`, an aggregate is used.
+// NewFacade Creates a new facade for an indexer with the given name and config.
+// If any indexCategories are given, the facade must be for an indexer that supports these indexCategories.
+// If you don't provide a name or name is `all`, an aggregate is used.
 func NewFacade(indexerName string, config config.Config, cats ...categories.Category) (*Facade, error) { //nolint:unused
 	if newIndexerSelector(indexerName).isAggregate() {
 		return NewAggregateFacadeWithCategories(config, cats...), nil
@@ -81,7 +83,7 @@ func NewFacade(indexerName string, config config.Config, cats ...categories.Cate
 	return facade, nil
 }
 
-//NewAggregateFacadeWithCategories Finds an indexer from the config, that matches the given indexCategories.
+// NewAggregateFacadeWithCategories Finds an indexer from the config, that matches the given indexCategories.
 func NewAggregateFacadeWithCategories(config config.Config, cats ...categories.Category) *Facade {
 	facade := Facade{}
 	facade.Scope = NewScope()
@@ -101,7 +103,7 @@ func NewAggregateFacadeWithCategories(config config.Config, cats ...categories.C
 	return &facade
 }
 
-//Search using a given query. The search covers only 1 page.
+// Search using a given query. The search covers only 1 page.
 func (th *Facade) Search(searchContext search.Instance, query *search.Query) (search.Instance, error) {
 	srch, err := th.Indexer.Search(query, searchContext)
 	if err != nil {
@@ -110,14 +112,14 @@ func (th *Facade) Search(searchContext search.Instance, query *search.Query) (se
 	return srch, nil
 }
 
-//SearchKeywords performs a search for a given page
+// SearchKeywords performs a search for a given page
 func (th *Facade) SearchKeywords(searchContext search.Instance, query string, page uint) (search.Instance, error) {
 	qrobj := search.ParseQueryString(query)
 	qrobj.Page = page
 	return th.Search(searchContext, qrobj)
 }
 
-//SearchKeywordsWithCategory Search for *keywords* matching the needed category.
+// SearchKeywordsWithCategory Search for *keywords* matching the needed category.
 func (th *Facade) SearchKeywordsWithCategory(searchContext search.Instance, query string, cat categories.Category, page uint) (search.Instance, error) {
 	qrobj := search.ParseQueryString(query)
 	qrobj.Page = page
@@ -129,7 +131,7 @@ func (th *Facade) SearchKeywordsWithCategory(searchContext search.Instance, quer
 	return srch, nil
 }
 
-//GetDefaultSearchOptions gets the default search options
+// GetDefaultSearchOptions gets the default search options
 func (th *Facade) GetDefaultSearchOptions() *GenericSearchOptions {
 	return &GenericSearchOptions{
 		PageCount:            10,
