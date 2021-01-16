@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
-
 	"github.com/sp0x/torrentd/indexer/search"
 )
 
@@ -140,9 +139,9 @@ func (r *Runner) populateScrapeItemField(item search.ResultItemBase, key string,
 	scrapeItem := item.(*search.ScrapeResultItem)
 	switch key {
 	case "id":
-		scrapeItem.SetLocalId(firstString(val))
+		scrapeItem.SetLocalID(firstString(val))
 	case "download":
-		u, err := r.getFullUrlInIndex(firstString(val))
+		u, err := r.getFullURLInIndex(firstString(val))
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 			return false
@@ -150,7 +149,7 @@ func (r *Runner) populateScrapeItemField(item search.ResultItemBase, key string,
 		// item.Link = u
 		scrapeItem.SourceLink = u
 	case "link":
-		u, err := r.getFullUrlInIndex(firstString(val))
+		u, err := r.getFullURLInIndex(firstString(val))
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 			return false

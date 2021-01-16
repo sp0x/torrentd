@@ -5,10 +5,10 @@ func (r *Runner) initLogin() error {
 		return nil
 	}
 
-	initUrl, err := r.getFullUrlInIndex(r.definition.Login.Init.Path)
+	initURL, err := r.getFullURLInIndex(r.definition.Login.Init.Path)
 	if err != nil {
 		return err
 	}
 
-	return r.contentFetcher.FetchUrl(initUrl)
+	return r.contentFetcher.FetchUrl(initURL)
 }

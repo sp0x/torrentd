@@ -6,12 +6,11 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	. "github.com/onsi/gomega"
-
 	"github.com/sp0x/torrentd/config"
 )
 
 // A mock for a telegram provider.
-func MockedApiProvider(string) (*tgbotapi.BotAPI, error) {
+func MockedAPIProvider(string) (*tgbotapi.BotAPI, error) {
 	api := &tgbotapi.BotAPI{}
 	return api, nil
 }
@@ -41,7 +40,7 @@ func TestNewTelegram(t *testing.T) {
 	tgram, err := NewTelegram("asd", cfg, tgbotapi.NewBotAPI)
 	g.Expect(err).ShouldNot(BeNil())
 	g.Expect(tgram).Should(BeNil())
-	tgram, err = NewTelegram("asd", cfg, MockedApiProvider)
+	tgram, err = NewTelegram("asd", cfg, MockedAPIProvider)
 	g.Expect(err).Should(BeNil())
 	g.Expect(tgram).ShouldNot(BeNil())
 
@@ -75,7 +74,7 @@ func TestNewTelegram(t *testing.T) {
 //	}
 //	for _, tt := range tests {
 //		t.Run(tt.name, func(t1 *testing.T) {
-//			tgram, _ := NewTelegram("asd", MockedApiProvider)
+//			tgram, _ := NewTelegram("asd", MockedAPIProvider)
 //			//Do the feeding
 //			err := tgram.FeedBroadcast(tt.args.messageChannel)
 //			g.Expect(err).ShouldNot(BeNil())
@@ -90,7 +89,7 @@ func TestNewTelegram(t *testing.T) {
 
 //func TestTelegramRunner_ForEachChat(t *testing.T) {
 //	g := NewGomegaWithT(t)
-//	tgram, _ := NewTelegram("asd", MockedApiProvider)
+//	tgram, _ := NewTelegram("asd", MockedAPIProvider)
 //	chats := 0
 //	//Here we need to push a chat to telegram's bolt chat storage
 //	tgram.ForEachChat(func(chat *storage.Chat) {
@@ -101,7 +100,7 @@ func TestNewTelegram(t *testing.T) {
 //
 //func TestTelegramRunner_Run(t *testing.T) {
 //	g := NewGomegaWithT(t)
-//	tgram, _ := NewTelegram("asd", MockedApiProvider)
+//	tgram, _ := NewTelegram("asd", MockedAPIProvider)
 //	//Here we need to run the bot and verify that it indeed receives a message
 //	g.Expect(tgram).ShouldNot(BeNil())
 //}

@@ -7,7 +7,6 @@ import (
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/PuerkitoBio/goquery"
-
 	"github.com/sp0x/torrentd/indexer/source"
 	"github.com/sp0x/torrentd/indexer/source/web"
 )
@@ -57,16 +56,16 @@ type RawScrapeItem interface {
 
 // region Scrape items collection
 
-type JsonScrapeItems struct {
+type JSONScrapeItems struct {
 	items []interface{}
 }
 
-func (j *JsonScrapeItems) Length() int {
+func (j *JSONScrapeItems) Length() int {
 	return len(j.items)
 }
 
-func (j *JsonScrapeItems) Get(i int) RawScrapeItem {
-	return &JsonScrapeItem{item: j.items[i]}
+func (j *JSONScrapeItems) Get(i int) RawScrapeItem {
+	return &JSONScrapeItem{item: j.items[i]}
 }
 
 type DomScrapeItems struct {
@@ -85,73 +84,73 @@ func (d *DomScrapeItems) Get(i int) RawScrapeItem {
 
 // region Scrape item
 
-type JsonScrapeItem struct {
+type JSONScrapeItem struct {
 	item interface{}
 }
 
-func (j *JsonScrapeItem) First() RawScrapeItem {
+func (j *JSONScrapeItem) First() RawScrapeItem {
 	switch value := j.item.(type) {
 	case []interface{}:
-		return &JsonScrapeItem{value[0]}
+		return &JSONScrapeItem{value[0]}
 	default:
 		return j
 	}
 }
 
-func (j *JsonScrapeItem) PrevAllFiltered(selector string) RawScrapeItem {
+func (j *JSONScrapeItem) PrevAllFiltered(selector string) RawScrapeItem {
 	panic("implement me")
 }
 
-func (j *JsonScrapeItem) Find(selectorOrPath string) RawScrapeItem {
+func (j *JSONScrapeItem) Find(selectorOrPath string) RawScrapeItem {
 	match, err := jsonpath.Get(selectorOrPath, j.item)
 	if err != nil {
-		return &JsonScrapeItem{item: nil}
+		return &JSONScrapeItem{item: nil}
 	}
-	return &JsonScrapeItem{item: match}
+	return &JSONScrapeItem{item: match}
 }
 
-func (j *JsonScrapeItem) Has(selector string) RawScrapeItem {
+func (j *JSONScrapeItem) Has(selector string) RawScrapeItem {
 	match, err := jsonpath.Get(selector, j.item)
 	if match == nil || err != nil {
 		return nil
 	}
-	return &JsonScrapeItem{match}
+	return &JSONScrapeItem{match}
 }
 
-func (j *JsonScrapeItem) Map(f func(int, RawScrapeItem) string) []string {
+func (j *JSONScrapeItem) Map(f func(int, RawScrapeItem) string) []string {
 	switch value := j.item.(type) {
 	case []interface{}:
 		output := make([]string, len(value))
 		for i, item := range value {
-			output[i] = f(i, &JsonScrapeItem{item})
+			output[i] = f(i, &JSONScrapeItem{item})
 		}
 		return output
 	default:
-		return []string{f(0, &JsonScrapeItem{j.item})}
+		return []string{f(0, &JSONScrapeItem{j.item})}
 	}
 }
 
-func (j *JsonScrapeItem) Text() string {
+func (j *JSONScrapeItem) Text() string {
 	return fmt.Sprint(j.item)
 }
 
-func (j *JsonScrapeItem) Attr(attributeName string) (string, bool) {
+func (j *JSONScrapeItem) Attr(attributeName string) (string, bool) {
 	return "", false
 }
 
-func (j *JsonScrapeItem) Remove() RawScrapeItem {
+func (j *JSONScrapeItem) Remove() RawScrapeItem {
 	panic("implement me")
 }
 
-func (j *JsonScrapeItem) FindWithSelector(block *selectorBlock) RawScrapeItem {
+func (j *JSONScrapeItem) FindWithSelector(block *selectorBlock) RawScrapeItem {
 	match, err := jsonpath.Get(block.Path, j.item)
 	if err != nil {
-		return &JsonScrapeItem{item: nil}
+		return &JSONScrapeItem{item: nil}
 	}
-	return &JsonScrapeItem{item: match}
+	return &JSONScrapeItem{item: match}
 }
 
-func (j *JsonScrapeItem) Length() int {
+func (j *JSONScrapeItem) Length() int {
 	switch value := j.item.(type) {
 	case []interface{}:
 		return len(value)
@@ -162,7 +161,7 @@ func (j *JsonScrapeItem) Length() int {
 
 // Is checks the current matched set of elements against a selector and
 // returns true if at least one of these elements matches.
-func (j *JsonScrapeItem) Is(_ string) bool {
+func (j *JSONScrapeItem) Is(_ string) bool {
 	return false
 }
 
@@ -234,12 +233,12 @@ func (r *Runner) getRows(result source.FetchResult, runCtx *RunContext) (RawScra
 	case *web.HtmlFetchResult:
 		return r.getRowsFromDom(value.Dom.First(), runCtx)
 	case *web.JsonFetchResult:
-		return r.getRowsFromJson(value.Body)
+		return r.getRowsFromJSON(value.Body)
 	}
 	return nil, nil
 }
 
-func (r *Runner) getRowsFromJson(body []byte) (*JsonScrapeItems, error) {
+func (r *Runner) getRowsFromJSON(body []byte) (*JSONScrapeItems, error) {
 	data := make(map[string]interface{})
 	err := json.Unmarshal(body, &data)
 	if err != nil {
@@ -247,7 +246,7 @@ func (r *Runner) getRowsFromJson(body []byte) (*JsonScrapeItems, error) {
 	}
 	node := data[r.definition.Search.Rows.Path]
 	items := node.([]interface{})
-	return &JsonScrapeItems{
+	return &JSONScrapeItems{
 		items: items,
 	}, nil
 }

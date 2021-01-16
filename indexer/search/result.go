@@ -24,8 +24,8 @@ type Model struct {
 type ModelData map[string]interface{}
 
 type ScrapeLocalData struct {
-	// LocalId the id of the item in the index's local sense
-	LocalId string
+	// LocalID the id of the item in the index's local sense
+	LocalID string
 	// Site is the index's site
 	Site string
 	// Link the originating link for this result
@@ -41,7 +41,7 @@ type ResultItemBase interface {
 	fmt.Stringer
 	SetSite(s string)
 	SetIndexer(indexer *ResultIndexer)
-	SetLocalId(s string)
+	SetLocalID(s string)
 	SetPublishDate(unix int64)
 	AsScrapeItem() *ScrapeResultItem
 }
@@ -67,8 +67,8 @@ func (i *ScrapeResultItem) SetIndexer(indexer *ResultIndexer) {
 	i.Indexer = indexer
 }
 
-func (i *ScrapeResultItem) SetLocalId(s string) {
-	i.LocalId = s
+func (i *ScrapeResultItem) SetLocalID(s string) {
+	i.LocalID = s
 }
 
 func (i *ScrapeResultItem) SetPublishDate(unix int64) {
@@ -94,11 +94,11 @@ func (i *ScrapeResultItem) IsNew() bool {
 	return i.isNew
 }
 
-func (i *ScrapeResultItem) Id() uint32 {
+func (i *ScrapeResultItem) GetID() uint32 {
 	return i.ID
 }
 
-func (i *ScrapeResultItem) SetId(id uint32) {
+func (i *ScrapeResultItem) SetID(id uint32) {
 	i.ID = id
 }
 
@@ -155,10 +155,10 @@ func (i *ScrapeResultItem) Equals(other interface{}) bool {
 }
 
 func (i *ScrapeResultItem) String() string {
-	return fmt.Sprintf("%s: %s", i.LocalId, i.Link)
+	return fmt.Sprintf("%s: %s", i.LocalID, i.Link)
 }
 
 type ResultIndexer struct {
-	Id   string `xml:"id,attr"`
+	ID   string `xml:"id,attr"`
 	Name string `xml:",chardata"` // make the name the value
 }

@@ -18,12 +18,12 @@ func ListBuiltInIndexes() ([]string, error) {
 }
 
 // LoadEnabledDefinitions loads all of the definitions that are covered by the current definition loader (`Loader`).
-func LoadEnabledDefinitions(conf interface{}) ([]*IndexerDefinition, error) {
+func LoadEnabledDefinitions(conf interface{}) ([]*Definition, error) {
 	keys, err := Loader.List(nil)
 	if err != nil {
 		return nil, err
 	}
-	var defs []*IndexerDefinition
+	var defs []*Definition
 	for _, key := range keys {
 		section := viper.Get(key)
 		if section != nil {
@@ -40,9 +40,9 @@ func LoadEnabledDefinitions(conf interface{}) ([]*IndexerDefinition, error) {
 // DefinitionLoader loads an index definition by name or lists the names of the supported indexes.
 type DefinitionLoader interface {
 	// List - Lists available trackers.
-	List(selector *IndexerSelector) ([]string, error)
+	List(selector *Selector) ([]string, error)
 	// Load - Load a definition of an Indexer from it's name
-	Load(key string) (*IndexerDefinition, error)
+	Load(key string) (*Definition, error)
 }
 
 func init() {

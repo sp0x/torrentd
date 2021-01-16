@@ -5,11 +5,10 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
-
 	"github.com/sp0x/torrentd/storage/stats"
 )
 
-func (b *BoltStorage) GetStats(shouldDumpDB bool) *stats.Stats {
+func (b *Storage) GetStats(shouldDumpDB bool) *stats.Stats {
 	if shouldDumpDB {
 		b.dumpDBBuckets()
 	}
@@ -30,7 +29,7 @@ func (b *BoltStorage) GetStats(shouldDumpDB bool) *stats.Stats {
 	return output
 }
 
-func (b *BoltStorage) dumpDBBuckets() {
+func (b *Storage) dumpDBBuckets() {
 	_ = b.Database.View(func(tx *bolt.Tx) error {
 		return tx.ForEach(func(name []byte, bucket *bolt.Bucket) error {
 			bucketStats := bucket.Stats()
@@ -54,7 +53,7 @@ func dumpBucket(bucket *bolt.Bucket) {
 	})
 }
 
-func getNamespaceSize(tx *bolt.Tx, b *BoltStorage, name string) int {
+func getNamespaceSize(tx *bolt.Tx, b *Storage, name string) int {
 	bucket := b.GetRootBucket(tx, name, namespaceResultsBucketName)
 	if bucket == nil {
 		return 0
@@ -64,7 +63,7 @@ func getNamespaceSize(tx *bolt.Tx, b *BoltStorage, name string) int {
 }
 
 // Size gets the record count in this namespace's results bucket
-func (b *BoltStorage) Size() int64 {
+func (b *Storage) Size() int64 {
 	var count *int
 	count = new(int)
 	*count = 0
@@ -76,7 +75,7 @@ func (b *BoltStorage) Size() int64 {
 	return int64(*count)
 }
 
-func (b *BoltStorage) getNamespaces(tx *bolt.Tx) []string {
+func (b *Storage) getNamespaces(tx *bolt.Tx) []string {
 	var names []string
 	_ = tx.ForEach(func(name []byte, b *bolt.Bucket) error {
 		nameStr := string(name)

@@ -2,8 +2,9 @@ package torznab
 
 import (
 	"encoding/xml"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type err struct {

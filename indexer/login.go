@@ -3,9 +3,12 @@ package indexer
 import (
 	"errors"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"net/url"
+
+	"github.com/sirupsen/logrus"
 )
+
+const emptyValue = "<no value>"
 
 // extractInputLogins gets the configured input fields and vals for the login.
 func (r *Runner) extractInputLogins() (map[string]string, error) {
@@ -32,7 +35,7 @@ func (r *Runner) extractInputLogins() (map[string]string, error) {
 			WithFields(logrus.Fields{"key": name, "val": resolved}).
 			Debugf("Resolved login input template")
 
-		if val == "{{ .Config.password }}" && resolved == "<no value>" {
+		if val == "{{ .Config.password }}" && resolved == emptyValue {
 			return nil, fmt.Errorf("no password was configured for input `%s` @%s", name, r.definition.Site)
 		}
 		result[name] = resolved
@@ -49,7 +52,7 @@ func (r *Runner) login() error {
 		}
 	}
 	filterLogger = r.logger
-	loginUrl, err := r.getFullUrlInIndex(r.definition.Login.Path)
+	loginURL, err := r.getFullURLInIndex(r.definition.Login.Path)
 	if err != nil {
 		return err
 	}
@@ -66,19 +69,19 @@ func (r *Runner) login() error {
 
 	switch r.definition.Login.Method {
 	case "", loginMethodForm:
-		if err = r.loginViaForm(loginUrl, r.definition.Login.FormSelector, loginValues); err != nil {
+		if err = r.loginViaForm(loginURL, r.definition.Login.FormSelector, loginValues); err != nil {
 			return err
 		}
 	case loginMethodPost:
-		if err = r.loginViaPost(loginUrl, loginValues); err != nil {
+		if err = r.loginViaPost(loginURL, loginValues); err != nil {
 			return err
 		}
 	case loginMethodCookie:
 		cookieVal := loginValues["cookie"]
-		if cookieVal == "<no value>" {
+		if cookieVal == emptyValue {
 			return &LoginError{errors.New("no login cookie configured")}
 		}
-		if err = r.loginViaCookie(loginUrl, loginValues["cookie"]); err != nil {
+		if err = r.loginViaCookie(loginURL, loginValues["cookie"]); err != nil {
 			return err
 		}
 	default:
@@ -96,7 +99,7 @@ func (r *Runner) login() error {
 	if err != nil {
 		return err
 	} else if !match {
-		hasPass := loginValues["login_password"] != "<no value>"
+		hasPass := loginValues["login_password"] != emptyValue
 		if _, ok := loginValues["login_password"]; !ok {
 			hasPass = false
 		}

@@ -4,7 +4,6 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-
 	"github.com/sp0x/torrentd/indexer/search"
 )
 
@@ -37,7 +36,7 @@ func GetAllPagesFromIndex(facade *Facade, query *search.Query) <-chan search.Res
 				outputChan <- tmpResult
 			}
 			// Go to the next page
-			query.Page += 1
+			query.Page++
 			// If we've reached the end we stop
 			if maxPages == query.Page {
 				break
@@ -119,7 +118,7 @@ func Watch(facade *Facade, initialQuery *search.Query, intervalSec int) <-chan s
 				continue
 			}
 			// Otherwise we proceed to the next currentPage if there's any
-			initialQuery.Page += 1
+			initialQuery.Page++
 			// We've exceeded the pages, sleep and go to the start
 			if maxPages == initialQuery.Page {
 				initialQuery.Page = startingPage

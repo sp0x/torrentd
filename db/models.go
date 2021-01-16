@@ -8,7 +8,7 @@ package db
 //	Link         string
 //	Fingerprint  string
 //	AuthorName   string
-//	AuthorId     string
+//	AuthorID     string
 //	CategoryName string
 //	CategoryId   string
 //	Size         uint64

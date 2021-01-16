@@ -5,13 +5,14 @@
 package mocks
 
 import (
+	http "net/http"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	indexer "github.com/sp0x/torrentd/indexer"
 	search "github.com/sp0x/torrentd/indexer/search"
 	storage "github.com/sp0x/torrentd/storage"
 	torznab "github.com/sp0x/torrentd/torznab"
-	http "net/http"
-	reflect "reflect"
 )
 
 // MockInfo is a mock of Info interface
@@ -37,18 +38,18 @@ func (m *MockInfo) EXPECT() *MockInfoMockRecorder {
 	return m.recorder
 }
 
-// GetId mocks base method
-func (m *MockInfo) GetId() string {
+// GetID mocks base method
+func (m *MockInfo) GetID() string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetId")
+	ret := m.ctrl.Call(m, "GetID")
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// GetId indicates an expected call of GetId
+// GetID indicates an expected call of GetID
 func (mr *MockInfoMockRecorder) GetId() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetId", reflect.TypeOf((*MockInfo)(nil).GetId))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetID", reflect.TypeOf((*MockInfo)(nil).GetID))
 }
 
 // GetTitle mocks base method
@@ -131,10 +132,10 @@ func (mr *MockIndexerMockRecorder) Info() *gomock.Call {
 }
 
 // GetDefinition mocks base method
-func (m *MockIndexer) GetDefinition() *indexer.IndexerDefinition {
+func (m *MockIndexer) GetDefinition() *indexer.Definition {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDefinition")
-	ret0, _ := ret[0].(*indexer.IndexerDefinition)
+	ret0, _ := ret[0].(*indexer.Definition)
 	return ret0
 }
 

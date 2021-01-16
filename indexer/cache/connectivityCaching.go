@@ -6,7 +6,7 @@ import (
 	"github.com/sp0x/surf/browser"
 )
 
-type CacheInfo struct {
+type Details struct {
 	added time.Time
 }
 

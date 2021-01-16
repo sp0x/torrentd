@@ -12,7 +12,7 @@ import (
 type ConnectivityCache struct {
 	browser browser.Browsable
 	lock    sync.RWMutex
-	// invalidatedCache   map[string]CacheInfo
+	// invalidatedCache   map[string]Details
 	cache LRUCache
 }
 
@@ -60,7 +60,7 @@ func (c *ConnectivityCache) Test(u string) error {
 	}
 	err := c.browser.Open(u)
 	if err == nil {
-		c.cache.Add(u, CacheInfo{
+		c.cache.Add(u, Details{
 			added: time.Now(),
 		})
 	}

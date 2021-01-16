@@ -5,16 +5,15 @@ import (
 	"errors"
 
 	"cloud.google.com/go/firestore"
-	"google.golang.org/api/iterator"
-	"google.golang.org/api/option"
-
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/indexing"
 	"github.com/sp0x/torrentd/storage/serializers"
+	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 )
 
 type FirestoreConfig struct {
-	ProjectId       string
+	ProjectID       string
 	CredentialsFile string
 	Namespace       string
 }
@@ -42,7 +41,7 @@ func NewFirestoreStorage(conf *FirestoreConfig, typePtr interface{}) (*Firestore
 	}
 	// credentials file option is optional, by default it will use GOOGLE_APPLICATION_CREDENTIALS
 	// environment variable, this is a default method to connect to Google services
-	client, err := firestore.NewClient(ctx, conf.ProjectId, options...)
+	client, err := firestore.NewClient(ctx, conf.ProjectID, options...)
 	if err != nil {
 		return nil, err
 	}

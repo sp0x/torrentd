@@ -24,7 +24,7 @@ This invalidatedCache should return true from the start, and only start working 
 type OptimisticConnectivityCache struct {
 	browser browser.Browsable
 	lock    sync.RWMutex
-	// invalidatedCache   map[string]CacheInfo
+	// invalidatedCache   map[string]Details
 	invalidatedCache LRUCache
 }
 
@@ -36,7 +36,7 @@ func (c *OptimisticConnectivityCache) IsOk(url string) bool {
 
 // Invalidate a invalidatedCache entry by removing it from the invalidatedCache.
 func (c *OptimisticConnectivityCache) Invalidate(url string) {
-	c.invalidatedCache.Add(url, CacheInfo{
+	c.invalidatedCache.Add(url, Details{
 		added: time.Now(),
 	})
 }

@@ -1,17 +1,18 @@
 package indexer
 
 import (
-	"github.com/onsi/gomega"
 	"testing"
+
+	"github.com/onsi/gomega"
 )
 
 func TestIndexerDefinition_getSearchEntity(t *testing.T) {
 	g := gomega.NewWithT(t)
-	ixdef := &IndexerDefinition{}
+	ixdef := &Definition{}
 	ixdef.Search.Key = []string{"time"}
 	searchEntity := ixdef.getSearchEntity()
 	g.Expect(searchEntity.IndexKey[0]).To(gomega.Equal("ExtraFields.time"))
-	ixdef.Search.Key = []string{"LocalId"}
+	ixdef.Search.Key = []string{"LocalID"}
 	searchEntity = ixdef.getSearchEntity()
-	g.Expect(searchEntity.IndexKey[0]).To(gomega.Equal("LocalId"))
+	g.Expect(searchEntity.IndexKey[0]).To(gomega.Equal("LocalID"))
 }

@@ -6,12 +6,11 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
-
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage"
 	"github.com/sp0x/torrentd/storage/indexing"
+	"github.com/spf13/viper"
 )
 
 type TelegramRunner struct {
@@ -67,7 +66,7 @@ func (t *TelegramRunner) listenForUpdates() {
 			_ = t.storage.Add(&Chat{
 				Username:    update.Message.From.UserName,
 				InitialText: update.Message.Text,
-				ChatId:      update.Message.Chat.ID,
+				ChatID:      update.Message.Chat.ID,
 			})
 			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 			// reply := update.Message.Text
@@ -102,14 +101,14 @@ func (t *TelegramRunner) ForEachChat(callback func(chat search.Record)) {
 func (t *TelegramRunner) Broadcast(message *ChatMessage) {
 	t.ForEachChat(func(obj search.Record) {
 		chat := obj.(*Chat)
-		msg := tgbotapi.NewMessage(chat.ChatId, message.Text)
+		msg := tgbotapi.NewMessage(chat.ChatID, message.Text)
 		msg.DisableWebPagePreview = false
 		msg.ParseMode = "markdown"
 		// Since we're not replying.
 		// msg.ReplyToMessageID = update.Message.MessageID
 		_, _ = t.bot.Send(msg)
 		if message.Banner != "" {
-			imgMsg := tgbotapi.NewPhotoUpload(chat.ChatId, nil)
+			imgMsg := tgbotapi.NewPhotoUpload(chat.ChatID, nil)
 			imgMsg.FileID = message.Banner
 			imgMsg.UseExisting = true
 			_, _ = t.bot.Send(imgMsg)

@@ -16,7 +16,6 @@ import (
 	"github.com/jackpal/bencode-go"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/browser/encoding"
-
 	"github.com/sp0x/torrentd/indexer"
 )
 
@@ -35,7 +34,7 @@ func ParseTorrentFromStream(stream io.ReadCloser) (*Definition, error) {
 	return ParseTorrent(string(body))
 }
 
-func ParseTorrentFromUrl(h *indexer.Facade, torrentUrl string) (*Definition, error) {
+func ParseTorrentFromURL(h *indexer.Facade, torrentUrl string) (*Definition, error) {
 	ctx := context.Background()
 	req, err := http.NewRequestWithContext(ctx, "GET", torrentUrl, nil)
 	if err != nil {

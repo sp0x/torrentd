@@ -3,9 +3,9 @@ package indexer
 import (
 	"bytes"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"io"
 
+	"github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer/search"
 )
 
@@ -43,13 +43,13 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 		}
 		sourceLink = firstString(downloadLink)
 	}
-	fullUrl, err := r.getFullUrlInIndex(sourceLink)
+	fullURl, err := r.getFullURLInIndex(sourceLink)
 	if err != nil {
 		return nil, err
 	}
 	browserClone := r.browser.NewTab()
 	browserClone.SetEncoding("")
-	if err := browserClone.Open(fullUrl); err != nil {
+	if err := browserClone.Open(fullURl); err != nil {
 		return nil, err
 	}
 
@@ -80,7 +80,7 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 				r.logger.Errorf("Error piping download: %v", err)
 				return
 			}
-			r.logger.WithFields(logrus.Fields{"url": fullUrl}).
+			r.logger.WithFields(logrus.Fields{"url": fullURl}).
 				Infof("Downloaded %d bytes", n)
 		}
 	}()

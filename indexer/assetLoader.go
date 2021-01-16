@@ -48,7 +48,7 @@ func CreateEmbeddedDefinitionSource(definitionNames []string, loader DefinitionD
 }
 
 // List all the names of the embedded definitions
-func (l *AssetLoader) List(selector *IndexerSelector) ([]string, error) {
+func (l *AssetLoader) List(selector *Selector) ([]string, error) {
 	results := make([]string, len(l.Names))
 	for _, name := range l.Names {
 		fname := path.Base(name)
@@ -81,7 +81,7 @@ func (l *AssetLoader) ListWithNames(names []string) ([]string, error) {
 }
 
 // Load a definition with a given name
-func (l *AssetLoader) Load(key string) (*IndexerDefinition, error) {
+func (l *AssetLoader) Load(key string) (*Definition, error) {
 	data, err := l.Resolver(key)
 	if err != nil {
 		return nil, err

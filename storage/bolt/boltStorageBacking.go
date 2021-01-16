@@ -11,7 +11,6 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/google/uuid"
-
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/indexing"
@@ -35,7 +34,7 @@ const (
 
 var categoriesInitialized = false
 
-type BoltStorage struct {
+type Storage struct {
 	Database   *bolt.DB
 	rootBucket []string
 	marshaler  *serializers.DynamicMarshaler
@@ -53,7 +52,7 @@ func ensurePathExists(dbPath string) {
 }
 
 // NewBoltStorage - opens a BoltDB storage file
-func NewBoltStorage(dbPath string, recordTypePtr interface{}) (*BoltStorage, error) {
+func NewBoltStorage(dbPath string, recordTypePtr interface{}) (*Storage, error) {
 	if dbPath == "" {
 		dbPath = DefaultBoltPath()
 	}
@@ -65,7 +64,7 @@ func NewBoltStorage(dbPath string, recordTypePtr interface{}) (*BoltStorage, err
 	if err != nil {
 		return nil, err
 	}
-	bolts := &BoltStorage{
+	bolts := &Storage{
 		Database:   dbx,
 		marshaler:  serializers.NewDynamicMarshaler(recordTypePtr, json.Serializer),
 		recordType: reflect.Indirect(reflect.ValueOf(recordTypePtr)).Type(),
@@ -114,7 +113,7 @@ func setupCategories(db *bolt.DB) error {
 	return err
 }
 
-func (b *BoltStorage) Close() {
+func (b *Storage) Close() {
 	if b.Database == nil {
 		return
 	}
@@ -122,7 +121,7 @@ func (b *BoltStorage) Close() {
 }
 
 // Find records by it's index keys.
-func (b *BoltStorage) Find(query indexing.Query, result interface{}) error {
+func (b *Storage) Find(query indexing.Query, result interface{}) error {
 	if query == nil {
 		return errors.New("query is required")
 	}
@@ -148,7 +147,7 @@ func (b *BoltStorage) Find(query indexing.Query, result interface{}) error {
 	return err
 }
 
-func (b *BoltStorage) Update(query indexing.Query, item interface{}) error {
+func (b *Storage) Update(query indexing.Query, item interface{}) error {
 	if query == nil {
 		return errors.New("query is required")
 	}
@@ -175,7 +174,7 @@ func (b *BoltStorage) Update(query indexing.Query, item interface{}) error {
 }
 
 //StoreSearchResults stores the given results
-//func (b *BoltStorage) StoreSearchResults(items []search.ScrapeResultItem) error {
+//func (b *Storage) StoreSearchResults(items []search.ScrapeResultItem) error {
 //	db := b.Database
 //	for ix, item := range items {
 //		//the function passed to Batch may be called multiple times,
@@ -212,7 +211,7 @@ func (b *BoltStorage) Update(query indexing.Query, item interface{}) error {
 //}
 
 // Create a new record. This uses a new random UUID in order to identify the record.
-func (b *BoltStorage) Create(item search.Record, additionalPK *indexing.Key) error {
+func (b *Storage) Create(item search.Record, additionalPK *indexing.Key) error {
 	item.SetUUID(uuid.New().String())
 	err := b.CreateWithID(getDefaultPK(), item, nil)
 	if err != nil {
@@ -230,19 +229,19 @@ func (b *BoltStorage) Create(item search.Record, additionalPK *indexing.Key) err
 			return err
 		}
 		// We get the keyIndex that we'll use
-		keyToGuidIndex, err := b.GetUniqueIndexFromKeys(bucket, additionalPK)
+		keyToUUIDIndex, err := b.GetUniqueIndexFromKeys(bucket, additionalPK)
 		if err != nil {
 			return err
 		}
 		guidBytes := []byte(item.UUID())
 		// Save the keyIndex for the id of the result.
-		err = keyToGuidIndex.Add(indexValue, guidBytes)
+		err = keyToUUIDIndex.Add(indexValue, guidBytes)
 		return err
 	})
 }
 
 // AddAll adds all the records to the db
-func (b *BoltStorage) AddAll(items []search.Record) error {
+func (b *Storage) AddAll(items []search.Record) error {
 	db := b.Database
 	primaryKey := getDefaultPK()
 	return db.Batch(func(tx *bolt.Tx) error {
@@ -258,7 +257,7 @@ func (b *BoltStorage) AddAll(items []search.Record) error {
 			item.SetUUID(uuid.New().String())
 
 			indexValue := indexing.GetIndexValueFromItem(primaryKey, item)
-			_, _, err := b.createWithAutoIncrementingId(bucket, item, primaryIndex, indexValue)
+			_, _, err := b.createWithAutoIncrementingID(bucket, item, primaryIndex, indexValue)
 			if err != nil {
 				return err
 			}
@@ -269,7 +268,7 @@ func (b *BoltStorage) AddAll(items []search.Record) error {
 
 // CreateWithID a new record for a result.
 // The key is used if you have a custom object that uses a different key, not the UUIDValue
-func (b *BoltStorage) CreateWithID(keyParts *indexing.Key, item search.Record, uniqueIndexKeys *indexing.Key) error {
+func (b *Storage) CreateWithID(keyParts *indexing.Key, item search.Record, uniqueIndexKeys *indexing.Key) error {
 	indexValue := indexing.GetIndexValueFromItem(keyParts, item)
 	uniqueIndexValue := indexing.GetIndexValueFromItem(uniqueIndexKeys, item)
 	if len(uniqueIndexValue) == 0 {
@@ -286,7 +285,7 @@ func (b *BoltStorage) CreateWithID(keyParts *indexing.Key, item search.Record, u
 			return err
 		}
 
-		idBytes, serializedValue, err := b.createWithAutoIncrementingId(bucket, item, primaryIndex, indexValue)
+		idBytes, serializedValue, err := b.createWithAutoIncrementingID(bucket, item, primaryIndex, indexValue)
 		if err != nil {
 			return err
 		}
@@ -300,11 +299,11 @@ func (b *BoltStorage) CreateWithID(keyParts *indexing.Key, item search.Record, u
 	})
 }
 
-func (b *BoltStorage) createWithAutoIncrementingId(bucket *bolt.Bucket, item search.Record, primaryIndex indexing.Index, indexValue []byte) ([]byte, []byte, error) {
-	b.assignAutoIncrementingId(bucket, item)
+func (b *Storage) createWithAutoIncrementingID(bucket *bolt.Bucket, item search.Record, primaryIndex indexing.Index, indexValue []byte) ([]byte, []byte, error) {
+	b.assignAutoIncrementingID(bucket, item)
 
 	// We serialize the ID
-	idBytes, err := toBytes(item.Id(), b.marshaler)
+	idBytes, err := toBytes(item.GetID(), b.marshaler)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -326,7 +325,7 @@ func (b *BoltStorage) createWithAutoIncrementingId(bucket *bolt.Bucket, item sea
 	return idBytes, serializedValue, nil
 }
 
-func (b *BoltStorage) addUniqueIndexRecord(bucket *bolt.Bucket, uniqueIndexKeys *indexing.Key, uniqueIndexValue []byte, idBytes []byte) error {
+func (b *Storage) addUniqueIndexRecord(bucket *bolt.Bucket, uniqueIndexKeys *indexing.Key, uniqueIndexValue []byte, idBytes []byte) error {
 	uniqueIndex, err := b.getUniqueIndexFromKeys(bucket, uniqueIndexKeys, uniqueIndexValue)
 	if err != nil {
 		return err
@@ -340,13 +339,13 @@ func (b *BoltStorage) addUniqueIndexRecord(bucket *bolt.Bucket, uniqueIndexKeys 
 	return nil
 }
 
-func (b *BoltStorage) assignAutoIncrementingId(bucket *bolt.Bucket, item search.Record) {
+func (b *Storage) assignAutoIncrementingID(bucket *bolt.Bucket, item search.Record) {
 	// We increment the ID, the ID is used to avoid long seeking times
 	nextID, _ := bucket.NextSequence()
-	item.SetId(uint32(nextID))
+	item.SetID(uint32(nextID))
 }
 
-func (b *BoltStorage) getUniqueIndexFromKeys(bucket *bolt.Bucket, uniqueIndexKeys *indexing.Key, uniqueIndexValue []byte) (indexing.Index, error) {
+func (b *Storage) getUniqueIndexFromKeys(bucket *bolt.Bucket, uniqueIndexKeys *indexing.Key, uniqueIndexValue []byte) (indexing.Index, error) {
 	if uniqueIndexKeys != nil && !uniqueIndexKeys.IsEmpty() {
 		uniqueIndex, err := b.GetUniqueIndexFromKeys(bucket, uniqueIndexKeys)
 		if err != nil {
@@ -362,7 +361,7 @@ func (b *BoltStorage) getUniqueIndexFromKeys(bucket *bolt.Bucket, uniqueIndexKey
 }
 
 // ForEach Goes through all the records
-func (b *BoltStorage) ForEach(callback func(record search.Record)) {
+func (b *Storage) ForEach(callback func(record search.Record)) {
 	_ = b.Database.View(func(tx *bolt.Tx) error {
 		bucket := b.GetBucket(tx, namespaceResultsBucketName)
 		cursor := ReversibleCursor{C: bucket.Cursor(), Reverse: false}
@@ -383,7 +382,7 @@ func DefaultBoltPath() string {
 }
 
 // assertBucket makes sure a bucket exists, in the given path
-func (b *BoltStorage) assertBucket(tx *bolt.Tx, fullName ...string) (*bolt.Bucket, error) {
+func (b *Storage) assertBucket(tx *bolt.Tx, fullName ...string) (*bolt.Bucket, error) {
 	if tx == nil || !tx.Writable() {
 		return nil, errors.New("transaction is nil or not writable")
 	}
@@ -408,7 +407,8 @@ func (b *BoltStorage) assertBucket(tx *bolt.Tx, fullName ...string) (*bolt.Bucke
 }
 
 // assertNamespaceBucket creates a new bucket by it's name if it doesn't exist, in the preset namespace
-func (b *BoltStorage) assertNamespaceBucket(tx *bolt.Tx, name string) (*bolt.Bucket, error) {
+//nolint:unparam
+func (b *Storage) assertNamespaceBucket(tx *bolt.Tx, name string) (*bolt.Bucket, error) {
 	if tx == nil || !tx.Writable() {
 		return nil, errors.New("transaction is nil or not writable")
 	}
@@ -420,12 +420,12 @@ func (b *BoltStorage) assertNamespaceBucket(tx *bolt.Tx, name string) (*bolt.Buc
 }
 
 // GetBucket returns the given bucket. You can use an array of strings for sub-buckets.
-func (b *BoltStorage) GetBucket(tx *bolt.Tx, children ...string) *bolt.Bucket {
+func (b *Storage) GetBucket(tx *bolt.Tx, children ...string) *bolt.Bucket {
 	bucketNamespace := append(b.rootBucket, children...)
 	return b.GetRootBucket(tx, bucketNamespace...)
 }
 
-func (b *BoltStorage) GetRootBucket(tx *bolt.Tx, children ...string) *bolt.Bucket {
+func (b *Storage) GetRootBucket(tx *bolt.Tx, children ...string) *bolt.Bucket {
 	var bucket *bolt.Bucket
 	bucketNamespace := children
 	for _, bucketName := range bucketNamespace {
@@ -443,7 +443,7 @@ func (b *BoltStorage) GetRootBucket(tx *bolt.Tx, children ...string) *bolt.Bucke
 }
 
 // GetSearchResults by a given category id
-func (b *BoltStorage) GetSearchResults(categoryID int) ([]search.ScrapeResultItem, error) {
+func (b *Storage) GetSearchResults(categoryID int) ([]search.ScrapeResultItem, error) {
 	bdb := b.Database
 	var items []search.ScrapeResultItem
 	err := bdb.View(func(tx *bolt.Tx) error {
@@ -472,7 +472,7 @@ func (b *BoltStorage) GetSearchResults(categoryID int) ([]search.ScrapeResultIte
 }
 
 // Set the root namespace
-func (b *BoltStorage) SetNamespace(namespace string) error {
+func (b *Storage) SetNamespace(namespace string) error {
 	b.rootBucket = []string{namespace}
 	err := b.setupMetadata()
 	if err != nil {
@@ -482,7 +482,7 @@ func (b *BoltStorage) SetNamespace(namespace string) error {
 	return err
 }
 
-func (b *BoltStorage) loadGlobalMetadata(bucket *bolt.Bucket) {
+func (b *Storage) loadGlobalMetadata(bucket *bolt.Bucket) {
 }
 
 // toBytes is a helper function that converts any value to bytes

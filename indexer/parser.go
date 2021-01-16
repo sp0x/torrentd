@@ -12,11 +12,10 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/browser"
-	"gopkg.in/yaml.v2"
-
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/torznab"
+	"gopkg.in/yaml.v2"
 )
 
 var defaultRateLimit = 500
@@ -25,39 +24,39 @@ const (
 	searchEntity = "search"
 )
 
-type IndexerDefinition struct {
-	Site         string                 `yaml:"site"`
-	Version      string                 `yaml:"version"`
-	Scheme       string                 `yaml:"scheme"`
-	Settings     []settingsField        `yaml:"settings"`
-	Name         string                 `yaml:"name"`
-	Description  string                 `yaml:"description"`
-	Language     string                 `yaml:"language"`
-	Links        stringorslice          `yaml:"links"`
-	Capabilities capabilitiesBlock      `yaml:"caps"`
-	Login        loginBlock             `yaml:"login"`
-	Ratio        ratioBlock             `yaml:"ratio"`
-	Search       searchBlock            `yaml:"search"`
-	stats        IndexerDefinitionStats `yaml:"-"`
-	Encoding     string                 `yaml:"encoding"`
+type Definition struct {
+	Site         string            `yaml:"site"`
+	Version      string            `yaml:"version"`
+	Scheme       string            `yaml:"scheme"`
+	Settings     []settingsField   `yaml:"settings"`
+	Name         string            `yaml:"name"`
+	Description  string            `yaml:"description"`
+	Language     string            `yaml:"language"`
+	Links        stringorslice     `yaml:"links"`
+	Capabilities capabilitiesBlock `yaml:"caps"`
+	Login        loginBlock        `yaml:"login"`
+	Ratio        ratioBlock        `yaml:"ratio"`
+	Search       searchBlock       `yaml:"search"`
+	stats        DefinitionStats   `yaml:"-"`
+	Encoding     string            `yaml:"encoding"`
 	// Entities that the index contains
 	Entities []entityBlock `yaml:"entities"`
 	// The ms to wait between each request.
 	RateLimit int `yaml:"ratelimit"`
 }
 
-type IndexerDefinitionStats struct {
+type DefinitionStats struct {
 	Size    int64
 	ModTime time.Time
 	Hash    string
 	Source  string
 }
 
-func (id *IndexerDefinition) Stats() IndexerDefinitionStats {
+func (id *Definition) Stats() DefinitionStats {
 	return id.stats
 }
 
-func (id *IndexerDefinition) getNewResultItem() search.ResultItemBase {
+func (id *Definition) getNewResultItem() search.ResultItemBase {
 	if id.Scheme == "" {
 		return &search.ScrapeResultItem{
 			ModelData: make(map[string]interface{}),
@@ -76,7 +75,7 @@ func (id *IndexerDefinition) getNewResultItem() search.ResultItemBase {
 }
 
 // getSearchEntity gets the entity that's returned from a search.
-func (id *IndexerDefinition) getSearchEntity() *entityBlock {
+func (id *Definition) getSearchEntity() *entityBlock {
 	entity := &entityBlock{}
 	entity.Name = searchEntity
 	key := id.Search.Key
@@ -100,7 +99,7 @@ type settingsField struct {
 }
 
 // ParseDefinitionFile loads an Indexer's definition from a file
-func ParseDefinitionFile(f *os.File) (*IndexerDefinition, error) {
+func ParseDefinitionFile(f *os.File) (*Definition, error) {
 	b, err := ioutil.ReadFile(f.Name())
 	if err != nil {
 		return nil, err
@@ -120,8 +119,8 @@ func ParseDefinitionFile(f *os.File) (*IndexerDefinition, error) {
 	return def, err
 }
 
-func ParseDefinition(src []byte) (*IndexerDefinition, error) {
-	def := IndexerDefinition{
+func ParseDefinition(src []byte) (*Definition, error) {
+	def := Definition{
 		Language:     "en-us",
 		Encoding:     "utf-8",
 		Capabilities: capabilitiesBlock{},
@@ -140,7 +139,7 @@ func ParseDefinition(src []byte) (*IndexerDefinition, error) {
 		def.Settings = defaultSettingsFields()
 	}
 
-	def.stats = IndexerDefinitionStats{
+	def.stats = DefinitionStats{
 		Size:    int64(len(src)),
 		ModTime: time.Now(),
 		Hash:    fmt.Sprintf("%x", sha1.Sum(src)),
@@ -323,7 +322,7 @@ func (r *rowsBlock) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 type capabilitiesBlock struct {
 	CategoryMap categoryMap
-	SearchModes []search.SearchMode
+	SearchModes []search.Mode
 }
 
 // UnmarshalYAML implements the Unmarshaller interface.
@@ -356,10 +355,10 @@ func (c *capabilitiesBlock) UnmarshalYAML(unmarshal func(interface{}) error) err
 			}
 		}
 
-		c.SearchModes = []search.SearchMode{}
+		c.SearchModes = []search.Mode{}
 
 		for key, supported := range intermediate.Modes {
-			c.SearchModes = append(c.SearchModes, search.SearchMode{Key: key, Available: true, SupportedParams: supported})
+			c.SearchModes = append(c.SearchModes, search.Mode{Key: key, Available: true, SupportedParams: supported})
 		}
 
 		return nil
@@ -372,11 +371,11 @@ func (c *capabilitiesBlock) UnmarshalYAML(unmarshal func(interface{}) error) err
 func (c *capabilitiesBlock) ToTorznab() torznab.Capabilities {
 	caps := torznab.Capabilities{
 		Categories:  c.CategoryMap.Categories(),
-		SearchModes: []search.SearchMode{},
+		SearchModes: []search.Mode{},
 	}
 
 	// All indexes support search
-	caps.SearchModes = append(caps.SearchModes, search.SearchMode{
+	caps.SearchModes = append(caps.SearchModes, search.Mode{
 		Key:             "search",
 		Available:       true,
 		SupportedParams: []string{"q"},
@@ -384,7 +383,7 @@ func (c *capabilitiesBlock) ToTorznab() torznab.Capabilities {
 
 	// Some support TV
 	if caps.HasTVShows() {
-		caps.SearchModes = append(caps.SearchModes, search.SearchMode{
+		caps.SearchModes = append(caps.SearchModes, search.Mode{
 			Key:             "tv-search",
 			Available:       true,
 			SupportedParams: []string{"q", "season", "ep"},
@@ -393,7 +392,7 @@ func (c *capabilitiesBlock) ToTorznab() torznab.Capabilities {
 
 	// Some support Movies
 	if caps.HasMovies() {
-		caps.SearchModes = append(caps.SearchModes, search.SearchMode{
+		caps.SearchModes = append(caps.SearchModes, search.Mode{
 			Key:             "movie-search",
 			Available:       true,
 			SupportedParams: []string{"q"},

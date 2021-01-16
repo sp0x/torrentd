@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/boltdb/bolt"
-
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/indexing"
 )
@@ -15,26 +14,26 @@ const (
 )
 
 // getIndexFromQuery gets the index from the fields in a query
-func (b *BoltStorage) GetIndexFromQuery(bucket *bolt.Bucket, query indexing.Query) (indexing.Index, error) {
+func (b *Storage) GetIndexFromQuery(bucket *bolt.Bucket, query indexing.Query) (indexing.Index, error) {
 	indexName := indexing.GetIndexNameFromQuery(query)
 	return b.getIndex(bucket, "unique", indexName)
 }
 
 // GetUniqueIndexFromKeys gets the index from a key.
-func (b *BoltStorage) GetUniqueIndexFromKeys(bucket *bolt.Bucket, keyParts *indexing.Key) (indexing.Index, error) {
+func (b *Storage) GetUniqueIndexFromKeys(bucket *bolt.Bucket, keyParts *indexing.Key) (indexing.Index, error) {
 	indexName := strings.Join(keyParts.Fields, "_")
 	return b.getIndex(bucket, "unique", indexName)
 }
 
-// hasIndex Figures out if an index exists.
-func hasIndex(bucket *bolt.Bucket, name string) bool {
+// HasIndex Figures out if an index exists.
+func HasIndex(bucket *bolt.Bucket, name string) bool {
 	indexName := []byte(indexPrefix + name)
 	val := bucket.Bucket(indexName)
 	return val != nil
 }
 
 // getIndex creates a new index if one doesn't exist for a bucket
-func (b *BoltStorage) getIndex(bucket *bolt.Bucket, kind string, name string) (indexing.Index, error) {
+func (b *Storage) getIndex(bucket *bolt.Bucket, kind string, name string) (indexing.Index, error) {
 	var index indexing.Index
 	var err error
 	indexName := []byte(indexPrefix + name)
@@ -69,11 +68,11 @@ func getDefaultPK() *indexing.Key {
 	return indexing.NewKey("UUID")
 }
 
-func getDefaultPKIndex(b *BoltStorage, bucket *bolt.Bucket) (indexing.Index, error) {
+func getDefaultPKIndex(b *Storage, bucket *bolt.Bucket) (indexing.Index, error) {
 	return b.GetUniqueIndexFromKeys(bucket, getDefaultPK())
 }
 
-func getByDefaultPKIndex(b *BoltStorage, bucket *bolt.Bucket, id []byte) ([]byte, error) {
+func getByDefaultPKIndex(b *Storage, bucket *bolt.Bucket, id []byte) ([]byte, error) {
 	defaultPKIndex, err := getDefaultPKIndex(b, bucket)
 	if err != nil {
 		return nil, err
@@ -83,7 +82,7 @@ func getByDefaultPKIndex(b *BoltStorage, bucket *bolt.Bucket, id []byte) ([]byte
 	return rawResult, nil
 }
 
-func getRecordByIndexOrDefault(b *BoltStorage, bucket *bolt.Bucket, dbIndex indexing.Index, indexValue []byte, result interface{}) error {
+func getRecordByIndexOrDefault(b *Storage, bucket *bolt.Bucket, dbIndex indexing.Index, indexValue []byte, result interface{}) error {
 	id, rawResult, err := getByIndex(bucket, dbIndex, indexValue)
 	if err != nil {
 		return err
@@ -100,7 +99,7 @@ func getRecordByIndexOrDefault(b *BoltStorage, bucket *bolt.Bucket, dbIndex inde
 	return err
 }
 
-func (b *BoltStorage) getFromIndexedQuery(bucketName string, tx *bolt.Tx, query indexing.Query, result interface{}) error {
+func (b *Storage) getFromIndexedQuery(bucketName string, tx *bolt.Tx, query indexing.Query, result interface{}) error {
 	indexValue := indexing.GetIndexValueFromQuery(query)
 	bucket := b.GetBucket(tx, bucketName)
 	if bucket == nil {
@@ -113,7 +112,7 @@ func (b *BoltStorage) getFromIndexedQuery(bucketName string, tx *bolt.Tx, query 
 	return getRecordByIndexOrDefault(b, bucket, idx, indexValue, result)
 }
 
-func (b *BoltStorage) indexQuery(bucketName string, query indexing.Query) error {
+func (b *Storage) indexQuery(bucketName string, query indexing.Query) error {
 	return b.Database.Update(func(tx *bolt.Tx) error {
 		_, err := b.GetIndexFromQuery(b.GetBucket(tx, bucketName), query)
 		return err

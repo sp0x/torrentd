@@ -7,11 +7,10 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/sync/errgroup"
-
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage"
 	"github.com/sp0x/torrentd/torznab"
+	"golang.org/x/sync/errgroup"
 )
 
 const aggregateSiteName = "aggregate"
@@ -19,7 +18,7 @@ const aggregateSiteName = "aggregate"
 type Aggregate struct {
 	Indexers []Indexer
 	Storage  storage.ItemStorage
-	selector *IndexerSelector
+	selector *Selector
 }
 
 func (ag *Aggregate) SetStorage(s storage.ItemStorage) {
@@ -42,8 +41,8 @@ func (ag *Aggregate) Errors() []string {
 	return errs
 }
 
-func (ag *Aggregate) GetDefinition() *IndexerDefinition {
-	definition := &IndexerDefinition{}
+func (ag *Aggregate) GetDefinition() *Definition {
+	definition := &Definition{}
 	definition.Site = aggregateSiteName
 	indexerNames := make([]string, len(ag.Indexers))
 	for _, ixr := range ag.Indexers {
@@ -114,7 +113,7 @@ func (ag *Aggregate) Site() string {
 func (ag *Aggregate) HealthCheck() error {
 	errorGroup := errgroup.Group{}
 	for _, ixr := range ag.Indexers {
-		indexerID := ixr.Info().GetId()
+		indexerID := ixr.Info().GetID()
 		// Run the Indexer in a goroutine
 		errorGroup.Go(func() error {
 			err := ixr.HealthCheck()
@@ -159,13 +158,13 @@ func (ag *Aggregate) Search(query *search.Query, searchInstance search.Instance)
 			continue
 		}
 		errorGroup.Go(func() error {
-			indexId := pIndex.Info().GetId()
+			indexID := pIndex.Info().GetID()
 			indexSearch := aggregatedSearch.SearchContexts[&pIndex]
-			log.WithFields(log.Fields{"Indexer": indexId}).
+			log.WithFields(log.Fields{"Indexer": indexID}).
 				Debug("Aggregate index search")
 			resultingSearch, err := pIndex.Search(query, indexSearch)
 			if err != nil {
-				log.Warnf("Indexer %q failed: %s", indexId, err)
+				log.Warnf("Indexer %q failed: %s", indexID, err)
 				return nil
 			}
 			aggregatedSearch.SearchContexts[&pIndex] = resultingSearch
@@ -200,7 +199,7 @@ func (ag *Aggregate) Search(query *search.Query, searchInstance search.Instance)
 
 func (ag *Aggregate) Capabilities() torznab.Capabilities {
 	return torznab.Capabilities{
-		SearchModes: []search.SearchMode{
+		SearchModes: []search.Mode{
 			{Key: "movie-search", Available: true, SupportedParams: []string{"q", "imdbid"}},
 			{Key: "tv-search", Available: true, SupportedParams: []string{"q", "season", "ep"}},
 			{Key: "search", Available: true, SupportedParams: []string{"q"}},
@@ -226,7 +225,7 @@ func (a *AggregateInfo) GetTitle() string {
 	return "Aggregated Indexer"
 }
 
-func (a *AggregateInfo) GetId() string {
+func (a *AggregateInfo) GetID() string {
 	return aggregateSiteName
 }
 

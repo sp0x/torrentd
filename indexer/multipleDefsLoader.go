@@ -26,7 +26,7 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func (ml MultipleDefinitionLoader) List(selector *IndexerSelector) ([]string, error) {
+func (ml MultipleDefinitionLoader) List(selector *Selector) ([]string, error) {
 	allResults := map[string]struct{}{}
 
 	for _, loader := range ml {
@@ -63,8 +63,8 @@ func (ml MultipleDefinitionLoader) String() string {
 }
 
 // Load an indexer with the matching name
-func (ml MultipleDefinitionLoader) Load(key string) (*IndexerDefinition, error) {
-	var def *IndexerDefinition
+func (ml MultipleDefinitionLoader) Load(key string) (*Definition, error) {
+	var def *Definition
 	// Go over each loader, until we reach the one that contains the definition for the indexer.
 	for _, loader := range ml {
 		if loader == nil {

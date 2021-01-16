@@ -1,29 +1,29 @@
 package indexer
 
-type IndexerState struct {
+type State struct {
 	values map[string]interface{}
 }
 
-func (is *IndexerState) Set(key string, val interface{}) {
+func (is *State) Set(key string, val interface{}) {
 	is.values[key] = val
 }
 
-func (is *IndexerState) GetBool(key string) bool {
+func (is *State) GetBool(key string) bool {
 	if _, ok := is.values[key]; !ok {
 		return false
 	}
 	return is.values[key].(bool)
 }
 
-func (is *IndexerState) Has(key string) bool {
+func (is *State) Has(key string) bool {
 	if _, ok := is.values[key]; ok {
 		return true
 	}
 	return false
 }
 
-func defaultIndexerState() *IndexerState {
-	is := &IndexerState{}
+func defaultIndexerState() *State {
+	is := &State{}
 	is.values = make(map[string]interface{})
 	is.Set("loggedIn", false)
 	return is

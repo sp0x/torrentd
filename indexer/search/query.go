@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
-
 	"github.com/sp0x/torrentd/indexer/categories"
 )
 
@@ -132,31 +131,31 @@ func ParseQuery(v url.Values) (*Query, error) {
 
 		case "year":
 			if len(vals) > 1 {
-				return query, errors.New("Multiple year parameters not allowed")
+				return query, errors.New("multiple year parameters not allowed")
 			}
 			query.Year = vals[0]
 
 		case "ep":
 			if len(vals) > 1 {
-				return query, errors.New("Multiple ep parameters not allowed")
+				return query, errors.New("multiple ep parameters not allowed")
 			}
 			query.Ep = vals[0]
 
 		case "season":
 			if len(vals) > 1 {
-				return query, errors.New("Multiple season parameters not allowed")
+				return query, errors.New("multiple season parameters not allowed")
 			}
 			query.Season = vals[0]
 
 		case "apikey":
 			if len(vals) > 1 {
-				return query, errors.New("Multiple apikey parameters not allowed")
+				return query, errors.New("multiple apikey parameters not allowed")
 			}
 			query.APIKey = vals[0]
 
 		case "limit":
 			if len(vals) > 1 {
-				return query, errors.New("Multiple limit parameters not allowed")
+				return query, errors.New("multiple limit parameters not allowed")
 			}
 			limit, err := strconv.Atoi(vals[0])
 			if err != nil {
@@ -166,7 +165,7 @@ func ParseQuery(v url.Values) (*Query, error) {
 
 		case "offset":
 			if len(vals) > 1 {
-				return query, errors.New("Multiple offset parameters not allowed")
+				return query, errors.New("multiple offset parameters not allowed")
 			}
 			offset, err := strconv.Atoi(vals[0])
 			if err != nil {
@@ -176,7 +175,7 @@ func ParseQuery(v url.Values) (*Query, error) {
 
 		case "extended":
 			if len(vals) > 1 {
-				return query, errors.New("Multiple extended parameters not allowed")
+				return query, errors.New("multiple extended parameters not allowed")
 			}
 			extended, err := strconv.ParseBool(vals[0])
 			if err != nil {
@@ -198,25 +197,25 @@ func ParseQuery(v url.Values) (*Query, error) {
 
 		case "tvdbid":
 			if len(vals) > 1 {
-				return query, errors.New("Multiple tvdbid parameters not allowed")
+				return query, errors.New("multiple tvdbid parameters not allowed")
 			}
 			query.TVDBID = vals[0]
 
 		case "rid":
 			if len(vals) > 1 {
-				return query, errors.New("Multiple rid parameters not allowed")
+				return query, errors.New("multiple rid parameters not allowed")
 			}
 			query.TVRageID = vals[0]
 
 		case "tvmazeid":
 			if len(vals) > 1 {
-				return query, errors.New("Multiple tvmazeid parameters not allowed")
+				return query, errors.New("multiple tvmazeid parameters not allowed")
 			}
 			query.TVMazeID = vals[0]
 
 		case "imdbid":
 			if len(vals) > 1 {
-				return query, errors.New("Multiple imdbid parameters not allowed")
+				return query, errors.New("multiple imdbid parameters not allowed")
 			}
 			query.IMDBID = vals[0]
 

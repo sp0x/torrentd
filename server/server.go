@@ -2,21 +2,18 @@ package server
 
 import (
 	"fmt"
-	"github.com/gin-contrib/pprof"
-	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/config"
-	"github.com/sp0x/torrentd/indexer"
 	"net/http"
 	"net/url"
 	"os"
 	"path"
 	"text/tabwriter"
-)
 
-//// torznab routes
-//subrouter.HandleFunc("/torznab/{indexer}", h.torznabHandler).Methods("GET")
-//subrouter.HandleFunc("/torznab/{indexer}/api", h.torznabHandler).Methods("GET")
+	"github.com/gin-contrib/pprof"
+	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/torrentd/config"
+	"github.com/sp0x/torrentd/indexer"
+)
 
 //
 type Server struct {

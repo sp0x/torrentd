@@ -10,7 +10,6 @@ import (
 
 	"github.com/gorilla/feeds"
 	log "github.com/sirupsen/logrus"
-
 	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/indexer/search"
 	http2 "github.com/sp0x/torrentd/server/http"
@@ -54,14 +53,14 @@ func SearchAndServe(ixr *indexer.Facade, options *indexer.GenericSearchOptions, 
 			if torrent.IsNew() || torrent.IsUpdate() {
 				if torrent.IsNew() && !torrent.IsUpdate() {
 					_, _ = fmt.Fprintf(tabWriter, "Found new result #%s:\t%s\t[%s]:\t%s\n",
-						torrent.LocalId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Title)
+						torrent.LocalID, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Title)
 				} else {
 					_, _ = fmt.Fprintf(tabWriter, "Updated result #%s:\t%s\t[%s]:\t%s\n",
-						torrent.LocalId, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Title)
+						torrent.LocalID, torrent.AddedOnStr(), torrent.Fingerprint, torrent.Title)
 				}
 			} else {
 				_, _ = fmt.Fprintf(tabWriter, "Result #%s:\t%s\t[%s]:\t%s\n",
-					torrent.LocalId, torrent.AddedOnStr(), "#", torrent.Title)
+					torrent.LocalID, torrent.AddedOnStr(), "#", torrent.Title)
 			}
 			items = append(items, torrent)
 			_ = tabWriter.Flush()

@@ -5,10 +5,11 @@
 package indexer
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	config "github.com/sp0x/torrentd/config"
 	categories "github.com/sp0x/torrentd/indexer/categories"
-	reflect "reflect"
 )
 
 // MockScope is a mock of Scope interface
@@ -50,7 +51,7 @@ func (mr *MockScopeMockRecorder) Lookup(config, key interface{}) *gomock.Call {
 }
 
 // CreateAggregateForCategories mocks base method
-func (m *MockScope) CreateAggregateForCategories(config config.Config, selector *IndexerSelector, cats []categories.Category) (Indexer, error) {
+func (m *MockScope) CreateAggregateForCategories(config config.Config, selector *Selector, cats []categories.Category) (Indexer, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAggregateForCategories", config, selector, cats)
 	ret0, _ := ret[0].(Indexer)
@@ -65,7 +66,7 @@ func (mr *MockScopeMockRecorder) CreateAggregateForCategories(config, selector, 
 }
 
 // CreateAggregate mocks base method
-func (m *MockScope) CreateAggregate(config config.Config, selector *IndexerSelector) (Indexer, error) {
+func (m *MockScope) CreateAggregate(config config.Config, selector *Selector) (Indexer, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAggregate", config, selector)
 	ret0, _ := ret[0].(Indexer)

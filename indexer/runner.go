@@ -16,7 +16,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/browser"
 	"github.com/sp0x/surf/jar"
-
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/categories"
@@ -47,14 +46,14 @@ type RunnerOpts struct {
 
 // Runner works index definitions in order to extract data.
 type Runner struct {
-	definition          *IndexerDefinition
+	definition          *Definition
 	browser             browser.Browsable
 	cookies             http.CookieJar
 	opts                RunnerOpts
 	logger              logrus.FieldLogger
 	browserLock         sync.Mutex
 	connectivityTester  cache.ConnectivityTester
-	state               *IndexerState
+	state               *State
 	keepSessions        bool
 	failingSearchFields map[string]fieldBlock
 	lastVerified        time.Time
@@ -63,7 +62,7 @@ type Runner struct {
 	errors              cache.LRUCache
 }
 
-func (r *Runner) GetDefinition() *IndexerDefinition {
+func (r *Runner) GetDefinition() *Definition {
 	return r.definition
 }
 
@@ -99,7 +98,7 @@ type RunContext struct {
 }
 
 // NewRunner Start a runner for a given indexer.
-func NewRunner(def *IndexerDefinition, opts RunnerOpts) *Runner {
+func NewRunner(def *Definition, opts RunnerOpts) *Runner {
 	logger := logrus.New()
 	logger.Level = logrus.GetLevel()
 	// connCache, _ := cache.NewConnectivityCache()
@@ -212,8 +211,8 @@ func (r *Runner) testURLWorks(u string) bool {
 	return ok
 }
 
-// getFullUrlInIndex resolve a relative url based on the working Indexer base url
-func (r *Runner) getFullUrlInIndex(urlPath string) (string, error) {
+// getFullURLInIndex resolve a relative url based on the working Indexer base url
+func (r *Runner) getFullURLInIndex(urlPath string) (string, error) {
 	if strings.HasPrefix(urlPath, "magnet:") {
 		return urlPath, nil
 	}
@@ -271,20 +270,20 @@ func (r *Runner) matchPageTestBlock(p pageTestBlock) (bool, error) {
 	}
 	// Go to a path to verify
 	if p.Path != "" {
-		testUrl, err := r.getFullUrlInIndex(p.Path)
+		testURL, err := r.getFullURLInIndex(p.Path)
 		if err != nil {
 			return false, err
 		}
 
-		_, err = r.contentFetcher.Fetch(source.NewTarget(testUrl))
+		_, err = r.contentFetcher.Fetch(source.NewTarget(testURL))
 		if err != nil {
 			r.logger.WithError(err).Warn("Failed to open page")
 			return false, nil
 		}
 
-		if testUrl != r.browser.Url().String() {
+		if testURL != r.browser.Url().String() {
 			r.logger.
-				WithFields(logrus.Fields{"wanted": testUrl, "got": r.browser.Url().String()}).
+				WithFields(logrus.Fields{"wanted": testURL, "got": r.browser.Url().String()}).
 				Debug("Test failed, got a redirect")
 			return false, nil
 		}
@@ -469,8 +468,8 @@ func (r *Runner) getUniqueIndex(item search.ResultItemBase) *indexing.Key {
 	key := indexing.NewKey()
 	scrapeItem := item.AsScrapeItem()
 	// Local id would be a good bet.
-	if len(scrapeItem.LocalId) > 0 {
-		key.Add("LocalId")
+	if len(scrapeItem.LocalID) > 0 {
+		key.Add("LocalID")
 	}
 	return key
 }
@@ -626,7 +625,7 @@ func (r *Runner) extractSearchTarget(query *search.Query, localCats []string, co
 		return nil, err
 	}
 	// Resolve the search url
-	searchURL, err = r.getFullUrlInIndex(searchURL)
+	searchURL, err = r.getFullURLInIndex(searchURL)
 	if err != nil {
 		return nil, err
 	}
@@ -634,7 +633,7 @@ func (r *Runner) extractSearchTarget(query *search.Query, localCats []string, co
 		WithFields(logrus.Fields{"query": query.Encode()}).
 		Debugf("Searching Indexer")
 	// Get our Indexer url values
-	vals, err := r.extractUrlValues(templateData)
+	vals, err := r.extractURLValues(templateData)
 	if err != nil {
 		return nil, err
 	}
@@ -642,7 +641,7 @@ func (r *Runner) extractSearchTarget(query *search.Query, localCats []string, co
 	return target, nil
 }
 
-func (r *Runner) extractUrlValues(templateData *SearchTemplateData) (url.Values, error) {
+func (r *Runner) extractURLValues(templateData *SearchTemplateData) (url.Values, error) {
 	// Parse the values that will be used in the url for the search
 	urlValues := url.Values{}
 	for inputName, inputValueFromScheme := range r.definition.Search.Inputs {
@@ -732,12 +731,12 @@ func (r *Runner) Ratio() (string, error) {
 		return "error", err
 	}
 
-	ratioUrl, err := r.getFullUrlInIndex(r.definition.Ratio.Path)
+	ratioURL, err := r.getFullURLInIndex(r.definition.Ratio.Path)
 	if err != nil {
 		return "error", err
 	}
 
-	resultData, err := r.contentFetcher.Fetch(source.NewTarget(ratioUrl))
+	resultData, err := r.contentFetcher.Fetch(source.NewTarget(ratioURL))
 	if err != nil {
 		r.logger.WithError(err).Warn("Failed to open page")
 		return "error", nil
@@ -759,7 +758,7 @@ func (r *Runner) Ratio() (string, error) {
 
 func (r *Runner) getIndexer() *search.ResultIndexer {
 	return &search.ResultIndexer{
-		Id:   "",
+		ID:   "",
 		Name: r.definition.Name,
 	}
 }
@@ -781,13 +780,13 @@ func (r *Runner) noteError(err error) {
 		return
 	}
 	status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.LoginError, err, r.definition))
-	errId := r.errors.Len()
-	r.errors.Add(errId, err)
+	errorID := r.errors.Len()
+	r.errors.Add(errorID, err)
 }
 
 // region Status messages
 
-func generateSchemeOkStatus(definition *IndexerDefinition, runCtx RunContext) *status.ScrapeSchemeMessage {
+func generateSchemeOkStatus(definition *Definition, runCtx RunContext) *status.ScrapeSchemeMessage {
 	statusCode := "ok"
 	resultsFound := 0
 	if runCtx.Search != nil && len(runCtx.Search.Results) > 0 {
@@ -803,7 +802,7 @@ func generateSchemeOkStatus(definition *IndexerDefinition, runCtx RunContext) *s
 	return msg
 }
 
-func generateSchemeErrorStatus(errorCode string, err error, definition *IndexerDefinition) *status.SchemeErrorMessage {
+func generateSchemeErrorStatus(errorCode string, err error, definition *Definition) *status.SchemeErrorMessage {
 	msg := &status.SchemeErrorMessage{
 		Code:          errorCode,
 		Site:          definition.Site,

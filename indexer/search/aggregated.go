@@ -13,7 +13,7 @@ func (a *AggregatedSearch) GetStartingIndex() int {
 	panic("this is a stub")
 }
 
-func (a *AggregatedSearch) SetId(val string) {
+func (a *AggregatedSearch) SetID(val string) {
 	panic("this is a stub")
 }
 

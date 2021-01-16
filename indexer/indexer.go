@@ -10,7 +10,7 @@ import (
 )
 
 type Info interface {
-	GetId() string
+	GetID() string
 	GetTitle() string
 	GetLanguage() string
 	GetLink() string
@@ -24,7 +24,7 @@ type ResponseProxy struct {
 //go:generate mockgen -source indexer.go -destination=mocks/indexer.go -package=mocks
 type Indexer interface {
 	Info() Info
-	GetDefinition() *IndexerDefinition
+	GetDefinition() *Definition
 	Search(query *search.Query, srch search.Instance) (search.Instance, error)
 	Download(urlStr string) (*ResponseProxy, error)
 	Capabilities() torznab.Capabilities

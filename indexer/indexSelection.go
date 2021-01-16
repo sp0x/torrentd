@@ -5,19 +5,24 @@ import (
 	"strings"
 )
 
-func (s IndexerSelector) isAggregate() bool {
-	return s.selector == "" || s.selector == "aggregate" || s.selector == "all" || strings.Contains(s.selector, ",")
+const (
+	indexSelectorAggregate = "aggregate"
+	indexSelectorAll       = "all"
+)
+
+func (s Selector) isAggregate() bool {
+	return s.selector == "" || s.selector == indexSelectorAggregate || s.selector == indexSelectorAll || strings.Contains(s.selector, ",")
 }
 
-type IndexerSelector struct {
+type Selector struct {
 	selector string
 	parts    []string
 }
 
-// ResolveIndexId resolves the global aggregate index ID to a allowed index in the given scope
+// ResolveIndexID resolves the global aggregate index ID to a allowed index in the given scope
 // If no ID is given then the first aggregate is used. If an aggregate is not available, then the first working index is used.
-func ResolveIndexId(scope Scope, id string) string {
-	isGlobalAggregate := id == "" || id == "aggregate" || id == "all"
+func ResolveIndexID(scope Scope, id string) string {
+	isGlobalAggregate := id == "" || id == indexSelectorAggregate || id == indexSelectorAll
 	if !isGlobalAggregate {
 		return id
 	}
@@ -25,17 +30,17 @@ func ResolveIndexId(scope Scope, id string) string {
 	shouldChooseFirstIndex := id == ""
 	var firstWorkingIndex string
 	// We're searching for the first index
-	for ixId, ix := range indexes {
+	for ixID, ix := range indexes {
 		hasErrors := len(ix.Errors()) > 0
 		_, isAggregate := ix.(*Aggregate)
 		if hasErrors && !isAggregate {
 			continue
 		}
 		if firstWorkingIndex == "" {
-			firstWorkingIndex = ixId
+			firstWorkingIndex = ixID
 		}
 		if _, ok := ix.(*Aggregate); ok {
-			return ixId
+			return ixID
 		}
 	}
 	if shouldChooseFirstIndex {
@@ -44,30 +49,30 @@ func ResolveIndexId(scope Scope, id string) string {
 	return id
 }
 
-func (s IndexerSelector) String() string {
+func (s Selector) String() string {
 	return fmt.Sprintf("%s:%s", s.selector, s.parts)
 }
 
-func (s IndexerSelector) shouldLoadAllIndexes() bool { //nolint:unused
+func (s Selector) shouldLoadAllIndexes() bool { //nolint:unused
 	indexKeys := strings.Split(s.selector, ",")
 	return s.isAggregate() && len(indexKeys) == 1
 }
 
-func (s IndexerSelector) Matches(name string) bool {
-	if s.selector == "" || s.selector == "all" {
+func (s Selector) Matches(name string) bool {
+	if s.selector == "" || s.selector == indexSelectorAll {
 		return true
 	}
-	if s.selector == "aggregate" {
+	if s.selector == indexSelectorAggregate {
 		return false
 	}
 
 	return contains(s.parts, name)
 }
 
-func (s IndexerSelector) Value() string {
+func (s Selector) Value() string {
 	return s.selector
 }
 
-func newIndexerSelector(selector string) *IndexerSelector {
-	return &IndexerSelector{selector: selector, parts: strings.Split(selector, ",")}
+func newIndexerSelector(selector string) *Selector {
+	return &Selector{selector: selector, parts: strings.Split(selector, ",")}
 }

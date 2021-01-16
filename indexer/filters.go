@@ -11,10 +11,9 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/bcampbell/fuzzytime"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer/formatting"
-
-	"github.com/bcampbell/fuzzytime"
 )
 
 const (
@@ -29,24 +28,31 @@ func defaultFilterConfig() map[string]string {
 	}
 }
 
+const (
+	filterQueryString = "querystring"
+	filterDate        = "dateparse"
+	filterTime        = "timeparse"
+	filterDateAlt     = "dateparseAlt"
+)
+
 // Filter out whatever's needed
 func invokeFilter(name string, args interface{}, value string) (string, error) {
 	switch name {
-	case "querystring":
+	case filterQueryString:
 		param, ok := args.(string)
 		if !ok {
 			return "", fmt.Errorf("Filter %q requires a string argument", name)
 		}
-		return filterQueryString(param, value)
+		return parseQueryString(param, value)
 
-	case "timeparse", "dateparse", "dateparseAlt":
+	case filterDate, filterTime, filterDateAlt:
 		if args == nil {
-			return filterDateParse(nil, value)
+			return parseDate(nil, value)
 		}
 		if layout, ok := args.(string); ok {
-			return filterDateParse([]string{layout}, value)
+			return parseDate([]string{layout}, value)
 		}
-		return "", fmt.Errorf("Filter argument type %T was invalid", args)
+		return "", fmt.Errorf("filter argument type %T was invalid", args)
 	case "bool":
 		value := formatting.NormalizeSpace(value)
 		if value != "" {
@@ -157,7 +163,7 @@ func filterReReplace(value string, args interface{}) (string, error) {
 	return value, nil
 }
 
-func filterQueryString(param string, value string) (string, error) {
+func parseQueryString(param string, value string) (string, error) {
 	u, err := url.Parse(value)
 	if err != nil {
 		return "", err
@@ -165,7 +171,7 @@ func filterQueryString(param string, value string) (string, error) {
 	return u.Query().Get(param), nil
 }
 
-func filterDateParse(layouts []string, value string) (string, error) {
+func parseDate(layouts []string, value string) (string, error) {
 	var err error
 	for _, layout := range layouts {
 		var t time.Time

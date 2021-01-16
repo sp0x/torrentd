@@ -8,7 +8,6 @@ import (
 
 	"github.com/boltdb/bolt"
 	log "github.com/sirupsen/logrus"
-
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/indexing"
 )
@@ -20,7 +19,7 @@ const (
 )
 
 // PushToLatestItems updates a bucket with the latest 20 results. the items are unordered
-func (b *BoltStorage) PushToLatestItems(tx *bolt.Tx, serializedItem []byte) error {
+func (b *Storage) PushToLatestItems(tx *bolt.Tx, serializedItem []byte) error {
 	if serializedItem == nil {
 		return errors.New("serialized value is required")
 	}
@@ -47,7 +46,7 @@ func (b *BoltStorage) PushToLatestItems(tx *bolt.Tx, serializedItem []byte) erro
 	return err
 }
 
-func (b *BoltStorage) getLatestResultsCursor(tx *bolt.Tx) (indexing.Cursor, error) {
+func (b *Storage) getLatestResultsCursor(tx *bolt.Tx) (indexing.Cursor, error) {
 	bucket := b.GetRootBucket(tx, latestResultsBucketName)
 	if bucket == nil {
 		return nil, errors.New("root bucket doesn't exist")
@@ -61,7 +60,7 @@ func (b *BoltStorage) getLatestResultsCursor(tx *bolt.Tx) (indexing.Cursor, erro
 }
 
 // GetLatest gets the newest results for all the indexes
-func (b *BoltStorage) GetLatest(count int) []search.ResultItemBase {
+func (b *Storage) GetLatest(count int) []search.ResultItemBase {
 	var output []search.ResultItemBase
 	_ = b.Database.View(func(tx *bolt.Tx) error {
 		cursor, err := b.getLatestResultsCursor(tx)

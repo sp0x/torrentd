@@ -11,7 +11,7 @@ import (
 )
 
 type Capabilities struct {
-	SearchModes []search.SearchMode
+	SearchModes []search.Mode
 	Categories  categories.Categories
 }
 

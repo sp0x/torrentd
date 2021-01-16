@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
-
 	"github.com/sp0x/torrentd/indexer/search"
 )
 
@@ -36,7 +35,7 @@ func (r *Runner) populateTorrentItemField(
 	case "author":
 		item.Author = firstString(val)
 	case "details":
-		u, err := r.getFullUrlInIndex(firstString(val))
+		u, err := r.getFullURLInIndex(firstString(val))
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 			return false
@@ -48,7 +47,7 @@ func (r *Runner) populateTorrentItemField(
 			item.Comments = u
 		}
 	case "comments":
-		u, err := r.getFullUrlInIndex(firstString(val))
+		u, err := r.getFullURLInIndex(firstString(val))
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 			return false
@@ -75,7 +74,7 @@ func (r *Runner) populateTorrentItemField(
 	case "categoryName":
 		item.LocalCategoryName = firstString(val)
 	case "magnet":
-		murl, err := r.getFullUrlInIndex(firstString(val))
+		murl, err := r.getFullURLInIndex(firstString(val))
 		if err != nil {
 			r.logger.Warningf("Couldn't resolve magnet url from value %s\n", val)
 			return false
@@ -106,7 +105,7 @@ func (r *Runner) populateTorrentItemField(
 		item.Seeders = seeders
 		item.Peers += seeders
 	case "authorId":
-		item.AuthorId = firstString(val)
+		item.AuthorID = firstString(val)
 	case "date":
 		t, err := parseFuzzyTime(firstString(val), time.Now(), true)
 		if err != nil {
@@ -157,7 +156,7 @@ func (r *Runner) populateTorrentItemField(
 		}
 		item.MinimumSeedTime = time.Duration(minimumseedtime) * time.Second
 	case "banner":
-		banner, err := r.getFullUrlInIndex(firstString(val))
+		banner, err := r.getFullURLInIndex(firstString(val))
 		if err != nil {
 			item.Banner = firstString(val)
 		} else {
@@ -182,8 +181,8 @@ func itemMatchesScheme(scheme string, item search.ResultItemBase) bool {
 }
 
 func (r *Runner) itemMatchesLocalCategories(localCats []string, item *search.TorrentResultItem) bool {
-	for _, catId := range localCats {
-		if catId == item.LocalCategoryID {
+	for _, catID := range localCats {
+		if catID == item.LocalCategoryID {
 			return true
 		}
 	}

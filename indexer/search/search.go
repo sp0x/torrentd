@@ -7,7 +7,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-type SearchMode struct {
+type Mode struct {
 	Key             string
 	Available       bool
 	SupportedParams []string
@@ -19,7 +19,7 @@ type Instance interface {
 	GetResults() []ResultItemBase
 	SetStartIndex(key interface{}, i int)
 	SetResults(extracted []ResultItemBase)
-	SetId(val string)
+	SetID(val string)
 }
 
 type RangeField []string
@@ -72,7 +72,7 @@ func (r *rangeFieldState) HasNext() bool {
 func (r *rangeFieldState) increment() {
 	length := len(r.current)
 	num, _ := strconv.Atoi(r.current)
-	num += 1
+	num++
 	r.current = fmt.Sprintf("%0"+strconv.Itoa(length)+"d", num)
 }
 
@@ -96,7 +96,7 @@ func (s *Search) SetResults(results []ResultItemBase) {
 	s.Results = results
 }
 
-func (s *Search) SetId(val string) {
+func (s *Search) SetID(val string) {
 	s.ID = val
 }
 

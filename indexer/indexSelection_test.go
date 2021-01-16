@@ -18,7 +18,7 @@ func TestResolveIndexId_ShouldWorkWithCommaIndexes(t *testing.T) {
 	mockedScope.EXPECT().Indexes().
 		Times(1).
 		Return(loadedIndexes)
-	rid := ResolveIndexId(mockedScope, "")
+	rid := ResolveIndexID(mockedScope, "")
 
 	g.Expect(rid).To(gomega.BeEquivalentTo(aggregateKey))
 }
@@ -34,7 +34,7 @@ func TestResolveIndexId_ShouldWorkWithGlobalIndexes(t *testing.T) {
 	mockedScope.EXPECT().Indexes().
 		Times(1).
 		Return(loadedIndexes)
-	rid := ResolveIndexId(mockedScope, "")
+	rid := ResolveIndexID(mockedScope, "")
 
 	g.Expect(rid).To(gomega.BeEquivalentTo(aggregateKey))
 }

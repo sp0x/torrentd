@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	log "github.com/sirupsen/logrus"
-
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/categories"
 )
@@ -12,8 +11,8 @@ import (
 //go:generate mockgen -source creation.go -destination=creation_mocks_test.go -package=indexer
 type Scope interface {
 	Lookup(config config.Config, key string) (Indexer, error)
-	CreateAggregateForCategories(config config.Config, selector *IndexerSelector, cats []categories.Category) (Indexer, error)
-	CreateAggregate(config config.Config, selector *IndexerSelector) (Indexer, error)
+	CreateAggregateForCategories(config config.Config, selector *Selector, cats []categories.Category) (Indexer, error)
+	CreateAggregate(config config.Config, selector *Selector) (Indexer, error)
 	Indexes() map[string]Indexer
 }
 
@@ -56,7 +55,7 @@ func (c *CachedScope) Lookup(config config.Config, key string) (Indexer, error) 
 }
 
 // CreateAggregateForCategories creates a new aggregate with the indexes that match a set of indexCategories
-func (c *CachedScope) CreateAggregateForCategories(config config.Config, selector *IndexerSelector, cats []categories.Category) (Indexer, error) {
+func (c *CachedScope) CreateAggregateForCategories(config config.Config, selector *Selector, cats []categories.Category) (Indexer, error) {
 	ixrKeys, err := Loader.List(selector)
 	if err != nil {
 		return nil, err
@@ -78,7 +77,7 @@ func (c *CachedScope) CreateAggregateForCategories(config config.Config, selecto
 
 // CreateAggregate creates an aggregate of all the valid configured indexes
 // this includes indexes that don't need a login.
-func (c *CachedScope) CreateAggregate(config config.Config, selector *IndexerSelector) (Indexer, error) {
+func (c *CachedScope) CreateAggregate(config config.Config, selector *Selector) (Indexer, error) {
 	var keysToLoad []string
 	var err error
 	keysToLoad, err = Loader.List(selector)

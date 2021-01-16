@@ -21,7 +21,7 @@ func setupContext(r *Runner, ctx *RunContext, dom RawScrapeItem) {
 			continue
 		}
 		if item.Field == "searchId" {
-			ctx.Search.SetId(val.(string))
+			ctx.Search.SetID(val.(string))
 		}
 	}
 }

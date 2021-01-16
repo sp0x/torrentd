@@ -4,7 +4,6 @@ import (
 	"reflect"
 
 	log "github.com/sirupsen/logrus"
-
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/indexer/search"
@@ -48,7 +47,7 @@ func ResolveTorrents(index indexer.Indexer, config config.Config) []search.Resul
 		}
 		responsePxy, err := index.Open(item)
 		if err != nil {
-			log.Debugf("Couldn'item open result [%v] %v", item.LocalId, item.Title)
+			log.Debugf("Couldn'item open result [%v] %v", item.LocalID, item.Title)
 			continue
 		}
 		log.
@@ -56,7 +55,7 @@ func ResolveTorrents(index indexer.Indexer, config config.Config) []search.Resul
 			Info("Resolving")
 		def, err := ParseTorrentFromStream(responsePxy.Reader)
 		if err != nil {
-			log.Debugf("Could not resolve result: [%v] %v", item.LocalId, item.Title)
+			log.Debugf("Could not resolve result: [%v] %v", item.LocalID, item.Title)
 			continue
 		}
 		item.Announce = def.Announce
@@ -65,7 +64,7 @@ func ResolveTorrents(index indexer.Indexer, config config.Config) []search.Resul
 		item.Size = def.GetTotalFileSize()
 		item.PublishedWith = def.CreatedBy
 		perc := (float32(i) / float32(len(results))) * 100
-		log.WithFields(log.Fields{"id": item.LocalId, "title": item.Title}).
+		log.WithFields(log.Fields{"id": item.LocalID, "title": item.Title}).
 			Infof("%f%% Resolved ", perc)
 		err = store.Add(item)
 		if err != nil {

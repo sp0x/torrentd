@@ -5,11 +5,10 @@ import (
 	"os"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
-
 	"github.com/sp0x/torrentd/storage/bolt"
 	"github.com/sp0x/torrentd/storage/firebase"
 	"github.com/sp0x/torrentd/storage/indexing"
+	"github.com/spf13/viper"
 )
 
 var storageBackingMap = make(map[string]func(builder *Builder) ItemStorageBacking)
@@ -127,7 +126,7 @@ func init() {
 	}
 	storageBackingMap["firebase"] = func(builder *Builder) ItemStorageBacking {
 		conf := &firebase.FirestoreConfig{Namespace: builder.namespace}
-		conf.ProjectId = viper.Get("firebase_project").(string)
+		conf.ProjectID = viper.Get("firebase_project").(string)
 		conf.CredentialsFile = viper.Get("firebase_credentials_file").(string)
 		b, err := firebase.NewFirestoreStorage(conf, builder.recordTypePtr)
 		if err != nil {

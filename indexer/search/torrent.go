@@ -33,7 +33,7 @@ type TorrentResultItem struct {
 	DownloadVolumeFactor float64
 	UploadVolumeFactor   float64
 	Author               string
-	AuthorId             string
+	AuthorID             string
 	ExtraFields          map[string]interface{} `gorm:"-"` // Ignored in gorm
 
 	LocalCategoryID   string
@@ -44,7 +44,7 @@ type TorrentResultItem struct {
 }
 
 func (t *TorrentResultItem) String() string {
-	return fmt.Sprintf("[%s]%s", t.LocalId, t.Title)
+	return fmt.Sprintf("[%s]%s", t.LocalID, t.Title)
 }
 
 // AddedOnStr gets the publish date of this result as a string
@@ -151,7 +151,7 @@ func (t *TorrentResultItem) Equals(other interface{}) bool {
 		return false
 	} else if t.PublishDate != otherTItem.PublishDate {
 		return false
-	} else if t.LocalId != otherTItem.LocalId {
+	} else if t.LocalID != otherTItem.LocalID {
 		return false
 	} else if t.MagnetLink != otherTItem.MagnetLink {
 		return false
@@ -167,7 +167,7 @@ func (t *TorrentResultItem) Equals(other interface{}) bool {
 		return false
 	} else if t.LocalCategoryName != otherTItem.LocalCategoryName {
 		return false
-	} else if t.AuthorId != otherTItem.AuthorId {
+	} else if t.AuthorID != otherTItem.AuthorID {
 		return false
 	} else if t.Grabs != otherTItem.Grabs {
 		return false

@@ -9,7 +9,6 @@ import (
 	"github.com/boltdb/bolt"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
-
 	"github.com/sp0x/torrentd/bots"
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
@@ -34,8 +33,8 @@ var _ = Describe("Bolt storage", func() {
 	})
 	Context("with a database", func() {
 		var db *bolt.DB
-		bstore := &BoltStorage{}
-		key := indexing.NewKey("ChatId")
+		bstore := &Storage{}
+		key := indexing.NewKey("ChatID")
 		// Init db
 		BeforeEach(func() {
 			tmpBstore, err := NewBoltStorage(tempfile(), &bots.Chat{})
@@ -60,7 +59,7 @@ var _ = Describe("Bolt storage", func() {
 			}
 		})
 		It("Should be able to store chats", func() {
-			newchat := &bots.Chat{Username: "tester", InitialText: "", ChatId: 12}
+			newchat := &bots.Chat{Username: "tester", InitialText: "", ChatID: 12}
 			err := bstore.Create(newchat, key)
 			if err != nil {
 				Fail(fmt.Sprintf("Couldn't store chat: %v", err))
@@ -68,22 +67,22 @@ var _ = Describe("Bolt storage", func() {
 			}
 			chat := bots.Chat{}
 			query := indexing.NewQuery()
-			query.Put("ChatId", 12)
+			query.Put("ChatID", 12)
 			err = bstore.Find(query, &chat)
 			if err != nil {
 				Fail(fmt.Sprintf("couldn't get chat from storage: %v", err))
 				return
 			}
-			if chat.ChatId != newchat.ChatId || chat.Username != newchat.Username || chat.InitialText != newchat.InitialText {
+			if chat.ChatID != newchat.ChatID || chat.Username != newchat.Username || chat.InitialText != newchat.InitialText {
 				Fail("couldn't properly restore chat from storage")
 				return
 			}
 		})
 
 		It("shouldn't return nil if a chat isn't found", func() {
-			chat := bots.Chat{ChatId: 12}
+			chat := bots.Chat{ChatID: 12}
 			query := indexing.NewQuery()
-			query.Put("ChatId", 12)
+			query.Put("ChatID", 12)
 			err := bstore.Find(query, &chat)
 			if err == nil {
 				Fail(fmt.Sprintf("Error fetching non-existing chat: %v", err))
@@ -92,7 +91,7 @@ var _ = Describe("Bolt storage", func() {
 		})
 
 		It("Should be able to iterate over chats", func() {
-			c1, c2 := &bots.Chat{Username: "a", InitialText: "", ChatId: 1}, &bots.Chat{Username: "b", InitialText: "", ChatId: 2}
+			c1, c2 := &bots.Chat{Username: "a", InitialText: "", ChatID: 1}, &bots.Chat{Username: "b", InitialText: "", ChatID: 2}
 			err := bstore.Create(c1, key)
 			if err != nil {
 				Fail("couldn't store chat 1")
@@ -104,8 +103,8 @@ var _ = Describe("Bolt storage", func() {
 			cnt := 0
 			bstore.ForEach(func(obj search.Record) {
 				chat := obj.(*bots.Chat)
-				if chat.ChatId == c1.ChatId || chat.ChatId == c2.ChatId {
-					cnt += 1
+				if chat.ChatID == c1.ChatID || chat.ChatID == c2.ChatID {
+					cnt++
 				}
 			})
 			if cnt != 2 {
@@ -187,7 +186,7 @@ func TestNewBoltStorage(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 	tests := []struct {
 		name    string
-		want    *BoltStorage
+		want    *Storage
 		wantErr bool
 	}{
 		{"", nil, false},

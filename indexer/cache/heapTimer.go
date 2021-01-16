@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	MIN_TIMER_INTERVAL = 1 * time.Millisecond
+	MinTimerInterval = 1 * time.Millisecond
 )
 
 var nextAddSeq uint = 1
@@ -92,7 +92,7 @@ func AddCallback(d time.Duration, callback CallbackFunc) *Timer {
 	}
 	timerHeapLock.Lock()
 	t.addseq = nextAddSeq // set addseq when locked
-	nextAddSeq += 1
+	nextAddSeq++
 
 	heap.Push(&timerHeap, t)
 	timerHeapLock.Unlock()
@@ -101,8 +101,8 @@ func AddCallback(d time.Duration, callback CallbackFunc) *Timer {
 
 // Add a timer which calls callback periodly
 func AddTimer(d time.Duration, callback CallbackFunc) *Timer {
-	if d < MIN_TIMER_INTERVAL {
-		d = MIN_TIMER_INTERVAL
+	if d < MinTimerInterval {
+		d = MinTimerInterval
 	}
 
 	t := &Timer{
@@ -113,7 +113,7 @@ func AddTimer(d time.Duration, callback CallbackFunc) *Timer {
 	}
 	timerHeapLock.Lock()
 	t.addseq = nextAddSeq // set addseq when locked
-	nextAddSeq += 1
+	nextAddSeq++
 
 	heap.Push(&timerHeap, t)
 	timerHeapLock.Unlock()
@@ -158,7 +158,7 @@ func Tick() {
 				t.fireTime = now.Add(t.interval)
 			}
 			t.addseq = nextAddSeq
-			nextAddSeq += 1
+			nextAddSeq++
 			heap.Push(&timerHeap, t)
 		}
 	}

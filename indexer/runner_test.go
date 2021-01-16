@@ -9,7 +9,6 @@ import (
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/jar"
-
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/cache/mocks"
@@ -20,11 +19,11 @@ import (
 )
 
 var (
-	runnerSiteUrl = "http://localhost/"
-	index         = &IndexerDefinition{
+	runnerSiteURL = "http://localhost/"
+	index         = &Definition{
 		Site:  "zamunda.net",
 		Name:  "zamunda",
-		Links: []string{runnerSiteUrl},
+		Links: []string{runnerSiteURL},
 	}
 )
 
@@ -86,7 +85,7 @@ var (
 //	_, err := runner.Search(emptyQuery, nil)
 //	g.Expect(err).ToNot(gomega.BeNil())
 //	//The connectivity tester should remember that that url is bad
-//	g.Expect(runner.connectivityTester.IsOk(runnerSiteUrl)).To(gomega.BeFalse())
+//	g.Expect(runner.connectivityTester.IsOk(runnerSiteURL)).To(gomega.BeFalse())
 //
 //	//Try again, now with a working browser
 //	contentFetcher := mocks2.NewMockContentFetcher(ctrl)
@@ -104,7 +103,7 @@ var (
 //	runner.contentFetcher = contentFetcher
 //	_, err = runner.Search(emptyQuery, nil)
 //	g.Expect(err).To(gomega.BeNil())
-//	g.Expect(runner.connectivityTester.IsOk(runnerSiteUrl)).To(gomega.BeTrue())
+//	g.Expect(runner.connectivityTester.IsOk(runnerSiteURL)).To(gomega.BeTrue())
 //}
 
 func TestRunner_Search(t *testing.T) {
@@ -116,7 +115,7 @@ func TestRunner_Search(t *testing.T) {
 	// The browser should be set
 	connectivityTester.EXPECT().SetBrowser(gomock.Any()).AnyTimes()
 	// The correct url should be tested
-	connectivityTester.EXPECT().IsOkAndSet(runnerSiteUrl, gomock.Any()).
+	connectivityTester.EXPECT().IsOkAndSet(runnerSiteURL, gomock.Any()).
 		Return(true).AnyTimes()
 
 	cfg := &config.ViperConfig{}
@@ -150,12 +149,12 @@ func TestRunner_Search(t *testing.T) {
 	g.Expect(err).ToNot(gomega.BeNil())
 
 	// Shouldn't be able to search with an index that has no search urls
-	index.Links = []string{runnerSiteUrl}
+	index.Links = []string{runnerSiteURL}
 	_, err = runner.Search(emptyQuery, nil)
 	g.Expect(err).ToNot(gomega.BeNil())
 
 	// Shouldn't be able to search with an index that has no search urls
-	index.Links = []string{runnerSiteUrl}
+	index.Links = []string{runnerSiteURL}
 	index.Search = searchBlock{
 		Path: "/",
 		Rows: rowsBlock{
@@ -195,13 +194,13 @@ func Test_ShouldUseUniqueIndexes(t *testing.T) {
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	index := &IndexerDefinition{Site: "zamunda.net", Name: "zamunda"}
+	index := &Definition{Site: "zamunda.net", Name: "zamunda"}
 	contentFetcher := mocks2.NewMockContentFetcher(ctrl)
 	connectivityTester := mocks.NewMockConnectivityTester(ctrl)
 	// The browser should be set
 	connectivityTester.EXPECT().SetBrowser(gomock.Any()).AnyTimes()
 	// The correct url should be tested
-	connectivityTester.EXPECT().IsOkAndSet(runnerSiteUrl, gomock.Any()).
+	connectivityTester.EXPECT().IsOkAndSet(runnerSiteURL, gomock.Any()).
 		Return(true).AnyTimes()
 
 	//-------Should be able to use unique indexes
@@ -209,7 +208,7 @@ func Test_ShouldUseUniqueIndexes(t *testing.T) {
 	_ = cfg.Set("db", tempfile())
 	_ = cfg.Set("storage", "boltdb")
 	index.Name = "other"
-	index.Links = []string{runnerSiteUrl}
+	index.Links = []string{runnerSiteURL}
 	index.Search = searchBlock{
 		Path: "/",
 		Key:  []string{"fieldB"},

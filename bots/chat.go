@@ -3,16 +3,16 @@ package bots
 type Chat struct {
 	Username    string
 	InitialText string
-	ChatId      int64
+	ChatID      int64
 	UUIDValue   string
-	RecordId    uint32
+	RecordID    uint32
 	isUpdate    bool
 	isNew       bool
 }
 
 type ChatMessage struct {
 	Text   string
-	ChatId string
+	ChatID string
 	Banner string
 }
 
@@ -24,12 +24,12 @@ func (c *Chat) SetUUID(s string) {
 	c.UUIDValue = s
 }
 
-func (c *Chat) Id() uint32 {
-	return c.RecordId
+func (c *Chat) GetID() uint32 {
+	return c.RecordID
 }
 
-func (c *Chat) SetId(u uint32) {
-	c.RecordId = u
+func (c *Chat) SetID(u uint32) {
+	c.RecordID = u
 }
 
 func (c Chat) SetState(new, updated bool) {

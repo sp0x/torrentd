@@ -7,7 +7,7 @@ type IndexerInfo struct {
 	Link     string
 }
 
-func (i IndexerInfo) GetId() string {
+func (i IndexerInfo) GetID() string {
 	return i.ID
 }
 

@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/mitchellh/go-homedir"
-
 	"github.com/sp0x/torrentd/config"
 )
 
@@ -63,7 +62,7 @@ func (fs *FileIndexLoader) walkDirectories() map[string]string {
 	return defs
 }
 
-func (fs *FileIndexLoader) List(selector *IndexerSelector) ([]string, error) {
+func (fs *FileIndexLoader) List(selector *Selector) ([]string, error) {
 	defs := fs.walkDirectories()
 	results := make([]string, len(defs))
 	for name := range defs {
@@ -97,7 +96,7 @@ func (fs *FileIndexLoader) String() string {
 }
 
 // Load - Load a definition of an Indexer from it's name
-func (fs *FileIndexLoader) Load(key string) (*IndexerDefinition, error) {
+func (fs *FileIndexLoader) Load(key string) (*Definition, error) {
 	defs := fs.walkDirectories()
 	fileName, ok := defs[key]
 	if !ok {

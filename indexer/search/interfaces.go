@@ -16,8 +16,8 @@ type UUIDed interface {
 }
 
 type IDed interface {
-	Id() uint32
-	SetId(uint32)
+	GetID() uint32
+	SetID(uint32)
 }
 
 type Record interface {

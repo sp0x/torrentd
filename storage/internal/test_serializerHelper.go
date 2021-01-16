@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
-
 	"github.com/sp0x/torrentd/storage/serializers"
 )
 

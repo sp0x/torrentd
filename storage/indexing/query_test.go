@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/onsi/gomega"
-
 	"github.com/sp0x/torrentd/bots"
 	"github.com/sp0x/torrentd/indexer/search"
 	. "github.com/sp0x/torrentd/storage/indexing"
@@ -21,8 +20,8 @@ func TestKeyHasValue(t *testing.T) {
 
 	item = &search.ScrapeResultItem{}
 	item.ModelData = make(map[string]interface{})
-	item.LocalId = "33"
-	k = NewKey("LocalId")
+	item.LocalID = "33"
+	k = NewKey("LocalID")
 	g.Expect(KeyHasValue(k, item)).To(gomega.BeTrue())
 
 	item = &search.ScrapeResultItem{}
@@ -57,11 +56,11 @@ func TestGetKeyQueryFromItem(t *testing.T) {
 
 	item = &search.ScrapeResultItem{}
 	item.ModelData = make(map[string]interface{})
-	item.LocalId = "34"
-	k = NewKey("LocalId")
+	item.LocalID = "34"
+	k = NewKey("LocalID")
 	q = GetKeyQueryFromItem(k, item)
 	g.Expect(KeyHasValue(k, item)).To(gomega.BeTrue())
-	val, found = q.Get("LocalId")
+	val, found = q.Get("LocalID")
 	g.Expect(found).To(gomega.BeTrue())
 	g.Expect(val).To(gomega.Equal("34"))
 }

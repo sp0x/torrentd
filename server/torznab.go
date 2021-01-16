@@ -9,7 +9,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
-
 	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/search"
@@ -38,7 +37,7 @@ var searchCache, _ = cache.NewTTL(100, 1*time.Hour)
 // Handle queries
 func (s *Server) torznabHandler(c *gin.Context) {
 	_ = c.Params
-	indexerID := indexer.ResolveIndexId(s.indexerFacade.Scope, c.Param("searchIndex"))
+	indexerID := indexer.ResolveIndexID(s.indexerFacade.Scope, c.Param("searchIndex"))
 	t := c.Query("t")
 	searchIndex, err := s.indexerFacade.Scope.Lookup(s.config, indexerID)
 	if err != nil {
@@ -107,7 +106,7 @@ func (s *Server) torznabSearch(r *http.Request, query *search.Query, indexer ind
 
 	feed := &torznab.ResultFeed{
 		Info: torznab.Info{
-			ID:          nfo.GetId(),
+			ID:          nfo.GetID(),
 			Title:       nfo.GetTitle(),
 			Description: "",
 			Link:        nfo.GetLink(),
