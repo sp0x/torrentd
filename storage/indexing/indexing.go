@@ -11,7 +11,7 @@ import (
 type Index interface {
 	Add(value []byte, targetID []byte) error
 	Remove(value []byte) error
-	RemoveById(id []byte) error
+	RemoveByID(id []byte) error
 	Get(indexValue []byte) []byte
 	// All returns all the IDs corresponding to the given index value.
 	All(indexValue []byte, opts *CursorOptions) [][]byte

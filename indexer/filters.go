@@ -231,8 +231,7 @@ var (
 )
 
 func normalizeNumber(s string) string {
-	normalized := normalizeSpace(strings.Trim(s, "-"))
-	normalized = strings.Replace(s, ",", "", -1)
+	normalized := strings.Replace(s, ",", "", -1)
 
 	if normalized == "" {
 		normalized = "0"

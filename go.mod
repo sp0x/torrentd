@@ -11,6 +11,7 @@ require (
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/boltdb/bolt v1.3.1
 	github.com/cardigann/go-imdb-scraper v0.0.0-20170921034215-f67df398e320
+	github.com/daixiang0/gci v0.2.7 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dustin/go-humanize v1.0.0
 	github.com/emirpasic/gods v1.12.0

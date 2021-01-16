@@ -55,7 +55,7 @@ func GetResultFingerprint(t *TorrentResultItem) string {
 	// Drop punctuation and other non-alphabet chars
 	chars := "abcdefghijklmnopqrstuvwxyzабвгдеёжзийклмнопрстуфхцчшщьъыэюя 123456789+-_.:!,"
 	var validatedNameChars []rune
-	for _, c := range []rune(name) {
+	for _, c := range name {
 		if strings.ContainsRune(chars, c) {
 			validatedNameChars = append(validatedNameChars, c)
 		}

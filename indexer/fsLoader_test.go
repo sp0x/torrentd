@@ -1,11 +1,12 @@
 package indexer
 
 import (
+	"github.com/onsi/gomega"
 	"testing"
 )
 
 func TestNewFsLoader(t *testing.T) {
-	g := NewWithT(t)
+	g := gomega.NewWithT(t)
 	loader := NewFsLoader("appx")
-	g.Expect(len(loader.Directories)).To(Equal(2))
+	g.Expect(len(loader.Directories)).To(gomega.Equal(2))
 }

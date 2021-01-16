@@ -55,7 +55,6 @@ func (mapping categoryMap) Resolve(cat *categories.Category) []string {
 		for localID, mappedCat := range mapping {
 			if mappedCat.ID == parent.ID {
 				results = append(results, localID)
-				matched = true
 			}
 		}
 	}
@@ -64,7 +63,7 @@ func (mapping categoryMap) Resolve(cat *categories.Category) []string {
 }
 
 func (mapping categoryMap) ResolveAll(cats ...*categories.Category) []string {
-	var results []string
+	results := make([]string, len(cats))
 	for _, cat := range cats {
 		results = append(results, mapping.Resolve(cat)...)
 	}

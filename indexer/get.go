@@ -2,10 +2,11 @@ package indexer
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/indexer/search"
 	"os"
 	"text/tabwriter"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/torrentd/indexer/search"
 )
 
 func Get(facade *Facade, query *search.Query) error {

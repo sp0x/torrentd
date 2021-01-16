@@ -30,7 +30,7 @@ func xmlOutput(c *gin.Context, feed *torznab.ResultFeed, encoding string) {
 	_, _ = c.Writer.Write(x)
 }
 
-func atomOutput(c *gin.Context, v *torznab.ResultFeed, encoding string) {
+func atomOutput(c *gin.Context, v *torznab.ResultFeed) {
 	feed := &feeds.Feed{
 		Title:       v.Info.Title,
 		Link:        &feeds.Link{Href: v.Info.Link},

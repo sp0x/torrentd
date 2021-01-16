@@ -76,7 +76,7 @@ func (c Capabilities) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 			Available       string `xml:"available,attr"`
 			SupportedParams string `xml:"supportedParams,attr"`
 		}{
-			xml.Name{"", mode.Key},
+			xml.Name{Space: "", Local: mode.Key},
 			available,
 			strings.Join(mode.SupportedParams, ","),
 		})

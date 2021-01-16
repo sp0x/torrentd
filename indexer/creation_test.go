@@ -3,6 +3,9 @@ package indexer
 import (
 	"testing"
 	"time"
+
+	"github.com/onsi/gomega"
+	"github.com/sp0x/torrentd/config"
 )
 
 func TestCachedScope_CreateAggregate_ShouldNotHang(t *testing.T) {

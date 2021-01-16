@@ -342,8 +342,8 @@ func (b *BoltStorage) addUniqueIndexRecord(bucket *bolt.Bucket, uniqueIndexKeys 
 
 func (b *BoltStorage) assignAutoIncrementingId(bucket *bolt.Bucket, item search.Record) {
 	// We increment the ID, the ID is used to avoid long seeking times
-	nextId, _ := bucket.NextSequence()
-	item.SetId(uint32(nextId))
+	nextID, _ := bucket.NextSequence()
+	item.SetId(uint32(nextID))
 }
 
 func (b *BoltStorage) getUniqueIndexFromKeys(bucket *bolt.Bucket, uniqueIndexKeys *indexing.Key, uniqueIndexValue []byte) (indexing.Index, error) {
@@ -443,15 +443,15 @@ func (b *BoltStorage) GetRootBucket(tx *bolt.Tx, children ...string) *bolt.Bucke
 }
 
 // GetSearchResults by a given category id
-func (b *BoltStorage) GetSearchResults(categoryId int) ([]search.ScrapeResultItem, error) {
+func (b *BoltStorage) GetSearchResults(categoryID int) ([]search.ScrapeResultItem, error) {
 	bdb := b.Database
 	var items []search.ScrapeResultItem
 	err := bdb.View(func(tx *bolt.Tx) error {
 		var catName string
-		if _, ok := categories.AllCategories[categoryId]; !ok {
+		if _, ok := categories.AllCategories[categoryID]; !ok {
 			catName = "uncategorized"
 		} else {
-			catName = categories.AllCategories[categoryId].Name
+			catName = categories.AllCategories[categoryID].Name
 		}
 
 		categoryBucket := tx.Bucket([]byte(categoriesBucketName)).Bucket([]byte(catName))

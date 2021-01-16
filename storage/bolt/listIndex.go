@@ -101,11 +101,11 @@ func (ix *ListIndex) Remove(indexValue []byte) error {
 			return err
 		}
 	}
-	return ix.IDs.RemoveById(indexValue)
+	return ix.IDs.RemoveByID(indexValue)
 }
 
-// RemoveById removes an index and the matching ID using an ID.
-func (ix *ListIndex) RemoveById(id []byte) error {
+// RemoveByID removes an index and the matching ID using an ID.
+func (ix *ListIndex) RemoveByID(id []byte) error {
 	// We get the index value
 	indexValue := ix.IDs.Get(id)
 	// We don't have that index

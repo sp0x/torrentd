@@ -67,11 +67,11 @@ func (ix *UniqueIndex) Remove(indexValue []byte) error {
 	return ix.IndexBucket.Delete(indexValue)
 }
 
-// RemoveById removes the first id from the index that matches the given id.
-func (ix *UniqueIndex) RemoveById(id []byte) error {
+// RemoveByID removes the first id from the index that matches the given id.
+func (ix *UniqueIndex) RemoveByID(id []byte) error {
 	cursor := ix.IndexBucket.Cursor()
-	for value, otherId := cursor.First(); value != nil; value, otherId = cursor.Next() {
-		if bytes.Equal(otherId, id) {
+	for value, otherID := cursor.First(); value != nil; value, otherID = cursor.Next() {
+		if bytes.Equal(otherID, id) {
 			return ix.Remove(value)
 		}
 	}

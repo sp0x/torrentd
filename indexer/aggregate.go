@@ -14,6 +14,8 @@ import (
 	"github.com/sp0x/torrentd/torznab"
 )
 
+const aggregateSiteName = "aggregate"
+
 type Aggregate struct {
 	Indexers []Indexer
 	Storage  storage.ItemStorage
@@ -42,8 +44,8 @@ func (ag *Aggregate) Errors() []string {
 
 func (ag *Aggregate) GetDefinition() *IndexerDefinition {
 	definition := &IndexerDefinition{}
-	definition.Site = "aggregate"
-	var indexerNames []string
+	definition.Site = aggregateSiteName
+	indexerNames := make([]string, len(ag.Indexers))
 	for _, ixr := range ag.Indexers {
 		indexerNames = append(indexerNames, ixr.GetDefinition().Name)
 	}
@@ -225,7 +227,7 @@ func (a *AggregateInfo) GetTitle() string {
 }
 
 func (a *AggregateInfo) GetId() string {
-	return "aggregate"
+	return aggregateSiteName
 }
 
 func (ag *Aggregate) Info() Info {

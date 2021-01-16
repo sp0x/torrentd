@@ -2,6 +2,7 @@ package torrent
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha1"
 	"errors"
 	"fmt"
@@ -35,13 +36,20 @@ func ParseTorrentFromStream(stream io.ReadCloser) (*Definition, error) {
 }
 
 func ParseTorrentFromUrl(h *indexer.Facade, torrentUrl string) (*Definition, error) {
-	req, _ := http.NewRequest("GET", torrentUrl, nil)
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(ctx, "GET", torrentUrl, nil)
+	if err != nil {
+		return nil, err
+	}
 	res, err := h.Indexer.ProcessRequest(req)
 	if err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
 	if res.StatusCode >= 400 {
 		return nil, errors.New(strconv.Itoa(res.StatusCode))
 	}
@@ -104,26 +112,26 @@ func parseMagnet(m string) (*Definition, error) {
 
 type RawDefinition struct {
 	Announce     string
-	AnnounceList [][]string "announce-list"
+	AnnounceList [][]string "announce-list" //nolint:govet
 	Comment      string
-	CreatedBy    string "created by"
-	CreationDate uint   "creation date"
+	CreatedBy    string "created by"    //nolint:govet
+	CreationDate uint   "creation date" //nolint:govet
 	Encoding     string
 	Info         DefinitionInfo
 	Publisher    string
-	PublisherUrl string "publisher-url"
+	PublisherUrl string "publisher-url" //nolint:govet
 }
 
 type Definition struct {
-	Announce     string     "announce"
-	AnnounceList [][]string "announce-list"
-	Comment      string     "comment"
-	CreatedBy    string     "created by"
-	CreationDate uint       "creation date"
-	Encoding     string     "encoding"
+	Announce     string     "announce"      //nolint:govet
+	AnnounceList [][]string "announce-list" //nolint:govet
+	Comment      string     "comment"       //nolint:govet
+	CreatedBy    string     "created by"    //nolint:govet
+	CreationDate uint       "creation date" //nolint:govet
+	Encoding     string     "encoding"      //nolint:govet
 	Info         DefinitionInfo
-	Publisher    string "publisher"
-	PublisherUrl string "publisher-url"
+	Publisher    string "publisher"     //nolint:govet
+	PublisherUrl string "publisher-url" //nolint:govet
 	InfoBuffer   []byte
 	InfoHash     string
 }
@@ -142,23 +150,23 @@ func (d *Definition) GetTotalFileSize() uint32 {
 }
 
 type DefinitionInfo struct {
-	FileDuration []int               "file-duration"
-	FileMedia    []int               "file-media"
-	Files        []DefinitionFile    "files"
-	Name         string              "name"
-	PieceLength  uint                "piece length"
-	Pieces       string              "pieces"
-	Profiles     []DefinitionProfile "profiles"
+	FileDuration []int               "file-duration" //nolint:govet
+	FileMedia    []int               "file-media"    //nolint:govet
+	Files        []DefinitionFile    "files"         //nolint:govet
+	Name         string              "name"          //nolint:govet
+	PieceLength  uint                "piece length"  //nolint:govet
+	Pieces       string              "pieces"        //nolint:govet
+	Profiles     []DefinitionProfile "profiles"      //nolint:govet
 }
 
 type DefinitionFile struct {
-	Length uint64   "length"
-	Path   []string "path"
+	Length uint64   "length" //nolint:govet
+	Path   []string "path"   //nolint:govet
 }
 
 type DefinitionProfile struct {
-	ACodec string "acodec"
-	Height uint   "height"
-	VCodec string "vcodec"
-	Width  uint   "width"
+	ACodec string "acodec" //nolint:govet
+	Height uint   "height" //nolint:govet
+	VCodec string "vcodec" //nolint:govet
+	Width  uint   "width"  //nolint:govet
 }

@@ -94,7 +94,7 @@ func TestUniqueIndex(t *testing.T) {
 		require.Len(t, list, 1)
 		require.Equal(t, []byte("id1"), list[0])
 
-		err = idx.RemoveById([]byte("id2"))
+		err = idx.RemoveByID([]byte("id2"))
 		require.NoError(t, err)
 
 		id = idx.Get([]byte("hello"))
@@ -108,9 +108,9 @@ func TestUniqueIndex(t *testing.T) {
 		require.Len(t, ids, 1)
 		require.Equal(t, []byte("id3"), ids[0])
 
-		err = idx.RemoveById([]byte("id2"))
+		err = idx.RemoveByID([]byte("id2"))
 		require.NoError(t, err)
-		err = idx.RemoveById([]byte("id4"))
+		err = idx.RemoveByID([]byte("id4"))
 		require.NoError(t, err)
 		return nil
 	})

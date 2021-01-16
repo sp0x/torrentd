@@ -20,7 +20,7 @@ func (st *StandardReportGenerator) GetLatestItems() []models.LatestResult {
 		Build()
 	latest := store.GetLatest(20)
 	store.Close()
-	var latestResultItems []models.LatestResult
+	latestResultItems := make([]models.LatestResult, len(latest))
 	for _, late := range latest {
 		torrentItem := late.(*search.TorrentResultItem)
 		latestResultItems = append(latestResultItems, models.LatestResult{
@@ -34,12 +34,14 @@ func (st *StandardReportGenerator) GetLatestItems() []models.LatestResult {
 }
 
 func (st *StandardReportGenerator) GetIndexesStatus(indexFacade *Facade) []models.IndexStatus {
-	var statuses []models.IndexStatus
 	store := storage.NewBuilder().
 		WithRecord(&search.ScrapeResultItem{}).
 		Build()
 	storageStats := store.GetStats(false)
 	store.Close()
+
+	indexCount := len(indexFacade.Scope.Indexes())
+	statuses := make([]models.IndexStatus, indexCount)
 
 	for indexKey, ix := range indexFacade.Scope.Indexes() {
 		if ix == nil {

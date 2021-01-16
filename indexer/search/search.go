@@ -25,12 +25,11 @@ type Instance interface {
 type RangeField []string
 
 type Search struct {
-	DOM         *goquery.Selection
-	Id          string
-	currentPage int
-	StartIndex  int
-	Results     []ResultItemBase
-	FieldState  map[string]*rangeFieldState
+	DOM        *goquery.Selection
+	ID         string
+	StartIndex int
+	Results    []ResultItemBase
+	FieldState map[string]*rangeFieldState
 }
 
 func NewSearch(query *Query) *Search {
@@ -98,7 +97,7 @@ func (s *Search) SetResults(results []ResultItemBase) {
 }
 
 func (s *Search) SetId(val string) {
-	s.Id = val
+	s.ID = val
 }
 
 type PaginationSearch struct {

@@ -80,7 +80,7 @@ func (s *Server) torznabHandler(c *gin.Context) {
 		}
 		switch c.Query("format") {
 		case "atom":
-			atomOutput(c, feed, searchIndex.GetEncoding())
+			atomOutput(c, feed)
 		case "", "xml":
 			xmlOutput(c, feed, searchIndex.GetEncoding())
 		case "json":

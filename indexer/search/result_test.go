@@ -1,6 +1,7 @@
 package search
 
 import (
+	"github.com/onsi/gomega"
 	"testing"
 )
 

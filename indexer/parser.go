@@ -63,7 +63,7 @@ func (id *IndexerDefinition) getNewResultItem() search.ResultItemBase {
 			ModelData: make(map[string]interface{}),
 		}
 	}
-	if id.Scheme == "torrent" {
+	if id.Scheme == schemeTorrent {
 		return &search.TorrentResultItem{
 			ScrapeResultItem: search.ScrapeResultItem{
 				ModelData: make(map[string]interface{}),
@@ -217,6 +217,7 @@ const (
 	loginMethodPost   = "post"
 	loginMethodForm   = "form"
 	loginMethodCookie = "cookie"
+	schemeTorrent     = "torrent"
 )
 
 type loginBlock struct {

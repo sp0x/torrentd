@@ -2,8 +2,9 @@ package indexer
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"sort"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type MultipleDefinitionLoader []DefinitionLoader
@@ -38,7 +39,7 @@ func (ml MultipleDefinitionLoader) List(selector *IndexerSelector) ([]string, er
 		}
 	}
 
-	var results []string
+	results := make([]string, len(allResults))
 
 	for key := range allResults {
 		results = append(results, key)

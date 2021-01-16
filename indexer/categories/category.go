@@ -20,153 +20,153 @@ var Uncategorized = &Category{ID: 0, Name: "uncategorized"}
 // Categories from the Newznab spec
 // https://github.com/nZEDb/nZEDb/blob/0.x/docs/newznab_api_specification.txt#L627
 var (
-	Subtitle                   = Category{-1, "Subtitle"}
-	Rental                     = Category{-2, "Rental"}
-	CategoryOther              = Category{0, "Other"}
-	CategoryOther_Misc         = Category{10, "Other/Misc"}
-	CategoryOther_Hashed       = Category{20, "Other/Hashed"}
-	CategoryConsole            = Category{1000, "Console"}
-	CategoryConsole_NDS        = Category{1010, "Console/NDS"}
-	CategoryConsole_PSP        = Category{1020, "Console/PSP"}
-	CategoryConsole_Wii        = Category{1030, "Console/Wii"}
-	CategoryConsole_XBOX       = Category{1040, "Console/Xbox"}
-	CategoryConsole_XBOX360    = Category{1050, "Console/Xbox360"}
-	CategoryConsole_WiiwareVC  = Category{1060, "Console/Wiiware/V"}
-	CategoryConsole_XBOX360DLC = Category{1070, "Console/Xbox360"}
-	CategoryConsole_PS3        = Category{1080, "Console/PS3"}
-	CategoryConsole_Other      = Category{1999, "Console/Other"}
-	CategoryConsole_3DS        = Category{1110, "Console/3DS"}
-	CategoryConsole_PSVita     = Category{1120, "Console/PS Vita"}
-	CategoryConsole_WiiU       = Category{1130, "Console/WiiU"}
-	CategoryConsole_XBOXOne    = Category{1140, "Console/XboxOne"}
-	CategoryConsole_PS4        = Category{1180, "Console/PS4"}
-	CategoryMovies             = Category{2000, "Movies"}
-	CategoryMovies_Foreign     = Category{2010, "Movies/Foreign"}
-	CategoryMovies_Other       = Category{2020, "Movies/Other"}
-	CategoryMovies_SD          = Category{2030, "Movies/SD"}
-	CategoryMovies_HD          = Category{2040, "Movies/HD"}
-	CategoryMovies_UHD         = Category{2045, "Movies/UHD"}
-	CategoryMovies_3D          = Category{2050, "Movies/3D"}
-	CategoryMovies_BluRay      = Category{2060, "Movies/BluRay"}
-	CategoryMovies_DVD         = Category{2070, "Movies/DVD"}
-	CategoryMovies_WEBDL       = Category{2080, "Movies/WEBDL"}
-	CategoryMovies_Trailers    = Category{2090, "Movies/Trailers"}
-	CategoryAudio              = Category{3000, "Audio"}
-	CategoryAudio_MP3          = Category{3010, "Audio/MP3"}
-	CategoryAudio_Video        = Category{3020, "Audio/Video"}
-	CategoryAudio_Audiobook    = Category{3030, "Audio/Audiobook"}
-	CategoryAudio_Lossless     = Category{3040, "Audio/Lossless"}
-	CategoryAudio_Other        = Category{3999, "Audio/Other"}
-	CategoryAudio_Foreign      = Category{3060, "Audio/Foreign"}
-	CategoryPC                 = Category{4000, "PC"}
-	CategoryPC_0day            = Category{4010, "PC/0day"}
-	CategoryPC_ISO             = Category{4020, "PC/ISO"}
-	CategoryPC_Mac             = Category{4030, "PC/Mac"}
-	CategoryPC_PhoneOther      = Category{4040, "PC/Phone-Other"}
-	CategoryPC_Games           = Category{4050, "PC/Games"}
-	CategoryPC_PhoneIOS        = Category{4060, "PC/Phone-IOS"}
-	CategoryPC_PhoneAndroid    = Category{4070, "PC/Phone-Android"}
-	CategoryTV                 = Category{5000, "TV"}
-	CategoryTV_WEBDL           = Category{5010, "TV/WEB-DL"}
-	CategoryTV_FOREIGN         = Category{5020, "TV/Foreign"}
-	CategoryTV_DVD             = Category{5025, "TV/DVD"}
-	CategoryTV_SD              = Category{5030, "TV/SD"}
-	CategoryTV_HD              = Category{5040, "TV/HD"}
-	CategoryTV_UHD             = Category{5045, "TV/UHD"}
-	CategoryTV_Other           = Category{5999, "TV/Other"}
-	CategoryTV_Sport           = Category{5060, "TV/Sport"}
-	CategoryTV_Anime           = Category{5070, "TV/Anime"}
-	CategoryTV_Documentary     = Category{5080, "TV/Documentary"}
-	CategoryXXX                = Category{6000, "XXX"}
-	CategoryXXX_DVD            = Category{6010, "XXX/DVD"}
-	CategoryXXX_WMV            = Category{6020, "XXX/WMV"}
-	CategoryXXX_XviD           = Category{6030, "XXX/XviD"}
-	CategoryXXX_x264           = Category{6040, "XXX/x264"}
-	CategoryXXX_Other          = Category{6999, "XXX/Other"}
-	CategoryXXX_Imageset       = Category{6060, "XXX/Imageset"}
-	CategoryXXX_Packs          = Category{6070, "XXX/Packs"}
-	CategoryBooks              = Category{7000, "Books"}
-	CategoryBooks_Magazines    = Category{7010, "Books/Magazines"}
-	CategoryBooks_Ebook        = Category{7020, "Books/Ebook"}
-	CategoryBooks_Comics       = Category{7030, "Books/Comics"}
-	CategoryBooks_Technical    = Category{7040, "Books/Technical"}
-	CategoryBooks_Foreign      = Category{7060, "Books/Foreign"}
-	CategoryBooks_Unknown      = Category{7999, "Books/Unknown"}
+	Subtitle                  = Category{-1, "Subtitle"}
+	Rental                    = Category{-2, "Rental"}
+	CategoryOther             = Category{0, "Other"}
+	CategoryOtherMisc         = Category{10, "Other/Misc"}
+	CategoryOtherHashed       = Category{20, "Other/Hashed"}
+	CategoryConsole           = Category{1000, "Console"}
+	CategoryConsoleNDS        = Category{1010, "Console/NDS"}
+	CategoryConsolePSP        = Category{1020, "Console/PSP"}
+	CategoryConsoleWii        = Category{1030, "Console/Wii"}
+	CategoryConsoleXBOX       = Category{1040, "Console/Xbox"}
+	CategoryConsoleXBOX360    = Category{1050, "Console/Xbox360"}
+	CategoryConsoleWiiwareVC  = Category{1060, "Console/Wiiware/V"}
+	CategoryConsoleXBOX360DLC = Category{1070, "Console/Xbox360"}
+	CategoryConsolePS3        = Category{1080, "Console/PS3"}
+	CategoryConsoleOther      = Category{1999, "Console/Other"}
+	CategoryConsole3DS        = Category{1110, "Console/3DS"}
+	CategoryConsolePSVita     = Category{1120, "Console/PS Vita"}
+	CategoryConsoleWiiU       = Category{1130, "Console/WiiU"}
+	CategoryConsoleXBOXOne    = Category{1140, "Console/XboxOne"}
+	CategoryConsolePS4        = Category{1180, "Console/PS4"}
+	CategoryMovies            = Category{2000, "Movies"}
+	CategoryMoviesForeign     = Category{2010, "Movies/Foreign"}
+	CategoryMoviesOther       = Category{2020, "Movies/Other"}
+	CategoryMoviesSD          = Category{2030, "Movies/SD"}
+	CategoryMoviesHD          = Category{2040, "Movies/HD"}
+	CategoryMoviesUHD         = Category{2045, "Movies/UHD"}
+	CategoryMovies3D          = Category{2050, "Movies/3D"}
+	CategoryMoviesBluRay      = Category{2060, "Movies/BluRay"}
+	CategoryMoviesDVD         = Category{2070, "Movies/DVD"}
+	CategoryMoviesWEBDL       = Category{2080, "Movies/WEBDL"}
+	CategoryMoviesTrailers    = Category{2090, "Movies/Trailers"}
+	CategoryAudio             = Category{3000, "Audio"}
+	CategoryAudioMP3          = Category{3010, "Audio/MP3"}
+	CategoryAudioVideo        = Category{3020, "Audio/Video"}
+	CategoryAudioAudiobook    = Category{3030, "Audio/Audiobook"}
+	CategoryAudioLossless     = Category{3040, "Audio/Lossless"}
+	CategoryAudioOther        = Category{3999, "Audio/Other"}
+	CategoryAudioForeign      = Category{3060, "Audio/Foreign"}
+	CategoryPC                = Category{4000, "PC"}
+	CategoryPC0day            = Category{4010, "PC/0day"}
+	CategoryPCISO             = Category{4020, "PC/ISO"}
+	CategoryPCMac             = Category{4030, "PC/Mac"}
+	CategoryPCPhoneOther      = Category{4040, "PC/Phone-Other"}
+	CategoryPCGames           = Category{4050, "PC/Games"}
+	CategoryPCPhoneIOS        = Category{4060, "PC/Phone-IOS"}
+	CategoryPCPhoneAndroid    = Category{4070, "PC/Phone-Android"}
+	CategoryTV                = Category{5000, "TV"}
+	CategoryTVWEBDL           = Category{5010, "TV/WEB-DL"}
+	CategoryTVFOREIGN         = Category{5020, "TV/Foreign"}
+	CategoryTVDVD             = Category{5025, "TV/DVD"}
+	CategoryTVSD              = Category{5030, "TV/SD"}
+	CategoryTVHD              = Category{5040, "TV/HD"}
+	CategoryTVUHD             = Category{5045, "TV/UHD"}
+	CategoryTVOther           = Category{5999, "TV/Other"}
+	CategoryTVSport           = Category{5060, "TV/Sport"}
+	CategoryTVAnime           = Category{5070, "TV/Anime"}
+	CategoryTVDocumentary     = Category{5080, "TV/Documentary"}
+	CategoryXXX               = Category{6000, "XXX"}
+	CategoryXXXDVD            = Category{6010, "XXX/DVD"}
+	CategoryXXXWMV            = Category{6020, "XXX/WMV"}
+	CategoryXXXXviD           = Category{6030, "XXX/XviD"}
+	CategoryXXXx264           = Category{6040, "XXX/x264"}
+	CategoryXXXOther          = Category{6999, "XXX/Other"}
+	CategoryXXXImageset       = Category{6060, "XXX/Imageset"}
+	CategoryXXXPacks          = Category{6070, "XXX/Packs"}
+	CategoryBooks             = Category{7000, "Books"}
+	CategoryBooksMagazines    = Category{7010, "Books/Magazines"}
+	CategoryBooksEbook        = Category{7020, "Books/Ebook"}
+	CategoryBooksComics       = Category{7030, "Books/Comics"}
+	CategoryBooksTechnical    = Category{7040, "Books/Technical"}
+	CategoryBooksForeign      = Category{7060, "Books/Foreign"}
+	CategoryBooksUnknown      = Category{7999, "Books/Unknown"}
 )
 
 var AllCategories = CreateCategorySet([]Category{
 	Subtitle,
 	Rental,
 	CategoryOther,
-	CategoryOther_Misc,
-	CategoryOther_Hashed,
+	CategoryOtherMisc,
+	CategoryOtherHashed,
 	CategoryConsole,
-	CategoryConsole_NDS,
-	CategoryConsole_PSP,
-	CategoryConsole_Wii,
-	CategoryConsole_XBOX,
-	CategoryConsole_XBOX360,
-	CategoryConsole_WiiwareVC,
-	CategoryConsole_XBOX360DLC,
-	CategoryConsole_PS3,
-	CategoryConsole_Other,
-	CategoryConsole_3DS,
-	CategoryConsole_PSVita,
-	CategoryConsole_WiiU,
-	CategoryConsole_XBOXOne,
-	CategoryConsole_PS4,
+	CategoryConsoleNDS,
+	CategoryConsolePSP,
+	CategoryConsoleWii,
+	CategoryConsoleXBOX,
+	CategoryConsoleXBOX360,
+	CategoryConsoleWiiwareVC,
+	CategoryConsoleXBOX360DLC,
+	CategoryConsolePS3,
+	CategoryConsoleOther,
+	CategoryConsole3DS,
+	CategoryConsolePSVita,
+	CategoryConsoleWiiU,
+	CategoryConsoleXBOXOne,
+	CategoryConsolePS4,
 	CategoryMovies,
-	CategoryMovies_Foreign,
-	CategoryMovies_Other,
-	CategoryMovies_SD,
-	CategoryMovies_HD,
-	CategoryMovies_UHD,
-	CategoryMovies_3D,
-	CategoryMovies_BluRay,
-	CategoryMovies_DVD,
-	CategoryMovies_WEBDL,
-	CategoryMovies_Trailers,
+	CategoryMoviesForeign,
+	CategoryMoviesOther,
+	CategoryMoviesSD,
+	CategoryMoviesHD,
+	CategoryMoviesUHD,
+	CategoryMovies3D,
+	CategoryMoviesBluRay,
+	CategoryMoviesDVD,
+	CategoryMoviesWEBDL,
+	CategoryMoviesTrailers,
 	CategoryAudio,
-	CategoryAudio_MP3,
-	CategoryAudio_Video,
-	CategoryAudio_Audiobook,
-	CategoryAudio_Lossless,
-	CategoryAudio_Other,
-	CategoryAudio_Foreign,
+	CategoryAudioMP3,
+	CategoryAudioVideo,
+	CategoryAudioAudiobook,
+	CategoryAudioLossless,
+	CategoryAudioOther,
+	CategoryAudioForeign,
 	CategoryPC,
-	CategoryPC_0day,
-	CategoryPC_ISO,
-	CategoryPC_Mac,
-	CategoryPC_PhoneOther,
-	CategoryPC_Games,
-	CategoryPC_PhoneIOS,
-	CategoryPC_PhoneAndroid,
+	CategoryPC0day,
+	CategoryPCISO,
+	CategoryPCMac,
+	CategoryPCPhoneOther,
+	CategoryPCGames,
+	CategoryPCPhoneIOS,
+	CategoryPCPhoneAndroid,
 	CategoryTV,
-	CategoryTV_WEBDL,
-	CategoryTV_FOREIGN,
-	CategoryTV_DVD,
-	CategoryTV_SD,
-	CategoryTV_HD,
-	CategoryTV_UHD,
-	CategoryTV_Other,
-	CategoryTV_Sport,
-	CategoryTV_Anime,
-	CategoryTV_Documentary,
+	CategoryTVWEBDL,
+	CategoryTVFOREIGN,
+	CategoryTVDVD,
+	CategoryTVSD,
+	CategoryTVHD,
+	CategoryTVUHD,
+	CategoryTVOther,
+	CategoryTVSport,
+	CategoryTVAnime,
+	CategoryTVDocumentary,
 	CategoryXXX,
-	CategoryXXX_DVD,
-	CategoryXXX_WMV,
-	CategoryXXX_XviD,
-	CategoryXXX_x264,
-	CategoryXXX_Other,
-	CategoryXXX_Imageset,
-	CategoryXXX_Packs,
+	CategoryXXXDVD,
+	CategoryXXXWMV,
+	CategoryXXXXviD,
+	CategoryXXXx264,
+	CategoryXXXOther,
+	CategoryXXXImageset,
+	CategoryXXXPacks,
 	CategoryBooks,
-	CategoryBooks_Magazines,
-	CategoryBooks_Ebook,
-	CategoryBooks_Comics,
-	CategoryBooks_Technical,
-	CategoryBooks_Foreign,
-	CategoryBooks_Unknown,
+	CategoryBooksMagazines,
+	CategoryBooksEbook,
+	CategoryBooksComics,
+	CategoryBooksTechnical,
+	CategoryBooksForeign,
+	CategoryBooksUnknown,
 })
 
 type Categories map[int]*Category

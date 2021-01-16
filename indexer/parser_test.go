@@ -1,6 +1,7 @@
 package indexer
 
 import (
+	"github.com/onsi/gomega"
 	"testing"
 )
 

@@ -38,7 +38,7 @@ func defaultFsLoader() DefinitionLoader {
 	return &FileIndexLoader{config.GetDefinitionDirs()}
 }
 
-func (fs *FileIndexLoader) walkDirectories() (map[string]string, error) {
+func (fs *FileIndexLoader) walkDirectories() map[string]string {
 	defs := map[string]string{}
 
 	for _, dirpath := range fs.Directories {
@@ -60,15 +60,12 @@ func (fs *FileIndexLoader) walkDirectories() (map[string]string, error) {
 		}
 	}
 
-	return defs, nil
+	return defs
 }
 
 func (fs *FileIndexLoader) List(selector *IndexerSelector) ([]string, error) {
-	defs, err := fs.walkDirectories()
-	if err != nil {
-		return nil, err
-	}
-	var results []string
+	defs := fs.walkDirectories()
+	results := make([]string, len(defs))
 	for name := range defs {
 		if selector != nil && !selector.Matches(name) {
 			continue
@@ -79,11 +76,8 @@ func (fs *FileIndexLoader) List(selector *IndexerSelector) ([]string, error) {
 }
 
 func (fs *FileIndexLoader) ListWithNames(names []string) ([]string, error) {
-	defs, err := fs.walkDirectories()
-	if err != nil {
-		return nil, err
-	}
-	var results []string
+	defs := fs.walkDirectories()
+	results := make([]string, len(defs))
 	for k := range defs {
 		if !contains(names, k) {
 			continue
@@ -104,11 +98,7 @@ func (fs *FileIndexLoader) String() string {
 
 // Load - Load a definition of an Indexer from it's name
 func (fs *FileIndexLoader) Load(key string) (*IndexerDefinition, error) {
-	defs, err := fs.walkDirectories()
-	if err != nil {
-		return nil, err
-	}
-
+	defs := fs.walkDirectories()
 	fileName, ok := defs[key]
 	if !ok {
 		return nil, ErrUnknownIndexer

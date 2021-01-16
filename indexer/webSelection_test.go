@@ -1,12 +1,14 @@
 package indexer
 
 import (
+	"github.com/PuerkitoBio/goquery"
+	"github.com/onsi/gomega"
 	"strings"
 	"testing"
 )
 
 func Test_ShouldMatchTextForSimpleSelectors(t *testing.T) {
-	g := NewWithT(t)
+	g := gomega.NewWithT(t)
 	selector := selectorBlock{Selector: "a"}
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader("<div><a>Inner Text</a></div>"))
 	if err != nil {
@@ -19,12 +21,12 @@ func Test_ShouldMatchTextForSimpleSelectors(t *testing.T) {
 	}
 	selection := &DomScrapeItem{doc.Contents()}
 	result, err := selector.Match(selection)
-	g.Expect(err).To(BeNil())
-	g.Expect(result).To(Equal("Inner Text"))
+	g.Expect(err).To(gomega.BeNil())
+	g.Expect(result).To(gomega.Equal("Inner Text"))
 }
 
 func Test_ShouldMatchTextForSelectorsWithMultipleMatches(t *testing.T) {
-	g := NewWithT(t)
+	g := gomega.NewWithT(t)
 	selector := selectorBlock{Selector: "a", All: true}
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader("<div><a>Inner Text</a><a>Other Text</a></div>"))
 	if err != nil {
@@ -37,9 +39,9 @@ func Test_ShouldMatchTextForSelectorsWithMultipleMatches(t *testing.T) {
 	}
 	selection := doc.Contents()
 	result, err := selector.Match(&DomScrapeItem{selection})
-	g.Expect(err).To(BeNil())
-	g.Expect(result.([]string)).ToNot(BeNil())
+	g.Expect(err).To(gomega.BeNil())
+	g.Expect(result.([]string)).ToNot(gomega.BeNil())
 	resultArray := result.([]string)
-	g.Expect(resultArray[0]).To(Equal("Inner Text"))
-	g.Expect(resultArray[1]).To(Equal("Other Text"))
+	g.Expect(resultArray[0]).To(gomega.Equal("Inner Text"))
+	g.Expect(resultArray[1]).To(gomega.Equal("Other Text"))
 }

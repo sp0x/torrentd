@@ -58,7 +58,6 @@ func parseDynamicQuery(q *Query, pattern string) {
 		fieldValue := partSplit[1]
 		if function := parseQueryFunction(fieldValue); function != nil {
 			evalQueryFunction(q, field, function)
-		} else {
 		}
 	}
 }

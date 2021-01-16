@@ -4,6 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
+	"strings"
+	"sync"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	imdbscraper "github.com/cardigann/go-imdb-scraper"
@@ -11,12 +16,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/browser"
 	"github.com/sp0x/surf/jar"
-
-	"net/http"
-	"net/url"
-	"strings"
-	"sync"
-	"time"
 
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/cache"
