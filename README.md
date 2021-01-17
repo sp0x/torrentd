@@ -13,19 +13,19 @@ You can define your torrent trackers in these directories:
 - ~/.torrentd/definitions
 - <currentDirectory>/definitions
 
-This project also carries it's embedded definitions with which it was built.  
-The definition that's loaded is the latest one.
-All definitions are yml files.
+This project also offers embedded definitions which can be used out of the box.  
+Site definitions can be written in YAML files.
 
-## Storage
-You'll also need to store your results somehow. Depending on the way you run this project there are a few ways you could do that.  
-The supported databases are:
- - SQLite
+### Supported scraping sources
+So far you can extract data from HTML pages and JSON responses.
+
+### Scraped data storage
+You can store your scraping data with the following databases:
  - BoltDB
  - Firebase
 
 ## Configuration
-The configuration is stored in: ~/.torrentd/torrentd.yml   
+Configuration will be loaded from `~/.torrentd/torrentd.yml`.   
 Here's a brief overview of what you can configure:
 ```yaml
 # The key for accessing the API.
@@ -56,8 +56,8 @@ indexers:
       #    password: "{{ .Config.password }}" 
 ```
 
-## Index definitions
-### Login
+### Index definitions
+#### Login
 Login is described with the following block
 ```yaml
 login:
