@@ -569,7 +569,7 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 		results = append(results, item)
 	}
 	r.logger.
-		WithFields(logrus.Fields{"Indexer": r.definition.Site, "q": query.Keywords(), "time": time.Since(timer)}).
+		WithFields(logrus.Fields{"Indexer": r.definition.Site, "q": runCtx.Search.String(), "time": time.Since(timer)}).
 		Infof("Query returned %d results", len(results))
 	runCtx.Search.SetResults(results)
 	status.PublishSchemeStatus(r.context, generateSchemeOkStatus(r.definition, runCtx))

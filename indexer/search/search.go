@@ -2,7 +2,7 @@ package search
 
 import (
 	"fmt"
-	"strconv"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -20,6 +20,8 @@ type Instance interface {
 	SetStartIndex(key interface{}, i int)
 	SetResults(extracted []ResultItemBase)
 	SetID(val string)
+	IsDynamicSearch() bool
+	HasCompletedDynamicSearch() bool
 }
 
 type RangeField []string
@@ -29,6 +31,7 @@ type Search struct {
 	ID         string
 	StartIndex int
 	Results    []ResultItemBase
+	// Stores the state of stateful search fields
 	FieldState map[string]*rangeFieldState
 }
 
@@ -36,8 +39,7 @@ func NewSearch(query *Query) *Search {
 	s := &Search{}
 	s.FieldState = make(map[string]*rangeFieldState)
 	for fieldName, fieldValue := range query.Fields {
-		switch value := fieldValue.(type) {
-		case RangeField:
+		if value, ok := fieldValue.(RangeField); ok {
 			s.FieldState[fieldName] = &rangeFieldState{
 				value[0],
 				value[1],
@@ -48,32 +50,31 @@ func NewSearch(query *Query) *Search {
 	return s
 }
 
-type rangeFieldState struct {
-	start   string
-	end     string
-	current string
-}
-
-func (r *rangeFieldState) Next() string {
-	if r.current == "" {
-		r.current = r.start
-	} else if !r.HasNext() {
-		return r.current
-	} else {
-		r.increment()
+func (s *Search) String() string {
+	var output []string
+	for fname, fval := range s.FieldState {
+		val := fmt.Sprintf("{%s: %v}", fname, fval)
+		output = append(output, val)
 	}
-	return r.current
+	return strings.Join(output, ",")
 }
 
-func (r *rangeFieldState) HasNext() bool {
-	return r.current != r.end
+func (s *Search) IsDynamicSearch() bool {
+	for _, field := range s.FieldState {
+		if field != nil {
+			return true
+		}
+	}
+	return false
 }
 
-func (r *rangeFieldState) increment() {
-	length := len(r.current)
-	num, _ := strconv.Atoi(r.current)
-	num++
-	r.current = fmt.Sprintf("%0"+strconv.Itoa(length)+"d", num)
+func (s *Search) HasCompletedDynamicSearch() bool {
+	for _, field := range s.FieldState {
+		if field.HasNext() {
+			return false
+		}
+	}
+	return true
 }
 
 func (s *Search) GetStartingIndex() int {

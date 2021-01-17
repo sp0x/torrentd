@@ -24,6 +24,12 @@ You can store your scraping data with the following databases:
  - BoltDB
  - Firebase
 
+## Querying
+You can run a scraping job with a given query using the `--query` argument.  
+Simple text and pattern querying is supported.  
+An example pattern is: `$phone:range(0000001, 0000010)` this would use the values in the range of 0000001 to 0000010 for the field `phone`
+The current range value will be stored in the search instance, so each request increments the `phone` value.
+
 ## Configuration
 Configuration will be loaded from `~/.torrentd/torrentd.yml`.   
 Here's a brief overview of what you can configure:

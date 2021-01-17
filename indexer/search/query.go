@@ -57,7 +57,7 @@ func parseDynamicQuery(q *Query, pattern string) {
 		field := partSplit[0][1:]
 		fieldValue := partSplit[1]
 		if function := parseQueryFunction(fieldValue); function != nil {
-			evalQueryFunction(q, field, function)
+			populateFieldWithQueryFunction(q, field, function)
 		}
 	}
 }
@@ -91,7 +91,7 @@ func parseQueryFunction(str string) *queryFunction {
 	return nil
 }
 
-func evalQueryFunction(q *Query, field string, function *queryFunction) {
+func populateFieldWithQueryFunction(q *Query, field string, function *queryFunction) {
 	if function.name == "range" {
 		q.Fields[field] = RangeField(function.params)
 	}
@@ -257,6 +257,30 @@ func (query *Query) AddCategory(cat categories.Category) {
 		query.Categories = []int{}
 	}
 	query.Categories = append(query.Categories, cat.ID)
+}
+
+func (query *Query) ToVerboseString() string {
+	output := ""
+	keywords := query.Keywords()
+	var data []string
+	if keywords != "" {
+		data = append(data, "keywords: "+keywords)
+	}
+	fieldsStr := fieldsToString(query)
+	if fieldsStr != "" {
+		data = append(data, "fields: "+fieldsStr)
+	}
+	output = strings.Join(data, "; ")
+	return output
+}
+
+func fieldsToString(q *Query) string {
+	output := []string{}
+	for fname, fval := range q.Fields {
+		val := fmt.Sprintf("{%s: %v}", fname, fval)
+		output = append(output, val)
+	}
+	return strings.Join(output, ", ")
 }
 
 // Keywords returns the query formatted as search keywords

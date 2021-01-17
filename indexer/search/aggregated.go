@@ -5,6 +5,14 @@ type AggregatedSearch struct {
 	results        []ResultItemBase
 }
 
+func (a *AggregatedSearch) IsDynamicSearch() bool {
+	panic("implement me")
+}
+
+func (a *AggregatedSearch) HasCompletedDynamicSearch() bool {
+	panic("implement me")
+}
+
 func (a *AggregatedSearch) GetResults() []ResultItemBase {
 	return a.results
 }

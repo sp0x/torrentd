@@ -109,10 +109,13 @@ func Watch(facade *Facade, initialQuery *search.Query, intervalSec int) <-chan s
 					break
 				}
 			}
+
 			// If we have stale torrents we wait some time and try again
-			if hasReachedStaleItems || len(resultItems) == 0 {
+			if hasReachedStaleItems ||
+				(len(resultItems) == 0 && !currentSearch.IsDynamicSearch()) ||
+				(currentSearch.IsDynamicSearch() && currentSearch.HasCompletedDynamicSearch()) {
 				log.WithFields(log.Fields{"page": initialQuery.PageCount}).
-					Infof("Reached page with 0 results. Search is complete.")
+					Infof("Search is complete.")
 				time.Sleep(time.Second * time.Duration(intervalSec))
 				currentSearch = nil
 				initialQuery.Page = startingPage
