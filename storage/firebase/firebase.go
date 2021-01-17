@@ -5,11 +5,12 @@ import (
 	"errors"
 
 	"cloud.google.com/go/firestore"
+	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
+
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/indexing"
 	"github.com/sp0x/torrentd/storage/serializers"
-	"google.golang.org/api/iterator"
-	"google.golang.org/api/option"
 )
 
 type FirestoreConfig struct {
@@ -57,7 +58,7 @@ func NewFirestoreStorage(conf *FirestoreConfig, typePtr interface{}) (*Firestore
 		namespace: targetCollection,
 		marshaler: serializers.NewDynamicMarshaler(typePtr, nil),
 	}
-	err = f.counter.initCounterIfNeeded(f.getCollection(), f.context, counterDoc)
+	err = f.counter.initCounterIfNeeded(f.context, f.getCollection(), counterDoc)
 	if err != nil {
 		return nil, err
 	}

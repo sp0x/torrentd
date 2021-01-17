@@ -34,9 +34,9 @@ func ParseTorrentFromStream(stream io.ReadCloser) (*Definition, error) {
 	return ParseTorrent(string(body))
 }
 
-func ParseTorrentFromURL(h *indexer.Facade, torrentUrl string) (*Definition, error) {
+func ParseTorrentFromURL(h *indexer.Facade, torrentURL string) (*Definition, error) {
 	ctx := context.Background()
-	req, err := http.NewRequestWithContext(ctx, "GET", torrentUrl, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", torrentURL, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ type RawDefinition struct {
 	Encoding     string
 	Info         DefinitionInfo
 	Publisher    string
-	PublisherUrl string "publisher-url" //nolint:govet
+	PublisherURL string "publisher-url" //nolint:govet
 }
 
 type Definition struct {
@@ -130,12 +130,12 @@ type Definition struct {
 	Encoding     string     "encoding"      //nolint:govet
 	Info         DefinitionInfo
 	Publisher    string "publisher"     //nolint:govet
-	PublisherUrl string "publisher-url" //nolint:govet
+	PublisherURL string "publisher-url" //nolint:govet
 	InfoBuffer   []byte
 	InfoHash     string
 }
 
-func (d *Definition) ToMagnetUrl() string {
+func (d *Definition) ToMagnetURL() string {
 	return fmt.Sprintf("magnet:?xt=urn:btih:%s", d.InfoHash)
 }
 

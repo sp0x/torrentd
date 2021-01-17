@@ -16,6 +16,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/browser"
 	"github.com/sp0x/surf/jar"
+
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/categories"
@@ -29,14 +30,15 @@ import (
 	"github.com/sp0x/torrentd/torznab"
 )
 
-//"github.com/tehjojo/go-tvmaze/tvmaze"
-
 var (
 	_        Indexer = &Runner{}
 	errorTTL         = 2 * 24 * time.Hour
 )
 
-const indexVerificationSpan = time.Minute * 60 * 24
+const (
+	indexVerificationSpan = time.Minute * 60 * 24
+	errorValue            = "error"
+)
 
 type RunnerOpts struct {
 	Config     config.Config
@@ -637,7 +639,7 @@ func (r *Runner) extractSearchTarget(query *search.Query, localCats []string, co
 	if err != nil {
 		return nil, err
 	}
-	target := &source.SearchTarget{Url: searchURL, Values: vals, Method: r.definition.Search.Method}
+	target := &source.SearchTarget{URL: searchURL, Values: vals, Method: r.definition.Search.Method}
 	return target, nil
 }
 
@@ -701,7 +703,7 @@ func (r *Runner) extractDateHeader(selection RawScrapeItem) (time.Time, error) {
 
 	prev := selection.PrevAllFiltered(dateHeaders.Selector).First()
 	if prev.Length() == 0 {
-		return time.Time{}, fmt.Errorf("No date header row found")
+		return time.Time{}, fmt.Errorf("no date header row found")
 	}
 
 	dv, _ := dateHeaders.Text(prev.First())
@@ -725,26 +727,26 @@ func (r *Runner) Ratio() (string, error) {
 	if required, err := r.isLoginRequired(); required {
 		if err := r.login(); err != nil {
 			r.logger.WithError(err).Error("Login failed")
-			return "error", err
+			return errorValue, err
 		}
 	} else if err != nil {
-		return "error", err
+		return errorValue, err
 	}
 
 	ratioURL, err := r.getFullURLInIndex(r.definition.Ratio.Path)
 	if err != nil {
-		return "error", err
+		return errorValue, err
 	}
 
 	resultData, err := r.contentFetcher.Fetch(source.NewTarget(ratioURL))
 	if err != nil {
 		r.logger.WithError(err).Warn("Failed to open page")
-		return "error", nil
+		return errorValue, nil
 	}
 
 	var ratio interface{}
 	switch value := resultData.(type) {
-	case *web.HtmlFetchResult:
+	case *web.HTMLFetchResult:
 		ratio, err := r.definition.Ratio.Match(&DomScrapeItem{value.Dom.First()})
 		if err != nil {
 			return ratio.(string), err

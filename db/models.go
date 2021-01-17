@@ -10,7 +10,7 @@ package db
 //	AuthorName   string
 //	AuthorID     string
 //	CategoryName string
-//	CategoryId   string
+//	CategoryID   string
 //	Size         uint64
 //	Seeders      int
 //	Leachers     int
@@ -23,6 +23,6 @@ package db
 //}
 
 type TorrentCategory struct {
-	CategoryId   string
+	CategoryID   string
 	CategoryName string
 }

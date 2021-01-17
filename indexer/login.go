@@ -116,7 +116,7 @@ func (r *Runner) loginViaForm(loginURL, formSelector string, vals map[string]str
 		WithFields(logrus.Fields{"url": loginURL, "form": formSelector, "vals": vals}).
 		Debugf("Filling and submitting login form")
 
-	if err := r.contentFetcher.FetchUrl(loginURL); err != nil {
+	if err := r.contentFetcher.FetchURL(loginURL); err != nil {
 		return err
 	}
 

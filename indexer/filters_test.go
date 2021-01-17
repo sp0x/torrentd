@@ -1,8 +1,9 @@
 package indexer
 
 import (
-	"github.com/onsi/gomega"
 	"testing"
+
+	"github.com/onsi/gomega"
 )
 
 func Test_invokeFilter_ShouldHandleDateparse(t *testing.T) {

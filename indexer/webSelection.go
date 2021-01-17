@@ -44,13 +44,12 @@ func (s *selectorBlock) Match(from RawScrapeItem) (interface{}, error) {
 	if s.Selector != "" {
 		result := from.FindWithSelector(s)
 		if result.Length() == 0 {
-			return "", fmt.Errorf("Failed to match selector %q", s.Selector)
+			return "", fmt.Errorf("failed to match selector %q", s.Selector)
 		}
 		if s.All {
 			return s.Texts(result)
-		} else {
-			return s.Text(result)
 		}
+		return s.Text(result)
 	}
 	if s.Pattern != "" {
 		return s.Pattern, nil
@@ -58,13 +57,12 @@ func (s *selectorBlock) Match(from RawScrapeItem) (interface{}, error) {
 	if s.Path != "" {
 		result := from.Find(s.Path)
 		if result.Length() == 0 {
-			return "", fmt.Errorf("Failed to match selector %q", s.Selector)
+			return "", fmt.Errorf("failed to match selector %q", s.Selector)
 		}
 		if s.All {
 			return s.Texts(result)
-		} else {
-			return s.Text(result)
 		}
+		return s.Text(result)
 	}
 	return s.Text(from)
 }
@@ -76,7 +74,7 @@ func (s *selectorBlock) MatchRawText(from RawScrapeItem) (string, error) {
 	if s.Selector != "" {
 		result := from.FindWithSelector(s)
 		if result.Length() == 0 {
-			return "", fmt.Errorf("Failed to match selector %q", s.Selector)
+			return "", fmt.Errorf("failed to match selector %q", s.Selector)
 		}
 		return s.TextRaw(result)
 	}
@@ -101,14 +99,14 @@ func (s *selectorBlock) TextRaw(el RawScrapeItem) (string, error) {
 				return s.ApplyFilters(value)
 			}
 		}
-		return "", errors.New("None of the cases match")
+		return "", errors.New("none of the cases match")
 	}
 	output := strings.TrimSpace(el.Text())
 	output = spaceRx.ReplaceAllString(output, " ")
 	if s.Attribute != "" {
 		val, exists := el.Attr(s.Attribute)
 		if !exists {
-			return "", fmt.Errorf("Requested attribute %q doesn't exist", s.Attribute)
+			return "", fmt.Errorf("requested attribute %q doesn't exist", s.Attribute)
 		}
 		output = val
 	}
@@ -174,14 +172,14 @@ func (s *selectorBlock) Text(el RawScrapeItem) (string, error) {
 				return s.ApplyFilters(value)
 			}
 		}
-		return "", errors.New("None of the cases match")
+		return "", errors.New("none of the cases match")
 	}
 	output := strings.TrimSpace(el.Text())
 	output = spaceRx.ReplaceAllString(output, " ")
 	if s.Attribute != "" {
 		val, exists := el.Attr(s.Attribute)
 		if !exists {
-			return "", fmt.Errorf("Requested attribute %q doesn't exist", s.Attribute)
+			return "", fmt.Errorf("requested attribute %q doesn't exist", s.Attribute)
 		}
 		output = val
 	}

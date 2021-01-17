@@ -2,7 +2,7 @@ package series
 
 import (
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/mediareleaseinfo"
+	releaseinfo "github.com/sp0x/mediareleaseinfo"
 
 	"github.com/sp0x/torrentd/indexer/search"
 )

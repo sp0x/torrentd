@@ -26,7 +26,7 @@ func (t *token) Encode(sharedKey []byte) (string, error) {
 func decodeToken(ts string, sharedKey []byte) (*token, error) {
 	j, err := jwt.Parse(ts, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return sharedKey, nil
 	})
@@ -36,7 +36,7 @@ func decodeToken(ts string, sharedKey []byte) (*token, error) {
 
 	claims, ok := j.Claims.(jwt.MapClaims)
 	if !ok || !j.Valid {
-		return nil, errors.New("Invalid token")
+		return nil, errors.New("invalid token")
 	}
 
 	return &token{claims["s"].(string), claims["l"].(string)}, nil

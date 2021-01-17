@@ -1,30 +1,31 @@
 package web
 
 import (
-	"github.com/PuerkitoBio/goquery"
 	"net/http"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
-type HttpResult struct {
+type HTTPResult struct {
 	contentType string
 	encoding    string
 	Response    *http.Response
 }
 
-func (fr *HttpResult) ContentType() string {
+func (fr *HTTPResult) ContentType() string {
 	return fr.contentType
 }
 
-func (fr *HttpResult) Encoding() string {
+func (fr *HTTPResult) Encoding() string {
 	return fr.encoding
 }
 
-type HtmlFetchResult struct {
-	HttpResult
+type HTMLFetchResult struct {
+	HTTPResult
 	Dom *goquery.Document
 }
 
-type JsonFetchResult struct {
-	HttpResult
+type JSONFetchResult struct {
+	HTTPResult
 	Body []byte
 }

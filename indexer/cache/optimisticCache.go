@@ -50,9 +50,8 @@ func (c *OptimisticConnectivityCache) IsOkAndSet(u string, f func() bool) bool {
 	invalidated := c.invalidatedCache.Contains(u)
 	if !invalidated {
 		return true
-	} else {
-		result = f()
 	}
+	result = f()
 	return result
 }
 

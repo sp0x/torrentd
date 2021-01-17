@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
+
 	"github.com/sp0x/torrentd/storage/stats"
 )
 

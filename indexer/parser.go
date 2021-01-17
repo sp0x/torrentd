@@ -12,10 +12,11 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/browser"
+	"gopkg.in/yaml.v2"
+
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/torznab"
-	"gopkg.in/yaml.v2"
 )
 
 var defaultRateLimit = 500
@@ -175,7 +176,7 @@ func (e *errorBlockOrSlice) UnmarshalYAML(unmarshal func(interface{}) error) err
 		return nil
 	}
 
-	return errors.New("Failed to unmarshal errorBlockOrSlice")
+	return errors.New("failed to unmarshal errorBlockOrSlice")
 }
 
 type errorBlock struct {
@@ -200,7 +201,7 @@ func (e *errorBlock) errorText(from RawScrapeItem) (string, error) {
 	} else if e.Selector != "" {
 		return from.Find(e.Selector).Text(), nil
 	}
-	return "", errors.New("Error declaration must have either Message block or Selection")
+	return "", errors.New("error declaration must have either Message block or Selection")
 }
 
 type pageTestBlock struct {
@@ -266,7 +267,7 @@ func (f *fieldsListBlock) UnmarshalYAML(unmarshal func(interface{}) error) error
 	// Unmarshal as a MapSlice to preserve order of fields
 	var fields yaml.MapSlice
 	if err := unmarshal(&fields); err != nil {
-		return errors.New("Failed to unmarshal fieldsListBlock")
+		return errors.New("failed to unmarshal fieldsListBlock")
 	}
 
 	// FIXME: there has got to be a better way to do this
@@ -301,7 +302,7 @@ type rowsBlock struct {
 func (r *rowsBlock) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var sb selectorBlock
 	if err := unmarshal(&sb); err != nil {
-		return errors.New("Failed to unmarshal rowsBlock")
+		return errors.New("failed to unmarshal rowsBlock")
 	}
 
 	var rb struct {
@@ -310,7 +311,7 @@ func (r *rowsBlock) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		DateHeaders selectorBlock `yaml:"dateheaders"`
 	}
 	if err := unmarshal(&rb); err != nil {
-		return errors.New("Failed to unmarshal rowsBlock")
+		return errors.New("failed to unmarshal rowsBlock")
 	}
 
 	r.After = rb.After
@@ -364,7 +365,7 @@ func (c *capabilitiesBlock) UnmarshalYAML(unmarshal func(interface{}) error) err
 		return nil
 	}
 
-	return errors.New("Failed to unmarshal capabilities block")
+	return errors.New("failed to unmarshal capabilities block")
 }
 
 // ToTorznab converts a capabilities def. block to torznab capabilities object.
@@ -417,7 +418,7 @@ func (s *stringorslice) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return nil
 	}
 
-	return errors.New("Failed to unmarshal stringorslice")
+	return errors.New("failed to unmarshal stringorslice")
 }
 
 type ratioBlock struct {
@@ -428,14 +429,14 @@ type ratioBlock struct {
 func (r *ratioBlock) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var sb selectorBlock
 	if err := unmarshal(&sb); err != nil {
-		return errors.New("Failed to unmarshal ratioBlock")
+		return errors.New("failed to unmarshal ratioBlock")
 	}
 
 	var rb struct {
 		Path string `yaml:"path"`
 	}
 	if err := unmarshal(&rb); err != nil {
-		return errors.New("Failed to unmarshal ratioBlock")
+		return errors.New("failed to unmarshal ratioBlock")
 	}
 
 	r.selectorBlock = sb

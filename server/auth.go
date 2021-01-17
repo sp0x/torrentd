@@ -3,8 +3,9 @@ package server
 import (
 	"crypto/sha1"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"math/rand"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // sharedKey gets the hash of the api key or passphrase that's configured in our server.

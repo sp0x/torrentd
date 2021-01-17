@@ -2,8 +2,9 @@ package firebase
 
 import (
 	"cloud.google.com/go/firestore"
-	"github.com/sp0x/torrentd/indexer/search"
 	"google.golang.org/api/iterator"
+
+	"github.com/sp0x/torrentd/indexer/search"
 )
 
 // GetLatest returns the latest `count` of records.

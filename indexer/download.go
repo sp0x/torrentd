@@ -32,7 +32,7 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 	if scrapeItem.SourceLink == "" || r.downloadsNeedResolution() {
 		// Resolve the url
 		downloadItem := r.failingSearchFields["download"]
-		err := r.contentFetcher.FetchUrl(scrapeItem.Link)
+		err := r.contentFetcher.FetchURL(scrapeItem.Link)
 		if err != nil {
 			return nil, err
 		}
@@ -43,13 +43,13 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 		}
 		sourceLink = firstString(downloadLink)
 	}
-	fullURl, err := r.getFullURLInIndex(sourceLink)
+	fullURL, err := r.getFullURLInIndex(sourceLink)
 	if err != nil {
 		return nil, err
 	}
 	browserClone := r.browser.NewTab()
 	browserClone.SetEncoding("")
-	if err := browserClone.Open(fullURl); err != nil {
+	if err := browserClone.Open(fullURL); err != nil {
 		return nil, err
 	}
 
@@ -80,7 +80,7 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 				r.logger.Errorf("Error piping download: %v", err)
 				return
 			}
-			r.logger.WithFields(logrus.Fields{"url": fullURl}).
+			r.logger.WithFields(logrus.Fields{"url": fullURL}).
 				Infof("Downloaded %d bytes", n)
 		}
 	}()

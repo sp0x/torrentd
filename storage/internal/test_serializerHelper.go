@@ -3,7 +3,8 @@ package internal
 import (
 	"testing"
 
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
+
 	"github.com/sp0x/torrentd/storage/serializers"
 )
 
@@ -12,7 +13,7 @@ type testingStruct struct {
 }
 
 func SerializerTester(t *testing.T, serializer serializers.MarshalUnmarshaler) {
-	g := NewWithT(t)
+	g := gomega.NewWithT(t)
 	inValue := &testingStruct{"test"}
 	decodedValue := &testingStruct{}
 	encoded, err := serializer.Marshal(inValue)
@@ -24,5 +25,5 @@ func SerializerTester(t *testing.T, serializer serializers.MarshalUnmarshaler) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	g.Expect(decodedValue).To(Equal(inValue))
+	g.Expect(decodedValue).To(gomega.Equal(inValue))
 }

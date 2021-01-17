@@ -8,6 +8,8 @@ import (
 	"github.com/sp0x/torrentd/indexer/search"
 )
 
+const torrentScheme = "torrent"
+
 // Extracts a field's value from the given selection
 func (r *Runner) extractField(selection RawScrapeItem, field *fieldBlock) (interface{}, error) {
 	if field == nil {
@@ -109,7 +111,7 @@ func (r *Runner) extractItem(rowIdx int, selection RawScrapeItem, context *rowCo
 	for key, val := range row {
 		formatValues(nil, val, row)
 
-		if r.definition.Scheme == "torrent" {
+		if r.definition.Scheme == torrentScheme {
 			r.populateTorrentItemField(item, key, val, row, nonFilteredRow, rowIdx)
 		} else {
 			r.populateScrapeItemField(item, key, val, rowIdx)
@@ -125,7 +127,7 @@ func (r *Runner) extractItem(rowIdx int, selection RawScrapeItem, context *rowCo
 		item.SetPublishDate(date.Unix())
 	}
 
-	if r.definition.Scheme == "torrent" {
+	if r.definition.Scheme == torrentScheme {
 		r.populateTorrentData(item, context)
 	}
 

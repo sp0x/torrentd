@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/boltdb/bolt"
+
 	"github.com/sp0x/torrentd/storage/indexing"
 )
 

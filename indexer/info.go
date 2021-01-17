@@ -1,30 +1,30 @@
 package indexer
 
-type IndexerInfo struct {
+type Details struct {
 	ID       string
 	Title    string
 	Language string
 	Link     string
 }
 
-func (i IndexerInfo) GetID() string {
+func (i Details) GetID() string {
 	return i.ID
 }
 
-func (i IndexerInfo) GetTitle() string {
+func (i Details) GetTitle() string {
 	return i.Title
 }
 
-func (i IndexerInfo) GetLanguage() string {
+func (i Details) GetLanguage() string {
 	return i.Language
 }
 
-func (i IndexerInfo) GetLink() string {
+func (i Details) GetLink() string {
 	return i.Link
 }
 
 func (r *Runner) Info() Info {
-	return IndexerInfo{
+	return Details{
 		ID:       r.definition.Site,
 		Title:    r.definition.Name,
 		Language: r.definition.Language,

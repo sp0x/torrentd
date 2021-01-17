@@ -6,11 +6,12 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage"
 	"github.com/sp0x/torrentd/storage/indexing"
-	"github.com/spf13/viper"
 )
 
 type TelegramRunner struct {

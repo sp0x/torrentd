@@ -5,14 +5,14 @@ import (
 )
 
 type SearchTarget struct {
-	Url    string
+	URL    string
 	Values url.Values
 	Method string
 }
 
 func NewTarget(url string) *SearchTarget {
 	return &SearchTarget{
-		Url: url,
+		URL: url,
 	}
 }
 
@@ -25,6 +25,6 @@ type FetchResult interface {
 type ContentFetcher interface {
 	Cleanup()
 	Fetch(target *SearchTarget) (FetchResult, error)
-	FetchUrl(url string) error
+	FetchURL(url string) error
 	Post(url string, data url.Values, log bool) error
 }

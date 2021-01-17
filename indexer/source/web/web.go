@@ -57,11 +57,11 @@ func (w *ContentFetcher) Cleanup() {
 	w.Browser.HistoryJar().Clear()
 }
 
-func (w *ContentFetcher) FetchUrl(url string) error {
-	target := source.SearchTarget{Url: url}
-	err := w.get(target.Url)
+func (w *ContentFetcher) FetchURL(url string) error {
+	target := source.SearchTarget{URL: url}
+	err := w.get(target.URL)
 	if err != nil {
-		w.ConnectivityTester.Invalidate(target.Url)
+		w.ConnectivityTester.Invalidate(target.URL)
 	}
 	return err
 }
@@ -79,15 +79,15 @@ func (w *ContentFetcher) Fetch(target *source.SearchTarget) (source.FetchResult,
 	switch target.Method {
 	case "", searchMethodGet:
 		if len(target.Values) > 0 {
-			target.Url = fmt.Sprintf("%s?%s", target.Url, target.Values.Encode())
+			target.URL = fmt.Sprintf("%s?%s", target.URL, target.Values.Encode())
 		}
-		if err = w.get(target.Url); err != nil {
-			w.ConnectivityTester.Invalidate(target.Url)
+		if err = w.get(target.URL); err != nil {
+			w.ConnectivityTester.Invalidate(target.URL)
 			return nil, err
 		}
 	case searchMethodPost:
-		if err = w.Post(target.Url, target.Values, true); err != nil {
-			w.ConnectivityTester.Invalidate(target.Url)
+		if err = w.Post(target.URL, target.Values, true); err != nil {
+			w.ConnectivityTester.Invalidate(target.URL)
 			return nil, err
 		}
 
@@ -102,7 +102,7 @@ func (w *ContentFetcher) Fetch(target *source.SearchTarget) (source.FetchResult,
 func extractResponseResult(browser browser.Browsable) source.FetchResult {
 	state := browser.State()
 	if state.Response == nil {
-		return &HttpResult{}
+		return &HTTPResult{}
 	}
 	fqContentType := state.Response.Header.Get("content-type")
 	contentSplit := strings.Split(fqContentType, ";")
@@ -110,29 +110,29 @@ func extractResponseResult(browser browser.Browsable) source.FetchResult {
 	if len(contentSplit) > 1 {
 		contentEncoding = contentSplit[1]
 	}
-	rootFetchResult := HttpResult{
+	rootFetchResult := HTTPResult{
 		contentType: contentSplit[0],
 		encoding:    contentEncoding,
 		Response:    state.Response,
 	}
 
 	if contentSplit[0] == "application/json" {
-		return &JsonFetchResult{
-			HttpResult: rootFetchResult,
+		return &JSONFetchResult{
+			HTTPResult: rootFetchResult,
 			Body:       browser.RawBody(),
 		}
 	}
 
-	return &HtmlFetchResult{
-		HttpResult: rootFetchResult,
+	return &HTMLFetchResult{
+		HTTPResult: rootFetchResult,
 		Dom:        state.Dom,
 	}
 }
 
-func (w *ContentFetcher) get(targetUrl string) error {
-	logrus.WithField("target", targetUrl).
+func (w *ContentFetcher) get(targetURL string) error {
+	logrus.WithField("target", targetURL).
 		Debug("Opening page")
-	err := w.Browser.Open(targetUrl)
+	err := w.Browser.Open(targetURL)
 	if err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func (w *ContentFetcher) get(targetUrl string) error {
 		WithFields(logrus.Fields{"code": w.Browser.StatusCode(), "page": w.Browser.Url()}).
 		Debugf("Finished request")
 	if err = w.handleMetaRefreshHeader(); err != nil {
-		w.ConnectivityTester.Invalidate(targetUrl)
+		w.ConnectivityTester.Invalidate(targetURL)
 		return err
 	}
 	return nil
@@ -179,13 +179,13 @@ func (w *ContentFetcher) Post(urlStr string, data url.Values, log bool) error {
 
 func (w *ContentFetcher) fakeBrowserReferer(urlStr string) {
 	state := w.Browser.State()
-	refUrl, _ := url.Parse(urlStr)
+	refURL, _ := url.Parse(urlStr)
 	if state.Request == nil {
 		state.Request = &http.Request{}
 	}
-	state.Request.URL = refUrl
+	state.Request.URL = refURL
 	if state.Response != nil {
-		state.Response.Request.URL = refUrl
+		state.Response.Request.URL = refURL
 	}
 }
 
@@ -194,15 +194,15 @@ func (w *ContentFetcher) fakeBrowserReferer(urlStr string) {
 func (w *ContentFetcher) handleMetaRefreshHeader() error {
 	h := w.Browser.ResponseHeaders()
 	if refresh := h.Get("Refresh"); refresh != "" {
-		requestUrl := w.Browser.State().Request.URL
+		requestURL := w.Browser.State().Request.URL
 		if s := regexp.MustCompile(`\s*;\s*`).Split(refresh, 2); len(s) == 2 {
 			logrus.
 				WithField("fields", s).
 				Debug("Found refresh header")
-			requestUrl.Path = strings.TrimPrefix(s[1], "url=")
-			err := w.get(requestUrl.String())
+			requestURL.Path = strings.TrimPrefix(s[1], "url=")
+			err := w.get(requestURL.String())
 			if err != nil {
-				w.ConnectivityTester.Invalidate(requestUrl.String())
+				w.ConnectivityTester.Invalidate(requestURL.String())
 			}
 			return err
 		}

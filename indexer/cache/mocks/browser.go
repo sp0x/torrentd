@@ -97,9 +97,8 @@ func (b *MockedBrowser) AddRequestHeader(string, string) {
 func (b *MockedBrowser) Open(string) error {
 	if b.CanOpen {
 		return nil
-	} else {
-		return errors.New("couldn't connect")
 	}
+	return errors.New("couldn't connect")
 }
 
 // Open requests the given URL using the HEAD method.
@@ -188,12 +187,12 @@ func (b *MockedBrowser) SiteCookies() []*http.Cookie {
 }
 
 // ResolveUrl returns an absolute URL for a possibly relative URL.
-func (b *MockedBrowser) ResolveUrl(*url.URL) *url.URL {
+func (b *MockedBrowser) ResolveUrl(*url.URL) *url.URL { //nolint:stylecheck,golint
 	return nil
 }
 
 // ResolveStringUrl works just like ResolveUrl, but the argument and return value are strings.
-func (b *MockedBrowser) ResolveStringUrl(string) (string, error) {
+func (b *MockedBrowser) ResolveStringUrl(string) (string, error) { //nolint:stylecheck,golint
 	return "", nil
 }
 
@@ -202,8 +201,8 @@ func (b *MockedBrowser) Download(io.Writer) (int64, error) {
 	return 0, nil
 }
 
-// Url returns the page URL as a string.
-func (b *MockedBrowser) Url() *url.URL {
+// URL returns the page URL as a string.
+func (b *MockedBrowser) Url() *url.URL { //nolint:stylecheck,golint
 	return nil
 }
 
@@ -211,9 +210,8 @@ func (b *MockedBrowser) Url() *url.URL {
 func (b *MockedBrowser) StatusCode() int {
 	if b.CanOpen {
 		return http.StatusOK
-	} else {
-		return 502
 	}
+	return 502
 }
 
 // Title returns the page title.

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/boltdb/bolt"
+
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/indexing"
 )

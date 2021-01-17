@@ -230,9 +230,9 @@ func (d *DomScrapeItem) Remove() RawScrapeItem {
 
 func (r *Runner) getRows(result source.FetchResult, runCtx *RunContext) (RawScrapeItems, error) {
 	switch value := result.(type) {
-	case *web.HtmlFetchResult:
+	case *web.HTMLFetchResult:
 		return r.getRowsFromDom(value.Dom.First(), runCtx)
-	case *web.JsonFetchResult:
+	case *web.JSONFetchResult:
 		return r.getRowsFromJSON(value.Body)
 	}
 	return nil, nil

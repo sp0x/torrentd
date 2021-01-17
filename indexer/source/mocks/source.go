@@ -5,10 +5,11 @@
 package mocks
 
 import (
-	gomock "github.com/golang/mock/gomock"
-	source "github.com/sp0x/torrentd/indexer/source"
 	url "net/url"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
+	source "github.com/sp0x/torrentd/indexer/source"
 )
 
 // MockFetchResult is a mock of FetchResult interface
@@ -112,18 +113,18 @@ func (mr *MockContentFetcherMockRecorder) Fetch(target interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Fetch", reflect.TypeOf((*MockContentFetcher)(nil).Fetch), target)
 }
 
-// FetchUrl mocks base method
-func (m *MockContentFetcher) FetchUrl(url string) error {
+// FetchURL mocks base method
+func (m *MockContentFetcher) FetchURL(url string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FetchUrl", url)
+	ret := m.ctrl.Call(m, "FetchURL", url)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// FetchUrl indicates an expected call of FetchUrl
+// FetchURL indicates an expected call of FetchURL
 func (mr *MockContentFetcherMockRecorder) FetchUrl(url interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchUrl", reflect.TypeOf((*MockContentFetcher)(nil).FetchUrl), url)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchURL", reflect.TypeOf((*MockContentFetcher)(nil).FetchURL), url)
 }
 
 // Post mocks base method

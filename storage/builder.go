@@ -5,10 +5,11 @@ import (
 	"os"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+
 	"github.com/sp0x/torrentd/storage/bolt"
 	"github.com/sp0x/torrentd/storage/firebase"
 	"github.com/sp0x/torrentd/storage/indexing"
-	"github.com/spf13/viper"
 )
 
 var storageBackingMap = make(map[string]func(builder *Builder) ItemStorageBacking)

@@ -10,5 +10,5 @@ func (r *Runner) initLogin() error {
 		return err
 	}
 
-	return r.contentFetcher.FetchUrl(initURL)
+	return r.contentFetcher.FetchURL(initURL)
 }

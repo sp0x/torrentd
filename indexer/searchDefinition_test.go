@@ -1,8 +1,9 @@
 package indexer
 
 import (
-	"github.com/onsi/gomega"
 	"testing"
+
+	"github.com/onsi/gomega"
 )
 
 func Test_searchBlock_IsSinglePage(t *testing.T) {

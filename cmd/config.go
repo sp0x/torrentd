@@ -1,13 +1,14 @@
 package main
 
 import (
-	"github.com/sp0x/torrentd/config"
 	"os"
 	"path"
 
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+
+	"github.com/sp0x/torrentd/config"
 )
 
 var appConfig config.ViperConfig

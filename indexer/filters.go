@@ -13,6 +13,7 @@ import (
 
 	"github.com/bcampbell/fuzzytime"
 	log "github.com/sirupsen/logrus"
+
 	"github.com/sp0x/torrentd/indexer/formatting"
 )
 
@@ -41,7 +42,7 @@ func invokeFilter(name string, args interface{}, value string) (string, error) {
 	case filterQueryString:
 		param, ok := args.(string)
 		if !ok {
-			return "", fmt.Errorf("Filter %q requires a string argument", name)
+			return "", fmt.Errorf("filter %q requires a string argument", name)
 		}
 		return parseQueryString(param, value)
 
@@ -64,36 +65,36 @@ func invokeFilter(name string, args interface{}, value string) (string, error) {
 	case "regexp":
 		pattern, ok := args.(string)
 		if !ok {
-			return "", fmt.Errorf("Filter %q requires a string argument", name)
+			return "", fmt.Errorf("filter %q requires a string argument", name)
 		}
 		return filterRegexp(pattern, value)
 
 	case "split":
 		sep, ok := (args.([]interface{}))[0].(string)
 		if !ok {
-			return "", fmt.Errorf("Filter %q requires a string argument at idx 0", name)
+			return "", fmt.Errorf("filter %q requires a string argument at idx 0", name)
 		}
 		pos, ok := (args.([]interface{}))[1].(int)
 		if !ok {
-			return "", fmt.Errorf("Filter %q requires an int argument at idx 1", name)
+			return "", fmt.Errorf("filter %q requires an int argument at idx 1", name)
 		}
 		return filterSplit(sep, pos, value)
 
 	case "replace":
 		from, ok := (args.([]interface{}))[0].(string)
 		if !ok {
-			return "", fmt.Errorf("Filter %q requires a string argument at idx 0", name)
+			return "", fmt.Errorf("filter %q requires a string argument at idx 0", name)
 		}
 		to, ok := (args.([]interface{}))[1].(string)
 		if !ok {
-			return "", fmt.Errorf("Filter %q requires a string argument at idx 1", name)
+			return "", fmt.Errorf("filter %q requires a string argument at idx 1", name)
 		}
 		return strings.Replace(value, from, to, -1), nil
 
 	case "trim":
 		cutset, ok := args.(string)
 		if !ok {
-			return "", fmt.Errorf("Filter %q requires a string argument at idx 0", name)
+			return "", fmt.Errorf("filter %q requires a string argument at idx 0", name)
 		}
 		return strings.Trim(value, cutset), nil
 	case "whitespace":
@@ -101,26 +102,26 @@ func invokeFilter(name string, args interface{}, value string) (string, error) {
 	case "append":
 		str, ok := args.(string)
 		if !ok {
-			return "", fmt.Errorf("Filter %q requires a string argument at idx 0", name)
+			return "", fmt.Errorf("filter %q requires a string argument at idx 0", name)
 		}
 		return value + str, nil
 
 	case "prepend":
 		str, ok := args.(string)
 		if !ok {
-			return "", fmt.Errorf("Filter %q requires a string argument at idx 0", name)
+			return "", fmt.Errorf("filter %q requires a string argument at idx 0", name)
 		}
 		return str + value, nil
 	case "urldecode":
 		decoded, err := url.QueryUnescape(value)
 		if err != nil {
-			return "", fmt.Errorf("Filter urldecode couldn't decode value `%s`, %s\n", value, err)
+			return "", fmt.Errorf("filter urldecode couldn't decode value `%s`, %s", value, err)
 		}
 		return decoded, nil
 	case "urlarg":
 		argName, ok := args.(string)
 		if !ok {
-			return "", fmt.Errorf("Filter %q requires a string argument at idx 0", name)
+			return "", fmt.Errorf("filter %q requires a string argument at idx 0", name)
 		}
 		urlx, err := url.Parse(value)
 		if err != nil {
@@ -197,7 +198,7 @@ func filterRegexp(pattern string, value string) (string, error) {
 	}
 	matches := re.FindStringSubmatch(value)
 	if len(matches) == 0 {
-		return "", errors.New("No matches found for pattern")
+		return "", errors.New("no matches found for pattern")
 	}
 	filterLogger.WithFields(log.Fields{"matches": matches}).Debug("Regex matched")
 	// If we have groups, use the groups concatenated by a space
@@ -321,7 +322,7 @@ func parseTimeAgo(src string, now time.Time) (time.Time, error) {
 		case "second", "sec", "s":
 			now = now.Add(time.Second * -time.Duration(v))
 		default:
-			return now, fmt.Errorf("Unsupporting unit of time %q", unit)
+			return now, fmt.Errorf("unsupporting unit of time %q", unit)
 		}
 	}
 

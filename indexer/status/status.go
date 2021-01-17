@@ -33,8 +33,8 @@ type SchemeErrorMessage struct {
 	SchemeVersion string
 }
 
-func SetupPubsub(projectId string) {
-	provider, err := google.NewGoogleCloud(projectId)
+func SetupPubsub(projectID string) {
+	provider, err := google.NewGoogleCloud(projectID)
 	if err != nil {
 		log.Errorf("%v\n", err)
 		fmt.Printf("couldn't initialize google pubsub provider. status will not be published\n")

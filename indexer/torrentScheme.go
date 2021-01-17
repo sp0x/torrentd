@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
+
 	"github.com/sp0x/torrentd/indexer/search"
 )
 
@@ -78,9 +79,8 @@ func (r *Runner) populateTorrentItemField(
 		if err != nil {
 			r.logger.Warningf("Couldn't resolve magnet url from value %s\n", val)
 			return false
-		} else {
-			item.MagnetLink = murl
 		}
+		item.MagnetLink = murl
 	case "size":
 		bytes, err := humanize.ParseBytes(strings.Replace(firstString(val), ",", "", -1))
 		if err != nil {

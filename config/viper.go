@@ -23,9 +23,8 @@ func (v *ViperConfig) GetSiteOption(name, key string) (string, bool, error) {
 	a, b := indexerMap[key]
 	if !b {
 		return "", b, nil
-	} else {
-		return a.(string), b, nil
 	}
+	return a.(string), b, nil
 }
 
 func (v *ViperConfig) GetSite(name string) (map[string]string, error) {

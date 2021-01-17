@@ -1,10 +1,11 @@
 package indexer
 
 import (
-	"github.com/PuerkitoBio/goquery"
-	"github.com/onsi/gomega"
 	"strings"
 	"testing"
+
+	"github.com/PuerkitoBio/goquery"
+	"github.com/onsi/gomega"
 )
 
 func Test_ShouldMatchTextForSimpleSelectors(t *testing.T) {

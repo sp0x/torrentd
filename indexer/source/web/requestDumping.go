@@ -13,6 +13,8 @@ import (
 	"github.com/sp0x/surf/jar"
 )
 
+const dumpFormatHTML = "html"
+
 type dumpData struct {
 	ResponseBodyFile string
 	RequestBodyFile  string
@@ -62,9 +64,9 @@ func (w *ContentFetcher) dumpFetchData() {
 	browserState := w.Browser.State()
 	request := browserState.Request
 	dirPath := path.Join("dumps", request.Host)
-	requestUrl := request.URL.Path
+	requestURL := request.URL.Path
 	dirPath = path.Join(dirPath,
-		strings.Replace(fmt.Sprintf("%s_%s", request.Method, requestUrl), "/", "_", -1))
+		strings.Replace(fmt.Sprintf("%s_%s", request.Method, requestURL), "/", "_", -1))
 	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
 		_ = os.MkdirAll(dirPath, 007)
 	}
@@ -86,7 +88,7 @@ func (w *ContentFetcher) dumpFetchData() {
 
 func resolveRequestDumpFormat(state *jar.State) string {
 	if state.Request.Method == "GET" {
-		return "html"
+		return dumpFormatHTML
 	}
 	contentType := state.Request.Header.Get("Content-Type")
 	if contentType == "" {
@@ -98,7 +100,7 @@ func resolveRequestDumpFormat(state *jar.State) string {
 func resolveResponseDumpFormat(state *jar.State) string {
 	contentType := state.Response.Header.Get("Content-Type")
 	if contentType == "" {
-		return "html"
+		return dumpFormatHTML
 	}
 	return contentTypeToFileExtension(contentType)
 }
@@ -110,5 +112,5 @@ func contentTypeToFileExtension(fqContentType string) string {
 	case "application/json":
 		return "json"
 	}
-	return "html"
+	return dumpFormatHTML
 }

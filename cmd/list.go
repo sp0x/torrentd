@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/sp0x/torrentd/indexer/search"
-	"github.com/sp0x/torrentd/storage"
 	"os"
 	"text/tabwriter"
 
 	"github.com/spf13/cobra"
+
+	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/storage"
 )
 
 var torrentCount = 500

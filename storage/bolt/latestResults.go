@@ -8,6 +8,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	log "github.com/sirupsen/logrus"
+
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage/indexing"
 )

@@ -9,9 +9,8 @@ func firstString(obj interface{}) string {
 	case []string:
 		if len(typedObj) == 0 {
 			return typedObj[0]
-		} else {
-			return ""
 		}
+		return ""
 	default:
 		return fmt.Sprintf("%v", obj)
 	}

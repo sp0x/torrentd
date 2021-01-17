@@ -20,7 +20,7 @@ type counterShard struct {
 	Count int
 }
 
-func (c counter) initCounterIfNeeded(collection *firestore.CollectionRef, ctx context.Context, doc string) error {
+func (c counter) initCounterIfNeeded(ctx context.Context, collection *firestore.CollectionRef, doc string) error {
 	_, err := collection.Doc(doc).Get(ctx)
 	if err != nil {
 		if status.Code(err) != codes.NotFound {
