@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/onsi/gomega"
+
 	"github.com/sp0x/torrentd/config"
 )
 

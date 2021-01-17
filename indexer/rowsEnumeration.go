@@ -7,6 +7,7 @@ import (
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/PuerkitoBio/goquery"
+
 	"github.com/sp0x/torrentd/indexer/source"
 	"github.com/sp0x/torrentd/indexer/source/web"
 )
@@ -97,7 +98,7 @@ func (j *JSONScrapeItem) First() RawScrapeItem {
 	}
 }
 
-func (j *JSONScrapeItem) PrevAllFiltered(selector string) RawScrapeItem {
+func (j *JSONScrapeItem) PrevAllFiltered(_ string) RawScrapeItem {
 	panic("implement me")
 }
 
@@ -134,7 +135,7 @@ func (j *JSONScrapeItem) Text() string {
 	return fmt.Sprint(j.item)
 }
 
-func (j *JSONScrapeItem) Attr(attributeName string) (string, bool) {
+func (j *JSONScrapeItem) Attr(_ string) (string, bool) {
 	return "", false
 }
 

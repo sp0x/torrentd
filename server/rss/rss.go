@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/feeds"
 	log "github.com/sirupsen/logrus"
+
 	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/indexer/search"
 	http2 "github.com/sp0x/torrentd/server/http"

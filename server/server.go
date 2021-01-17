@@ -11,6 +11,7 @@ import (
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
+
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer"
 )

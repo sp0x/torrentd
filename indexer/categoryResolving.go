@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/sirupsen/logrus"
+
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
 )

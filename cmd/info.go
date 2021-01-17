@@ -5,9 +5,10 @@ import (
 	"os"
 	"text/tabwriter"
 
+	"github.com/spf13/cobra"
+
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage"
-	"github.com/spf13/cobra"
 )
 
 var dumpAdditionalInfo = false
@@ -23,7 +24,7 @@ func init() {
 	rootCmd.AddCommand(cmdGetInfo)
 }
 
-func getInfo(cmd *cobra.Command, args []string) {
+func getInfo(_ *cobra.Command, _ []string) {
 	store := storage.NewBuilder().
 		WithRecord(&search.ScrapeResultItem{}).
 		Build()

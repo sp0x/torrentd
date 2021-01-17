@@ -9,6 +9,7 @@ import (
 	"github.com/boltdb/bolt"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
+
 	"github.com/sp0x/torrentd/bots"
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"

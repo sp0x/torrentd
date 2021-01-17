@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	log "github.com/sirupsen/logrus"
+
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/indexer/search"

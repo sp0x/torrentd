@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	log "github.com/sirupsen/logrus"
+
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/categories"
 )

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/mitchellh/go-homedir"
+
 	"github.com/sp0x/torrentd/config"
 )
 

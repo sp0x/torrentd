@@ -7,10 +7,11 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
+
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage"
 	"github.com/sp0x/torrentd/torznab"
-	"golang.org/x/sync/errgroup"
 )
 
 const aggregateSiteName = "aggregate"

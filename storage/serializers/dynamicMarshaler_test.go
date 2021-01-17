@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/onsi/gomega"
+
 	"github.com/sp0x/torrentd/bots"
 	"github.com/sp0x/torrentd/storage/serializers"
 	"github.com/sp0x/torrentd/storage/serializers/json"

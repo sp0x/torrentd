@@ -6,6 +6,7 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	. "github.com/onsi/gomega"
+
 	"github.com/sp0x/torrentd/config"
 )
 

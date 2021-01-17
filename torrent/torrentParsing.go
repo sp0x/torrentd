@@ -16,6 +16,7 @@ import (
 	"github.com/jackpal/bencode-go"
 	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/browser/encoding"
+
 	"github.com/sp0x/torrentd/indexer"
 )
 
