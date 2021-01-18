@@ -476,7 +476,7 @@ func (r *Runner) getUniqueIndex(item search.ResultItemBase) *indexing.Key {
 	return key
 }
 
-type rowContext struct {
+type scrapeContext struct {
 	query           *search.Query
 	indexCategories []string
 	storage         storage.ItemStorage
@@ -508,15 +508,17 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 		}
 	}
 	// Get the indexCategories for this query based on the Indexer
-	localCats := r.getLocalCategoriesMatchingQuery(query)
 
 	// Context about the search
 	if searchInstance == nil {
-		searchInstance = search.NewSearch(query)
+		return nil, errors.New("search instance is null")
+		// searchInstance = search.NewSearch(query)
 	}
 	runCtx := RunContext{
 		Search: searchInstance.(*search.Search),
 	}
+
+	localCats := r.getLocalCategoriesMatchingQuery(query)
 	target, err := r.extractSearchTarget(query, localCats, runCtx)
 	if err != nil {
 		status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.TargetError, err, r.definition))
@@ -529,8 +531,6 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 		status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.ContentError, err, r.definition))
 		return nil, err
 	}
-	r.logger.Debugf("Fetched Indexer page.\n")
-
 	rows, err := r.getRows(fetchResult, &runCtx)
 	if rows == nil {
 		return nil, fmt.Errorf("result items could not be enumerated")
@@ -543,17 +543,32 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 			"offset":   query.Offset,
 		}).Debugf("Found %d rows", rows.Length())
 
-	var results []search.ResultItemBase
-	itemStorage := r.GetStorage()
-	defer itemStorage.Close()
-
-	rowContext := &rowContext{
+	rowContext := &scrapeContext{
 		query,
 		localCats,
-		itemStorage,
+		r.GetStorage(),
 	}
+	defer rowContext.storage.Close()
+	results := r.processScrapedItems(rows, rowContext)
+
+	r.logger.
+		WithFields(logrus.Fields{
+			"Indexer": r.definition.Site,
+			"search":  runCtx.Search.String(),
+			"q":       query.Keywords(),
+			"time":    time.Since(timer),
+		}).
+		Infof("Query returned %d results", len(results))
+	runCtx.Search.SetResults(results)
+	status.PublishSchemeStatus(r.context, generateSchemeOkStatus(r.definition, runCtx))
+	return runCtx.Search, nil
+}
+
+// Goes through the scraped items and converts them to the defined data structure
+func (r *Runner) processScrapedItems(rows RawScrapeItems, rowContext *scrapeContext) []search.ResultItemBase {
+	var results []search.ResultItemBase
 	for i := 0; i < rows.Length(); i++ {
-		if query.Limit > 0 && len(results) >= query.Limit {
+		if rowContext.query.HasEnoughResults(len(results)) {
 			break
 		}
 		// Get the result from the row
@@ -561,19 +576,14 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 		if err != nil {
 			continue
 		}
-		_ = itemStorage.SetKey(r.getUniqueIndex(item))
-		err = itemStorage.Add(item)
+		_ = rowContext.storage.SetKey(r.getUniqueIndex(item))
+		err = rowContext.storage.Add(item)
 		if err != nil {
 			r.logger.Errorf("Couldn't add item: %s\n", err)
 		}
 		results = append(results, item)
 	}
-	r.logger.
-		WithFields(logrus.Fields{"Indexer": r.definition.Site, "q": runCtx.Search.String(), "time": time.Since(timer)}).
-		Infof("Query returned %d results", len(results))
-	runCtx.Search.SetResults(results)
-	status.PublishSchemeStatus(r.context, generateSchemeOkStatus(r.definition, runCtx))
-	return runCtx.Search, nil
+	return results
 }
 
 func (r *Runner) resolveItemCategory(query *search.Query, localCats []string, item search.ResultItemBase) bool {

@@ -10,17 +10,15 @@ import (
 	"github.com/sp0x/torrentd/indexer/search"
 )
 
-func (r *Runner) populateTorrentData(resultItem search.ResultItemBase, context *rowContext) {
+func (r *Runner) populateTorrentData(resultItem search.ResultItemBase, context *scrapeContext) {
 	// Maybe don't do that always?
 	item := resultItem.(*search.TorrentResultItem)
 
 	item.Fingerprint = search.GetResultFingerprint(item)
 	if !r.resolveItemCategory(context.query, context.indexCategories, item) {
-		_ = context.storage.SetKey(r.getUniqueIndex(&item.ScrapeResultItem))
-		err := context.storage.Add(item)
-		if err != nil {
-			r.logger.Errorf("Found an item that doesn't match our search indexCategories: %s\n", err)
-		}
+		//if err != nil {
+		//	r.logger.Errorf("Found an item that doesn't match our search indexCategories: %s\n", err)
+		//}
 	}
 }
 

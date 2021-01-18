@@ -401,3 +401,7 @@ func (query *Query) UniqueKey() interface{} {
 	encoded := query.Encode()
 	return encoded
 }
+
+func (query *Query) HasEnoughResults(numberOfResults int) bool {
+	return query.Limit > 0 && numberOfResults >= query.Limit
+}

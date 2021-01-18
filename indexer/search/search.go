@@ -35,7 +35,7 @@ type Search struct {
 	FieldState map[string]*rangeFieldState
 }
 
-func NewSearch(query *Query) *Search {
+func NewSearch(query *Query) Instance {
 	s := &Search{}
 	s.FieldState = make(map[string]*rangeFieldState)
 	for fieldName, fieldValue := range query.Fields {

@@ -1,6 +1,7 @@
 package indexer
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"text/tabwriter"
@@ -17,20 +18,20 @@ func Get(facade *Facade, query *search.Query) error {
 	page := uint(0)
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
-	var currentSearch search.Instance
+
 	pagesToFetch := query.PageCount
 	if pagesToFetch == 0 {
 		pagesToFetch = 10
 	}
+	searchInstance := search.NewSearch(query)
+	if searchInstance == nil {
+		return fmt.Errorf("couldn't search for page %d", page)
+	}
 	for page = 0; page < pagesToFetch; page++ {
 		log.Infof("Getting page %d", page)
 		var err error
-		if currentSearch == nil {
-			currentSearch, err = facade.Search(nil, query)
-		} else {
-			currentSearch, err = facade.Search(currentSearch, query)
-		}
-		if currentSearch == nil {
+		searchInstance, err = facade.Search(searchInstance, query)
+		if searchInstance == nil {
 			return fmt.Errorf("couldn't search for page %d", page)
 		}
 		if err != nil {
@@ -44,38 +45,38 @@ func Get(facade *Facade, query *search.Query) error {
 			Scan all pages every time. It's not safe to skip them by last scrapeItem ID in the database,
 			because some of them might be hidden at the previous run.
 		*/
-		counter := uint(0)
 		finished := false
-		for _, scrapeItem := range currentSearch.GetResults() {
+		for _, scrapeItem := range searchInstance.GetResults() {
 			if finished {
 				break
 			}
 
-			if scrapeItem.IsNew() || scrapeItem.IsUpdate() {
-				if scrapeItem.IsNew() && !scrapeItem.IsUpdate() {
-					_, _ = fmt.Fprintf(tabWr, "Found new result #%s:\t%s\n",
-						scrapeItem.UUID(), scrapeItem.String())
-				} else {
-					_, _ = fmt.Fprintf(tabWr, "Updated result #%s:\t%s\n",
-						scrapeItem.UUID(), scrapeItem.String())
-				}
-			} else {
-				_, _ = fmt.Fprintf(tabWr, "Result #%s:\t%s\n",
-					scrapeItem.UUID(), scrapeItem.String())
-			}
-			_ = tabWr.Flush()
+			logFetchedResult(scrapeItem, tabWr)
 			if !scrapeItem.IsNew() {
 				finished = true
 				break
 			}
-			counter++
 		}
 		if finished {
 			break
 		}
-		//if counter != facade.pageSize {
-		//	log.Errorf("No results while parsing page %d: got %d torrents instead of %d\n", page, counter, facade.pageSize)
-		//}
 	}
 	return nil
+}
+
+func logFetchedResult(scrapeItem search.ResultItemBase, tabWr *tabwriter.Writer) {
+	if scrapeItem.IsNew() || scrapeItem.IsUpdate() {
+		if scrapeItem.IsNew() && !scrapeItem.IsUpdate() {
+			serialized, _ := json.Marshal(scrapeItem)
+			_, _ = fmt.Fprintf(tabWr, "Found new result #%s:\t%s\n",
+				scrapeItem.UUID(), string(serialized))
+		} else {
+			_, _ = fmt.Fprintf(tabWr, "Updated result #%s:\t%s\n",
+				scrapeItem.UUID(), scrapeItem.String())
+		}
+	} else {
+		_, _ = fmt.Fprintf(tabWr, "Result #%s:\t%s\n",
+			scrapeItem.UUID(), scrapeItem.String())
+	}
+	_ = tabWr.Flush()
 }
