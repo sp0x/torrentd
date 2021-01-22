@@ -27,6 +27,7 @@ func Get(facade *Facade, query *search.Query) error {
 	if searchInstance == nil {
 		return fmt.Errorf("couldn't search for page %d", page)
 	}
+
 	for page = 0; page < pagesToFetch; page++ {
 		log.Infof("Getting page %d", page)
 		var err error

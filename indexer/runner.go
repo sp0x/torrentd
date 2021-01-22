@@ -11,8 +11,6 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	imdbscraper "github.com/cardigann/go-imdb-scraper"
-	"github.com/mrobinsn/go-tvmaze/tvmaze"
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/browser"
 	"github.com/sp0x/surf/jar"
@@ -379,60 +377,6 @@ func (r *Runner) getLocalCategoriesMatchingQuery(query *search.Query) []string {
 	return localCats
 }
 
-// If the query is for an item id from an external service, then resolve the query keywords.
-func (r *Runner) fillInAdditionalQueryParameters(query *search.Query) (*search.Query, error) {
-	var show *tvmaze.Show
-	var movie *imdbscraper.Movie
-	var err error
-
-	// convert show identifiers to season parameter
-	switch {
-	case query.TVDBID != "" && query.TVDBID != "0":
-		show, err = tvmaze.DefaultClient.GetShowWithTVDBID(query.TVDBID)
-		query.TVDBID = "0"
-	case query.TVMazeID != "":
-		show, err = tvmaze.DefaultClient.GetShowWithID(query.TVMazeID)
-		query.TVMazeID = "0"
-	case query.TVRageID != "":
-		show, err = tvmaze.DefaultClient.GetShowWithTVRageID(query.TVRageID)
-		query.TVRageID = ""
-	case query.IMDBID != "":
-		imdbid := query.IMDBID
-		if !strings.HasPrefix(imdbid, "tt") {
-			imdbid = "tt" + imdbid
-		}
-		movie, err = imdbscraper.FindByID(imdbid)
-		if err != nil {
-			err = fmt.Errorf("imdb error. %s", err)
-		}
-		query.IMDBID = ""
-	}
-
-	if err != nil {
-		return query, err
-	}
-
-	if show != nil {
-		query.Series = show.Name
-		r.logger.
-			WithFields(logrus.Fields{"name": show.Name, "year": show.GetFirstAired().Year()}).
-			Debugf("Found show via tvmaze lookup")
-	}
-
-	if movie != nil {
-		if movie.Title == "" {
-			return query, fmt.Errorf("movie title was blank")
-		}
-		query.Movie = movie.Title
-		query.Year = movie.Year
-		r.logger.
-			WithFields(logrus.Fields{"title": movie.Title, "year": movie.Year, "movie": movie}).
-			Debugf("Found movie via imdb lookup")
-	}
-
-	return query, nil
-}
-
 // GetEncoding returns the encoding that's set to be used in this index.
 // This can be changed in the index's definition.
 func (r *Runner) GetEncoding() string {
@@ -491,11 +435,6 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 	var err error
 	// Collect errors on exit
 	defer func() { r.noteError(err) }()
-
-	query, err = r.fillInAdditionalQueryParameters(query)
-	if err != nil {
-		return nil, err
-	}
 
 	// Login if it's required
 	if required, err := r.isLoginRequired(); err != nil {

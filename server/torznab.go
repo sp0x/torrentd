@@ -13,6 +13,7 @@ import (
 	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/torrent"
 	"github.com/sp0x/torrentd/torznab"
 )
 
@@ -67,6 +68,12 @@ func (s *Server) torznabHandler(c *gin.Context) {
 			torznab.Error(c, "Invalid query", torznab.ErrInsufficientPrivs)
 			return
 		}
+		err = torrent.EnrichMovieAndShowData(query)
+		if err != nil {
+			torznab.Error(c, "Invalid query", torznab.ErrInsufficientPrivs)
+			return
+		}
+
 		var feed *torznab.ResultFeed
 		if cachedFeed, ok := searchCache.Get(query.UniqueKey()); ok {
 			feed = cachedFeed.(*torznab.ResultFeed)
