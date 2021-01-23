@@ -10,6 +10,90 @@ import (
 
 const emptyValue = "<no value>"
 
+type LoginState int
+
+const (
+	NoLoginRequired LoginState = iota + 1
+	LoginExpired
+	LoginRequired
+	LoginFailed
+	LoggedIn
+)
+
+type LoginContext struct {
+	definition loginBlock
+	test       pageTestBlock
+	state      LoginState
+}
+
+func newLoginContext(loginBlock loginBlock, testBlock pageTestBlock) *LoginContext {
+	lc := &LoginContext{}
+	lc.definition = loginBlock
+	lc.test = testBlock
+	if loginBlock.IsEmpty() {
+		lc.state = NoLoginRequired
+	} else {
+		lc.state = LoginRequired
+	}
+	return lc
+}
+
+func (l LoginContext) isRequired() bool {
+	return l.state == LoginRequired ||
+		l.state == LoginFailed ||
+		l.state == LoginExpired
+	// if l.definition.IsEmpty() {
+	//	return false
+	//} else if l.test.IsEmpty() {
+	//	// No way to test if we're logged in
+	//	return true
+	//}
+}
+
+func (l *LoginContext) test() {
+	// r.logger.Debug("Testing if login is needed")
+	// HealthCheck if the login page is valid
+	match, err := r.matchPageTestBlock(r.definition.Login.Test)
+	if err != nil {
+		return true, err
+	}
+
+	if match {
+		r.logger.Debug("No login needed, already logged in")
+		return false, nil
+	}
+
+	r.logger.Debug("Login is required")
+	return true, nil
+}
+
+// isLoginRequired Checks if login is required for the given Indexer
+func (r *Runner) isLoginRequired() (bool, error) {
+	if r.definition.Login.IsEmpty() {
+		return false, nil
+	} else if r.definition.Login.Test.IsEmpty() {
+		return true, nil
+	}
+	isLoggedIn := r.state.GetBool("loggedIn")
+	if !isLoggedIn {
+		return true, nil
+	}
+	r.logger.Debug("Testing if login is needed")
+	// HealthCheck if the login page is valid
+	match, err := r.matchPageTestBlock(r.definition.Login.Test)
+	if err != nil {
+		return true, err
+	}
+
+	if match {
+		r.logger.Debug("No login needed, already logged in")
+		return false, nil
+	}
+
+	r.logger.Debug("Login is required")
+	return true, nil
+}
+
 // extractInputLogins gets the configured input fields and vals for the login.
 func (r *Runner) extractInputLogins() (map[string]string, error) {
 	result := map[string]string{}

@@ -301,33 +301,6 @@ func (r *Runner) matchPageTestBlock(p pageTestBlock) (bool, error) {
 	return true, nil
 }
 
-// isLoginRequired Checks if login is required for the given Indexer
-func (r *Runner) isLoginRequired() (bool, error) {
-	if r.definition.Login.IsEmpty() {
-		return false, nil
-	} else if r.definition.Login.Test.IsEmpty() {
-		return true, nil
-	}
-	isLoggedIn := r.state.GetBool("loggedIn")
-	if !isLoggedIn {
-		return true, nil
-	}
-	r.logger.Debug("Testing if login is needed")
-	// HealthCheck if the login page is valid
-	match, err := r.matchPageTestBlock(r.definition.Login.Test)
-	if err != nil {
-		return true, err
-	}
-
-	if match {
-		r.logger.Debug("No login needed, already logged in")
-		return false, nil
-	}
-
-	r.logger.Debug("Login is required")
-	return true, nil
-}
-
 // Capabilities gets the torznab formatted capabilities of this Indexer.
 func (r *Runner) Capabilities() torznab.Capabilities {
 	caps := r.definition.Capabilities.ToTorznab()
