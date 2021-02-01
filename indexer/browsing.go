@@ -81,15 +81,14 @@ func (r *Runner) createBrowser() *browser.Browser {
 	bow.SetAttribute(browser.MetaRefreshHandling, true)
 	bow.SetCookieJar(r.cookies)
 	bow.SetRateLimit(r.definition.RateLimit)
-	// bow.SetTimeout(time.Second * 10)
 
 	transport, err := r.createTransport()
 	if err != nil {
 		panic(err)
 	}
 
-	if r.opts.Transport != nil {
-		transport = r.opts.Transport
+	if r.options.Transport != nil {
+		transport = r.options.Transport
 	}
 
 	switch os.Getenv("DEBUG_HTTP") {

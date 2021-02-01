@@ -150,6 +150,11 @@ func (w *ContentFetcher) get(targetURL string) error {
 	return nil
 }
 
+func (w *ContentFetcher) URL() *url.URL {
+	browserUrl := w.Browser.Url()
+	return browserUrl
+}
+
 func (w *ContentFetcher) Post(urlStr string, data url.Values, log bool) error {
 	if log {
 		logrus.

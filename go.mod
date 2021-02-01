@@ -26,7 +26,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/feeds v1.1.1
-	github.com/headzoo/surf v1.0.0 // indirect
+	github.com/headzoo/surf v1.0.0
 	github.com/hpcloud/tail v1.0.0 // indirect
 	github.com/jackpal/bencode-go v0.0.0-20180813173944-227668e840fa
 	github.com/jinzhu/gorm v1.9.12
@@ -49,6 +49,7 @@ require (
 	golang.org/x/net v0.0.0-20201021035429-f5854403a974
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 	google.golang.org/api v0.28.0
+	google.golang.org/genproto v0.0.0-20200331122359-1ee6d9798940
 	google.golang.org/grpc v1.28.0
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/yaml.v2 v2.3.0

@@ -234,7 +234,7 @@ func (l *loginBlock) IsEmpty() bool {
 	return l.Path == "" && l.Method == ""
 }
 
-func (l *loginBlock) hasError(browser browser.Browsable) error {
+func (l *loginBlock) hasError(browser *browser.Browser) error {
 	for _, e := range l.Error {
 		if e.matchPage(browser) {
 			msg, err := e.errorText(&DomScrapeItem{browser.Dom()})

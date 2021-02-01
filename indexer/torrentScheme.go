@@ -29,12 +29,13 @@ func (r *Runner) populateTorrentItemField(
 	nonFilteredRow map[string]string,
 	rowIdx int) bool {
 	item := itemToPopulate.(*search.TorrentResultItem)
+	urlContext, _ := r.GetURLContext()
 
 	switch key {
 	case "author":
 		item.Author = firstString(val)
 	case "details":
-		u, err := r.getFullURLInIndex(firstString(val))
+		u, err := urlContext.GetFullURL(firstString(val))
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 			return false
@@ -46,7 +47,7 @@ func (r *Runner) populateTorrentItemField(
 			item.Comments = u
 		}
 	case "comments":
-		u, err := r.getFullURLInIndex(firstString(val))
+		u, err := urlContext.GetFullURL(firstString(val))
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 			return false
@@ -73,7 +74,7 @@ func (r *Runner) populateTorrentItemField(
 	case "categoryName":
 		item.LocalCategoryName = firstString(val)
 	case "magnet":
-		murl, err := r.getFullURLInIndex(firstString(val))
+		murl, err := urlContext.GetFullURL(firstString(val))
 		if err != nil {
 			r.logger.Warningf("Couldn't resolve magnet url from value %s\n", val)
 			return false
@@ -154,7 +155,7 @@ func (r *Runner) populateTorrentItemField(
 		}
 		item.MinimumSeedTime = time.Duration(minimumseedtime) * time.Second
 	case "banner":
-		banner, err := r.getFullURLInIndex(firstString(val))
+		banner, err := urlContext.GetFullURL(firstString(val))
 		if err != nil {
 			item.Banner = firstString(val)
 		} else {

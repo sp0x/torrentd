@@ -19,14 +19,7 @@ func (r *Runner) downloadsNeedResolution() bool {
 
 func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, error) {
 	r.createBrowser()
-	if required, err := r.isLoginRequired(); required {
-		if err := r.login(); err != nil {
-			r.logger.WithError(err).Error("Login failed")
-			return nil, nil
-		}
-	} else if err != nil {
-		return nil, nil
-	}
+	_ = r.session.setup()
 	scrapeItem := scrapeResultItem.AsScrapeItem()
 	sourceLink := scrapeItem.SourceLink
 	// If the download needs to be resolved
@@ -44,7 +37,8 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 		}
 		sourceLink = firstString(downloadLink)
 	}
-	fullURL, err := r.getFullURLInIndex(sourceLink)
+	urlContext, _ := r.GetURLContext()
+	fullURL, err := urlContext.GetFullURL(sourceLink)
 	if err != nil {
 		return nil, err
 	}
@@ -88,8 +82,8 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 	return responsePx, nil
 }
 
-func (r *Runner) Download(u string) (*ResponseProxy, error) {
+func (r *Runner) Download(url string) (*ResponseProxy, error) {
 	srcItem := search.ScrapeResultItem{}
-	srcItem.SourceLink = u
+	srcItem.SourceLink = url
 	return r.Open(&srcItem)
 }

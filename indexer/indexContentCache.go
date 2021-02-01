@@ -13,7 +13,7 @@ import (
 // If caching is enabled, we cache the page's contents in our pagecache
 // the current browser page is cached
 func (r *Runner) CachePage(browsable browser.Browsable) error {
-	if !r.opts.CachePages {
+	if !r.options.CachePages {
 		return nil
 	}
 	// Store the cache in directories based on the index definition.

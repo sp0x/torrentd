@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -13,8 +14,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/browser"
-	"github.com/sp0x/surf/jar"
-
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/categories"
@@ -49,7 +48,7 @@ type Runner struct {
 	definition          *Definition
 	browser             browser.Browsable
 	cookies             http.CookieJar
-	opts                RunnerOpts
+	options             RunnerOpts
 	logger              logrus.FieldLogger
 	browserLock         sync.Mutex
 	connectivityTester  cache.ConnectivityTester
@@ -60,6 +59,7 @@ type Runner struct {
 	contentFetcher      source.ContentFetcher
 	context             context.Context
 	errors              cache.LRUCache
+	session             *BrowsingSession
 }
 
 func (r *Runner) GetDefinition() *Definition {
@@ -106,7 +106,7 @@ func NewRunner(def *Definition, opts RunnerOpts) *Runner {
 	connCache, _ := cache.NewOptimisticConnectivityCache()
 	errorCache, _ := cache.NewTTL(10, errorTTL)
 	runner := &Runner{
-		opts:                opts,
+		options:             opts,
 		definition:          def,
 		logger:              logger.WithFields(logrus.Fields{"site": def.Site}),
 		connectivityTester:  connCache,
@@ -116,11 +116,17 @@ func NewRunner(def *Definition, opts RunnerOpts) *Runner {
 		context:             context.Background(),
 		errors:              errorCache,
 	}
+	if session, err := newIndexSessionFromRunner(runner); err != nil{
+		fmt.Printf("Couldn't create index session: %v", err)
+		os.Exit(1)
+	}else{
+		runner.session = session
+	}
 	return runner
 }
 
 func (r *Runner) GetStorage() storage.ItemStorage {
-	itemStorage := getIndexStorage(r, r.opts.Config)
+	itemStorage := getIndexStorage(r, r.options.Config)
 	return itemStorage
 }
 
@@ -159,7 +165,7 @@ func getIndexStorage(indexer Indexer, conf config.Config) storage.ItemStorage {
 // checks that the runner has the config values it needs
 //func (r *Runner) checkHasConfig() error {
 //	for _, setting := range r.definition.Settings {
-//		_, ok, err := r.opts.Config.GetSiteOption(r.definition.IndexName, setting.Name)
+//		_, ok, err := r.options.Config.GetSiteOption(r.definition.IndexName, setting.Name)
 //		if err != nil {
 //			return fmt.Errorf("Error reading config for %s: %v", setting.Name, err)
 //		}
@@ -171,24 +177,24 @@ func getIndexStorage(indexer Indexer, conf config.Config) storage.ItemStorage {
 //}
 
 // Get a working url for the Indexer
-func (r *Runner) currentURL() (*url.URL, error) {
-	if u := r.browser.Url(); u != nil {
-		return u, nil
-	}
-	configURL, ok, _ := r.opts.Config.GetSiteOption(r.definition.Site, "url")
-	if ok && r.testURLWorks(configURL) {
-		return url.Parse(configURL)
-	}
-	for _, u := range r.definition.Links {
-		if u != configURL && r.testURLWorks(u) {
-			return url.Parse(u)
-		}
-	}
-	return nil, errors.New("no working urls found")
-}
+//func (r *Runner) currentURL() (*url.URL, error) {
+//	if u := r.browser.Url(); u != nil {
+//		return u, nil
+//	}
+//	configURL, ok, _ := r.options.Config.GetSiteOption(r.definition.Site, "url")
+//	if ok && r.testThatUrlWorks(configURL) {
+//		return url.Parse(configURL)
+//	}
+//	for _, u := range r.definition.Links {
+//		if u != configURL && r.testThatUrlWorks(u) {
+//			return url.Parse(u)
+//		}
+//	}
+//	return nil, errors.New("no working urls found")
+//}
 
 // Test if the url returns a 20x response
-func (r *Runner) testURLWorks(u string) bool {
+func (r *Runner) testThatUrlWorks(u string) bool {
 	var ok bool
 	// Do this like that so it's locked.
 	if ok = r.connectivityTester.IsOkAndSet(u, func() bool {
@@ -212,93 +218,29 @@ func (r *Runner) testURLWorks(u string) bool {
 }
 
 // getFullURLInIndex resolve a relative url based on the working Indexer base url
-func (r *Runner) getFullURLInIndex(urlPath string) (string, error) {
-	if strings.HasPrefix(urlPath, "magnet:") {
-		return urlPath, nil
-	}
-	// Get the base url of the Indexer
-	base, err := r.currentURL()
-	if err != nil {
-		return "", err
-	}
-
-	u, err := url.Parse(urlPath)
-	if err != nil {
-		return "", err
-	}
-	// Resolve the url
-	resolved := base.ResolveReference(u)
-	return resolved.String(), nil
-}
+//func (r *Runner) getFullURLInIndex(urlPath string) (string, error) {
+//	if strings.HasPrefix(urlPath, "magnet:") {
+//		return urlPath, nil
+//	}
+//	// Get the base url of the Indexer
+//	base, err := r.currentURL()
+//	if err != nil {
+//		return "", err
+//	}
+//
+//	u, err := url.Parse(urlPath)
+//	if err != nil {
+//		return "", err
+//	}
+//	// Resolve the url
+//	resolved := base.ResolveReference(u)
+//	return resolved.String(), nil
+//}
 
 func parseCookieString(cookie string) []*http.Cookie {
 	h := http.Header{"Cookie": []string{cookie}}
 	r := http.Request{Header: h}
 	return r.Cookies()
-}
-
-func (r *Runner) loginViaCookie(loginURL string, cookie string) error {
-	u, err := url.Parse(loginURL)
-	if err != nil {
-		return err
-	}
-
-	cookies := parseCookieString(cookie)
-
-	r.logger.
-		WithFields(logrus.Fields{"url": loginURL, "cookies": cookies}).
-		Debugf("Setting cookies for login")
-
-	cj := jar.NewMemoryCookies()
-	cj.SetCookies(u, cookies)
-
-	r.browser.SetCookieJar(cj)
-	return nil
-}
-
-func (r *Runner) matchPageTestBlock(p pageTestBlock) (bool, error) {
-	if p.IsEmpty() {
-		return true, nil
-	}
-
-	r.logger.
-		WithFields(logrus.Fields{"path": p.Path, "selector": p.Selector}).
-		Debug("Checking page test block")
-
-	if r.browser.Url() == nil && p.Path == "" {
-		return false, errors.New("no url loaded and pageTestBlock has no path")
-	}
-	// Go to a path to verify
-	if p.Path != "" {
-		testURL, err := r.getFullURLInIndex(p.Path)
-		if err != nil {
-			return false, err
-		}
-
-		_, err = r.contentFetcher.Fetch(source.NewTarget(testURL))
-		if err != nil {
-			r.logger.WithError(err).Warn("Failed to open page")
-			return false, nil
-		}
-
-		if testURL != r.browser.Url().String() {
-			r.logger.
-				WithFields(logrus.Fields{"wanted": testURL, "got": r.browser.Url().String()}).
-				Debug("Test failed, got a redirect")
-			return false, nil
-		}
-	}
-
-	if p.Selector != "" && r.browser.Find(p.Selector).Length() == 0 {
-		body := r.browser.Body()
-		r.logger.Debug(body)
-		r.logger.
-			WithFields(logrus.Fields{"selector": p.Selector}).
-			Debug("Selector didn't match page")
-		return false, nil
-	}
-
-	return true, nil
 }
 
 // Capabilities gets the torznab formatted capabilities of this Indexer.
@@ -410,15 +352,7 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 	defer func() { r.noteError(err) }()
 
 	// Login if it's required
-	if required, err := r.isLoginRequired(); err != nil {
-		return nil, err
-	} else if required {
-		if err := r.login(); err != nil {
-			r.logger.WithError(err).Error("Login failed")
-			r.noteError(err)
-			return nil, err
-		}
-	}
+	_ = r.session.setup()
 	// Get the indexCategories for this query based on the Indexer
 
 	// Context about the search
@@ -549,7 +483,8 @@ func (r *Runner) extractSearchTarget(query *search.Query, localCats []string, co
 		return nil, err
 	}
 	// Resolve the search url
-	searchURL, err = r.getFullURLInIndex(searchURL)
+	urlContext, _ := r.GetURLContext()
+	searchURL, err = urlContext.GetFullURL(searchURL)
 	if err != nil {
 		return nil, err
 	}
@@ -645,17 +580,13 @@ func (r *Runner) Ratio() (string, error) {
 	if !r.keepSessions {
 		defer r.releaseBrowser()
 	}
+	urlContext, _ := r.GetURLContext()
 
-	if required, err := r.isLoginRequired(); required {
-		if err := r.login(); err != nil {
-			r.logger.WithError(err).Error("Login failed")
-			return errorValue, err
-		}
-	} else if err != nil {
+	if err := r.session.setup(); err != nil{
 		return errorValue, err
 	}
 
-	ratioURL, err := r.getFullURLInIndex(r.definition.Ratio.Path)
+	ratioURL, err := urlContext.GetFullURL(r.definition.Ratio.Path)
 	if err != nil {
 		return errorValue, err
 	}

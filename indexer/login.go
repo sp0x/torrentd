@@ -3,9 +3,14 @@ package indexer
 import (
 	"errors"
 	"fmt"
+	"github.com/sp0x/surf/browser"
+	"github.com/sp0x/surf/jar"
+	"github.com/sp0x/torrentd/config"
 	"net/url"
 
 	"github.com/sirupsen/logrus"
+
+	"github.com/sp0x/torrentd/indexer/source"
 )
 
 const emptyValue = "<no value>"
@@ -20,16 +25,37 @@ const (
 	LoggedIn
 )
 
-type LoginContext struct {
-	definition loginBlock
-	test       pageTestBlock
-	state      LoginState
+type BrowsingSession struct {
+	loginBlock     loginBlock
+	testBlock      pageTestBlock
+	state          LoginState
+	browser        *browser.Browser
+	urlContext     *URLContext
+	contentFetcher source.ContentFetcher
+	config         config.Config
+	site           string
+	logger         *logrus.Logger
 }
 
-func newLoginContext(loginBlock loginBlock, testBlock pageTestBlock) *LoginContext {
-	lc := &LoginContext{}
-	lc.definition = loginBlock
-	lc.test = testBlock
+func newIndexSessionFromRunner(runner *Runner) (*BrowsingSession, error) {
+	urlContext, err := runner.GetURLContext()
+	if err != nil {
+		return nil, err
+	}
+	definition := runner.definition
+	browsingSession := newIndexSessionWithLogin(definition.Site, runner.options.Config, runner.contentFetcher, urlContext, definition.Login)
+	return browsingSession, nil
+}
+
+func newIndexSessionWithLogin(site string, cfg config.Config, contentFetcher source.ContentFetcher, urlContext *URLContext, loginBlock loginBlock) *BrowsingSession {
+	lc := &BrowsingSession{}
+	lc.loginBlock = loginBlock
+	lc.testBlock = loginBlock.Test
+	lc.urlContext = urlContext
+	lc.contentFetcher = contentFetcher
+	lc.config = cfg
+	lc.site = site
+	lc.logger = logrus.New()
 	if loginBlock.IsEmpty() {
 		lc.state = NoLoginRequired
 	} else {
@@ -38,67 +64,107 @@ func newLoginContext(loginBlock loginBlock, testBlock pageTestBlock) *LoginConte
 	return lc
 }
 
-func (l LoginContext) isRequired() bool {
-	return l.state == LoginRequired ||
-		l.state == LoginFailed ||
-		l.state == LoginExpired
-	// if l.definition.IsEmpty() {
-	//	return false
-	//} else if l.test.IsEmpty() {
-	//	// No way to test if we're logged in
-	//	return true
-	//}
-}
-
-func (l *LoginContext) test() {
+func (l *BrowsingSession) isRequired() bool {
 	// r.logger.Debug("Testing if login is needed")
 	// HealthCheck if the login page is valid
-	match, err := r.matchPageTestBlock(r.definition.Login.Test)
-	if err != nil {
-		return true, err
+	if l.state == LoginRequired ||
+		l.state == LoginFailed ||
+		l.state == LoginExpired {
+		return true
+	}
+	return false
+	//match, err := l.verifyLogin()
+	//if err != nil {
+	//	return true, err
+	//}
+	//
+	//if match {
+	//	l.state = LoggedIn
+	//	return false, nil
+	//}
+	//
+	//return true, nil
+}
+
+func (l *BrowsingSession) verifyLogin() (bool, error) {
+	testBlock := l.testBlock
+	browser := l.browser
+	if testBlock.IsEmpty() {
+		return true, nil
 	}
 
-	if match {
-		r.logger.Debug("No login needed, already logged in")
+	// Go to another url if needed
+	if testBlock.Path != "" {
+		testURL, err := l.urlContext.GetFullURL(testBlock.Path)
+		if err != nil {
+			return false, err
+		}
+
+		_, err = l.contentFetcher.Fetch(source.NewTarget(testURL))
+		if err != nil {
+			// r.logger.WithError(err).Warn("Failed to open page")
+			return false, nil
+		}
+		fetchedAddress := l.contentFetcher.URL().String()
+
+		if testURL != fetchedAddress {
+			// r.logger.
+			//	WithFields(logrus.Fields{"wanted": testURL, "got": r.browser.Url().String()}).
+			//	Debug("Test failed, got a redirect")
+			return false, nil
+		}
+	}
+
+	if l.contentFetcher.URL() == nil {
+		return false, errors.New("no URL loaded and pageTestBlock has no path")
+	}
+
+	if testBlock.Selector != "" && browser.Find(testBlock.Selector).Length() == 0 {
+		// body := r.browser.Body()
+		// r.logger.Debug(body)
+		// r.logger.
+		//	WithFields(logrus.Fields{"selector": p.Selector}).
+		//	Debug("Selector didn't match page")
 		return false, nil
 	}
 
-	r.logger.Debug("Login is required")
 	return true, nil
 }
 
 // isLoginRequired Checks if login is required for the given Indexer
-func (r *Runner) isLoginRequired() (bool, error) {
-	if r.definition.Login.IsEmpty() {
-		return false, nil
-	} else if r.definition.Login.Test.IsEmpty() {
-		return true, nil
-	}
-	isLoggedIn := r.state.GetBool("loggedIn")
-	if !isLoggedIn {
-		return true, nil
-	}
-	r.logger.Debug("Testing if login is needed")
-	// HealthCheck if the login page is valid
-	match, err := r.matchPageTestBlock(r.definition.Login.Test)
-	if err != nil {
-		return true, err
-	}
+//func (r *Runner) isLoginRequired() (bool, error) {
+//	if r.definition.Login.IsEmpty() {
+//		return false, nil
+//	} else if r.definition.Login.Test.IsEmpty() {
+//		return true, nil
+//	}
+//	isLoggedIn := r.state.GetBool("loggedIn")
+//	if !isLoggedIn {
+//		return true, nil
+//	}
+//	r.logger.Debug("Testing if login is needed")
+//	// HealthCheck if the login page is valid
+//	match, err := r.matchPageTestBlock(r.definition.Login.Test)
+//	if err != nil {
+//		return true, err
+//	}
+//
+//	if match {
+//		r.logger.Debug("No login needed, already logged in")
+//		return false, nil
+//	}
+//
+//	r.logger.Debug("Login is required")
+//	return true, nil
+//}
 
-	if match {
-		r.logger.Debug("No login needed, already logged in")
-		return false, nil
-	}
-
-	r.logger.Debug("Login is required")
-	return true, nil
-}
-
-// extractInputLogins gets the configured input fields and vals for the login.
-func (r *Runner) extractInputLogins() (map[string]string, error) {
+// extractLoginInput gets the configured input fields and vals for the login.
+func (l *BrowsingSession) extractLoginInput() (map[string]string, error) {
 	result := map[string]string{}
+	loginUrl, _ := l.urlContext.GetFullURL(l.loginBlock.Path)
+
 	// Get configuration for the Indexer so we can login
-	cfg, err := r.opts.Config.GetSite(r.definition.Name)
+	cfg, err := l.config.GetSite(l.site)
 	if err != nil {
 		return nil, err
 	}
@@ -108,19 +174,18 @@ func (r *Runner) extractInputLogins() (map[string]string, error) {
 	}{
 		cfg,
 	}
-
-	for name, val := range r.definition.Login.Inputs {
+	for name, val := range l.loginBlock.Inputs {
 		resolved, err := applyTemplate("login_inputs", val, ctx)
 		if err != nil {
 			return nil, err
 		}
 
-		r.logger.
-			WithFields(logrus.Fields{"key": name, "val": resolved}).
-			Debugf("Resolved login input template")
+		//r.logger.
+		//	WithFields(logrus.Fields{"key": name, "val": resolved}).
+		//	Debugf("Resolved login input template")
 
 		if val == "{{ .Config.password }}" && resolved == emptyValue {
-			return nil, fmt.Errorf("no password was configured for input `%s` @%s", name, r.definition.Site)
+			return nil, fmt.Errorf("no password was configured for input `%s` @%s", name, loginUrl)
 		}
 		result[name] = resolved
 	}
@@ -128,36 +193,50 @@ func (r *Runner) extractInputLogins() (map[string]string, error) {
 	return result, nil
 }
 
-func (r *Runner) login() error {
-	if r.browser == nil {
-		r.createBrowser()
-		if !r.keepSessions {
-			defer r.releaseBrowser()
-		}
+func (l *BrowsingSession) initLogin() error {
+	if l.loginBlock.Init.IsEmpty() {
+		return nil
 	}
-	filterLogger = r.logger
-	loginURL, err := r.getFullURLInIndex(r.definition.Login.Path)
+
+	initURL, err := l.urlContext.GetFullURL(l.loginBlock.Init.Path)
 	if err != nil {
 		return err
 	}
 
-	loginValues, err := r.extractInputLogins()
+	return l.contentFetcher.FetchURL(initURL)
+}
+
+func (l *BrowsingSession) login() error {
+	//if l.browser == nil {
+	//	r.createBrowser()
+	//	if !r.keepSessions {
+	//		defer r.releaseBrowser()
+	//	}
+	//}
+	//filterLogger = r.logger
+	loginURL, err := l.urlContext.GetFullURL(l.loginBlock.Path)
 	if err != nil {
 		return err
 	}
 
-	err = r.initLogin()
+	loginValues, err := l.extractLoginInput()
 	if err != nil {
 		return err
 	}
 
-	switch r.definition.Login.Method {
+	err = l.initLogin()
+	if err != nil {
+		return err
+	}
+
+	method := l.loginBlock.Method
+	switch method {
 	case "", loginMethodForm:
-		if err = r.loginViaForm(loginURL, r.definition.Login.FormSelector, loginValues); err != nil {
+		if err = l.loginViaForm(loginURL, l.loginBlock.FormSelector, loginValues); err != nil {
 			return err
 		}
 	case loginMethodPost:
-		if err = r.loginViaPost(loginURL, loginValues); err != nil {
+		if err = l.loginViaPost(loginURL, loginValues); err != nil {
 			return err
 		}
 	case loginMethodCookie:
@@ -165,21 +244,21 @@ func (r *Runner) login() error {
 		if cookieVal == emptyValue {
 			return &LoginError{errors.New("no login cookie configured")}
 		}
-		if err = r.loginViaCookie(loginURL, loginValues["cookie"]); err != nil {
+		if err = l.loginViaCookie(loginURL, loginValues["cookie"]); err != nil {
 			return err
 		}
 	default:
-		return fmt.Errorf("unknown login method %q for site %s", r.definition.Login.Method, r.Site())
+		return fmt.Errorf("unknown login method %q for site %s", method, loginURL)
 	}
 	// Get the error
-	if len(r.definition.Login.Error) > 0 {
-		if err = r.definition.Login.hasError(r.browser); err != nil {
-			r.logger.WithError(err).Error("Failed to login")
+	if len(l.loginBlock.Error) > 0 {
+		if err = l.loginBlock.hasError(l.browser); err != nil {
+			l.logger.WithError(err).Error("Failed to login")
 			return &LoginError{err}
 		}
 	}
 	// HealthCheck if the login went ok
-	match, err := r.matchPageTestBlock(r.definition.Login.Test)
+	match, err := l.verifyLogin()
 	if err != nil {
 		return err
 	} else if !match {
@@ -190,54 +269,81 @@ func (r *Runner) login() error {
 		return fmt.Errorf("login check after login failed. no matches found. user: %s, using pass: %v", loginValues["login_username"], hasPass)
 	}
 
-	r.logger.Debug("Successfully logged in")
-	r.state.Set("loggedIn", true)
+	l.state = LoggedIn
 	return nil
 }
 
-func (r *Runner) loginViaForm(loginURL, formSelector string, vals map[string]string) error {
-	r.logger.
-		WithFields(logrus.Fields{"url": loginURL, "form": formSelector, "vals": vals}).
-		Debugf("Filling and submitting login form")
-
-	if err := r.contentFetcher.FetchURL(loginURL); err != nil {
+func (l *BrowsingSession) loginViaCookie(loginURL string, cookie string) error {
+	u, err := url.Parse(loginURL)
+	if err != nil {
 		return err
 	}
 
-	fm, err := r.browser.Form(formSelector)
+	cookies := parseCookieString(cookie)
+	cj := jar.NewMemoryCookies()
+	cj.SetCookies(u, cookies)
+
+	l.browser.SetCookieJar(cj)
+	return nil
+}
+
+func (l *BrowsingSession) loginViaForm(loginURL, formSelector string, vals map[string]string) error {
+	if err := l.contentFetcher.FetchURL(loginURL); err != nil {
+		return err
+	}
+
+	fm, err := l.browser.Form(formSelector)
 	if err != nil {
 		return err
 	}
 
 	for name, value := range vals {
-		r.logger.
-			WithFields(logrus.Fields{"key": name, "form": formSelector, "val": value}).
-			Debugf("Filling input of form")
-
 		if err = fm.Input(name, value); err != nil {
-			r.logger.WithError(err).Error("Filling input failed")
+			//r.logger.WithError(err).Error("Filling input failed")
 			return err
 		}
 	}
-	r.logger.Debug("Submitting login form")
-	// Maybe we don't need to cache the current brower page
+
+	// Maybe we don't need to cache the current browser page
 	// defer r.cachePage()
 	if err = fm.Submit(); err != nil {
-		r.logger.WithError(err).Error("Login failed")
+		l.logger.WithError(err).Error("Login failed")
 		return err
 	}
-	r.logger.
-		WithFields(logrus.Fields{"code": r.browser.StatusCode(), "page": r.browser.Url()}).
-		Debugf("Submitted login form")
+	//r.logger.
+	//	WithFields(logrus.Fields{"code": r.browser.StatusCode(), "page": r.browser.Url()}).
+	//	Debugf("Submitted login form")
 
 	return nil
 }
 
-func (r *Runner) loginViaPost(loginURL string, vals map[string]string) error {
+func (l *BrowsingSession) loginViaPost(loginURL string, vals map[string]string) error {
 	data := url.Values{}
 	for key, value := range vals {
 		data.Add(key, value)
 	}
 
-	return r.contentFetcher.Post(loginURL, data, false)
+	return l.contentFetcher.Post(loginURL, data, false)
+}
+
+func (l *BrowsingSession) setup() error {
+	if !l.isRequired(){
+		return nil
+	}
+	if err := l.login(); err != nil {
+		l.logger.WithError(err).Error("Login failed")
+		//l.noteError(err)
+		return err
+	}
+	match, err := l.verifyLogin()
+	if err != nil {
+		return err
+	}
+
+	if match {
+		l.state = LoggedIn
+	}else{
+		return fmt.Errorf("couldn't match login selector")
+	}
+	return nil
 }

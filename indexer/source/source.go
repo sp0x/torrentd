@@ -27,4 +27,5 @@ type ContentFetcher interface {
 	Fetch(target *SearchTarget) (FetchResult, error)
 	FetchURL(url string) error
 	Post(url string, data url.Values, log bool) error
+	URL() *url.URL
 }
