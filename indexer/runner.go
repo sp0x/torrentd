@@ -60,6 +60,7 @@ type Runner struct {
 	context             context.Context
 	errors              cache.LRUCache
 	session             *BrowsingSession
+	statusReporter      StatusReporter
 }
 
 func (r *Runner) GetDefinition() *Definition {
@@ -105,6 +106,7 @@ func NewRunner(def *Definition, opts RunnerOpts) *Runner {
 	// Use an optimistic cache instead.
 	connCache, _ := cache.NewOptimisticConnectivityCache()
 	errorCache, _ := cache.NewTTL(10, errorTTL)
+	indexCtx := context.Background()
 	runner := &Runner{
 		options:             opts,
 		definition:          def,
@@ -113,13 +115,15 @@ func NewRunner(def *Definition, opts RunnerOpts) *Runner {
 		state:               defaultIndexerState(),
 		keepSessions:        true,
 		failingSearchFields: make(map[string]fieldBlock),
-		context:             context.Background(),
+		context:             indexCtx,
 		errors:              errorCache,
+		statusReporter:      StatusReporter{context: indexCtx, indexDefinition: def, errors: errorCache},
 	}
-	if session, err := newIndexSessionFromRunner(runner); err != nil{
+	runner.createBrowser()
+	if session, err := newIndexSessionFromRunner(runner); err != nil {
 		fmt.Printf("Couldn't create index session: %v", err)
 		os.Exit(1)
-	}else{
+	} else {
 		runner.session = session
 	}
 	return runner
@@ -352,7 +356,10 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 	defer func() { r.noteError(err) }()
 
 	// Login if it's required
-	_ = r.session.setup()
+	err = r.session.setup()
+	if err != nil {
+		return searchInstance, err
+	}
 	// Get the indexCategories for this query based on the Indexer
 
 	// Context about the search
@@ -582,7 +589,7 @@ func (r *Runner) Ratio() (string, error) {
 	}
 	urlContext, _ := r.GetURLContext()
 
-	if err := r.session.setup(); err != nil{
+	if err := r.session.setup(); err != nil {
 		return errorValue, err
 	}
 
@@ -630,13 +637,23 @@ func (r *Runner) Errors() []string {
 	return errs
 }
 
-func (r *Runner) noteError(err error) {
+type StatusReporter struct {
+	context         context.Context
+	indexDefinition *Definition
+	errors          cache.LRUCache
+}
+
+func (r *StatusReporter) Error(err error) {
 	if err == nil {
 		return
 	}
-	status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.LoginError, err, r.definition))
+	status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.LoginError, err, r.indexDefinition))
 	errorID := r.errors.Len()
 	r.errors.Add(errorID, err)
+}
+
+func (r *Runner) noteError(err error) {
+	r.statusReporter.Error(err)
 }
 
 // region Status messages

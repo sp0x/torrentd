@@ -29,7 +29,7 @@ type BrowsingSession struct {
 	loginBlock     loginBlock
 	testBlock      pageTestBlock
 	state          LoginState
-	browser        *browser.Browser
+	browser        browser.Browsable
 	urlContext     *URLContext
 	contentFetcher source.ContentFetcher
 	config         config.Config
@@ -43,11 +43,12 @@ func newIndexSessionFromRunner(runner *Runner) (*BrowsingSession, error) {
 		return nil, err
 	}
 	definition := runner.definition
-	browsingSession := newIndexSessionWithLogin(definition.Site, runner.options.Config, runner.contentFetcher, urlContext, definition.Login)
+	browsingSession := newIndexSessionWithLogin(definition.Name, runner.options.Config, runner.browser,
+		runner.contentFetcher, urlContext, definition.Login)
 	return browsingSession, nil
 }
 
-func newIndexSessionWithLogin(site string, cfg config.Config, contentFetcher source.ContentFetcher, urlContext *URLContext, loginBlock loginBlock) *BrowsingSession {
+func newIndexSessionWithLogin(site string, cfg config.Config, browser browser.Browsable, contentFetcher source.ContentFetcher, urlContext *URLContext, loginBlock loginBlock) *BrowsingSession {
 	lc := &BrowsingSession{}
 	lc.loginBlock = loginBlock
 	lc.testBlock = loginBlock.Test
@@ -56,6 +57,7 @@ func newIndexSessionWithLogin(site string, cfg config.Config, contentFetcher sou
 	lc.config = cfg
 	lc.site = site
 	lc.logger = logrus.New()
+	lc.browser = browser
 	if loginBlock.IsEmpty() {
 		lc.state = NoLoginRequired
 	} else {
@@ -73,17 +75,6 @@ func (l *BrowsingSession) isRequired() bool {
 		return true
 	}
 	return false
-	//match, err := l.verifyLogin()
-	//if err != nil {
-	//	return true, err
-	//}
-	//
-	//if match {
-	//	l.state = LoggedIn
-	//	return false, nil
-	//}
-	//
-	//return true, nil
 }
 
 func (l *BrowsingSession) verifyLogin() (bool, error) {
@@ -179,10 +170,6 @@ func (l *BrowsingSession) extractLoginInput() (map[string]string, error) {
 		if err != nil {
 			return nil, err
 		}
-
-		//r.logger.
-		//	WithFields(logrus.Fields{"key": name, "val": resolved}).
-		//	Debugf("Resolved login input template")
 
 		if val == "{{ .Config.password }}" && resolved == emptyValue {
 			return nil, fmt.Errorf("no password was configured for input `%s` @%s", name, loginUrl)
@@ -327,7 +314,7 @@ func (l *BrowsingSession) loginViaPost(loginURL string, vals map[string]string) 
 }
 
 func (l *BrowsingSession) setup() error {
-	if !l.isRequired(){
+	if !l.isRequired() {
 		return nil
 	}
 	if err := l.login(); err != nil {
@@ -342,7 +329,7 @@ func (l *BrowsingSession) setup() error {
 
 	if match {
 		l.state = LoggedIn
-	}else{
+	} else {
 		return fmt.Errorf("couldn't match login selector")
 	}
 	return nil
