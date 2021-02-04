@@ -3,6 +3,7 @@ package indexer
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 )
@@ -52,14 +53,14 @@ func (r *Runner) GetURLContext() (*URLContext, error) {
 		return urlc, nil
 	}
 	configURL, ok, _ := r.options.Config.GetSiteOption(r.definition.Site, "url")
-	if ok && r.testThatUrlWorks(configURL) {
+	if ok && r.testURL(configURL) {
 		resolved, _ := url.Parse(configURL)
 		urlc.baseURL = resolved
 		return urlc, nil
 	}
 
 	for _, u := range r.definition.Links {
-		if u != configURL && r.testThatUrlWorks(u) {
+		if u != configURL && r.testURL(u) {
 			resolved, err := url.Parse(u)
 			if err != nil {
 				continue
@@ -69,4 +70,10 @@ func (r *Runner) GetURLContext() (*URLContext, error) {
 		}
 	}
 	return nil, errors.New("no working urls found")
+}
+
+func parseCookieString(cookie string) []*http.Cookie {
+	h := http.Header{"Cookie": []string{cookie}}
+	r := http.Request{Header: h}
+	return r.Cookies()
 }

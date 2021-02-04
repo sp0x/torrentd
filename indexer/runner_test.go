@@ -264,7 +264,7 @@ func TestRunner_testURLWorks_ShouldReturnFalseIfTheUrlIsDown(t *testing.T) {
 	r.logger = log.New()
 	cachedCon, _ := cache.NewConnectivityCache()
 	r.connectivityTester = cachedCon
-	g.Expect(r.testThatUrlWorks("http://example.com")).To(gomega.BeFalse())
+	g.Expect(r.testURL("http://example.com")).To(gomega.BeFalse())
 }
 
 func TestRunner_testUrlWorks_ShouldWorkWithOptimisticCaching(t *testing.T) {
@@ -274,6 +274,6 @@ func TestRunner_testUrlWorks_ShouldWorkWithOptimisticCaching(t *testing.T) {
 	url := "http://example.com"
 	optimisticCacheCon, _ := cache.NewOptimisticConnectivityCache()
 	r.connectivityTester = optimisticCacheCon
-	g.Expect(r.testThatUrlWorks(url)).To(gomega.BeTrue())
+	g.Expect(r.testURL(url)).To(gomega.BeTrue())
 	r.connectivityTester.Invalidate(url)
 }

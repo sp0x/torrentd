@@ -95,7 +95,6 @@ func (r *Runner) ProcessRequest(req *http.Request) (*http.Response, error) {
 
 type RunContext struct {
 	Search *search.Search
-	// SearchKeywords *search.Instance
 }
 
 // NewRunner Start a runner for a given indexer.
@@ -166,39 +165,8 @@ func getIndexStorage(indexer Indexer, conf config.Config) storage.ItemStorage {
 	return itemStorage
 }
 
-// checks that the runner has the config values it needs
-//func (r *Runner) checkHasConfig() error {
-//	for _, setting := range r.definition.Settings {
-//		_, ok, err := r.options.Config.GetSiteOption(r.definition.IndexName, setting.Name)
-//		if err != nil {
-//			return fmt.Errorf("Error reading config for %s: %v", setting.Name, err)
-//		}
-//		if !ok {
-//			return fmt.Errorf("No value for %s.%s in config", r.definition.IndexName, setting.Name)
-//		}
-//	}
-//	return nil
-//}
-
-// Get a working url for the Indexer
-//func (r *Runner) currentURL() (*url.URL, error) {
-//	if u := r.browser.Url(); u != nil {
-//		return u, nil
-//	}
-//	configURL, ok, _ := r.options.Config.GetSiteOption(r.definition.Site, "url")
-//	if ok && r.testThatUrlWorks(configURL) {
-//		return url.Parse(configURL)
-//	}
-//	for _, u := range r.definition.Links {
-//		if u != configURL && r.testThatUrlWorks(u) {
-//			return url.Parse(u)
-//		}
-//	}
-//	return nil, errors.New("no working urls found")
-//}
-
 // Test if the url returns a 20x response
-func (r *Runner) testThatUrlWorks(u string) bool {
+func (r *Runner) testURL(u string) bool {
 	var ok bool
 	// Do this like that so it's locked.
 	if ok = r.connectivityTester.IsOkAndSet(u, func() bool {
@@ -219,32 +187,6 @@ func (r *Runner) testThatUrlWorks(u string) bool {
 		return true
 	}
 	return ok
-}
-
-// getFullURLInIndex resolve a relative url based on the working Indexer base url
-//func (r *Runner) getFullURLInIndex(urlPath string) (string, error) {
-//	if strings.HasPrefix(urlPath, "magnet:") {
-//		return urlPath, nil
-//	}
-//	// Get the base url of the Indexer
-//	base, err := r.currentURL()
-//	if err != nil {
-//		return "", err
-//	}
-//
-//	u, err := url.Parse(urlPath)
-//	if err != nil {
-//		return "", err
-//	}
-//	// Resolve the url
-//	resolved := base.ResolveReference(u)
-//	return resolved.String(), nil
-//}
-
-func parseCookieString(cookie string) []*http.Cookie {
-	h := http.Header{"Cookie": []string{cookie}}
-	r := http.Request{Header: h}
-	return r.Cookies()
 }
 
 // Capabilities gets the torznab formatted capabilities of this Indexer.
@@ -626,30 +568,7 @@ func (r *Runner) getIndexer() *search.ResultIndexer {
 }
 
 func (r *Runner) Errors() []string {
-	errs := make([]string, r.errors.Len())
-	for i := 0; i < r.errors.Len(); i++ {
-		err, ok := r.errors.Get(i)
-		if !ok {
-			continue
-		}
-		errs[i] = fmt.Sprintf("%s", err)
-	}
-	return errs
-}
-
-type StatusReporter struct {
-	context         context.Context
-	indexDefinition *Definition
-	errors          cache.LRUCache
-}
-
-func (r *StatusReporter) Error(err error) {
-	if err == nil {
-		return
-	}
-	status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.LoginError, err, r.indexDefinition))
-	errorID := r.errors.Len()
-	r.errors.Add(errorID, err)
+	return r.statusReporter.GetErrors()
 }
 
 func (r *Runner) noteError(err error) {
