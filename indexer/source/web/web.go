@@ -20,8 +20,8 @@ const (
 	searchMethodGet  = "get"
 )
 
-// ContentFetcher is a content fetcher that deals with the state of sources
-type ContentFetcher struct {
+// Fetcher is a content fetcher that deals with the state of sources
+type Fetcher struct {
 	Browser            browser.Browsable
 	Cacher             ContentCacher
 	ConnectivityTester cache.ConnectivityTester
@@ -40,7 +40,7 @@ func NewWebContentFetcher(browser browser.Browsable,
 	if connectivityTester == nil {
 		panic("a connectivity tester is required")
 	}
-	return &ContentFetcher{
+	return &Fetcher{
 		Browser: browser,
 		// We'll use the indexer to cache content.
 		Cacher:             contentCache,
@@ -53,11 +53,11 @@ type ContentCacher interface {
 	CachePage(browsable browser.Browsable) error
 }
 
-func (w *ContentFetcher) Cleanup() {
+func (w *Fetcher) Cleanup() {
 	w.Browser.HistoryJar().Clear()
 }
 
-func (w *ContentFetcher) FetchURL(url string) error {
+func (w *Fetcher) FetchURL(url string) error {
 	target := source.SearchTarget{URL: url}
 	err := w.get(target.URL)
 	if err != nil {
@@ -67,7 +67,7 @@ func (w *ContentFetcher) FetchURL(url string) error {
 }
 
 // Gets the content from which we'll extract the search results
-func (w *ContentFetcher) Fetch(target *source.SearchTarget) (source.FetchResult, error) {
+func (w *Fetcher) Fetch(target *source.SearchTarget) (source.FetchResult, error) {
 	if target == nil {
 		return nil, errors.New("target is required for searching")
 	}
@@ -129,7 +129,7 @@ func extractResponseResult(browser browser.Browsable) source.FetchResult {
 	}
 }
 
-func (w *ContentFetcher) get(targetURL string) error {
+func (w *Fetcher) get(targetURL string) error {
 	logrus.WithField("target", targetURL).
 		Debug("Opening page")
 	err := w.Browser.Open(targetURL)
@@ -150,12 +150,12 @@ func (w *ContentFetcher) get(targetURL string) error {
 	return nil
 }
 
-func (w *ContentFetcher) URL() *url.URL {
+func (w *Fetcher) URL() *url.URL {
 	browserUrl := w.Browser.Url()
 	return browserUrl
 }
 
-func (w *ContentFetcher) Post(urlStr string, data url.Values, log bool) error {
+func (w *Fetcher) Post(urlStr string, data url.Values, log bool) error {
 	if log {
 		logrus.
 			WithFields(logrus.Fields{"urlStr": urlStr, "vals": data.Encode()}).
@@ -182,7 +182,7 @@ func (w *ContentFetcher) Post(urlStr string, data url.Values, log bool) error {
 	return nil
 }
 
-func (w *ContentFetcher) fakeBrowserReferer(urlStr string) {
+func (w *Fetcher) fakeBrowserReferer(urlStr string) {
 	state := w.Browser.State()
 	refURL, _ := url.Parse(urlStr)
 	if state.Request == nil {
@@ -196,7 +196,7 @@ func (w *ContentFetcher) fakeBrowserReferer(urlStr string) {
 
 // this should eventually upstream into surf browser
 // Handle a header like: Refresh: 0;url=my_view_page.php
-func (w *ContentFetcher) handleMetaRefreshHeader() error {
+func (w *Fetcher) handleMetaRefreshHeader() error {
 	h := w.Browser.ResponseHeaders()
 	if refresh := h.Get("Refresh"); refresh != "" {
 		requestURL := w.Browser.State().Request.URL

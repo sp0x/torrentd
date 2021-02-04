@@ -57,7 +57,7 @@ func (d *dumpData) Write() {
 	}
 }
 
-func (w *ContentFetcher) dumpFetchData() {
+func (w *Fetcher) dumpFetchData() {
 	if !w.options.ShouldDumpData {
 		return
 	}

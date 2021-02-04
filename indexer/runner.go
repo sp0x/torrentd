@@ -60,7 +60,7 @@ type Runner struct {
 	context             context.Context
 	errors              cache.LRUCache
 	session             *BrowsingSession
-	statusReporter      StatusReporter
+	statusReporter      *StatusReporter
 }
 
 func (r *Runner) GetDefinition() *Definition {
@@ -117,7 +117,7 @@ func NewRunner(def *Definition, opts RunnerOpts) *Runner {
 		failingSearchFields: make(map[string]fieldBlock),
 		context:             indexCtx,
 		errors:              errorCache,
-		statusReporter:      StatusReporter{context: indexCtx, indexDefinition: def, errors: errorCache},
+		statusReporter:      &StatusReporter{context: indexCtx, indexDefinition: def, errors: errorCache},
 	}
 	runner.createBrowser()
 	if session, err := newIndexSessionFromRunner(runner); err != nil {

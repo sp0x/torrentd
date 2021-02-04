@@ -3,9 +3,9 @@ package indexer
 import (
 	"errors"
 	"fmt"
-	"github.com/sp0x/surf/browser"
 	"github.com/sp0x/surf/jar"
 	"github.com/sp0x/torrentd/config"
+	"github.com/sp0x/torrentd/indexer/source/web"
 	"net/url"
 
 	"github.com/sirupsen/logrus"
@@ -27,14 +27,13 @@ const (
 
 type BrowsingSession struct {
 	loginBlock     loginBlock
-	testBlock      pageTestBlock
 	state          LoginState
-	browser        browser.Browsable
 	urlContext     *URLContext
-	contentFetcher source.ContentFetcher
+	contentFetcher *web.Fetcher
 	config         config.Config
 	site           string
 	logger         *logrus.Logger
+	statusReporter *StatusReporter
 }
 
 func newIndexSessionFromRunner(runner *Runner) (*BrowsingSession, error) {
@@ -43,21 +42,30 @@ func newIndexSessionFromRunner(runner *Runner) (*BrowsingSession, error) {
 		return nil, err
 	}
 	definition := runner.definition
-	browsingSession := newIndexSessionWithLogin(definition.Name, runner.options.Config, runner.browser,
-		runner.contentFetcher, urlContext, definition.Login)
+	webFetcher := runner.contentFetcher.(*web.Fetcher)
+	browsingSession := newIndexSessionWithLogin(definition.Name,
+		runner.options.Config,
+		runner.statusReporter,
+		webFetcher,
+		urlContext,
+		definition.Login)
 	return browsingSession, nil
 }
 
-func newIndexSessionWithLogin(site string, cfg config.Config, browser browser.Browsable, contentFetcher source.ContentFetcher, urlContext *URLContext, loginBlock loginBlock) *BrowsingSession {
+func newIndexSessionWithLogin(site string, cfg config.Config,
+	statusReporter *StatusReporter,
+	contentFetcher *web.Fetcher,
+	urlContext *URLContext,
+	loginBlock loginBlock) *BrowsingSession {
+
 	lc := &BrowsingSession{}
 	lc.loginBlock = loginBlock
-	lc.testBlock = loginBlock.Test
 	lc.urlContext = urlContext
 	lc.contentFetcher = contentFetcher
 	lc.config = cfg
 	lc.site = site
 	lc.logger = logrus.New()
-	lc.browser = browser
+	lc.statusReporter = statusReporter
 	if loginBlock.IsEmpty() {
 		lc.state = NoLoginRequired
 	} else {
@@ -67,8 +75,6 @@ func newIndexSessionWithLogin(site string, cfg config.Config, browser browser.Br
 }
 
 func (l *BrowsingSession) isRequired() bool {
-	// r.logger.Debug("Testing if login is needed")
-	// HealthCheck if the login page is valid
 	if l.state == LoginRequired ||
 		l.state == LoginFailed ||
 		l.state == LoginExpired {
@@ -78,8 +84,7 @@ func (l *BrowsingSession) isRequired() bool {
 }
 
 func (l *BrowsingSession) verifyLogin() (bool, error) {
-	testBlock := l.testBlock
-	browser := l.browser
+	testBlock := l.loginBlock.Test
 	if testBlock.IsEmpty() {
 		return true, nil
 	}
@@ -110,7 +115,8 @@ func (l *BrowsingSession) verifyLogin() (bool, error) {
 		return false, errors.New("no URL loaded and pageTestBlock has no path")
 	}
 
-	if testBlock.Selector != "" && browser.Find(testBlock.Selector).Length() == 0 {
+	brwsr := l.contentFetcher.Browser
+	if testBlock.Selector != "" && brwsr.Find(testBlock.Selector).Length() == 0 {
 		// body := r.browser.Body()
 		// r.logger.Debug(body)
 		// r.logger.
@@ -121,33 +127,6 @@ func (l *BrowsingSession) verifyLogin() (bool, error) {
 
 	return true, nil
 }
-
-// isLoginRequired Checks if login is required for the given Indexer
-//func (r *Runner) isLoginRequired() (bool, error) {
-//	if r.definition.Login.IsEmpty() {
-//		return false, nil
-//	} else if r.definition.Login.Test.IsEmpty() {
-//		return true, nil
-//	}
-//	isLoggedIn := r.state.GetBool("loggedIn")
-//	if !isLoggedIn {
-//		return true, nil
-//	}
-//	r.logger.Debug("Testing if login is needed")
-//	// HealthCheck if the login page is valid
-//	match, err := r.matchPageTestBlock(r.definition.Login.Test)
-//	if err != nil {
-//		return true, err
-//	}
-//
-//	if match {
-//		r.logger.Debug("No login needed, already logged in")
-//		return false, nil
-//	}
-//
-//	r.logger.Debug("Login is required")
-//	return true, nil
-//}
 
 // extractLoginInput gets the configured input fields and vals for the login.
 func (l *BrowsingSession) extractLoginInput() (map[string]string, error) {
@@ -194,13 +173,6 @@ func (l *BrowsingSession) initLogin() error {
 }
 
 func (l *BrowsingSession) login() error {
-	//if l.browser == nil {
-	//	r.createBrowser()
-	//	if !r.keepSessions {
-	//		defer r.releaseBrowser()
-	//	}
-	//}
-	//filterLogger = r.logger
 	loginURL, err := l.urlContext.GetFullURL(l.loginBlock.Path)
 	if err != nil {
 		return err
@@ -239,7 +211,7 @@ func (l *BrowsingSession) login() error {
 	}
 	// Get the error
 	if len(l.loginBlock.Error) > 0 {
-		if err = l.loginBlock.hasError(l.browser); err != nil {
+		if err = l.loginBlock.hasError(l.contentFetcher.Browser); err != nil {
 			l.logger.WithError(err).Error("Failed to login")
 			return &LoginError{err}
 		}
@@ -270,7 +242,7 @@ func (l *BrowsingSession) loginViaCookie(loginURL string, cookie string) error {
 	cj := jar.NewMemoryCookies()
 	cj.SetCookies(u, cookies)
 
-	l.browser.SetCookieJar(cj)
+	l.contentFetcher.Browser.SetCookieJar(cj)
 	return nil
 }
 
@@ -279,13 +251,13 @@ func (l *BrowsingSession) loginViaForm(loginURL, formSelector string, vals map[s
 		return err
 	}
 
-	fm, err := l.browser.Form(formSelector)
+	webForm, err := l.contentFetcher.Browser.Form(formSelector)
 	if err != nil {
 		return err
 	}
 
 	for name, value := range vals {
-		if err = fm.Input(name, value); err != nil {
+		if err = webForm.Input(name, value); err != nil {
 			//r.logger.WithError(err).Error("Filling input failed")
 			return err
 		}
@@ -293,7 +265,7 @@ func (l *BrowsingSession) loginViaForm(loginURL, formSelector string, vals map[s
 
 	// Maybe we don't need to cache the current browser page
 	// defer r.cachePage()
-	if err = fm.Submit(); err != nil {
+	if err = webForm.Submit(); err != nil {
 		l.logger.WithError(err).Error("Login failed")
 		return err
 	}
@@ -319,7 +291,7 @@ func (l *BrowsingSession) setup() error {
 	}
 	if err := l.login(); err != nil {
 		l.logger.WithError(err).Error("Login failed")
-		//l.noteError(err)
+		l.statusReporter.Error(err)
 		return err
 	}
 	match, err := l.verifyLogin()
