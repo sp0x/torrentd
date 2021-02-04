@@ -52,7 +52,6 @@ type Runner struct {
 	logger              logrus.FieldLogger
 	browserLock         sync.Mutex
 	connectivityTester  cache.ConnectivityTester
-	state               *State
 	keepSessions        bool
 	failingSearchFields map[string]fieldBlock
 	lastVerified        time.Time
@@ -111,7 +110,6 @@ func NewRunner(def *Definition, opts RunnerOpts) *Runner {
 		definition:          def,
 		logger:              logger.WithFields(logrus.Fields{"site": def.Site}),
 		connectivityTester:  connCache,
-		state:               defaultIndexerState(),
 		keepSessions:        true,
 		failingSearchFields: make(map[string]fieldBlock),
 		context:             indexCtx,
