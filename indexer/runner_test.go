@@ -204,7 +204,7 @@ func Test_ShouldUseUniqueIndexes(t *testing.T) {
 	connectivityTester.EXPECT().IsOkAndSet(runnerSiteURL, gomock.Any()).
 		Return(true).AnyTimes()
 
-	//-------Should be able to use unique indexes
+	//-------Should be able to use unique indexesCollection
 	cfg := &config.ViperConfig{}
 	_ = cfg.Set("db", tempfile())
 	_ = cfg.Set("storage", "boltdb")

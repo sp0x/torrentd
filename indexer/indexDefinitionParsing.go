@@ -375,7 +375,7 @@ func (c *capabilitiesBlock) ToTorznab() torznab.Capabilities {
 		SearchModes: []search.Mode{},
 	}
 
-	// All indexes support search
+	// All indexesCollection support search
 	caps.SearchModes = append(caps.SearchModes, search.Mode{
 		Key:             "search",
 		Available:       true,

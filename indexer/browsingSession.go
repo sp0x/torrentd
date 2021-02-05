@@ -30,8 +30,7 @@ type BrowsingSession struct {
 	state          LoginState
 	urlContext     *URLContext
 	contentFetcher *web.Fetcher
-	config         config.Config
-	site           string
+	config         map[string]string
 	logger         *logrus.Logger
 	statusReporter *StatusReporter
 }
@@ -57,13 +56,13 @@ func newIndexSessionWithLogin(site string, cfg config.Config,
 	contentFetcher *web.Fetcher,
 	urlContext *URLContext,
 	loginBlock loginBlock) *BrowsingSession {
+	siteConfig, _ := cfg.GetSite(site)
 
 	lc := &BrowsingSession{}
 	lc.loginBlock = loginBlock
 	lc.urlContext = urlContext
 	lc.contentFetcher = contentFetcher
-	lc.config = cfg
-	lc.site = site
+	lc.config = siteConfig
 	lc.logger = logrus.New()
 	lc.statusReporter = statusReporter
 	if loginBlock.IsEmpty() {
@@ -134,15 +133,10 @@ func (l *BrowsingSession) extractLoginInput() (map[string]string, error) {
 	loginUrl, _ := l.urlContext.GetFullURL(l.loginBlock.Path)
 
 	// Get configuration for the Indexer so we can login
-	cfg, err := l.config.GetSite(l.site)
-	if err != nil {
-		return nil, err
-	}
-
 	ctx := struct {
 		Config map[string]string
 	}{
-		cfg,
+		l.config,
 	}
 	for name, val := range l.loginBlock.Inputs {
 		resolved, err := applyTemplate("login_inputs", val, ctx)

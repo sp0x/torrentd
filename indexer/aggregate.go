@@ -76,9 +76,9 @@ func (ag *Aggregate) MaxSearchPages() uint {
 	return maxValue
 }
 
-// SearchIsSinglePaged this is true only if all indexes inside the aggregate are single paged.
+// SearchIsSinglePaged this is true only if all indexesCollection inside the aggregate are single paged.
 func (ag *Aggregate) SearchIsSinglePaged() bool {
-	// For this, all indexes must be single paged
+	// For this, all indexesCollection must be single paged
 	for _, index := range ag.Indexers {
 		if !index.SearchIsSinglePaged() {
 			return false
@@ -110,7 +110,7 @@ func (ag *Aggregate) Site() string {
 	return sites
 }
 
-// HealthCheck checks all indexes, if they can be searched.
+// HealthCheck checks all indexesCollection, if they can be searched.
 func (ag *Aggregate) HealthCheck() error {
 	errorGroup := errgroup.Group{}
 	for _, ixr := range ag.Indexers {
@@ -148,8 +148,8 @@ func (ag *Aggregate) Search(query *search.Query, searchInstance search.Instance)
 	// indexerSearches := make(map[int]*search.SearchKeywords)
 	// fetch all results
 	if ag.Indexers == nil {
-		log.Warnf("searching an aggregate[%s] that has no indexes", ag.selector)
-		return nil, errors.New("no indexes are set for this aggregate")
+		log.Warnf("searching an aggregate[%s] that has no indexesCollection", ag.selector)
+		return nil, errors.New("no indexesCollection are set for this aggregate")
 	}
 	for idx, pIndexer := range ag.Indexers {
 		// Run the Indexer in a goroutine

@@ -17,24 +17,24 @@ type Scope interface {
 	Indexes() map[string]Indexer
 }
 
-type CachedScope struct {
+type indexesCollection struct {
 	indexes map[string]Indexer
 }
 
 // NewScope creates a new scope for indexer runners
 func NewScope() Scope {
-	sc := &CachedScope{}
+	sc := &indexesCollection{}
 	sc.indexes = make(map[string]Indexer)
 	return sc
 }
 
-// Indexes returns the currently loaded indexes
-func (c *CachedScope) Indexes() map[string]Indexer {
+// Indexes returns the currently loaded indexesCollection
+func (c *indexesCollection) Indexes() map[string]Indexer {
 	return c.indexes
 }
 
 // Lookup finds the matching Indexer.
-func (c *CachedScope) Lookup(config config.Config, key string) (Indexer, error) {
+func (c *indexesCollection) Lookup(config config.Config, key string) (Indexer, error) {
 	// If we already have that indexer running, we don't create a new one.
 	selector := newIndexerSelector(key)
 	log.Debugf("Looking up scoped index: %v\n", selector)
@@ -45,7 +45,7 @@ func (c *CachedScope) Lookup(config config.Config, key string) (Indexer, error) 
 		if selector.isAggregate() {
 			indexer, err = c.CreateAggregate(config, selector)
 		} else {
-			indexer, err = CreateIndexer(config, selector.Value())
+			indexer, err = NewRunnerByNameOrSelector(selector.Value(), config)
 		}
 		if err != nil {
 			return nil, err
@@ -55,8 +55,8 @@ func (c *CachedScope) Lookup(config config.Config, key string) (Indexer, error) 
 	return c.indexes[key], nil
 }
 
-// CreateAggregateForCategories creates a new aggregate with the indexes that match a set of indexCategories
-func (c *CachedScope) CreateAggregateForCategories(config config.Config, selector *Selector, cats []categories.Category) (Indexer, error) {
+// CreateAggregateForCategories creates a new aggregate with the indexesCollection that match a set of indexCategories
+func (c *indexesCollection) CreateAggregateForCategories(config config.Config, selector *Selector, cats []categories.Category) (Indexer, error) {
 	ixrKeys, err := Loader.List(selector)
 	if err != nil {
 		return nil, err
@@ -76,9 +76,9 @@ func (c *CachedScope) CreateAggregateForCategories(config config.Config, selecto
 	return result, nil
 }
 
-// CreateAggregate creates an aggregate of all the valid configured indexes
-// this includes indexes that don't need a login.
-func (c *CachedScope) CreateAggregate(config config.Config, selector *Selector) (Indexer, error) {
+// CreateAggregate creates an aggregate of all the valid configured indexesCollection
+// this includes indexesCollection that don't need a login.
+func (c *indexesCollection) CreateAggregate(config config.Config, selector *Selector) (Indexer, error) {
 	var keysToLoad []string
 	var err error
 	keysToLoad, err = Loader.List(selector)
@@ -87,8 +87,8 @@ func (c *CachedScope) CreateAggregate(config config.Config, selector *Selector) 
 	}
 	if keysToLoad == nil {
 		log.WithFields(log.Fields{"selector": selector, "loader": Loader}).
-			Debug("Tried to create an aggregate index where no child indexes could be found")
-		return nil, errors.New("no indexes matched the given selector")
+			Debug("Tried to create an aggregate index where no child indexesCollection could be found")
+		return nil, errors.New("no indexesCollection matched the given selector")
 	}
 
 	result := &Aggregate{}
@@ -97,8 +97,8 @@ func (c *CachedScope) CreateAggregate(config config.Config, selector *Selector) 
 		result.selector = &selectorCopy
 	}
 	for _, key := range keysToLoad {
-		// Get the site configuration, we only use configured indexes
-		indexConfig, _ := config.GetSite(key) // Get all the configured indexes
+		// Get the site configuration, we only use configured indexesCollection
+		indexConfig, _ := config.GetSite(key) // Get all the configured indexesCollection
 		if indexConfig != nil {
 			index, err := c.Lookup(config, key)
 			if err != nil {
@@ -112,22 +112,7 @@ func (c *CachedScope) CreateAggregate(config config.Config, selector *Selector) 
 	}
 	if result.Indexers == nil {
 		log.WithFields(log.Fields{"selector": selector}).
-			Debug("Created aggregate without any indexes")
+			Debug("Created aggregate without any indexesCollection")
 	}
 	return result, nil
-}
-
-// CreateIndexer creates a new Indexer or aggregate Indexer with the given configuration.
-func CreateIndexer(config config.Config, indexerName string) (Indexer, error) {
-	def, err := Loader.Load(indexerName)
-	if err != nil {
-		log.WithError(err).Warnf("Failed to load definition for %q. %v", indexerName, err)
-		return nil, err
-	}
-
-	log.WithFields(log.Fields{"Indexer": indexerName}).Debugf("Loaded Indexer")
-	indexer := NewRunner(def, RunnerOpts{
-		Config: config,
-	})
-	return indexer, nil
 }

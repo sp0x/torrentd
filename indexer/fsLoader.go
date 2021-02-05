@@ -16,10 +16,10 @@ type FileIndexLoader struct {
 	Directories []string
 }
 
-// NewFsLoader creates a new file index loader which looks for definitions in ~/.#{appName}/indexes and ./indexes
+// NewFsLoader creates a new file index loader which looks for definitions in ~/.#{appName}/indexesCollection and ./indexesCollection
 func NewFsLoader(appName string) *FileIndexLoader {
 	localDirectory := ""
-	entityName := "indexes"
+	entityName := "indexesCollection"
 	if cwd, err := os.Getwd(); err == nil {
 		localDirectory = filepath.Join(cwd, entityName)
 	}

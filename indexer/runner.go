@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/browser"
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/cache"
@@ -49,7 +49,7 @@ type Runner struct {
 	browser             browser.Browsable
 	cookies             http.CookieJar
 	options             RunnerOpts
-	logger              logrus.FieldLogger
+	logger              log.FieldLogger
 	browserLock         sync.Mutex
 	connectivityTester  cache.ConnectivityTester
 	keepSessions        bool
@@ -96,10 +96,25 @@ type RunContext struct {
 	Search *search.Search
 }
 
+// CreateIndexer creates a new Indexer or aggregate Indexer with the given configuration.
+func NewRunnerByNameOrSelector(indexerName string, config config.Config) (Indexer, error) {
+	def, err := Loader.Load(indexerName)
+	if err != nil {
+		log.WithError(err).Warnf("Failed to load definition for %q. %v", indexerName, err)
+		return nil, err
+	}
+
+	log.WithFields(log.Fields{"Indexer": indexerName}).Debugf("Loaded Indexer")
+	indexer := NewRunner(def, RunnerOpts{
+		Config: config,
+	})
+	return indexer, nil
+}
+
 // NewRunner Start a runner for a given indexer.
 func NewRunner(def *Definition, opts RunnerOpts) *Runner {
-	logger := logrus.New()
-	logger.Level = logrus.GetLevel()
+	logger := log.New()
+	logger.Level = log.GetLevel()
 	// connCache, _ := cache.NewConnectivityCache()
 	// Use an optimistic cache instead.
 	connCache, _ := cache.NewOptimisticConnectivityCache()
@@ -108,7 +123,7 @@ func NewRunner(def *Definition, opts RunnerOpts) *Runner {
 	runner := &Runner{
 		options:             opts,
 		definition:          def,
-		logger:              logger.WithFields(logrus.Fields{"site": def.Site}),
+		logger:              logger.WithFields(log.Fields{"site": def.Site}),
 		connectivityTester:  connCache,
 		keepSessions:        true,
 		failingSearchFields: make(map[string]fieldBlock),
@@ -227,10 +242,6 @@ func (r *Runner) getLocalCategoriesMatchingQuery(query *search.Query) []string {
 				set[id] = struct{}{}
 			}
 		}
-
-		r.logger.
-			WithFields(logrus.Fields{"querycats": query.Categories, "local": localCats}).
-			Debugf("Resolved torznab cats to local")
 	}
 
 	return localCats
@@ -329,7 +340,7 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 		return nil, fmt.Errorf("result items could not be enumerated")
 	}
 	r.logger.
-		WithFields(logrus.Fields{
+		WithFields(log.Fields{
 			"rows":     rows.Length(),
 			"selector": r.definition.Search.Rows,
 			"limit":    query.Limit,
@@ -345,7 +356,7 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 	results := r.processScrapedItems(rows, rowContext)
 
 	r.logger.
-		WithFields(logrus.Fields{
+		WithFields(log.Fields{
 			"Indexer": r.definition.Site,
 			"search":  runCtx.Search.String(),
 			"q":       query.Keywords(),
@@ -388,7 +399,10 @@ func (r *Runner) resolveItemCategory(query *search.Query, localCats []string, it
 		// The category doesn't match even 1 of the indexCategories in the query.
 		if !r.itemMatchesLocalCategories(localCats, torrentItem) {
 			r.logger.
-				WithFields(logrus.Fields{"category": torrentItem.LocalCategoryName, "categoryId": torrentItem.LocalCategoryID}).
+				WithFields(log.Fields{
+					"category":   torrentItem.LocalCategoryName,
+					"categoryId": torrentItem.LocalCategoryID,
+				}).
 				Debugf("Skipping result because it's not contained in our needed indexCategories.")
 			return false
 		}
@@ -411,7 +425,7 @@ func (r *Runner) clearDom(dom *goquery.Selection) error {
 	if remove := r.definition.Search.Rows.Remove; remove != "" {
 		matching := dom.Find(r.definition.Search.Rows.Selector).Filter(remove)
 		r.logger.
-			WithFields(logrus.Fields{"selector": remove, "html": html}).
+			WithFields(log.Fields{"selector": remove, "html": html}).
 			Debugf("Applying remove to %d rows", matching.Length())
 		matching.Remove()
 	}
@@ -436,7 +450,7 @@ func (r *Runner) extractSearchTarget(query *search.Query, localCats []string, co
 		return nil, err
 	}
 	r.logger.
-		WithFields(logrus.Fields{"query": query.Encode()}).
+		WithFields(log.Fields{"query": query.Encode()}).
 		Debugf("Searching Indexer")
 	// Get our Indexer url values
 	vals, err := r.extractURLValues(templateData)
@@ -502,7 +516,7 @@ func (r *Runner) extractDateHeader(selection RawScrapeItem) (time.Time, error) {
 	dateHeaders := r.definition.Search.Rows.DateHeaders
 
 	r.logger.
-		WithFields(logrus.Fields{"selector": dateHeaders.String()}).
+		WithFields(log.Fields{"selector": dateHeaders.String()}).
 		Debugf("Searching for date header")
 
 	prev := selection.PrevAllFiltered(dateHeaders.Selector).First()

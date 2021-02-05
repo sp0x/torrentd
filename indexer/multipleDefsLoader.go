@@ -47,7 +47,7 @@ func (ml MultipleDefinitionLoader) List(selector *Selector) ([]string, error) {
 
 	sort.Strings(results)
 	log.WithFields(log.Fields{"results": results, "loader": ml}).
-		Debug("Multiple definitions loader listed indexes")
+		Debug("Multiple definitions loader listed indexesCollection")
 	return results, nil
 }
 
