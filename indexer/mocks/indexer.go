@@ -94,7 +94,7 @@ func (mr *MockInfoMockRecorder) GetLink() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLink", reflect.TypeOf((*MockInfo)(nil).GetLink))
 }
 
-// MockIndexer is a mock of Indexer interface
+// MockIndexer is a mock of Index interface
 type MockIndexer struct {
 	ctrl     *gomock.Controller
 	recorder *MockIndexerMockRecorder

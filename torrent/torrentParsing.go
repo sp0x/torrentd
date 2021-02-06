@@ -41,7 +41,7 @@ func ParseTorrentFromURL(h *indexer.Facade, torrentURL string) (*Definition, err
 	if err != nil {
 		return nil, err
 	}
-	res, err := h.Indexer.ProcessRequest(req)
+	res, err := h.Index.ProcessRequest(req)
 	if err != nil {
 		return nil, err
 	}

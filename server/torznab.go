@@ -18,7 +18,7 @@ import (
 )
 
 func (s *Server) aggregatesStatus(c *gin.Context) {
-	aggregate, err := s.indexerFacade.Scope.Lookup(s.config, "all")
+	aggregate, err := s.indexerFacade.LoadedIndexes.Lookup(s.config, "all")
 	if err != nil {
 		_ = c.Error(err)
 		return
@@ -39,9 +39,9 @@ var searchCache, _ = cache.NewTTL(100, 1*time.Hour)
 // Handle queries
 func (s *Server) torznabHandler(c *gin.Context) {
 	_ = c.Params
-	indexerID := indexer.ResolveIndexID(s.indexerFacade.Scope, c.Param("searchIndex"))
+	indexerID := indexer.ResolveIndexID(s.indexerFacade.LoadedIndexes, c.Param("searchIndex"))
 	t := c.Query("t")
-	searchIndex, err := s.indexerFacade.Scope.Lookup(s.config, indexerID)
+	searchIndex, err := s.indexerFacade.LoadedIndexes.Lookup(s.config, indexerID)
 	if err != nil {
 		torznab.Error(c, err.Error(), torznab.ErrIncorrectParameter)
 		return

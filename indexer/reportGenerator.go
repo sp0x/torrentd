@@ -40,10 +40,10 @@ func (st *StandardReportGenerator) GetIndexesStatus(indexFacade *Facade) []model
 	storageStats := store.GetStats(false)
 	store.Close()
 
-	indexCount := len(indexFacade.Scope.Indexes())
+	indexCount := len(indexFacade.LoadedIndexes.Indexes())
 	statuses := make([]models.IndexStatus, indexCount)
 
-	for indexKey, ix := range indexFacade.Scope.Indexes() {
+	for indexKey, ix := range indexFacade.LoadedIndexes.Indexes() {
 		if ix == nil {
 			continue
 		}

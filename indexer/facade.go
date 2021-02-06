@@ -19,10 +19,8 @@ const (
 // Facade for an indexer/aggregate, helps manage the scope of the index, it's configuration and the index itself.
 type Facade struct {
 	// The indexer that we're using
-	Indexer Indexer
-	// Configuration for the indexer.
-	Config config.Config
-	Scope  Scope
+	Index         Indexer
+	LoadedIndexes Scope
 }
 
 // GenericSearchOptions options for the search.
@@ -44,20 +42,19 @@ func NewFacadeFromConfiguration(config config.Config) *Facade {
 		os.Exit(1)
 	}
 	log.Debugf("Creating new facade from configuration: %v\n", indexerName)
-	index, err := facade.Scope.Lookup(config, indexerName)
+	index, err := facade.LoadedIndexes.Lookup(config, indexerName)
 	if err != nil {
-		log.Errorf("Could not find Indexer `%s`.\n", indexerName)
+		log.Errorf("Could not find Index `%s`.\n", indexerName)
 		return nil
 	}
-	facade.Indexer = index
+	facade.Index = index
 	return facade
 }
 
 // NewEmptyFacade creates a new indexer facade with it's own scope and config.
 func NewEmptyFacade(config config.Config) *Facade {
 	facade := &Facade{}
-	facade.Scope = NewScope()
-	facade.Config = config
+	facade.LoadedIndexes = NewScope()
 	return facade
 }
 
@@ -69,9 +66,9 @@ func NewFacade(indexerName string, config config.Config, cats ...categories.Cate
 		return NewAggregateFacadeWithCategories(config, cats...), nil
 	}
 	facade := NewEmptyFacade(config)
-	indexerObj, err := facade.Scope.Lookup(config, indexerName)
+	indexerObj, err := facade.LoadedIndexes.Lookup(config, indexerName)
 	if err != nil {
-		log.Errorf("Could not find Indexer `%s`.\n", indexerObj)
+		log.Errorf("Could not find Index `%s`.\n", indexerObj)
 		return nil, errors.New("indexer wasn't found")
 	}
 	if len(cats) > 0 {
@@ -79,33 +76,32 @@ func NewFacade(indexerName string, config config.Config, cats ...categories.Cate
 			return nil, errors.New("indexer doesn't support the needed indexCategories")
 		}
 	}
-	facade.Indexer = indexerObj
+	facade.Index = indexerObj
 	return facade, nil
 }
 
 // NewAggregateFacadeWithCategories Finds an indexer from the config, that matches the given indexCategories.
 func NewAggregateFacadeWithCategories(config config.Config, cats ...categories.Category) *Facade {
 	facade := Facade{}
-	facade.Scope = NewScope()
+	facade.LoadedIndexes = NewScope()
 	indexerName := config.GetString("index")
 	if indexerName == "" {
 		fmt.Print(noIndexError)
 		os.Exit(1)
 	}
 	selector := newIndexerSelector(indexerName)
-	ixrObj, err := facade.Scope.CreateAggregateForCategories(config, selector, cats)
+	ixrObj, err := facade.LoadedIndexes.CreateAggregateForCategories(config, selector, cats)
 	if err != nil {
-		log.Errorf("Could not find Indexer `%s`.\n", indexerName)
+		log.Errorf("Could not find Index `%s`.\n", indexerName)
 		return nil
 	}
-	facade.Config = config
-	facade.Indexer = ixrObj
+	facade.Index = ixrObj
 	return &facade
 }
 
 // Search using a given query. The search covers only 1 page.
 func (th *Facade) Search(searchContext search.Instance, query *search.Query) (search.Instance, error) {
-	srch, err := th.Indexer.Search(query, searchContext)
+	srch, err := th.Index.Search(query, searchContext)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +120,7 @@ func (th *Facade) SearchKeywordsWithCategory(searchContext search.Instance, quer
 	qrobj := search.ParseQueryString(query)
 	qrobj.Page = page
 	qrobj.Categories = []int{cat.ID}
-	srch, err := th.Indexer.Search(qrobj, searchContext)
+	srch, err := th.Index.Search(qrobj, searchContext)
 	if err != nil {
 		return nil, err
 	}

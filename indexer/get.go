@@ -29,7 +29,7 @@ func Get(facade *Facade, query *search.Query) error {
 	}
 
 	for page = 0; page < pagesToFetch; page++ {
-		log.Infof("Getting page %d", page)
+		log.Infof("Fetching page %d", page)
 		var err error
 		searchInstance, err = facade.Search(searchInstance, query)
 		if searchInstance == nil {

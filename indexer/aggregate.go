@@ -54,7 +54,7 @@ func (ag *Aggregate) GetDefinition() *Definition {
 }
 
 func (ag *Aggregate) Open(scrapeItem search.ResultItemBase) (*ResponseProxy, error) {
-	// Find the Indexer
+	// Find the Index
 	scrapeItemRoot := scrapeItem.AsScrapeItem()
 	for _, ixr := range ag.Indexers {
 		nfo := ixr.Info()
@@ -62,7 +62,7 @@ func (ag *Aggregate) Open(scrapeItem search.ResultItemBase) (*ResponseProxy, err
 			return ixr.Open(scrapeItem)
 		}
 	}
-	return nil, errors.New("couldn't find Indexer")
+	return nil, errors.New("couldn't find Index")
 }
 
 // MaxSearchPages returns the maximum number of pages that this aggregate can search, this is using the maximum paged index in the aggregate.
@@ -115,11 +115,11 @@ func (ag *Aggregate) HealthCheck() error {
 	errorGroup := errgroup.Group{}
 	for _, ixr := range ag.Indexers {
 		indexerID := ixr.Info().GetID()
-		// Run the Indexer in a goroutine
+		// Run the Index in a goroutine
 		errorGroup.Go(func() error {
 			err := ixr.HealthCheck()
 			if err != nil {
-				log.Warnf("Indexer %q failed: %s", indexerID, err)
+				log.Warnf("Index %q failed: %s", indexerID, err)
 				return nil
 			}
 			return nil
@@ -152,7 +152,7 @@ func (ag *Aggregate) Search(query *search.Query, searchInstance search.Instance)
 		return nil, errors.New("no indexesCollection are set for this aggregate")
 	}
 	for idx, pIndexer := range ag.Indexers {
-		// Run the Indexer in a goroutine
+		// Run the Index in a goroutine
 		i, pIndex := idx, pIndexer
 		if len(pIndexer.Errors()) > 0 {
 			log.WithFields(log.Fields{"index": pIndexer}).Debug("Skipping index because it has errors")
@@ -161,11 +161,11 @@ func (ag *Aggregate) Search(query *search.Query, searchInstance search.Instance)
 		errorGroup.Go(func() error {
 			indexID := pIndex.Info().GetID()
 			indexSearch := aggregatedSearch.SearchContexts[&pIndex]
-			log.WithFields(log.Fields{"Indexer": indexID}).
+			log.WithFields(log.Fields{"Index": indexID}).
 				Debug("Aggregate index search")
 			resultingSearch, err := pIndex.Search(query, indexSearch)
 			if err != nil {
-				log.Warnf("Indexer %q failed: %s", indexID, err)
+				log.Warnf("Index %q failed: %s", indexID, err)
 				return nil
 			}
 			aggregatedSearch.SearchContexts[&pIndex] = resultingSearch
@@ -223,7 +223,7 @@ func (a *AggregateInfo) GetLink() string {
 }
 
 func (a *AggregateInfo) GetTitle() string {
-	return "Aggregated Indexer"
+	return "Aggregated Index"
 }
 
 func (a *AggregateInfo) GetID() string {

@@ -72,7 +72,7 @@ func (ml MultipleDefinitionLoader) Load(key string) (*Definition, error) {
 		}
 		loaded, err := loader.Load(key)
 		if err != nil {
-			log.Debugf("Couldn't load the Indexer `%s` using %s. Error : %s\n", key, loader, err)
+			log.Debugf("Couldn't load the Index `%s` using %s. Error : %s\n", key, loader, err)
 			continue
 		}
 		// If it's newer than our last one
@@ -82,7 +82,7 @@ func (ml MultipleDefinitionLoader) Load(key string) (*Definition, error) {
 	}
 
 	if def == nil {
-		log.Infof("No loaders managed to load Indexer `%s` from any of these locations: \n", key)
+		log.Infof("No loaders managed to load Index `%s` from any of these locations: \n", key)
 		for _, ldr := range ml {
 			log.Infof("%s\n", ldr)
 		}

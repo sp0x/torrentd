@@ -32,7 +32,7 @@ func (u *URLContext) GetFullURL(partialURL string) (string, error) {
 		return partialURL, nil
 	}
 
-	// Get the baseURL url of the Indexer
+	// Get the baseURL url of the Index
 	if u.baseURL == nil {
 		return "", errors.New("base url is nil")
 	}

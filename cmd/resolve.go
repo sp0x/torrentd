@@ -21,12 +21,11 @@ func init() {
 }
 
 func resolveTorrents(_ *cobra.Command, _ []string) {
-	helper := indexer.NewFacadeFromConfiguration(&appConfig)
-	if helper == nil {
-		log.Error("Couldn't initialize helper.")
+	facade := indexer.NewFacadeFromConfiguration(&appConfig)
+	if facade == nil {
+		log.Error("Couldn't initialize facade.")
 		return
 	}
-	config := helper.Config
-	index := helper.Indexer
-	torrent.ResolveTorrents(index, config)
+	index := facade.Index
+	torrent.ResolveTorrents(index, &appConfig)
 }

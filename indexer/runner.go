@@ -104,7 +104,7 @@ func NewRunnerByNameOrSelector(indexerName string, config config.Config) (Indexe
 		return nil, err
 	}
 
-	log.WithFields(log.Fields{"Indexer": indexerName}).Debugf("Loaded Indexer")
+	log.WithFields(log.Fields{"Index": indexerName}).Debugf("Loaded Index")
 	indexer := NewRunner(def, RunnerOpts{
 		Config: config,
 	})
@@ -311,7 +311,7 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 	if err != nil {
 		return searchInstance, err
 	}
-	// Get the indexCategories for this query based on the Indexer
+	// Get the indexCategories for this query based on the Index
 
 	// Context about the search
 	if searchInstance == nil {
@@ -357,7 +357,7 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 
 	r.logger.
 		WithFields(log.Fields{
-			"Indexer": r.definition.Site,
+			"Index": r.definition.Site,
 			"search":  runCtx.Search.String(),
 			"q":       query.Keywords(),
 			"time":    time.Since(timer),
@@ -407,7 +407,7 @@ func (r *Runner) resolveItemCategory(query *search.Query, localCats []string, it
 			return false
 		}
 	}
-	// Try to map the category from the Indexer to the global indexCategories
+	// Try to map the category from the Index to the global indexCategories
 	r.populateCategory(item)
 	return !series.IsSeriesAndNotMatching(query, torrentItem)
 }
@@ -451,8 +451,8 @@ func (r *Runner) extractSearchTarget(query *search.Query, localCats []string, co
 	}
 	r.logger.
 		WithFields(log.Fields{"query": query.Encode()}).
-		Debugf("Searching Indexer")
-	// Get our Indexer url values
+		Debugf("Searching Index")
+	// Get our Index url values
 	vals, err := r.extractURLValues(templateData)
 	if err != nil {
 		return nil, err

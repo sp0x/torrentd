@@ -76,6 +76,6 @@ func TestServer_downloadHandler(t *testing.T) {
 	scopeMock.EXPECT().Lookup(gomock.Any(), "rutracker.org").Return(mockedIndexer, nil)
 	mockedIndexer.EXPECT().Download(tkn.Link).Return(downloadResult, nil)
 
-	s.indexerFacade.Scope = scopeMock
+	s.indexerFacade.LoadedIndexes = scopeMock
 	s.downloadHandler(context)
 }

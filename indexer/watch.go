@@ -16,7 +16,7 @@ func GetAllPagesFromIndex(facade *Facade, query *search.Query) <-chan search.Res
 	}
 	go func() {
 		var currentSearch search.Instance
-		maxPages := facade.Indexer.MaxSearchPages()
+		maxPages := facade.Index.MaxSearchPages()
 		for {
 			var err error
 			if currentSearch == nil {
@@ -59,7 +59,7 @@ func Watch(facade *Facade, initialQuery *search.Query, intervalSec int) <-chan s
 	go func() {
 		var currentSearch search.Instance
 		startingPage := initialQuery.Page
-		maxPages := facade.Indexer.MaxSearchPages()
+		maxPages := facade.Index.MaxSearchPages()
 		// Go over all pages
 		for {
 			var err error

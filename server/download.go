@@ -27,10 +27,10 @@ func (s *Server) downloadHandler(c http.Context) {
 		return
 	}
 	if t.Link == "" {
-		c.String(404, "Indexer link not found")
+		c.String(404, "Index link not found")
 		return
 	}
-	index, err := s.indexerFacade.Scope.Lookup(s.config, t.IndexName)
+	index, err := s.indexerFacade.LoadedIndexes.Lookup(s.config, t.IndexName)
 	if err != nil {
 		_ = c.Error(err)
 		return

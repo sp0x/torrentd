@@ -14,7 +14,7 @@ func TestCachedScope_CreateAggregate_ShouldNotHang(t *testing.T) {
 	timeout := time.After(30 * time.Second)
 	done := make(chan struct{})
 	facade := Facade{}
-	facade.Scope = NewScope()
+	facade.LoadedIndexes = NewScope()
 	cfg := &config.ViperConfig{}
 	_ = cfg.Set("db", tempfile())
 	_ = cfg.Set("storage", "boltdb")
@@ -22,7 +22,7 @@ func TestCachedScope_CreateAggregate_ShouldNotHang(t *testing.T) {
 	var err error
 
 	go func() {
-		aggregate, err = facade.Scope.CreateAggregate(cfg, nil)
+		aggregate, err = facade.LoadedIndexes.CreateAggregate(cfg, nil)
 		g.Expect(err).To(gomega.BeNil())
 		close(done)
 	}()

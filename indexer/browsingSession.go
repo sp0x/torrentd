@@ -132,7 +132,7 @@ func (l *BrowsingSession) extractLoginInput() (map[string]string, error) {
 	result := map[string]string{}
 	loginUrl, _ := l.urlContext.GetFullURL(l.loginBlock.Path)
 
-	// Get configuration for the Indexer so we can login
+	// Get configuration for the Index so we can login
 	ctx := struct {
 		Config map[string]string
 	}{
