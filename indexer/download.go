@@ -3,6 +3,8 @@ package indexer
 import (
 	"bytes"
 	"fmt"
+	"github.com/sp0x/torrentd/indexer/source"
+	"github.com/sp0x/torrentd/indexer/source/web"
 	"io"
 
 	"github.com/sirupsen/logrus"
@@ -18,33 +20,37 @@ func (r *Runner) downloadsNeedResolution() bool {
 }
 
 func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, error) {
-	r.createBrowser()
-	_ = r.session.setup()
+	_, _ = r.session.aquire()
 	scrapeItem := scrapeResultItem.AsScrapeItem()
 	sourceLink := scrapeItem.SourceLink
 	// If the download needs to be resolved
 	if scrapeItem.SourceLink == "" || r.downloadsNeedResolution() {
 		// Resolve the url
 		downloadItem := r.failingSearchFields["download"]
-		err := r.contentFetcher.FetchURL(scrapeItem.Link)
+		result, err := r.contentFetcher.Fetch(source.NewFetchOptions(scrapeItem.Link))
 		if err != nil {
 			return nil, err
 		}
-		scrapeItem := &DomScrapeItem{r.browser.Dom()}
-		downloadLink, err := r.extractField(scrapeItem, &downloadItem)
-		if err != nil {
-			return nil, nil
+		if html, ok := result.(*web.HTMLFetchResult); ok {
+			scrapeItem := NewDOMScrape(html.DOM)
+			downloadLink, err := r.extractField(scrapeItem, &downloadItem)
+			if err != nil {
+				return nil, nil
+			}
+			sourceLink = firstString(downloadLink)
 		}
-		sourceLink = firstString(downloadLink)
 	}
 	urlContext, _ := r.GetURLContext()
 	fullURL, err := urlContext.GetFullURL(sourceLink)
 	if err != nil {
 		return nil, err
 	}
-	browserClone := r.browser.NewTab()
-	browserClone.SetEncoding("")
-	if err := browserClone.Open(fullURL); err != nil {
+
+	cf := r.contentFetcher.Clone()
+	if err := cf.Open(&source.FetchOptions{
+		NoEncoding: true,
+		URL:        fullURL,
+	}); err != nil {
 		return nil, err
 	}
 
@@ -61,11 +67,11 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 				fmt.Printf("%v", errx)
 			}
 		}()
-		if !r.keepSessions {
-			defer r.releaseBrowser()
-		}
+		//if !r.keepSessions {
+		//	defer r.releaseBrowser()
+		//}
 		downloadBuffer := bytes.NewBuffer([]byte{})
-		n, err := browserClone.Download(downloadBuffer)
+		n, err := cf.Download(downloadBuffer)
 		if err != nil {
 			r.logger.Errorf("Error downloading: %v", err)
 		} else {

@@ -3,7 +3,6 @@ package indexer
 import (
 	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -87,12 +86,12 @@ func (ag *Aggregate) SearchIsSinglePaged() bool {
 	return true
 }
 
-func (ag *Aggregate) ProcessRequest(req *http.Request) (*http.Response, error) {
-	for _, indexer := range ag.Indexers {
-		return indexer.ProcessRequest(req)
-	}
-	return nil, nil
-}
+//func (ag *Aggregate) ProcessRequest(req *http.Request) (*http.Response, error) {
+//	for _, indexer := range ag.Indexers {
+//		return indexer.ProcessRequest(req)
+//	}
+//	return nil, nil
+//}
 
 func (ag *Aggregate) GetEncoding() string {
 	for _, indexer := range ag.Indexers {

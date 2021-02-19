@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sp0x/surf/jar"
-	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/source/web"
 	"net/url"
 
@@ -25,6 +24,11 @@ const (
 	LoggedIn
 )
 
+type BrowsingSessionMultiplexer struct {
+	sessions []*BrowsingSession
+	index    int
+}
+
 type BrowsingSession struct {
 	loginBlock     loginBlock
 	state          LoginState
@@ -35,6 +39,29 @@ type BrowsingSession struct {
 	statusReporter *StatusReporter
 }
 
+func NewSessionMultiplexer(runner *Runner, sessionCount int) (*BrowsingSessionMultiplexer, error) {
+	mux := &BrowsingSessionMultiplexer{}
+	mux.sessions = make([]*BrowsingSession, sessionCount)
+	for i := 0; i < sessionCount; i++ {
+		session, err := newIndexSessionFromRunner(runner)
+		if err != nil {
+			return nil, err
+		}
+		mux.sessions[i] = session
+	}
+	return mux, nil
+}
+
+func (b *BrowsingSessionMultiplexer) aquire() (*BrowsingSession, error) {
+	session := b.sessions[b.index%len(b.sessions)]
+	b.index++
+	if err := session.setup(); err != nil {
+		return nil, err
+	} else {
+		return session, nil
+	}
+}
+
 func newIndexSessionFromRunner(runner *Runner) (*BrowsingSession, error) {
 	urlContext, err := runner.GetURLContext()
 	if err != nil {
@@ -42,8 +69,12 @@ func newIndexSessionFromRunner(runner *Runner) (*BrowsingSession, error) {
 	}
 	definition := runner.definition
 	webFetcher := runner.contentFetcher.(*web.Fetcher)
-	browsingSession := newIndexSessionWithLogin(definition.Name,
-		runner.options.Config,
+	siteConfig, err := runner.options.Config.GetSite(definition.Name)
+	if err != nil {
+		return nil, err
+	}
+	browsingSession := newIndexSessionWithLogin(
+		siteConfig,
 		runner.statusReporter,
 		webFetcher,
 		urlContext,
@@ -51,12 +82,11 @@ func newIndexSessionFromRunner(runner *Runner) (*BrowsingSession, error) {
 	return browsingSession, nil
 }
 
-func newIndexSessionWithLogin(site string, cfg config.Config,
+func newIndexSessionWithLogin(siteConfig map[string]string,
 	statusReporter *StatusReporter,
 	contentFetcher *web.Fetcher,
 	urlContext *URLContext,
 	loginBlock loginBlock) *BrowsingSession {
-	siteConfig, _ := cfg.GetSite(site)
 
 	lc := &BrowsingSession{}
 	lc.loginBlock = loginBlock
@@ -95,7 +125,7 @@ func (l *BrowsingSession) verifyLogin() (bool, error) {
 			return false, err
 		}
 
-		_, err = l.contentFetcher.Fetch(source.NewTarget(testURL))
+		_, err = l.contentFetcher.Fetch(source.NewFetchOptions(testURL))
 		if err != nil {
 			// r.logger.WithError(err).Warn("Failed to open page")
 			return false, nil
@@ -162,8 +192,11 @@ func (l *BrowsingSession) initLogin() error {
 	if err != nil {
 		return err
 	}
-
-	return l.contentFetcher.FetchURL(initURL)
+	_, err = l.contentFetcher.Fetch(&source.FetchOptions{
+		Method: "get",
+		URL:    initURL,
+	})
+	return err
 }
 
 func (l *BrowsingSession) login() error {
@@ -241,7 +274,8 @@ func (l *BrowsingSession) loginViaCookie(loginURL string, cookie string) error {
 }
 
 func (l *BrowsingSession) loginViaForm(loginURL, formSelector string, vals map[string]string) error {
-	if err := l.contentFetcher.FetchURL(loginURL); err != nil {
+	_, err := l.contentFetcher.Fetch(&source.FetchOptions{Method: "get", URL: loginURL})
+	if err != nil {
 		return err
 	}
 

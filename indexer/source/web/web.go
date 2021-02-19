@@ -3,6 +3,7 @@ package web
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -25,18 +26,13 @@ type Fetcher struct {
 	Browser            browser.Browsable
 	Cacher             ContentCacher
 	ConnectivityTester cache.ConnectivityTester
-	options            FetchOptions
-}
-
-type FetchOptions struct {
-	ShouldDumpData bool
-	FakeReferer    bool
+	options            source.FetchOptions
 }
 
 func NewWebContentFetcher(browser browser.Browsable,
 	contentCache ContentCacher,
 	connectivityTester cache.ConnectivityTester,
-	options FetchOptions) source.ContentFetcher {
+	options source.FetchOptions) source.ContentFetcher {
 	if connectivityTester == nil {
 		panic("a connectivity tester is required")
 	}
@@ -51,23 +47,31 @@ func NewWebContentFetcher(browser browser.Browsable,
 
 type ContentCacher interface {
 	CachePage(browsable browser.Browsable) error
+	IsCacheable() bool
 }
 
 func (w *Fetcher) Cleanup() {
 	w.Browser.HistoryJar().Clear()
+	w.ConnectivityTester.ClearBrowser()
 }
 
-func (w *Fetcher) FetchURL(url string) error {
-	target := source.SearchTarget{URL: url}
-	err := w.get(target.URL)
-	if err != nil {
-		w.ConnectivityTester.Invalidate(target.URL)
-	}
-	return err
-}
+//func (w *Fetcher) Get(url string) error {
+//	target := source.FetchOptions{URL: url}
+//	err := w.get(target.URL)
+//	if err != nil {
+//		w.ConnectivityTester.Invalidate(target.URL)
+//	}
+//	switch value := result.(type) {
+//	case *web.HTMLFetchResult:
+//		return r.getRowsFromDom(value.DOM.First(), runCtx)
+//	case *web.JSONFetchResult:
+//		return r.getRowsFromJSON(value.Body)
+//	}
+//	return err
+//}
 
 // Gets the content from which we'll extract the search results
-func (w *Fetcher) Fetch(target *source.SearchTarget) (source.FetchResult, error) {
+func (w *Fetcher) Fetch(target *source.FetchOptions) (source.FetchResult, error) {
 	if target == nil {
 		return nil, errors.New("target is required for searching")
 	}
@@ -125,7 +129,7 @@ func extractResponseResult(browser browser.Browsable) source.FetchResult {
 
 	return &HTMLFetchResult{
 		HTTPResult: rootFetchResult,
-		Dom:        state.Dom,
+		DOM:        state.Dom,
 	}
 }
 
@@ -136,7 +140,7 @@ func (w *Fetcher) get(targetURL string) error {
 	if err != nil {
 		return err
 	}
-	if w.Cacher != nil {
+	if w.Cacher != nil && w.Cacher.IsCacheable() {
 		_ = w.Cacher.CachePage(w.Browser.NewTab())
 	}
 
@@ -153,6 +157,24 @@ func (w *Fetcher) get(targetURL string) error {
 func (w *Fetcher) URL() *url.URL {
 	browserUrl := w.Browser.Url()
 	return browserUrl
+}
+
+func (w *Fetcher) Clone() source.ContentFetcher {
+	f := &Fetcher{}
+	*f = *w
+	f.Browser = f.Browser.NewTab()
+	return f
+}
+
+func (w *Fetcher) Open(opts *source.FetchOptions) error {
+	if opts.Encoding != "" || opts.NoEncoding {
+		w.Browser.SetEncoding(opts.Encoding)
+	}
+	return w.Browser.Open(opts.URL)
+}
+
+func (w *Fetcher) Download(buffer io.Writer) (int64, error) {
+	return w.Browser.Download(buffer)
 }
 
 func (w *Fetcher) Post(urlStr string, data url.Values, log bool) error {

@@ -22,7 +22,7 @@ func (fr *HTTPResult) Encoding() string {
 
 type HTMLFetchResult struct {
 	HTTPResult
-	Dom *goquery.Document
+	DOM *goquery.Document
 }
 
 type JSONFetchResult struct {

@@ -10,6 +10,10 @@ import (
 	"github.com/sp0x/torrentd/config"
 )
 
+func (r *Runner) IsCacheable() bool {
+	return r.options.CachePages
+}
+
 // If caching is enabled, we cache the page's contents in our pagecache
 // the current browser page is cached
 func (r *Runner) CachePage(browsable browser.Browsable) error {

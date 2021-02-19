@@ -1,12 +1,10 @@
 package indexer
 
 import (
-	"io"
-	"net/http"
-
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage"
 	"github.com/sp0x/torrentd/torznab"
+	"io"
 )
 
 type Info interface {
@@ -29,7 +27,7 @@ type Indexer interface {
 	Download(urlStr string) (*ResponseProxy, error)
 	Capabilities() torznab.Capabilities
 	GetEncoding() string
-	ProcessRequest(req *http.Request) (*http.Response, error)
+	//ProcessRequest(req *http.Request) (*http.Response, error)
 	Open(s search.ResultItemBase) (*ResponseProxy, error)
 	// HealthCheck if the Indexer works.
 	// This might be needed to validate the search result extraction.

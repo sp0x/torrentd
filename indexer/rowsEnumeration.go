@@ -170,6 +170,10 @@ type DomScrapeItem struct {
 	selection *goquery.Selection
 }
 
+func NewDOMScrape(DOM *goquery.Document) *DomScrapeItem{
+	return &DomScrapeItem{DOM.First()}
+}
+
 func (d *DomScrapeItem) FindWithSelector(block *selectorBlock) RawScrapeItem {
 	return &DomScrapeItem{selection: d.selection.Find(block.Selector)}
 }
@@ -232,7 +236,7 @@ func (d *DomScrapeItem) Remove() RawScrapeItem {
 func (r *Runner) getRows(result source.FetchResult, runCtx *RunContext) (RawScrapeItems, error) {
 	switch value := result.(type) {
 	case *web.HTMLFetchResult:
-		return r.getRowsFromDom(value.Dom.First(), runCtx)
+		return r.getRowsFromDom(value.DOM.First(), runCtx)
 	case *web.JSONFetchResult:
 		return r.getRowsFromJSON(value.Body)
 	}

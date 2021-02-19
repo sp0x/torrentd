@@ -73,16 +73,16 @@ var (
 //	//	contentFetcher.EXPECT().Fetch(gomock.Any()).
 //	//		Times(1).
 //	//		Return(errors.New("couldn't connect")).
-//	//		Do(func(target *source.SearchTarget) {
+//	//		Do(func(target *source.FetchOptions) {
 //	//			dom, _ := goquery.NewDocumentFromReader(strings.NewReader(`
 //	//<div>b<div class="a">d<a href="/lol">sd</a></div></div>
 //	//<div class="b"><a>val1</a><p>parrot</p></div>`))
-//	//			fakeState := &jar.State{Dom: dom}
+//	//			fakeState := &jar.State{DOM: dom}
 //	//			runner.browser.SetState(fakeState)
 //	//		})
 //
 //	dom, _ := goquery.NewDocumentFromReader(strings.NewReader(`<div></div>`))
-//	mockedBrowser.SetState(&jar.State{Dom: dom})
+//	mockedBrowser.SetState(&jar.State{DOM: dom})
 //	_, err := runner.Search(emptyQuery, nil)
 //	g.Expect(err).ToNot(gomega.BeNil())
 //	//The connectivity tester should remember that that url is bad
@@ -94,11 +94,11 @@ var (
 //	contentFetcher.EXPECT().Fetch(gomock.Any()).
 //		Times(1).
 //		Return(nil).
-//		Do(func(target *source.SearchTarget) {
+//		Do(func(target *source.FetchOptions) {
 //			dom, _ := goquery.NewDocumentFromReader(strings.NewReader(`
 //<div>b<div class="a">d<a href="/lol">sd</a></div></div>
 //<div class="b"><a>val1</a><p>parrot</p></div>`))
-//			fakeState := &jar.State{Dom: dom}
+//			fakeState := &jar.State{DOM: dom}
 //			runner.browser.SetState(fakeState)
 //		})
 //	runner.contentFetcher = contentFetcher
@@ -137,7 +137,7 @@ func TestRunner_Search(t *testing.T) {
 	contentFetcher.EXPECT().Fetch(gomock.Any()).
 		AnyTimes().
 		Return(nil).
-		Do(func(target *source.SearchTarget) {
+		Do(func(target *source.FetchOptions) {
 			dom, _ := goquery.NewDocumentFromReader(strings.NewReader(`
 <div>b<div class="a">d<a href="/lol">sd</a></div></div>
 <div class="b"><a>val1</a><p>parrot</p></div>`))
@@ -245,7 +245,7 @@ func Test_ShouldUseUniqueIndexes(t *testing.T) {
 	runner.contentFetcher = contentFetcher
 	contentFetcher.EXPECT().Fetch(gomock.Any()).
 		Return(nil).
-		Do(func(target *source.SearchTarget) {
+		Do(func(target *source.FetchOptions) {
 			dom, _ := goquery.NewDocumentFromReader(strings.NewReader(`
 <div>b<div class="a">d<a href="/lol">sd</a></div></div>
 <div class="b"><a>val1</a><p>parrot</p></div>`))

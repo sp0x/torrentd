@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/sp0x/torrentd/indexer/source"
 	"net"
 	"net/http"
 	"os"
@@ -61,13 +62,13 @@ func (r *Runner) createTransport() (http.RoundTripper, error) {
 	return &t, nil
 }
 
-func (r *Runner) createBrowser() *browser.Browser {
-	if r.keepSessions {
-		// No need to recreate browsers if we're keeping the session
-		if r.browser != nil {
-			return nil
-		}
-	}
+func (r *Runner) createContentFetcher() source.ContentFetcher {
+	//if r.keepSessions {
+	//	// No need to recreate browsers if we're keeping the session
+	//	if r.browser != nil {
+	//		return nil
+	//	}
+	//}
 	r.browserLock.Lock()
 
 	if r.cookies == nil {
@@ -101,22 +102,22 @@ func (r *Runner) createBrowser() *browser.Browser {
 	default:
 		panic("Unknown value for DEBUG_HTTP")
 	}
-	fetchOptions := web.FetchOptions{
+	fetchOptions := source.FetchOptions{
 		ShouldDumpData: viper.GetBool("dump"),
 		FakeReferer:    true,
 	}
-	r.connectivityTester.SetBrowser(bow)
-	r.contentFetcher = web.NewWebContentFetcher(bow, r, r.connectivityTester, fetchOptions)
-	r.browser = bow
-	return bow
+	//r.connectivityTester.SetBrowser(bow)
+	contentFetcher := web.NewWebContentFetcher(bow, r, r.connectivityTester, fetchOptions)
+	//r.browser = bow
+	return contentFetcher
 }
 
 func (r *Runner) releaseBrowser() {
-	r.browser = nil
+	//r.browser = nil
 	if r.contentFetcher != nil {
 		r.contentFetcher.Cleanup()
 	}
 	r.contentFetcher = nil
-	r.connectivityTester.ClearBrowser()
-	r.browserLock.Unlock()
+	//r.connectivityTester.ClearBrowser()
+	//r.browserLock.Unlock()
 }

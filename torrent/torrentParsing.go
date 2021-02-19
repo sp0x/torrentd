@@ -2,15 +2,12 @@ package torrent
 
 import (
 	"bytes"
-	"context"
 	"crypto/sha1"
 	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/jackpal/bencode-go"
@@ -36,22 +33,18 @@ func ParseTorrentFromStream(stream io.ReadCloser) (*Definition, error) {
 }
 
 func ParseTorrentFromURL(h *indexer.Facade, torrentURL string) (*Definition, error) {
-	ctx := context.Background()
-	req, err := http.NewRequestWithContext(ctx, "GET", torrentURL, nil)
+	respProxy, err := h.Index.Download(torrentURL)
 	if err != nil {
 		return nil, err
 	}
-	res, err := h.Index.ProcessRequest(req)
+
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
+	defer respProxy.Reader.Close()
+	body, err := ioutil.ReadAll(respProxy.Reader)
 	if err != nil {
 		return nil, err
-	}
-	if res.StatusCode >= 400 {
-		return nil, errors.New(strconv.Itoa(res.StatusCode))
 	}
 	return ParseTorrent(string(body))
 }

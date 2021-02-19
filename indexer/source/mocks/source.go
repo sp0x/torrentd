@@ -98,7 +98,7 @@ func (mr *MockContentFetcherMockRecorder) Cleanup() *gomock.Call {
 }
 
 // Fetch mocks base method
-func (m *MockContentFetcher) Fetch(target *source.SearchTarget) (source.FetchResult, error) {
+func (m *MockContentFetcher) Fetch(target *source.FetchOptions) (source.FetchResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Fetch", target)
 	ret0, _ := ret[0].(source.FetchResult)
@@ -113,9 +113,9 @@ func (mr *MockContentFetcherMockRecorder) Fetch(target interface{}) *gomock.Call
 }
 
 // FetchURL mocks base method
-func (m *MockContentFetcher) FetchURL(url string) error {
+func (m *MockContentFetcher) Get(url string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FetchURL", url)
+	ret := m.ctrl.Call(m, "Get", url)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -123,7 +123,7 @@ func (m *MockContentFetcher) FetchURL(url string) error {
 // FetchURL indicates an expected call of FetchURL
 func (mr *MockContentFetcherMockRecorder) FetchURL(url interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchURL", reflect.TypeOf((*MockContentFetcher)(nil).FetchURL), url)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockContentFetcher)(nil).Get), url)
 }
 
 // Post mocks base method

@@ -13,7 +13,6 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/surf/browser"
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/categories"
@@ -45,20 +44,20 @@ type RunnerOpts struct {
 
 // Runner works index definitions in order to extract data.
 type Runner struct {
-	definition          *Definition
-	browser             browser.Browsable
-	cookies             http.CookieJar
-	options             RunnerOpts
-	logger              log.FieldLogger
-	browserLock         sync.Mutex
-	connectivityTester  cache.ConnectivityTester
-	keepSessions        bool
+	definition *Definition
+	//browser             browser.Browsable
+	cookies            http.CookieJar
+	options            RunnerOpts
+	logger             log.FieldLogger
+	browserLock        sync.Mutex
+	connectivityTester cache.ConnectivityTester
+	//keepSessions        bool
 	failingSearchFields map[string]fieldBlock
 	lastVerified        time.Time
 	contentFetcher      source.ContentFetcher
 	context             context.Context
 	errors              cache.LRUCache
-	session             *BrowsingSession
+	session             *BrowsingSessionMultiplexer
 	statusReporter      *StatusReporter
 }
 
@@ -85,12 +84,12 @@ func (r *Runner) SearchIsSinglePaged() bool {
 	return r.definition.Search.IsSinglePage()
 }
 
-func (r *Runner) ProcessRequest(req *http.Request) (*http.Response, error) {
-	st := r.browser.State()
-	st.Request = req
-	err := r.browser.Reload()
-	return st.Response, err
-}
+//func (r *Runner) ProcessRequest(req *http.Request) (*http.Response, error) {
+//	st := r.browser.State()
+//	st.Request = req
+//	err := r.browser.Reload()
+//	return st.Response, err
+//}
 
 type RunContext struct {
 	Search *search.Search
@@ -120,19 +119,23 @@ func NewRunner(def *Definition, opts RunnerOpts) *Runner {
 	connCache, _ := cache.NewOptimisticConnectivityCache()
 	errorCache, _ := cache.NewTTL(10, errorTTL)
 	indexCtx := context.Background()
+	sessionCount := opts.Config.GetInt("sessionCount")
+	if sessionCount == 0 {
+		sessionCount = 10
+	}
 	runner := &Runner{
 		options:             opts,
 		definition:          def,
 		logger:              logger.WithFields(log.Fields{"site": def.Site}),
 		connectivityTester:  connCache,
-		keepSessions:        true,
+		//keepSessions:        true,
 		failingSearchFields: make(map[string]fieldBlock),
 		context:             indexCtx,
 		errors:              errorCache,
 		statusReporter:      &StatusReporter{context: indexCtx, indexDefinition: def, errors: errorCache},
 	}
-	runner.createBrowser()
-	if session, err := newIndexSessionFromRunner(runner); err != nil {
+	//runner.createBrowser()
+	if session, err := NewSessionMultiplexer(runner, sessionCount); err != nil {
 		fmt.Printf("Couldn't create index session: %v", err)
 		os.Exit(1)
 	} else {
@@ -190,9 +193,6 @@ func (r *Runner) testURL(u string) bool {
 		err := r.connectivityTester.Test(urlx)
 		if err != nil {
 			r.logger.WithError(err).Warn("URL check failed")
-			return false
-		} else if r.browser.StatusCode() != http.StatusOK {
-			r.logger.Warn("URL returned non-ok status")
 			return false
 		}
 		return true
@@ -298,26 +298,21 @@ type scrapeContext struct {
 
 // SearchKeywords for a given torrent
 func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (search.Instance, error) {
-	r.createBrowser()
-	if !r.keepSessions {
-		defer r.releaseBrowser()
+	if searchInstance == nil {
+		return nil, errors.New("search instance is null")
 	}
+	//if !r.keepSessions {
+	//	defer r.releaseBrowser()
+	//}
 	var err error
 	// Collect errors on exit
 	defer func() { r.noteError(err) }()
 
-	// Login if it's required
-	err = r.session.setup()
+	_, err = r.session.aquire()
 	if err != nil {
 		return searchInstance, err
 	}
-	// Get the indexCategories for this query based on the Index
 
-	// Context about the search
-	if searchInstance == nil {
-		return nil, errors.New("search instance is null")
-		// searchInstance = search.NewSearch(query)
-	}
 	runCtx := RunContext{
 		Search: searchInstance.(*search.Search),
 	}
@@ -357,10 +352,10 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 
 	r.logger.
 		WithFields(log.Fields{
-			"Index": r.definition.Site,
-			"search":  runCtx.Search.String(),
-			"q":       query.Keywords(),
-			"time":    time.Since(timer),
+			"Index":  r.definition.Site,
+			"search": runCtx.Search.String(),
+			"q":      query.Keywords(),
+			"time":   time.Since(timer),
 		}).
 		Infof("Query returned %d results", len(results))
 	runCtx.Search.SetResults(results)
@@ -413,29 +408,29 @@ func (r *Runner) resolveItemCategory(query *search.Query, localCats []string, it
 }
 
 func (r *Runner) clearDom(dom *goquery.Selection) error {
-	html := r.browser.Body()
-	if after := r.definition.Search.Rows.After; after > 0 {
-		rows := dom.Find(r.definition.Search.Rows.Selector)
+	searchDef := r.definition.Search
+	if after := searchDef.Rows.After; after > 0 {
+		rows := dom.Find(searchDef.Rows.Selector)
 		for i := 0; i < rows.Length(); i += 1 + after {
 			rows.Eq(i).AppendSelection(rows.Slice(i+1, i+1+after).Find("td"))
 			rows.Slice(i+1, i+1+after).Remove()
 		}
 	}
 	// apply Remove if it exists
-	if remove := r.definition.Search.Rows.Remove; remove != "" {
-		matching := dom.Find(r.definition.Search.Rows.Selector).Filter(remove)
+	if remove := searchDef.Rows.Remove; remove != "" {
+		matching := dom.Find(searchDef.Rows.Selector).Filter(remove)
 		r.logger.
-			WithFields(log.Fields{"selector": remove, "html": html}).
+			WithFields(log.Fields{"selector": remove}).
 			Debugf("Applying remove to %d rows", matching.Length())
 		matching.Remove()
 	}
-	if r.definition.Search.Rows.Selector == "" {
+	if searchDef.Rows.Selector == "" {
 		return errors.New("no result item selector is given")
 	}
 	return nil
 }
 
-func (r *Runner) extractSearchTarget(query *search.Query, localCats []string, context RunContext) (*source.SearchTarget, error) {
+func (r *Runner) extractSearchTarget(query *search.Query, localCats []string, context RunContext) (*source.FetchOptions, error) {
 	// Exposed fields to add:
 	templateData := r.getSearchTemplateData(query, localCats, context)
 	// ApplyTo our context to the search path
@@ -457,7 +452,7 @@ func (r *Runner) extractSearchTarget(query *search.Query, localCats []string, co
 	if err != nil {
 		return nil, err
 	}
-	target := &source.SearchTarget{URL: searchURL, Values: vals, Method: r.definition.Search.Method}
+	target := &source.FetchOptions{URL: searchURL, Values: vals, Method: r.definition.Search.Method}
 	return target, nil
 }
 
@@ -537,13 +532,12 @@ func (r *Runner) Ratio() (string, error) {
 		return "unknown", nil
 	}
 
-	r.createBrowser()
-	if !r.keepSessions {
-		defer r.releaseBrowser()
-	}
+	//if !r.keepSessions {
+	//	defer r.releaseBrowser()
+	//}
 	urlContext, _ := r.GetURLContext()
 
-	if err := r.session.setup(); err != nil {
+	if _, err := r.session.aquire(); err != nil {
 		return errorValue, err
 	}
 
@@ -552,7 +546,7 @@ func (r *Runner) Ratio() (string, error) {
 		return errorValue, err
 	}
 
-	resultData, err := r.contentFetcher.Fetch(source.NewTarget(ratioURL))
+	resultData, err := r.contentFetcher.Fetch(source.NewFetchOptions(ratioURL))
 	if err != nil {
 		r.logger.WithError(err).Warn("Failed to open page")
 		return errorValue, nil
@@ -561,7 +555,7 @@ func (r *Runner) Ratio() (string, error) {
 	var ratio interface{}
 	switch value := resultData.(type) {
 	case *web.HTMLFetchResult:
-		ratio, err := r.definition.Ratio.Match(&DomScrapeItem{value.Dom.First()})
+		ratio, err := r.definition.Ratio.Match(&DomScrapeItem{value.DOM.First()})
 		if err != nil {
 			return ratio.(string), err
 		}

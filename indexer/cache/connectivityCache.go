@@ -2,6 +2,8 @@ package cache
 
 import (
 	"errors"
+	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
@@ -53,12 +55,22 @@ func (c *ConnectivityCache) IsOkAndSet(u string, f func() bool) bool {
 	return result
 }
 
+func validateBrowserCall(br browser.Browsable) error {
+	if br.StatusCode() != http.StatusOK {
+		return errors.New("returned non-ok http status code " + strconv.Itoa(br.StatusCode()))
+	}
+	return nil
+}
+
 // Test the connectivity for an url.
 func (c *ConnectivityCache) Test(u string) error {
 	if c.browser == nil {
 		return errors.New("connectivity invalidatedCache has no browser. call SetBrowser first")
 	}
 	err := c.browser.Open(u)
+	if err == nil {
+		err = validateBrowserCall(c.browser)
+	}
 	if err == nil {
 		c.cache.Add(u, Details{
 			added: time.Now(),
