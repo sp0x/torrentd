@@ -68,7 +68,7 @@ func newIndexSessionFromRunner(runner *Runner) (*BrowsingSession, error) {
 		return nil, err
 	}
 	definition := runner.definition
-	webFetcher := runner.contentFetcher.(*web.Fetcher)
+	webFetcher := createContentFetcher(runner).(*web.Fetcher) // contentFetcher.(*web.Fetcher)
 	siteConfig, err := runner.options.Config.GetSite(definition.Name)
 	if err != nil {
 		return nil, err

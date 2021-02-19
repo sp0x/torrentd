@@ -134,6 +134,7 @@ func NewRunner(def *Definition, opts RunnerOpts) *Runner {
 		errors:              errorCache,
 		statusReporter:      &StatusReporter{context: indexCtx, indexDefinition: def, errors: errorCache},
 	}
+	runner.contentFetcher = createContentFetcher(runner)
 	//runner.createBrowser()
 	if session, err := NewSessionMultiplexer(runner, sessionCount); err != nil {
 		fmt.Printf("Couldn't create index session: %v", err)

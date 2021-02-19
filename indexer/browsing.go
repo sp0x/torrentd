@@ -62,7 +62,7 @@ func (r *Runner) createTransport() (http.RoundTripper, error) {
 	return &t, nil
 }
 
-func (r *Runner) createContentFetcher() source.ContentFetcher {
+func createContentFetcher(r *Runner) source.ContentFetcher {
 	//if r.keepSessions {
 	//	// No need to recreate browsers if we're keeping the session
 	//	if r.browser != nil {
@@ -112,12 +112,12 @@ func (r *Runner) createContentFetcher() source.ContentFetcher {
 	return contentFetcher
 }
 
-func (r *Runner) releaseBrowser() {
-	//r.browser = nil
-	if r.contentFetcher != nil {
-		r.contentFetcher.Cleanup()
-	}
-	r.contentFetcher = nil
-	//r.connectivityTester.ClearBrowser()
-	//r.browserLock.Unlock()
-}
+//func (r *Runner) releaseBrowser() {
+//	//r.browser = nil
+//	if r.contentFetcher != nil {
+//		r.contentFetcher.Cleanup()
+//	}
+//	r.contentFetcher = nil
+//	//r.connectivityTester.ClearBrowser()
+//	//r.browserLock.Unlock()
+//}
