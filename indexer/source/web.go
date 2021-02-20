@@ -174,20 +174,7 @@ func (w *Fetcher) applyOptions(reqOptions *RequestOptions) {
 		})
 	}
 	if reqOptions.CookieJar != nil {
-		log.Info("Old cookies: ")
-		printCookies(reqOptions.URL, w.Browser.CookieJar())
-		log.Info("[_____________________________________________________]")
-		log.Info("New cookies:")
 		w.Browser.SetCookieJar(reqOptions.CookieJar)
-		printCookies(reqOptions.URL, w.Browser.CookieJar())
-		log.Info("[_____________________________________________________]")
-	}
-}
-
-func printCookies(reqURL string, cookies http.CookieJar){
-	urlx, _ := url.Parse(reqURL)
-	for _, cookie := range cookies.Cookies(urlx) {
-		log.Infof("%v: %v", cookie.Name, cookie.Value)
 	}
 }
 

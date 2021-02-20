@@ -30,7 +30,7 @@ type BrowsingSessionMultiplexer struct {
 }
 
 type BrowsingSession struct {
-	loginBlock     loginBlock
+	loginBlock     *loginBlock
 	state          LoginState
 	urlContext     *URLContext
 	contentFetcher *source.Fetcher
@@ -93,7 +93,7 @@ func newIndexSessionFromRunner(runner *Runner) (*BrowsingSession, error) {
 		runner.statusReporter,
 		webFetcher,
 		urlContext,
-		definition.Login)
+		&definition.Login)
 	return browsingSession, nil
 }
 
@@ -101,7 +101,7 @@ func newIndexSessionWithLogin(siteConfig map[string]string,
 	statusReporter *StatusReporter,
 	contentFetcher *source.Fetcher,
 	urlContext *URLContext,
-	loginBlock loginBlock) *BrowsingSession {
+	loginBlock *loginBlock) *BrowsingSession {
 
 	lc := &BrowsingSession{}
 	lc.loginBlock = loginBlock
