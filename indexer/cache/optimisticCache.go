@@ -2,14 +2,14 @@ package cache
 
 import (
 	"errors"
+	"github.com/sp0x/torrentd/indexer/source"
 	"sync"
 	"time"
-
-	"github.com/sp0x/surf/browser"
 )
 
-func NewOptimisticConnectivityCache() (*OptimisticConnectivityCache, error) {
+func NewOptimisticConnectivityCache(fetcher source.ContentFetcher) (*OptimisticConnectivityCache, error) {
 	c := &OptimisticConnectivityCache{}
+	c.fetcher = fetcher
 	cache, err := NewThreadSafeWithEvict(10000, nil)
 	if err != nil {
 		return nil, err
@@ -22,7 +22,7 @@ func NewOptimisticConnectivityCache() (*OptimisticConnectivityCache, error) {
 This invalidatedCache should return true from the start, and only start working if the items have been non-present.
 */
 type OptimisticConnectivityCache struct {
-	browser browser.Browsable
+	fetcher source.ContentFetcher
 	lock    sync.RWMutex
 	// invalidatedCache   map[string]Details
 	invalidatedCache LRUCache
@@ -57,12 +57,12 @@ func (c *OptimisticConnectivityCache) IsOkAndSet(u string, f func() bool) bool {
 
 // Test the connectivity for an url.
 func (c *OptimisticConnectivityCache) Test(u string) error {
-	if c.browser == nil {
+	if c.fetcher == nil {
 		return errors.New("connectivity invalidatedCache has no browser. call SetBrowser first")
 	}
-	err := c.browser.Open(u)
+	result, err := c.fetcher.Open(&source.RequestOptions{URL: u})
 	if err == nil {
-		err = validateBrowserCall(c.browser)
+		err = validateBrowserCall(result)
 	}
 	// If the url can be opened, we remove the invalid state.
 	if err == nil {
@@ -71,10 +71,6 @@ func (c *OptimisticConnectivityCache) Test(u string) error {
 	return err
 }
 
-func (c *OptimisticConnectivityCache) SetBrowser(bow browser.Browsable) {
-	c.browser = bow
-}
-
-func (c *OptimisticConnectivityCache) ClearBrowser() {
-	c.browser = nil
+func (c *OptimisticConnectivityCache) SetBrowser(fetcher source.ContentFetcher) {
+	c.fetcher = fetcher
 }

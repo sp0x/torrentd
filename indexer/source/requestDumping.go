@@ -57,7 +57,7 @@ func (d *dumpData) Write() {
 	}
 }
 
-func (w *Fetcher) dumpFetchData() {
+func (w *WebClient) dumpFetchData() {
 	if !w.options.ShouldDumpData {
 		return
 	}

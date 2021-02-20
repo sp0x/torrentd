@@ -59,7 +59,7 @@ func (r *Runner) createTransport() (http.RoundTripper, error) {
 	return &t, nil
 }
 
-func createContentFetcher(r *Runner) *source.Fetcher {
+func createContentFetcher(r *Runner) *source.WebClient {
 	bow := surf.NewBrowser()
 	bow.SetUserAgent(agent.Firefox())
 	bow.SetEncoding(r.definition.Encoding)
@@ -90,8 +90,7 @@ func createContentFetcher(r *Runner) *source.Fetcher {
 		ShouldDumpData: viper.GetBool("dump"),
 		FakeReferer:    true,
 	}
-	//r.connectivityTester.SetBrowser(bow)
-	contentFetcher := source.NewWebContentFetcher(bow, r, r.connectivityTester, fetchOptions)
+	contentFetcher := source.NewWebContentFetcher(bow, r, fetchOptions)
 	return contentFetcher
 }
 

@@ -48,10 +48,6 @@ func (u *URLContext) GetFullURL(partialURL string) (string, error) {
 
 func (r *Runner) GetURLContext() (*URLContext, error) {
 	urlc := &URLContext{}
-	//if u := r.browser.Url(); u != nil {
-	//	urlc.baseURL = u
-	//	return urlc, nil
-	//}
 	configURL, ok, _ := r.options.Config.GetSiteOption(r.definition.Site, "url")
 	if ok && r.testURL(configURL) {
 		resolved, _ := url.Parse(configURL)

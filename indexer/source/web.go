@@ -12,8 +12,6 @@ import (
 	"strings"
 
 	"github.com/sp0x/surf/browser"
-
-	"github.com/sp0x/torrentd/indexer/cache"
 )
 
 const (
@@ -21,31 +19,24 @@ const (
 	searchMethodGet  = "get"
 )
 
-// Fetcher is a content fetcher that deals with the state of sources
-type Fetcher struct {
-	Browser            browser.Browsable
-	Cacher             ContentCacher
-	ConnectivityTester cache.ConnectivityTester
-	options            FetchOptions
+// WebClient is a content fetcher that deals with the state of sources
+type WebClient struct {
+	Browser browser.Browsable
+	Cacher  ContentCacher
+	options FetchOptions
+	ErrorHandler func(options *RequestOptions)
 }
 
 func NewWebContentFetcher(browser browser.Browsable,
 	contentCache ContentCacher,
-	connectivityTester cache.ConnectivityTester,
-	options FetchOptions) *Fetcher {
-	if connectivityTester == nil {
-		panic("a connectivity tester is required")
-	}
+	options FetchOptions) *WebClient {
 
-	cookies := jar.NewMemoryCookies()
-	browser.SetCookieJar(cookies)
-	browser.CookieJar()
-	return &Fetcher{
+	browser.SetCookieJar(jar.NewMemoryCookies())
+	return &WebClient{
 		Browser: browser,
 		// We'll use the indexer to cache content.
-		Cacher:             contentCache,
-		ConnectivityTester: connectivityTester,
-		options:            options,
+		Cacher:  contentCache,
+		options: options,
 	}
 }
 
@@ -54,12 +45,11 @@ type ContentCacher interface {
 	IsCacheable() bool
 }
 
-func (w *Fetcher) Cleanup() {
+func (w *WebClient) Cleanup() {
 	w.Browser.HistoryJar().Clear()
-	w.ConnectivityTester.ClearBrowser()
 }
 
-//func (w *Fetcher) Get(url string) error {
+//func (w *WebClient) Get(url string) error {
 //	target := source.FetchOptions{URL: url}
 //	err := w.get(target.URL)
 //	if err != nil {
@@ -75,7 +65,7 @@ func (w *Fetcher) Cleanup() {
 //}
 
 // Gets the content from which we'll extract the search results
-func (w *Fetcher) Fetch(target *RequestOptions) (FetchResult, error) {
+func (w *WebClient) Fetch(target *RequestOptions) (FetchResult, error) {
 	if target == nil {
 		return nil, errors.New("target is required for searching")
 	}
@@ -90,12 +80,16 @@ func (w *Fetcher) Fetch(target *RequestOptions) (FetchResult, error) {
 			target.URL = fmt.Sprintf("%s?%s", target.URL, target.Values.Encode())
 		}
 		if err = w.get(target); err != nil {
-			w.ConnectivityTester.Invalidate(target.URL)
+			if w.ErrorHandler != nil {
+				w.ErrorHandler(target)
+			}
 			return nil, err
 		}
 	case searchMethodPost:
 		if err = w.Post(target); err != nil {
-			w.ConnectivityTester.Invalidate(target.URL)
+			if w.ErrorHandler != nil {
+				w.ErrorHandler(target)
+			}
 			return nil, err
 		}
 
@@ -122,6 +116,7 @@ func extractResponseResult(browser browser.Browsable) FetchResult {
 		contentType: contentSplit[0],
 		encoding:    contentEncoding,
 		Response:    state.Response,
+		StatusCode:  state.Response.StatusCode,
 	}
 
 	if contentSplit[0] == "application/json" {
@@ -137,12 +132,9 @@ func extractResponseResult(browser browser.Browsable) FetchResult {
 	}
 }
 
-func (w *Fetcher) get(reqOptions *RequestOptions) error {
-	targetURL := reqOptions.URL
-	log.WithField("target", targetURL).
-		Debug("Opening page")
+func (w *WebClient) get(reqOptions *RequestOptions) error {
 	w.applyOptions(reqOptions)
-	err := w.Browser.Open(targetURL)
+	err := w.Browser.Open(reqOptions.URL)
 	if err != nil {
 		return err
 	}
@@ -154,13 +146,15 @@ func (w *Fetcher) get(reqOptions *RequestOptions) error {
 		WithFields(log.Fields{"code": w.Browser.StatusCode(), "page": w.Browser.Url()}).
 		Debugf("Finished request")
 	if err = w.handleMetaRefreshHeader(reqOptions); err != nil {
-		w.ConnectivityTester.Invalidate(targetURL)
+		if w.ErrorHandler != nil {
+			w.ErrorHandler(reqOptions)
+		}
 		return err
 	}
 	return nil
 }
 
-func (w *Fetcher) applyOptions(reqOptions *RequestOptions) {
+func (w *WebClient) applyOptions(reqOptions *RequestOptions) {
 	referer := ""
 	if w.options.FakeReferer && reqOptions.Referer == nil {
 		referer = reqOptions.URL
@@ -178,30 +172,34 @@ func (w *Fetcher) applyOptions(reqOptions *RequestOptions) {
 	}
 }
 
-func (w *Fetcher) URL() *url.URL {
+func (w *WebClient) URL() *url.URL {
 	browserUrl := w.Browser.Url()
 	return browserUrl
 }
 
-func (w *Fetcher) Clone() ContentFetcher {
-	f := &Fetcher{}
+func (w *WebClient) Clone() ContentFetcher {
+	f := &WebClient{}
 	*f = *w
 	f.Browser = f.Browser.NewTab()
 	return f
 }
 
-func (w *Fetcher) Open(opts *RequestOptions) error {
+func (w *WebClient) Open(opts *RequestOptions) (FetchResult, error) {
 	if opts.Encoding != "" || opts.NoEncoding {
 		w.Browser.SetEncoding(opts.Encoding)
 	}
-	return w.Browser.Open(opts.URL)
+	err := w.Browser.Open(opts.URL)
+	if err != nil {
+		return nil, err
+	}
+	return extractResponseResult(w.Browser), nil
 }
 
-func (w *Fetcher) Download(buffer io.Writer) (int64, error) {
+func (w *WebClient) Download(buffer io.Writer) (int64, error) {
 	return w.Browser.Download(buffer)
 }
 
-func (w *Fetcher) Post(reqOps *RequestOptions) error {
+func (w *WebClient) Post(reqOps *RequestOptions) error {
 	urlStr := reqOps.URL
 	values := reqOps.Values
 
@@ -214,14 +212,13 @@ func (w *Fetcher) Post(reqOps *RequestOptions) error {
 	}
 
 	if err := w.handleMetaRefreshHeader(reqOps); err != nil {
-		w.ConnectivityTester.Invalidate(urlStr)
 		return err
 	}
 	w.dumpFetchData()
 	return nil
 }
 
-//func (w *Fetcher) fakeBrowserReferer(urlStr string) {
+//func (w *WebClient) fakeBrowserReferer(urlStr string) {
 //	state := w.Browser.State()
 //	refURL, _ := url.Parse(urlStr)
 //	if state.Request == nil {
@@ -235,7 +232,7 @@ func (w *Fetcher) Post(reqOps *RequestOptions) error {
 
 // this should eventually upstream into surf browser
 // Handle a header like: Refresh: 0;url=my_view_page.php
-func (w *Fetcher) handleMetaRefreshHeader(reqOptions *RequestOptions) error {
+func (w *WebClient) handleMetaRefreshHeader(reqOptions *RequestOptions) error {
 	h := w.Browser.ResponseHeaders()
 	if refresh := h.Get("Refresh"); refresh != "" {
 		requestURL := w.Browser.State().Request.URL
@@ -248,7 +245,9 @@ func (w *Fetcher) handleMetaRefreshHeader(reqOptions *RequestOptions) error {
 
 			err := w.get(reqOptions)
 			if err != nil {
-				w.ConnectivityTester.Invalidate(requestURL.String())
+				if w.ErrorHandler != nil {
+					w.ErrorHandler(reqOptions)
+				}
 			}
 			return err
 		}

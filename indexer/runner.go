@@ -51,7 +51,7 @@ type Runner struct {
 	//keepSessions        bool
 	failingSearchFields map[string]fieldBlock
 	lastVerified        time.Time
-	contentFetcher      source.ContentFetcher
+	contentFetcher      *source.WebClient
 	context             context.Context
 	errors              cache.LRUCache
 	sessions            *BrowsingSessionMultiplexer
@@ -111,9 +111,7 @@ func NewRunnerByNameOrSelector(indexerName string, config config.Config) (Indexe
 func NewRunner(def *Definition, opts RunnerOpts) *Runner {
 	logger := log.New()
 	logger.Level = log.GetLevel()
-	// connCache, _ := cache.NewConnectivityCache()
 	// Use an optimistic cache instead.
-	connCache, _ := cache.NewOptimisticConnectivityCache()
 	errorCache, _ := cache.NewTTL(10, errorTTL)
 	indexCtx := context.Background()
 	sessionCount := opts.Config.GetInt("sessionCount")
@@ -121,10 +119,9 @@ func NewRunner(def *Definition, opts RunnerOpts) *Runner {
 		sessionCount = 10
 	}
 	runner := &Runner{
-		options:            opts,
-		definition:         def,
-		logger:             logger.WithFields(log.Fields{"site": def.Site}),
-		connectivityTester: connCache,
+		options:    opts,
+		definition: def,
+		logger:     logger.WithFields(log.Fields{"site": def.Site}),
 		//keepSessions:        true,
 		failingSearchFields: make(map[string]fieldBlock),
 		context:             indexCtx,
@@ -132,7 +129,12 @@ func NewRunner(def *Definition, opts RunnerOpts) *Runner {
 		statusReporter:      &StatusReporter{context: indexCtx, indexDefinition: def, errors: errorCache},
 	}
 	runner.contentFetcher = createContentFetcher(runner)
-	//runner.createBrowser()
+	connectivity, _ := cache.NewConnectivityCache(runner.contentFetcher)
+	runner.connectivityTester = connectivity
+	runner.contentFetcher.ErrorHandler = func(options *source.RequestOptions) {
+		connectivity.Invalidate(options.URL)
+	}
+
 	if session, err := NewSessionMultiplexer(runner, sessionCount); err != nil {
 		fmt.Printf("Couldn't create index sessions: %v", err)
 		os.Exit(1)
@@ -180,13 +182,13 @@ func getIndexStorage(indexer Indexer, conf config.Config) storage.ItemStorage {
 }
 
 // Test if the url returns a 20x response
-func (r *Runner) testURL(u string) bool {
+func (r *Runner) testURL(URL string) bool {
 	var ok bool
 	// Do this like that so it's locked.
-	if ok = r.connectivityTester.IsOkAndSet(u, func() bool {
+	if ok = r.connectivityTester.IsOkAndSet(URL, func() bool {
 		// The check would be performed only if the connectivity tester doesn't have an entry for that URL
-		urlx := u
-		r.logger.WithField("url", u).
+		urlx := URL
+		r.logger.WithField("url", URL).
 			Info("Checking connectivity to url")
 		err := r.connectivityTester.Test(urlx)
 		if err != nil {
@@ -448,11 +450,11 @@ func (r *Runner) createRequest(query *search.Query, lCategories []string, contex
 		return nil, err
 	}
 	target := &source.RequestOptions{
-		URL:     searchURL,
-		Values:  vals,
-		Method:  r.definition.Search.Method,
+		URL:    searchURL,
+		Values: vals,
+		Method: r.definition.Search.Method,
 	}
-	if session != nil{
+	if session != nil {
 		session.ApplyToRequest(target)
 	}
 	return target, nil

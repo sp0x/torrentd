@@ -2,8 +2,6 @@ package cache
 
 import (
 	"time"
-
-	"github.com/sp0x/surf/browser"
 )
 
 type Details struct {
@@ -18,7 +16,7 @@ type ConnectivityTester interface {
 	IsOk(url string) bool
 	// Test if the operation can be completed with success. If so, invalidatedCache that.
 	Test(u string) error
-	SetBrowser(bow browser.Browsable)
-	ClearBrowser()
+	//SetBrowser(bow browser.Browsable)
+	//ClearBrowser()
 	Invalidate(url string)
 }

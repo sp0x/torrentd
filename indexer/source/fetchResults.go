@@ -10,6 +10,7 @@ type HTTPResult struct {
 	contentType string
 	encoding    string
 	Response    *http.Response
+	StatusCode  int
 }
 
 func (fr *HTTPResult) ContentType() string {

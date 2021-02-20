@@ -33,7 +33,7 @@ type BrowsingSession struct {
 	loginBlock     *loginBlock
 	state          LoginState
 	urlContext     *URLContext
-	contentFetcher *source.Fetcher
+	contentFetcher *source.WebClient
 	config         map[string]string
 	logger         *logrus.Logger
 	statusReporter *StatusReporter
@@ -99,7 +99,7 @@ func newIndexSessionFromRunner(runner *Runner) (*BrowsingSession, error) {
 
 func newIndexSessionWithLogin(siteConfig map[string]string,
 	statusReporter *StatusReporter,
-	contentFetcher *source.Fetcher,
+	contentFetcher *source.WebClient,
 	urlContext *URLContext,
 	loginBlock *loginBlock) *BrowsingSession {
 

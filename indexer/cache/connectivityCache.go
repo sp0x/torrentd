@@ -2,24 +2,25 @@ package cache
 
 import (
 	"errors"
+	"github.com/sp0x/torrentd/indexer/source"
 	"net/http"
 	"strconv"
 	"sync"
 	"time"
-
-	"github.com/sp0x/surf/browser"
 )
 
 // ConnectivityCache is a invalidatedCache for URL connectivity.
 type ConnectivityCache struct {
-	browser browser.Browsable
+	//browser browser.Browsable
+	fetcher source.ContentFetcher
 	lock    sync.RWMutex
 	// invalidatedCache   map[string]Details
 	cache LRUCache
 }
 
-func NewConnectivityCache() (*ConnectivityCache, error) {
+func NewConnectivityCache(fetcher source.ContentFetcher) (*ConnectivityCache, error) {
 	c := ConnectivityCache{}
+	c.fetcher = fetcher
 	// Connection statuses are kept for 60 minutes, we keep at most 10k urls
 	cache, err := NewTTL(10000, time.Minute*60)
 	if err != nil {
@@ -55,34 +56,37 @@ func (c *ConnectivityCache) IsOkAndSet(u string, f func() bool) bool {
 	return result
 }
 
-func validateBrowserCall(br browser.Browsable) error {
-	if br.StatusCode() != http.StatusOK {
-		return errors.New("returned non-ok http status code " + strconv.Itoa(br.StatusCode()))
+func validateBrowserCall(br source.FetchResult) error {
+	if htmlResult, ok := br.(*source.HTMLFetchResult); !ok {
+		return errors.New("tried to fetch a non-html resource")
+	} else {
+		if htmlResult.HTTPResult.StatusCode != http.StatusOK {
+			return errors.New("returned non-ok http status code " + strconv.Itoa(htmlResult.HTTPResult.StatusCode))
+		}
 	}
+
 	return nil
 }
 
 // Test the connectivity for an url.
-func (c *ConnectivityCache) Test(u string) error {
-	if c.browser == nil {
+func (c *ConnectivityCache) Test(URL string) error {
+	if c.fetcher == nil {
 		return errors.New("connectivity invalidatedCache has no browser. call SetBrowser first")
 	}
-	err := c.browser.Open(u)
+	response, err := c.fetcher.Open(&source.RequestOptions{
+		URL: URL,
+	})
 	if err == nil {
-		err = validateBrowserCall(c.browser)
+		err = validateBrowserCall(response)
 	}
 	if err == nil {
-		c.cache.Add(u, Details{
+		c.cache.Add(URL, Details{
 			added: time.Now(),
 		})
 	}
 	return err
 }
 
-func (c *ConnectivityCache) SetBrowser(bow browser.Browsable) {
-	c.browser = bow
-}
-
 func (c *ConnectivityCache) ClearBrowser() {
-	c.browser = nil
+	//c.browser = nil
 }

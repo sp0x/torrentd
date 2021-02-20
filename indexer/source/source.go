@@ -40,6 +40,6 @@ type ContentFetcher interface {
 	Post(options *RequestOptions) error
 	URL() *url.URL
 	Clone() ContentFetcher
-	Open(options *RequestOptions) error
+	Open(options *RequestOptions) (FetchResult, error)
 	Download(buffer io.Writer) (int64, error)
 }

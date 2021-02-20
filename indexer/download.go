@@ -19,7 +19,10 @@ func (r *Runner) downloadsNeedResolution() bool {
 }
 
 func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, error) {
-	_, _ = r.sessions.acquire()
+	_, err := r.sessions.acquire()
+	if err != nil {
+		return nil, err
+	}
 	scrapeItem := scrapeResultItem.AsScrapeItem()
 	sourceLink := scrapeItem.SourceLink
 	// If the download needs to be resolved
@@ -46,7 +49,7 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 	}
 
 	cf := r.contentFetcher.Clone()
-	if err := cf.Open(&source.RequestOptions{
+	if _, err := cf.Open(&source.RequestOptions{
 		NoEncoding: true,
 		URL:        fullURL,
 	}); err != nil {
