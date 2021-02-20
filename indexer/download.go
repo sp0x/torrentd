@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/sp0x/torrentd/indexer/source"
-	"github.com/sp0x/torrentd/indexer/source/web"
 	"io"
 
 	"github.com/sirupsen/logrus"
@@ -20,18 +19,18 @@ func (r *Runner) downloadsNeedResolution() bool {
 }
 
 func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, error) {
-	_, _ = r.session.aquire()
+	_, _ = r.sessions.acquire()
 	scrapeItem := scrapeResultItem.AsScrapeItem()
 	sourceLink := scrapeItem.SourceLink
 	// If the download needs to be resolved
 	if scrapeItem.SourceLink == "" || r.downloadsNeedResolution() {
 		// Resolve the url
 		downloadItem := r.failingSearchFields["download"]
-		result, err := r.contentFetcher.Fetch(source.NewFetchOptions(scrapeItem.Link))
+		result, err := r.contentFetcher.Fetch(source.NewRequestOptions(scrapeItem.Link))
 		if err != nil {
 			return nil, err
 		}
-		if html, ok := result.(*web.HTMLFetchResult); ok {
+		if html, ok := result.(*source.HTMLFetchResult); ok {
 			scrapeItem := NewDOMScrape(html.DOM)
 			downloadLink, err := r.extractField(scrapeItem, &downloadItem)
 			if err != nil {
@@ -47,7 +46,7 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 	}
 
 	cf := r.contentFetcher.Clone()
-	if err := cf.Open(&source.FetchOptions{
+	if err := cf.Open(&source.RequestOptions{
 		NoEncoding: true,
 		URL:        fullURL,
 	}); err != nil {

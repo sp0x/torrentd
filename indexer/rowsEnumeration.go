@@ -9,7 +9,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 
 	"github.com/sp0x/torrentd/indexer/source"
-	"github.com/sp0x/torrentd/indexer/source/web"
 )
 
 type RawScrapeItems interface {
@@ -235,9 +234,9 @@ func (d *DomScrapeItem) Remove() RawScrapeItem {
 
 func (r *Runner) getRows(result source.FetchResult, runCtx *RunContext) (RawScrapeItems, error) {
 	switch value := result.(type) {
-	case *web.HTMLFetchResult:
+	case *source.HTMLFetchResult:
 		return r.getRowsFromDom(value.DOM.First(), runCtx)
-	case *web.JSONFetchResult:
+	case *source.JSONFetchResult:
 		return r.getRowsFromJSON(value.Body)
 	}
 	return nil, nil

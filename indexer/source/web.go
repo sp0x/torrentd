@@ -1,8 +1,9 @@
-package web
+package source
 
 import (
 	"errors"
 	"fmt"
+	"github.com/sp0x/surf/jar"
 	"io"
 	"net/http"
 	"net/url"
@@ -13,7 +14,6 @@ import (
 	"github.com/sp0x/surf/browser"
 
 	"github.com/sp0x/torrentd/indexer/cache"
-	"github.com/sp0x/torrentd/indexer/source"
 )
 
 const (
@@ -26,16 +26,20 @@ type Fetcher struct {
 	Browser            browser.Browsable
 	Cacher             ContentCacher
 	ConnectivityTester cache.ConnectivityTester
-	options            source.FetchOptions
+	options            FetchOptions
 }
 
 func NewWebContentFetcher(browser browser.Browsable,
 	contentCache ContentCacher,
 	connectivityTester cache.ConnectivityTester,
-	options source.FetchOptions) source.ContentFetcher {
+	options FetchOptions) *Fetcher {
 	if connectivityTester == nil {
 		panic("a connectivity tester is required")
 	}
+
+	cookies := jar.NewMemoryCookies()
+	browser.SetCookieJar(cookies)
+	browser.CookieJar()
 	return &Fetcher{
 		Browser: browser,
 		// We'll use the indexer to cache content.
@@ -71,7 +75,7 @@ func (w *Fetcher) Cleanup() {
 //}
 
 // Gets the content from which we'll extract the search results
-func (w *Fetcher) Fetch(target *source.FetchOptions) (source.FetchResult, error) {
+func (w *Fetcher) Fetch(target *RequestOptions) (FetchResult, error) {
 	if target == nil {
 		return nil, errors.New("target is required for searching")
 	}
@@ -85,12 +89,12 @@ func (w *Fetcher) Fetch(target *source.FetchOptions) (source.FetchResult, error)
 		if len(target.Values) > 0 {
 			target.URL = fmt.Sprintf("%s?%s", target.URL, target.Values.Encode())
 		}
-		if err = w.get(target.URL); err != nil {
+		if err = w.get(target); err != nil {
 			w.ConnectivityTester.Invalidate(target.URL)
 			return nil, err
 		}
 	case searchMethodPost:
-		if err = w.Post(target.URL, target.Values, true); err != nil {
+		if err = w.Post(target); err != nil {
 			w.ConnectivityTester.Invalidate(target.URL)
 			return nil, err
 		}
@@ -103,7 +107,7 @@ func (w *Fetcher) Fetch(target *source.FetchOptions) (source.FetchResult, error)
 	return extractResponseResult(w.Browser), nil
 }
 
-func extractResponseResult(browser browser.Browsable) source.FetchResult {
+func extractResponseResult(browser browser.Browsable) FetchResult {
 	state := browser.State()
 	if state.Response == nil {
 		return &HTTPResult{}
@@ -133,9 +137,11 @@ func extractResponseResult(browser browser.Browsable) source.FetchResult {
 	}
 }
 
-func (w *Fetcher) get(targetURL string) error {
+func (w *Fetcher) get(reqOptions *RequestOptions) error {
+	targetURL := reqOptions.URL
 	logrus.WithField("target", targetURL).
 		Debug("Opening page")
+	w.applyOptions(reqOptions)
 	err := w.Browser.Open(targetURL)
 	if err != nil {
 		return err
@@ -147,11 +153,29 @@ func (w *Fetcher) get(targetURL string) error {
 	logrus.
 		WithFields(logrus.Fields{"code": w.Browser.StatusCode(), "page": w.Browser.Url()}).
 		Debugf("Finished request")
-	if err = w.handleMetaRefreshHeader(); err != nil {
+	if err = w.handleMetaRefreshHeader(reqOptions); err != nil {
 		w.ConnectivityTester.Invalidate(targetURL)
 		return err
 	}
 	return nil
+}
+
+func (w *Fetcher) applyOptions(reqOptions *RequestOptions) {
+	referer := ""
+	if w.options.FakeReferer {
+		referer = reqOptions.URL
+	} else if reqOptions.Referer != nil {
+		referer = reqOptions.Referer.String()
+	}
+
+	if reqOptions.Referer != nil {
+		w.Browser.SetHeadersJar(http.Header{
+			"referer": []string{referer},
+		})
+	}
+	if reqOptions.CookieJar != nil {
+		w.Browser.SetCookieJar(reqOptions.CookieJar)
+	}
 }
 
 func (w *Fetcher) URL() *url.URL {
@@ -159,14 +183,14 @@ func (w *Fetcher) URL() *url.URL {
 	return browserUrl
 }
 
-func (w *Fetcher) Clone() source.ContentFetcher {
+func (w *Fetcher) Clone() ContentFetcher {
 	f := &Fetcher{}
 	*f = *w
 	f.Browser = f.Browser.NewTab()
 	return f
 }
 
-func (w *Fetcher) Open(opts *source.FetchOptions) error {
+func (w *Fetcher) Open(opts *RequestOptions) error {
 	if opts.Encoding != "" || opts.NoEncoding {
 		w.Browser.SetEncoding(opts.Encoding)
 	}
@@ -177,26 +201,19 @@ func (w *Fetcher) Download(buffer io.Writer) (int64, error) {
 	return w.Browser.Download(buffer)
 }
 
-func (w *Fetcher) Post(urlStr string, data url.Values, log bool) error {
-	if log {
-		logrus.
-			WithFields(logrus.Fields{"urlStr": urlStr, "vals": data.Encode()}).
-			Debugf("Posting to page")
-	}
-	if w.options.FakeReferer {
-		w.fakeBrowserReferer(urlStr)
-	}
-	if err := w.Browser.PostForm(urlStr, data); err != nil {
+func (w *Fetcher) Post(reqOps *RequestOptions) error {
+	urlStr := reqOps.URL
+	values :=  reqOps.Values
+
+	w.applyOptions(reqOps)
+	if err := w.Browser.PostForm(urlStr, values); err != nil {
 		return err
 	}
 	if w.Cacher != nil {
 		_ = w.Cacher.CachePage(w.Browser.NewTab())
 	}
-	logrus.
-		WithFields(logrus.Fields{"code": w.Browser.StatusCode(), "page": w.Browser.Url()}).
-		Debugf("Finished request")
 
-	if err := w.handleMetaRefreshHeader(); err != nil {
+	if err := w.handleMetaRefreshHeader(reqOps); err != nil {
 		w.ConnectivityTester.Invalidate(urlStr)
 		return err
 	}
@@ -204,30 +221,32 @@ func (w *Fetcher) Post(urlStr string, data url.Values, log bool) error {
 	return nil
 }
 
-func (w *Fetcher) fakeBrowserReferer(urlStr string) {
-	state := w.Browser.State()
-	refURL, _ := url.Parse(urlStr)
-	if state.Request == nil {
-		state.Request = &http.Request{}
-	}
-	state.Request.URL = refURL
-	if state.Response != nil {
-		state.Response.Request.URL = refURL
-	}
-}
+//func (w *Fetcher) fakeBrowserReferer(urlStr string) {
+//	state := w.Browser.State()
+//	refURL, _ := url.Parse(urlStr)
+//	if state.Request == nil {
+//		state.Request = &http.Request{}
+//	}
+//	state.Request.URL = refURL
+//	if state.Response != nil {
+//		state.Response.Request.URL = refURL
+//	}
+//}
 
 // this should eventually upstream into surf browser
 // Handle a header like: Refresh: 0;url=my_view_page.php
-func (w *Fetcher) handleMetaRefreshHeader() error {
+func (w *Fetcher) handleMetaRefreshHeader(reqOptions *RequestOptions) error {
 	h := w.Browser.ResponseHeaders()
 	if refresh := h.Get("Refresh"); refresh != "" {
 		requestURL := w.Browser.State().Request.URL
 		if s := regexp.MustCompile(`\s*;\s*`).Split(refresh, 2); len(s) == 2 {
 			logrus.
 				WithField("fields", s).
-				Debug("Found refresh header")
+				Info("Found refresh header")
 			requestURL.Path = strings.TrimPrefix(s[1], "url=")
-			err := w.get(requestURL.String())
+			reqOptions.URL = requestURL.String()
+
+			err := w.get(reqOptions)
 			if err != nil {
 				w.ConnectivityTester.Invalidate(requestURL.String())
 			}

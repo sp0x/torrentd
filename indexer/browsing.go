@@ -16,11 +16,8 @@ import (
 	"github.com/sp0x/surf"
 	"github.com/sp0x/surf/agent"
 	"github.com/sp0x/surf/browser"
-	"github.com/sp0x/surf/jar"
 	"github.com/spf13/viper"
 	"golang.org/x/net/proxy"
-
-	"github.com/sp0x/torrentd/indexer/source/web"
 )
 
 func (r *Runner) createTransport() (http.RoundTripper, error) {
@@ -62,25 +59,12 @@ func (r *Runner) createTransport() (http.RoundTripper, error) {
 	return &t, nil
 }
 
-func createContentFetcher(r *Runner) source.ContentFetcher {
-	//if r.keepSessions {
-	//	// No need to recreate browsers if we're keeping the session
-	//	if r.browser != nil {
-	//		return nil
-	//	}
-	//}
-	r.browserLock.Lock()
-
-	if r.cookies == nil {
-		r.cookies = jar.NewMemoryCookies()
-	}
-
+func createContentFetcher(r *Runner) *source.Fetcher {
 	bow := surf.NewBrowser()
 	bow.SetUserAgent(agent.Firefox())
 	bow.SetEncoding(r.definition.Encoding)
 	bow.SetAttribute(browser.SendReferer, true)
 	bow.SetAttribute(browser.MetaRefreshHandling, true)
-	bow.SetCookieJar(r.cookies)
 	bow.SetRateLimit(r.definition.RateLimit)
 
 	transport, err := r.createTransport()
@@ -107,8 +91,7 @@ func createContentFetcher(r *Runner) source.ContentFetcher {
 		FakeReferer:    true,
 	}
 	//r.connectivityTester.SetBrowser(bow)
-	contentFetcher := web.NewWebContentFetcher(bow, r, r.connectivityTester, fetchOptions)
-	//r.browser = bow
+	contentFetcher := source.NewWebContentFetcher(bow, r, r.connectivityTester, fetchOptions)
 	return contentFetcher
 }
 

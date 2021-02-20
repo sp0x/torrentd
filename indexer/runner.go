@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -19,7 +18,6 @@ import (
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/indexer/source"
 	"github.com/sp0x/torrentd/indexer/source/series"
-	"github.com/sp0x/torrentd/indexer/source/web"
 	"github.com/sp0x/torrentd/indexer/status"
 	"github.com/sp0x/torrentd/storage"
 	"github.com/sp0x/torrentd/storage/indexing"
@@ -46,10 +44,9 @@ type RunnerOpts struct {
 type Runner struct {
 	definition *Definition
 	//browser             browser.Browsable
-	cookies            http.CookieJar
-	options            RunnerOpts
-	logger             log.FieldLogger
-	browserLock        sync.Mutex
+	options RunnerOpts
+	logger  log.FieldLogger
+	//browserLock        sync.Mutex
 	connectivityTester cache.ConnectivityTester
 	//keepSessions        bool
 	failingSearchFields map[string]fieldBlock
@@ -57,7 +54,7 @@ type Runner struct {
 	contentFetcher      source.ContentFetcher
 	context             context.Context
 	errors              cache.LRUCache
-	session             *BrowsingSessionMultiplexer
+	sessions            *BrowsingSessionMultiplexer
 	statusReporter      *StatusReporter
 }
 
@@ -124,10 +121,10 @@ func NewRunner(def *Definition, opts RunnerOpts) *Runner {
 		sessionCount = 10
 	}
 	runner := &Runner{
-		options:             opts,
-		definition:          def,
-		logger:              logger.WithFields(log.Fields{"site": def.Site}),
-		connectivityTester:  connCache,
+		options:            opts,
+		definition:         def,
+		logger:             logger.WithFields(log.Fields{"site": def.Site}),
+		connectivityTester: connCache,
 		//keepSessions:        true,
 		failingSearchFields: make(map[string]fieldBlock),
 		context:             indexCtx,
@@ -137,10 +134,10 @@ func NewRunner(def *Definition, opts RunnerOpts) *Runner {
 	runner.contentFetcher = createContentFetcher(runner)
 	//runner.createBrowser()
 	if session, err := NewSessionMultiplexer(runner, sessionCount); err != nil {
-		fmt.Printf("Couldn't create index session: %v", err)
+		fmt.Printf("Couldn't create index sessions: %v", err)
 		os.Exit(1)
 	} else {
-		runner.session = session
+		runner.sessions = session
 	}
 	return runner
 }
@@ -309,7 +306,7 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 	// Collect errors on exit
 	defer func() { r.noteError(err) }()
 
-	_, err = r.session.aquire()
+	session, err := r.sessions.acquire()
 	if err != nil {
 		return searchInstance, err
 	}
@@ -319,14 +316,14 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 	}
 
 	localCats := r.getLocalCategoriesMatchingQuery(query)
-	target, err := r.extractSearchTarget(query, localCats, runCtx)
+	reqOpts, err := r.createRequest(query, localCats, runCtx, session)
 	if err != nil {
 		status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.TargetError, err, r.definition))
 		return nil, err
 	}
 	timer := time.Now()
 	// Get the content
-	fetchResult, err := r.contentFetcher.Fetch(target)
+	fetchResult, err := r.contentFetcher.Fetch(reqOpts)
 	if err != nil {
 		status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.ContentError, err, r.definition))
 		return nil, err
@@ -431,9 +428,9 @@ func (r *Runner) clearDom(dom *goquery.Selection) error {
 	return nil
 }
 
-func (r *Runner) extractSearchTarget(query *search.Query, localCats []string, context RunContext) (*source.FetchOptions, error) {
+func (r *Runner) createRequest(query *search.Query, lCategories []string, context RunContext, session *BrowsingSession) (*source.RequestOptions, error) {
 	// Exposed fields to add:
-	templateData := r.getSearchTemplateData(query, localCats, context)
+	templateData := r.getSearchTemplateData(query, lCategories, context)
 	// ApplyTo our context to the search path
 	searchURL, err := templateData.ApplyTo("search_path", r.definition.Search.Path)
 	if err != nil {
@@ -445,15 +442,19 @@ func (r *Runner) extractSearchTarget(query *search.Query, localCats []string, co
 	if err != nil {
 		return nil, err
 	}
-	r.logger.
-		WithFields(log.Fields{"query": query.Encode()}).
-		Debugf("Searching Index")
 	// Get our Index url values
 	vals, err := r.extractURLValues(templateData)
 	if err != nil {
 		return nil, err
 	}
-	target := &source.FetchOptions{URL: searchURL, Values: vals, Method: r.definition.Search.Method}
+	target := &source.RequestOptions{
+		URL:     searchURL,
+		Values:  vals,
+		Method:  r.definition.Search.Method,
+	}
+	if session != nil{
+		session.ApplyToRequest(target)
+	}
 	return target, nil
 }
 
@@ -497,10 +498,10 @@ func evalRawSearchInputs(resolvedInputValue string, r *Runner, vals url.Values) 
 }
 
 // Get the default run context
-func (r *Runner) getSearchTemplateData(query *search.Query, localCats []string, context RunContext) *SearchTemplateData {
+func (r *Runner) getSearchTemplateData(query *search.Query, lCategories []string, context RunContext) *SearchTemplateData {
 	startIndex := int(query.Page) * r.definition.Search.PageSize
 	context.Search.SetStartIndex(r, startIndex)
-	data := newSearchTemplateData(query, localCats, context)
+	data := newSearchTemplateData(query, lCategories, context)
 	return data
 }
 
@@ -538,7 +539,7 @@ func (r *Runner) Ratio() (string, error) {
 	//}
 	urlContext, _ := r.GetURLContext()
 
-	if _, err := r.session.aquire(); err != nil {
+	if _, err := r.sessions.acquire(); err != nil {
 		return errorValue, err
 	}
 
@@ -547,7 +548,7 @@ func (r *Runner) Ratio() (string, error) {
 		return errorValue, err
 	}
 
-	resultData, err := r.contentFetcher.Fetch(source.NewFetchOptions(ratioURL))
+	resultData, err := r.contentFetcher.Fetch(source.NewRequestOptions(ratioURL))
 	if err != nil {
 		r.logger.WithError(err).Warn("Failed to open page")
 		return errorValue, nil
@@ -555,7 +556,7 @@ func (r *Runner) Ratio() (string, error) {
 
 	var ratio interface{}
 	switch value := resultData.(type) {
-	case *web.HTMLFetchResult:
+	case *source.HTMLFetchResult:
 		ratio, err := r.definition.Ratio.Match(&DomScrapeItem{value.DOM.First()})
 		if err != nil {
 			return ratio.(string), err

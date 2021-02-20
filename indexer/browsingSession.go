@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sp0x/surf/jar"
-	"github.com/sp0x/torrentd/indexer/source/web"
 	"net/url"
+	"sync"
 
 	"github.com/sirupsen/logrus"
 
@@ -33,7 +33,7 @@ type BrowsingSession struct {
 	loginBlock     loginBlock
 	state          LoginState
 	urlContext     *URLContext
-	contentFetcher *web.Fetcher
+	contentFetcher *source.Fetcher
 	config         map[string]string
 	logger         *logrus.Logger
 	statusReporter *StatusReporter
@@ -42,17 +42,32 @@ type BrowsingSession struct {
 func NewSessionMultiplexer(runner *Runner, sessionCount int) (*BrowsingSessionMultiplexer, error) {
 	mux := &BrowsingSessionMultiplexer{}
 	mux.sessions = make([]*BrowsingSession, sessionCount)
+	var wg sync.WaitGroup
+	wg.Add(sessionCount)
+	var err error
+
 	for i := 0; i < sessionCount; i++ {
-		session, err := newIndexSessionFromRunner(runner)
-		if err != nil {
-			return nil, err
-		}
-		mux.sessions[i] = session
+		go func(index int) {
+			defer wg.Done()
+			if err != nil {
+				return
+			}
+			session, tmpErr := newIndexSessionFromRunner(runner)
+			if tmpErr != nil {
+				err = tmpErr
+				return
+			}
+			mux.sessions[index] = session
+		}(i)
+	}
+	wg.Wait()
+	if err != nil {
+		return nil, err
 	}
 	return mux, nil
 }
 
-func (b *BrowsingSessionMultiplexer) aquire() (*BrowsingSession, error) {
+func (b *BrowsingSessionMultiplexer) acquire() (*BrowsingSession, error) {
 	session := b.sessions[b.index%len(b.sessions)]
 	b.index++
 	if err := session.setup(); err != nil {
@@ -68,7 +83,7 @@ func newIndexSessionFromRunner(runner *Runner) (*BrowsingSession, error) {
 		return nil, err
 	}
 	definition := runner.definition
-	webFetcher := createContentFetcher(runner).(*web.Fetcher) // contentFetcher.(*web.Fetcher)
+	webFetcher := createContentFetcher(runner)
 	siteConfig, err := runner.options.Config.GetSite(definition.Name)
 	if err != nil {
 		return nil, err
@@ -84,7 +99,7 @@ func newIndexSessionFromRunner(runner *Runner) (*BrowsingSession, error) {
 
 func newIndexSessionWithLogin(siteConfig map[string]string,
 	statusReporter *StatusReporter,
-	contentFetcher *web.Fetcher,
+	contentFetcher *source.Fetcher,
 	urlContext *URLContext,
 	loginBlock loginBlock) *BrowsingSession {
 
@@ -117,6 +132,7 @@ func (l *BrowsingSession) verifyLogin() (bool, error) {
 	if testBlock.IsEmpty() {
 		return true, nil
 	}
+	var loginResult *source.HTMLFetchResult
 
 	// Go to another url if needed
 	if testBlock.Path != "" {
@@ -125,7 +141,12 @@ func (l *BrowsingSession) verifyLogin() (bool, error) {
 			return false, err
 		}
 
-		_, err = l.contentFetcher.Fetch(source.NewFetchOptions(testURL))
+		r, err := l.contentFetcher.Fetch(source.NewRequestOptions(testURL))
+		if htmlRes, ok := r.(*source.HTMLFetchResult); !ok {
+			return false, errors.New("expected html from login")
+		} else {
+			loginResult = htmlRes
+		}
 		if err != nil {
 			// r.logger.WithError(err).Warn("Failed to open page")
 			return false, nil
@@ -133,10 +154,10 @@ func (l *BrowsingSession) verifyLogin() (bool, error) {
 		fetchedAddress := l.contentFetcher.URL().String()
 
 		if testURL != fetchedAddress {
-			// r.logger.
-			//	WithFields(logrus.Fields{"wanted": testURL, "got": r.browser.Url().String()}).
-			//	Debug("Test failed, got a redirect")
 			return false, nil
+		}
+		if loginResult == nil || loginResult.DOM == nil {
+			return false, errors.New("could not get DOM for login")
 		}
 	}
 
@@ -144,20 +165,14 @@ func (l *BrowsingSession) verifyLogin() (bool, error) {
 		return false, errors.New("no URL loaded and pageTestBlock has no path")
 	}
 
-	brwsr := l.contentFetcher.Browser
-	if testBlock.Selector != "" && brwsr.Find(testBlock.Selector).Length() == 0 {
-		// body := r.browser.Body()
-		// r.logger.Debug(body)
-		// r.logger.
-		//	WithFields(logrus.Fields{"selector": p.Selector}).
-		//	Debug("Selector didn't match page")
+	if testBlock.Selector != "" && l.contentFetcher.Browser.Find(testBlock.Selector).Length() == 0 {
 		return false, nil
 	}
 
 	return true, nil
 }
 
-// extractLoginInput gets the configured input fields and vals for the login.
+// extractLoginInput gets the configured input fields and values for the login.
 func (l *BrowsingSession) extractLoginInput() (map[string]string, error) {
 	result := map[string]string{}
 	loginUrl, _ := l.urlContext.GetFullURL(l.loginBlock.Path)
@@ -192,7 +207,7 @@ func (l *BrowsingSession) initLogin() error {
 	if err != nil {
 		return err
 	}
-	_, err = l.contentFetcher.Fetch(&source.FetchOptions{
+	_, err = l.contentFetcher.Fetch(&source.RequestOptions{
 		Method: "get",
 		URL:    initURL,
 	})
@@ -243,11 +258,11 @@ func (l *BrowsingSession) login() error {
 			return &LoginError{err}
 		}
 	}
-	// HealthCheck if the login went ok
-	match, err := l.verifyLogin()
+	// Check if the login was successful
+	loggedIn, err := l.verifyLogin()
 	if err != nil {
 		return err
-	} else if !match {
+	} else if !loggedIn {
 		hasPass := loginValues["login_password"] != emptyValue
 		if _, ok := loginValues["login_password"]; !ok {
 			hasPass = false
@@ -274,7 +289,7 @@ func (l *BrowsingSession) loginViaCookie(loginURL string, cookie string) error {
 }
 
 func (l *BrowsingSession) loginViaForm(loginURL, formSelector string, vals map[string]string) error {
-	_, err := l.contentFetcher.Fetch(&source.FetchOptions{Method: "get", URL: loginURL})
+	_, err := l.contentFetcher.Fetch(&source.RequestOptions{Method: "get", URL: loginURL})
 	if err != nil {
 		return err
 	}
@@ -309,8 +324,12 @@ func (l *BrowsingSession) loginViaPost(loginURL string, vals map[string]string) 
 	for key, value := range vals {
 		data.Add(key, value)
 	}
-
-	return l.contentFetcher.Post(loginURL, data, false)
+	options := &source.RequestOptions{
+		Method: "post",
+		Values: data,
+		URL:    loginURL,
+	}
+	return l.contentFetcher.Post(options)
 }
 
 func (l *BrowsingSession) setup() error {
@@ -322,15 +341,12 @@ func (l *BrowsingSession) setup() error {
 		l.statusReporter.Error(err)
 		return err
 	}
-	match, err := l.verifyLogin()
-	if err != nil {
-		return err
-	}
-
-	if match {
-		l.state = LoggedIn
-	} else {
-		return fmt.Errorf("couldn't match login selector")
-	}
 	return nil
+}
+
+func (l *BrowsingSession) ApplyToRequest(target *source.RequestOptions) {
+	brw := l.contentFetcher.Browser
+	cookies := brw.CookieJar()
+	target.CookieJar = cookies
+	target.Referer = brw.Url()
 }
