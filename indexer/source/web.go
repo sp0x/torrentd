@@ -3,6 +3,7 @@ package source
 import (
 	"errors"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/jar"
 	"io"
 	"net/http"
@@ -10,7 +11,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/browser"
 
 	"github.com/sp0x/torrentd/indexer/cache"
@@ -139,7 +139,7 @@ func extractResponseResult(browser browser.Browsable) FetchResult {
 
 func (w *Fetcher) get(reqOptions *RequestOptions) error {
 	targetURL := reqOptions.URL
-	logrus.WithField("target", targetURL).
+	log.WithField("target", targetURL).
 		Debug("Opening page")
 	w.applyOptions(reqOptions)
 	err := w.Browser.Open(targetURL)
@@ -150,8 +150,8 @@ func (w *Fetcher) get(reqOptions *RequestOptions) error {
 		_ = w.Cacher.CachePage(w.Browser.NewTab())
 	}
 
-	logrus.
-		WithFields(logrus.Fields{"code": w.Browser.StatusCode(), "page": w.Browser.Url()}).
+	log.
+		WithFields(log.Fields{"code": w.Browser.StatusCode(), "page": w.Browser.Url()}).
 		Debugf("Finished request")
 	if err = w.handleMetaRefreshHeader(reqOptions); err != nil {
 		w.ConnectivityTester.Invalidate(targetURL)
@@ -162,19 +162,32 @@ func (w *Fetcher) get(reqOptions *RequestOptions) error {
 
 func (w *Fetcher) applyOptions(reqOptions *RequestOptions) {
 	referer := ""
-	if w.options.FakeReferer {
+	if w.options.FakeReferer && reqOptions.Referer == nil {
 		referer = reqOptions.URL
 	} else if reqOptions.Referer != nil {
 		referer = reqOptions.Referer.String()
 	}
 
-	if reqOptions.Referer != nil {
+	if referer != "" {
 		w.Browser.SetHeadersJar(http.Header{
 			"referer": []string{referer},
 		})
 	}
 	if reqOptions.CookieJar != nil {
+		log.Info("Old cookies: ")
+		printCookies(reqOptions.URL, w.Browser.CookieJar())
+		log.Info("[_____________________________________________________]")
+		log.Info("New cookies:")
 		w.Browser.SetCookieJar(reqOptions.CookieJar)
+		printCookies(reqOptions.URL, w.Browser.CookieJar())
+		log.Info("[_____________________________________________________]")
+	}
+}
+
+func printCookies(reqURL string, cookies http.CookieJar){
+	urlx, _ := url.Parse(reqURL)
+	for _, cookie := range cookies.Cookies(urlx) {
+		log.Infof("%v: %v", cookie.Name, cookie.Value)
 	}
 }
 
@@ -203,7 +216,7 @@ func (w *Fetcher) Download(buffer io.Writer) (int64, error) {
 
 func (w *Fetcher) Post(reqOps *RequestOptions) error {
 	urlStr := reqOps.URL
-	values :=  reqOps.Values
+	values := reqOps.Values
 
 	w.applyOptions(reqOps)
 	if err := w.Browser.PostForm(urlStr, values); err != nil {
@@ -240,7 +253,7 @@ func (w *Fetcher) handleMetaRefreshHeader(reqOptions *RequestOptions) error {
 	if refresh := h.Get("Refresh"); refresh != "" {
 		requestURL := w.Browser.State().Request.URL
 		if s := regexp.MustCompile(`\s*;\s*`).Split(refresh, 2); len(s) == 2 {
-			logrus.
+			log.
 				WithField("fields", s).
 				Info("Found refresh header")
 			requestURL.Path = strings.TrimPrefix(s[1], "url=")
