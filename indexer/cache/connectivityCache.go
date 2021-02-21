@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/sp0x/torrentd/indexer/source"
 	"net/http"
+	"net/url"
 	"strconv"
 	"sync"
 	"time"
@@ -36,18 +37,18 @@ func (c *ConnectivityCache) Invalidate(url string) {
 }
 
 // IsOk returns whether the invalidatedCache contains a successful response for the url
-func (c *ConnectivityCache) IsOk(url string) bool {
-	ok := c.cache.Contains(url)
+func (c *ConnectivityCache) IsOk(testURL *url.URL) bool {
+	ok := c.cache.Contains(testURL.String())
 	return ok
 }
 
 // IsOkAndSet checks if the `u` value is contained, if it's not it checks it.
 // This operation is thread safe, you can use it to modify the invalidatedCache state in the function.
-func (c *ConnectivityCache) IsOkAndSet(u string, f func() bool) bool {
+func (c *ConnectivityCache) IsOkAndSet(testURL *url.URL, f func() bool) bool {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	var result bool
-	contained := c.cache.Contains(u)
+	contained := c.cache.Contains(testURL.String())
 	if !contained {
 		result = f()
 	} else {
@@ -69,18 +70,18 @@ func validateBrowserCall(br source.FetchResult) error {
 }
 
 // Test the connectivity for an url.
-func (c *ConnectivityCache) Test(URL string) error {
+func (c *ConnectivityCache) Test(testURL *url.URL) error {
 	if c.fetcher == nil {
 		return errors.New("connectivity invalidatedCache has no browser. call SetBrowser first")
 	}
 	response, err := c.fetcher.Open(&source.RequestOptions{
-		URL: URL,
+		URL: testURL,
 	})
 	if err == nil {
 		err = validateBrowserCall(response)
 	}
 	if err == nil {
-		c.cache.Add(URL, Details{
+		c.cache.Add(testURL.String(), Details{
 			added: time.Now(),
 		})
 	}

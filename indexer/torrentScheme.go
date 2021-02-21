@@ -29,30 +29,29 @@ func (r *Runner) populateTorrentItemField(
 	nonFilteredRow map[string]string,
 	rowIdx int) bool {
 	item := itemToPopulate.(*search.TorrentResultItem)
-	urlContext, _ := r.GetURLContext()
 
 	switch key {
 	case "author":
 		item.Author = firstString(val)
 	case "details":
-		u, err := urlContext.GetFullURL(firstString(val))
+		u, err := r.urlResolver.Resolve(firstString(val))
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 			return false
 		}
 		// item.UUIDValue = u
-		item.Description = u
+		item.Description = u.String()
 		// comments is used by Sonarr for linking to
 		if item.Comments == "" {
-			item.Comments = u
+			item.Comments = u.String()
 		}
 	case "comments":
-		u, err := urlContext.GetFullURL(firstString(val))
+		u, err := r.urlResolver.Resolve(firstString(val))
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 			return false
 		}
-		item.Comments = u
+		item.Comments = u.String()
 	case "title":
 		item.Title = firstString(val)
 		if _, ok := nonFilteredRow["title"]; ok {
@@ -74,12 +73,12 @@ func (r *Runner) populateTorrentItemField(
 	case "categoryName":
 		item.LocalCategoryName = firstString(val)
 	case "magnet":
-		murl, err := urlContext.GetFullURL(firstString(val))
+		murl, err := r.urlResolver.Resolve(firstString(val))
 		if err != nil {
 			r.logger.Warningf("Couldn't resolve magnet url from value %s\n", val)
 			return false
 		}
-		item.MagnetLink = murl
+		item.MagnetLink = murl.String()
 	case "size":
 		bytes, err := humanize.ParseBytes(strings.Replace(firstString(val), ",", "", -1))
 		if err != nil {
@@ -155,11 +154,11 @@ func (r *Runner) populateTorrentItemField(
 		}
 		item.MinimumSeedTime = time.Duration(minimumseedtime) * time.Second
 	case "banner":
-		banner, err := urlContext.GetFullURL(firstString(val))
+		banner, err := r.urlResolver.Resolve(firstString(val))
 		if err != nil {
 			item.Banner = firstString(val)
 		} else {
-			item.Banner = banner
+			item.Banner = banner.String()
 		}
 	default:
 		populatedOk := r.populateScrapeItemField(&item.ScrapeResultItem, key, val, rowIdx)

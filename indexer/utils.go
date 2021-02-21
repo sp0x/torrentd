@@ -3,10 +3,78 @@ package indexer
 import (
 	"errors"
 	"fmt"
+	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/torrentd/config"
+	"github.com/sp0x/torrentd/indexer/cache"
 	"net/http"
 	"net/url"
 	"strings"
 )
+
+type URLResolver struct {
+	urls         []*url.URL
+	connectivity cache.ConnectivityTester
+	logger       *log.Logger
+}
+
+func (r *URLResolver) Resolve(partialURL string) (*url.URL, error) {
+	if isUnresolvable(partialURL) {
+		return url.Parse(partialURL)
+	}
+	for _, cURL := range r.urls {
+		baseURL := cURL
+		if r.connectivity.IsOkAndSet(baseURL, func() bool {
+			return defaultURLTester(r.connectivity, baseURL, r.logger)
+		}) {
+			return r.resolvePartial(baseURL, partialURL)
+		}
+	}
+
+	return nil, errors.New("couldn't find a working URL")
+}
+
+func isUnresolvable(partialURL string) bool {
+	if strings.HasPrefix(partialURL, "magnet:") {
+		return true
+	}
+	return false
+}
+
+func (r *URLResolver) resolvePartial(baseURL *url.URL, partialURL string) (*url.URL, error) {
+	// Get the baseURL url of the Index
+	if baseURL == nil {
+		return nil, errors.New("base url is nil")
+	}
+
+	partialURLParsed, err := url.Parse(partialURL)
+	if err != nil {
+		return nil, err
+	}
+	// Resolve the url
+	resolved := baseURL.ResolveReference(partialURLParsed)
+	return resolved, nil
+}
+
+// The check would be performed only if the connectivity tester doesn't have an entry for that URL
+func defaultURLTester(connectivity cache.ConnectivityTester, testURL *url.URL, logger *log.Logger) bool {
+	logger.WithField("url", testURL).
+		Info("Checking connectivity to url")
+	err := connectivity.Test(testURL)
+	if err != nil {
+		logger.WithError(err).Warn("URL check failed")
+		return false
+	}
+	return true
+}
+
+func NewURLResolver(urls []*url.URL, connectivity *cache.ConnectivityCache) *URLResolver {
+	resolver := &URLResolver{
+		urls:         urls,
+		connectivity: connectivity,
+		logger:       log.New(),
+	}
+	return resolver
+}
 
 func firstString(obj interface{}) string {
 	switch typedObj := obj.(type) {
@@ -22,50 +90,26 @@ func firstString(obj interface{}) string {
 	}
 }
 
-// URLContext stores a working base URL that can be used for relative lookups
-type URLContext struct {
-	baseURL *url.URL
-}
-
-func (u *URLContext) GetFullURL(partialURL string) (string, error) {
-	if strings.HasPrefix(partialURL, "magnet:") {
-		return partialURL, nil
+func newURLResolverForIndex(definition *Definition, cfg config.Config, connectivity *cache.ConnectivityCache) *URLResolver {
+	var urls []*url.URL
+	configURL, ok, _ := cfg.GetSiteOption(definition.Site, "url")
+	if ok {
+		resolved, err := url.Parse(configURL)
+		if err != nil {
+			urls = append(urls, resolved)
+		}
 	}
 
-	// Get the baseURL url of the Index
-	if u.baseURL == nil {
-		return "", errors.New("base url is nil")
-	}
-
-	partialURLParsed, err := url.Parse(partialURL)
-	if err != nil {
-		return "", err
-	}
-	// Resolve the url
-	resolved := u.baseURL.ResolveReference(partialURLParsed)
-	return resolved.String(), nil
-}
-
-func (r *Runner) GetURLContext() (*URLContext, error) {
-	urlc := &URLContext{}
-	configURL, ok, _ := r.options.Config.GetSiteOption(r.definition.Site, "url")
-	if ok && r.testURL(configURL) {
-		resolved, _ := url.Parse(configURL)
-		urlc.baseURL = resolved
-		return urlc, nil
-	}
-
-	for _, u := range r.definition.Links {
-		if u != configURL && r.testURL(u) {
+	for _, u := range definition.Links {
+		if u != configURL {
 			resolved, err := url.Parse(u)
 			if err != nil {
 				continue
 			}
-			urlc.baseURL = resolved
-			return urlc, nil
+			urls = append(urls, resolved)
 		}
 	}
-	return nil, errors.New("no working urls found")
+	return NewURLResolver(urls, connectivity) //, errors.New("no working urls found")
 }
 
 func parseCookieString(cookie string) []*http.Cookie {

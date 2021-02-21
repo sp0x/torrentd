@@ -12,7 +12,7 @@ type FetchOptions struct {
 }
 
 type RequestOptions struct {
-	URL        string
+	URL        *url.URL
 	Values     url.Values
 	Method     string
 	Encoding   string
@@ -21,9 +21,9 @@ type RequestOptions struct {
 	Referer    *url.URL
 }
 
-func NewRequestOptions(url string) *RequestOptions {
+func NewRequestOptions(destURL *url.URL) *RequestOptions {
 	return &RequestOptions{
-		URL: url,
+		URL: destURL,
 	}
 }
 
@@ -36,10 +36,10 @@ type FetchResult interface {
 type ContentFetcher interface {
 	Cleanup()
 	Fetch(target *RequestOptions) (FetchResult, error)
-	//Get(url string) error
 	Post(options *RequestOptions) error
 	URL() *url.URL
 	Clone() ContentFetcher
 	Open(options *RequestOptions) (FetchResult, error)
 	Download(buffer io.Writer) (int64, error)
+	SetErrorHandler(callback func(options *RequestOptions))
 }

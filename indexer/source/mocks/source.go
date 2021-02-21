@@ -7,6 +7,7 @@ package mocks
 import (
 	gomock "github.com/golang/mock/gomock"
 	source "github.com/sp0x/torrentd/indexer/source"
+	io "io"
 	url "net/url"
 	reflect "reflect"
 )
@@ -98,7 +99,7 @@ func (mr *MockContentFetcherMockRecorder) Cleanup() *gomock.Call {
 }
 
 // Fetch mocks base method
-func (m *MockContentFetcher) Fetch(target *source.FetchOptions) (source.FetchResult, error) {
+func (m *MockContentFetcher) Fetch(target *source.RequestOptions) (source.FetchResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Fetch", target)
 	ret0, _ := ret[0].(source.FetchResult)
@@ -112,32 +113,18 @@ func (mr *MockContentFetcherMockRecorder) Fetch(target interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Fetch", reflect.TypeOf((*MockContentFetcher)(nil).Fetch), target)
 }
 
-// FetchURL mocks base method
-func (m *MockContentFetcher) Get(url string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", url)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// FetchURL indicates an expected call of FetchURL
-func (mr *MockContentFetcherMockRecorder) FetchURL(url interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockContentFetcher)(nil).Get), url)
-}
-
 // Post mocks base method
-func (m *MockContentFetcher) Post(url string, data url.Values, log bool) error {
+func (m *MockContentFetcher) Post(options *source.RequestOptions) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Post", url, data, log)
+	ret := m.ctrl.Call(m, "Post", options)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Post indicates an expected call of Post
-func (mr *MockContentFetcherMockRecorder) Post(url, data, log interface{}) *gomock.Call {
+func (mr *MockContentFetcherMockRecorder) Post(options interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Post", reflect.TypeOf((*MockContentFetcher)(nil).Post), url, data, log)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Post", reflect.TypeOf((*MockContentFetcher)(nil).Post), options)
 }
 
 // URL mocks base method
@@ -152,4 +139,60 @@ func (m *MockContentFetcher) URL() *url.URL {
 func (mr *MockContentFetcherMockRecorder) URL() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "URL", reflect.TypeOf((*MockContentFetcher)(nil).URL))
+}
+
+// Clone mocks base method
+func (m *MockContentFetcher) Clone() source.ContentFetcher {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Clone")
+	ret0, _ := ret[0].(source.ContentFetcher)
+	return ret0
+}
+
+// Clone indicates an expected call of Clone
+func (mr *MockContentFetcherMockRecorder) Clone() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Clone", reflect.TypeOf((*MockContentFetcher)(nil).Clone))
+}
+
+// Open mocks base method
+func (m *MockContentFetcher) Open(options *source.RequestOptions) (source.FetchResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Open", options)
+	ret0, _ := ret[0].(source.FetchResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Open indicates an expected call of Open
+func (mr *MockContentFetcherMockRecorder) Open(options interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Open", reflect.TypeOf((*MockContentFetcher)(nil).Open), options)
+}
+
+// Download mocks base method
+func (m *MockContentFetcher) Download(buffer io.Writer) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Download", buffer)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Download indicates an expected call of Download
+func (mr *MockContentFetcherMockRecorder) Download(buffer interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Download", reflect.TypeOf((*MockContentFetcher)(nil).Download), buffer)
+}
+
+// SetErrorHandler mocks base method
+func (m *MockContentFetcher) SetErrorHandler(callback func(*source.RequestOptions)) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetErrorHandler", callback)
+}
+
+// SetErrorHandler indicates an expected call of SetErrorHandler
+func (mr *MockContentFetcherMockRecorder) SetErrorHandler(callback interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetErrorHandler", reflect.TypeOf((*MockContentFetcher)(nil).SetErrorHandler), callback)
 }

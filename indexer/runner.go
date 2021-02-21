@@ -42,20 +42,28 @@ type RunnerOpts struct {
 
 // Runner works index definitions in order to extract data.
 type Runner struct {
-	definition *Definition
-	//browser             browser.Browsable
-	options RunnerOpts
-	logger  log.FieldLogger
-	//browserLock        sync.Mutex
-	connectivityTester cache.ConnectivityTester
-	//keepSessions        bool
+	definition          *Definition
+	options             RunnerOpts
+	logger              log.FieldLogger
+	connectivityTester  cache.ConnectivityTester
 	failingSearchFields map[string]fieldBlock
 	lastVerified        time.Time
-	contentFetcher      *source.WebClient
+	contentFetcher      source.ContentFetcher
 	context             context.Context
 	errors              cache.LRUCache
 	sessions            *BrowsingSessionMultiplexer
 	statusReporter      *StatusReporter
+	urlResolver         *URLResolver
+}
+
+type RunContext struct {
+	Search *search.Search
+}
+
+type scrapeContext struct {
+	query           *search.Query
+	indexCategories []string
+	storage         storage.ItemStorage
 }
 
 func (r *Runner) GetDefinition() *Definition {
@@ -81,18 +89,7 @@ func (r *Runner) SearchIsSinglePaged() bool {
 	return r.definition.Search.IsSinglePage()
 }
 
-//func (r *Runner) ProcessRequest(req *http.Request) (*http.Response, error) {
-//	st := r.browser.State()
-//	st.Request = req
-//	err := r.browser.Reload()
-//	return st.Response, err
-//}
-
-type RunContext struct {
-	Search *search.Search
-}
-
-// CreateIndexer creates a new Indexer or aggregate Indexer with the given configuration.
+// NewRunnerByNameOrSelector creates a new Indexer or aggregate Indexer with the given configuration.
 func NewRunnerByNameOrSelector(indexerName string, config config.Config) (Indexer, error) {
 	def, err := Loader.Load(indexerName)
 	if err != nil {
@@ -130,10 +127,11 @@ func NewRunner(def *Definition, opts RunnerOpts) *Runner {
 	}
 	runner.contentFetcher = createContentFetcher(runner)
 	connectivity, _ := cache.NewConnectivityCache(runner.contentFetcher)
+	runner.urlResolver = newURLResolverForIndex(def, opts.Config, connectivity)
 	runner.connectivityTester = connectivity
-	runner.contentFetcher.ErrorHandler = func(options *source.RequestOptions) {
-		connectivity.Invalidate(options.URL)
-	}
+	runner.contentFetcher.SetErrorHandler(func(options *source.RequestOptions) {
+		connectivity.Invalidate(options.URL.String())
+	})
 
 	if session, err := NewSessionMultiplexer(runner, sessionCount); err != nil {
 		fmt.Printf("Couldn't create index sessions: %v", err)
@@ -169,7 +167,6 @@ func getIndexStorage(indexer Indexer, conf config.Config) storage.ItemStorage {
 			Build()
 	} else {
 		// All the results will be stored in a collection with the same name as the index.
-		// runner.Storage = storage.NewKeyedStorageWithBackingType(def.Name, runnerConfig, indexing.NewKey(), storageType)
 		itemStorage = storage.NewBuilder().
 			WithNamespace(definition.Name).
 			WithEndpoint(dbPath).
@@ -179,27 +176,6 @@ func getIndexStorage(indexer Indexer, conf config.Config) storage.ItemStorage {
 	}
 
 	return itemStorage
-}
-
-// Test if the url returns a 20x response
-func (r *Runner) testURL(URL string) bool {
-	var ok bool
-	// Do this like that so it's locked.
-	if ok = r.connectivityTester.IsOkAndSet(URL, func() bool {
-		// The check would be performed only if the connectivity tester doesn't have an entry for that URL
-		urlx := URL
-		r.logger.WithField("url", URL).
-			Info("Checking connectivity to url")
-		err := r.connectivityTester.Test(urlx)
-		if err != nil {
-			r.logger.WithError(err).Warn("URL check failed")
-			return false
-		}
-		return true
-	}); ok {
-		return true
-	}
-	return ok
 }
 
 // Capabilities gets the torznab formatted capabilities of this Indexer.
@@ -290,20 +266,11 @@ func (r *Runner) getUniqueIndex(item search.ResultItemBase) *indexing.Key {
 	return key
 }
 
-type scrapeContext struct {
-	query           *search.Query
-	indexCategories []string
-	storage         storage.ItemStorage
-}
-
 // SearchKeywords for a given torrent
 func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (search.Instance, error) {
 	if searchInstance == nil {
 		return nil, errors.New("search instance is null")
 	}
-	//if !r.keepSessions {
-	//	defer r.releaseBrowser()
-	//}
 	var err error
 	// Collect errors on exit
 	defer func() { r.noteError(err) }()
@@ -434,13 +401,12 @@ func (r *Runner) createRequest(query *search.Query, lCategories []string, contex
 	// Exposed fields to add:
 	templateData := r.getSearchTemplateData(query, lCategories, context)
 	// ApplyTo our context to the search path
-	searchURL, err := templateData.ApplyTo("search_path", r.definition.Search.Path)
+	initialSrcURL, err := templateData.ApplyTo("search_path", r.definition.Search.Path)
 	if err != nil {
 		return nil, err
 	}
 	// Resolve the search url
-	urlContext, _ := r.GetURLContext()
-	searchURL, err = urlContext.GetFullURL(searchURL)
+	searchURL, err := r.urlResolver.Resolve(initialSrcURL)
 	if err != nil {
 		return nil, err
 	}
@@ -536,16 +502,11 @@ func (r *Runner) Ratio() (string, error) {
 		return "unknown", nil
 	}
 
-	//if !r.keepSessions {
-	//	defer r.releaseBrowser()
-	//}
-	urlContext, _ := r.GetURLContext()
-
 	if _, err := r.sessions.acquire(); err != nil {
 		return errorValue, err
 	}
 
-	ratioURL, err := urlContext.GetFullURL(r.definition.Ratio.Path)
+	ratioURL, err := r.urlResolver.Resolve(r.definition.Ratio.Path)
 	if err != nil {
 		return errorValue, err
 	}

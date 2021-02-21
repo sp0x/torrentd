@@ -21,10 +21,14 @@ const (
 
 // WebClient is a content fetcher that deals with the state of sources
 type WebClient struct {
-	Browser browser.Browsable
-	Cacher  ContentCacher
-	options FetchOptions
-	ErrorHandler func(options *RequestOptions)
+	Browser      browser.Browsable
+	Cacher       ContentCacher
+	options      FetchOptions
+	errorHandler func(options *RequestOptions)
+}
+
+func (w *WebClient) SetErrorHandler(callback func(options *RequestOptions)) {
+	w.errorHandler = callback
 }
 
 func NewWebContentFetcher(browser browser.Browsable,
@@ -77,18 +81,22 @@ func (w *WebClient) Fetch(target *RequestOptions) (FetchResult, error) {
 	switch target.Method {
 	case "", searchMethodGet:
 		if len(target.Values) > 0 {
-			target.URL = fmt.Sprintf("%s?%s", target.URL, target.Values.Encode())
+			pURL, err := url.Parse(fmt.Sprintf("%s?%s", target.URL, target.Values.Encode()))
+			if err != nil {
+				return nil, err
+			}
+			target.URL = pURL
 		}
 		if err = w.get(target); err != nil {
-			if w.ErrorHandler != nil {
-				w.ErrorHandler(target)
+			if w.errorHandler != nil {
+				w.errorHandler(target)
 			}
 			return nil, err
 		}
 	case searchMethodPost:
 		if err = w.Post(target); err != nil {
-			if w.ErrorHandler != nil {
-				w.ErrorHandler(target)
+			if w.errorHandler != nil {
+				w.errorHandler(target)
 			}
 			return nil, err
 		}
@@ -134,7 +142,7 @@ func extractResponseResult(browser browser.Browsable) FetchResult {
 
 func (w *WebClient) get(reqOptions *RequestOptions) error {
 	w.applyOptions(reqOptions)
-	err := w.Browser.Open(reqOptions.URL)
+	err := w.Browser.Open(reqOptions.URL.String())
 	if err != nil {
 		return err
 	}
@@ -146,8 +154,8 @@ func (w *WebClient) get(reqOptions *RequestOptions) error {
 		WithFields(log.Fields{"code": w.Browser.StatusCode(), "page": w.Browser.Url()}).
 		Debugf("Finished request")
 	if err = w.handleMetaRefreshHeader(reqOptions); err != nil {
-		if w.ErrorHandler != nil {
-			w.ErrorHandler(reqOptions)
+		if w.errorHandler != nil {
+			w.errorHandler(reqOptions)
 		}
 		return err
 	}
@@ -157,7 +165,7 @@ func (w *WebClient) get(reqOptions *RequestOptions) error {
 func (w *WebClient) applyOptions(reqOptions *RequestOptions) {
 	referer := ""
 	if w.options.FakeReferer && reqOptions.Referer == nil {
-		referer = reqOptions.URL
+		referer = reqOptions.URL.String()
 	} else if reqOptions.Referer != nil {
 		referer = reqOptions.Referer.String()
 	}
@@ -188,7 +196,7 @@ func (w *WebClient) Open(opts *RequestOptions) (FetchResult, error) {
 	if opts.Encoding != "" || opts.NoEncoding {
 		w.Browser.SetEncoding(opts.Encoding)
 	}
-	err := w.Browser.Open(opts.URL)
+	err := w.Browser.Open(opts.URL.String())
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +212,7 @@ func (w *WebClient) Post(reqOps *RequestOptions) error {
 	values := reqOps.Values
 
 	w.applyOptions(reqOps)
-	if err := w.Browser.PostForm(urlStr, values); err != nil {
+	if err := w.Browser.PostForm(urlStr.String(), values); err != nil {
 		return err
 	}
 	if w.Cacher != nil {
@@ -241,12 +249,12 @@ func (w *WebClient) handleMetaRefreshHeader(reqOptions *RequestOptions) error {
 				WithField("fields", s).
 				Info("Found refresh header")
 			requestURL.Path = strings.TrimPrefix(s[1], "url=")
-			reqOptions.URL = requestURL.String()
+			reqOptions.URL = requestURL
 
 			err := w.get(reqOptions)
 			if err != nil {
-				if w.ErrorHandler != nil {
-					w.ErrorHandler(reqOptions)
+				if w.errorHandler != nil {
+					w.errorHandler(reqOptions)
 				}
 			}
 			return err

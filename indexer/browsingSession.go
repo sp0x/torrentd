@@ -32,13 +32,14 @@ type BrowsingSessionMultiplexer struct {
 type BrowsingSession struct {
 	loginBlock     *loginBlock
 	state          LoginState
-	urlContext     *URLContext
+	urlResolver    *URLResolver
 	contentFetcher *source.WebClient
 	config         map[string]string
 	logger         *logrus.Logger
 	statusReporter *StatusReporter
 }
 
+// NewSessionMultiplexer creates a new session multiplexer with a count of sessions
 func NewSessionMultiplexer(runner *Runner, sessionCount int) (*BrowsingSessionMultiplexer, error) {
 	mux := &BrowsingSessionMultiplexer{}
 	mux.sessions = make([]*BrowsingSession, sessionCount)
@@ -78,10 +79,6 @@ func (b *BrowsingSessionMultiplexer) acquire() (*BrowsingSession, error) {
 }
 
 func newIndexSessionFromRunner(runner *Runner) (*BrowsingSession, error) {
-	urlContext, err := runner.GetURLContext()
-	if err != nil {
-		return nil, err
-	}
 	definition := runner.definition
 	webFetcher := createContentFetcher(runner)
 	siteConfig, err := runner.options.Config.GetSite(definition.Name)
@@ -92,7 +89,7 @@ func newIndexSessionFromRunner(runner *Runner) (*BrowsingSession, error) {
 		siteConfig,
 		runner.statusReporter,
 		webFetcher,
-		urlContext,
+		runner.urlResolver,
 		&definition.Login)
 	return browsingSession, nil
 }
@@ -100,12 +97,12 @@ func newIndexSessionFromRunner(runner *Runner) (*BrowsingSession, error) {
 func newIndexSessionWithLogin(siteConfig map[string]string,
 	statusReporter *StatusReporter,
 	contentFetcher *source.WebClient,
-	urlContext *URLContext,
+	resolver *URLResolver,
 	loginBlock *loginBlock) *BrowsingSession {
 
 	lc := &BrowsingSession{}
 	lc.loginBlock = loginBlock
-	lc.urlContext = urlContext
+	lc.urlResolver = resolver
 	lc.contentFetcher = contentFetcher
 	lc.config = siteConfig
 	lc.logger = logrus.New()
@@ -136,7 +133,7 @@ func (l *BrowsingSession) verifyLogin() (bool, error) {
 
 	// Go to another url if needed
 	if testBlock.Path != "" {
-		testURL, err := l.urlContext.GetFullURL(testBlock.Path)
+		testURL, err := l.urlResolver.Resolve(testBlock.Path)
 		if err != nil {
 			return false, err
 		}
@@ -151,7 +148,7 @@ func (l *BrowsingSession) verifyLogin() (bool, error) {
 			// r.logger.WithError(err).Warn("Failed to open page")
 			return false, nil
 		}
-		fetchedAddress := l.contentFetcher.URL().String()
+		fetchedAddress := l.contentFetcher.URL()
 
 		if testURL != fetchedAddress {
 			return false, nil
@@ -175,7 +172,7 @@ func (l *BrowsingSession) verifyLogin() (bool, error) {
 // extractLoginInput gets the configured input fields and values for the login.
 func (l *BrowsingSession) extractLoginInput() (map[string]string, error) {
 	result := map[string]string{}
-	loginUrl, _ := l.urlContext.GetFullURL(l.loginBlock.Path)
+	loginUrl, _ := l.urlResolver.Resolve(l.loginBlock.Path)
 
 	// Get configuration for the Index so we can login
 	ctx := struct {
@@ -203,7 +200,7 @@ func (l *BrowsingSession) initLogin() error {
 		return nil
 	}
 
-	initURL, err := l.urlContext.GetFullURL(l.loginBlock.Init.Path)
+	initURL, err := l.urlResolver.Resolve(l.loginBlock.Init.Path)
 	if err != nil {
 		return err
 	}
@@ -215,7 +212,7 @@ func (l *BrowsingSession) initLogin() error {
 }
 
 func (l *BrowsingSession) login() error {
-	loginURL, err := l.urlContext.GetFullURL(l.loginBlock.Path)
+	loginURL, err := l.urlResolver.Resolve(l.loginBlock.Path)
 	if err != nil {
 		return err
 	}
@@ -274,21 +271,16 @@ func (l *BrowsingSession) login() error {
 	return nil
 }
 
-func (l *BrowsingSession) loginViaCookie(loginURL string, cookie string) error {
-	u, err := url.Parse(loginURL)
-	if err != nil {
-		return err
-	}
-
+func (l *BrowsingSession) loginViaCookie(loginURL *url.URL, cookie string) error {
 	cookies := parseCookieString(cookie)
 	cj := jar.NewMemoryCookies()
-	cj.SetCookies(u, cookies)
+	cj.SetCookies(loginURL, cookies)
 
 	l.contentFetcher.Browser.SetCookieJar(cj)
 	return nil
 }
 
-func (l *BrowsingSession) loginViaForm(loginURL, formSelector string, vals map[string]string) error {
+func (l *BrowsingSession) loginViaForm(loginURL *url.URL, formSelector string, vals map[string]string) error {
 	_, err := l.contentFetcher.Fetch(&source.RequestOptions{Method: "get", URL: loginURL})
 	if err != nil {
 		return err
@@ -319,7 +311,7 @@ func (l *BrowsingSession) loginViaForm(loginURL, formSelector string, vals map[s
 	return nil
 }
 
-func (l *BrowsingSession) loginViaPost(loginURL string, vals map[string]string) error {
+func (l *BrowsingSession) loginViaPost(loginURL *url.URL, vals map[string]string) error {
 	data := url.Values{}
 	for key, value := range vals {
 		data.Add(key, value)

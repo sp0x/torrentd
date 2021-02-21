@@ -6,7 +6,7 @@ package mocks
 
 import (
 	gomock "github.com/golang/mock/gomock"
-	browser "github.com/sp0x/surf/browser"
+	url "net/url"
 	reflect "reflect"
 )
 
@@ -34,69 +34,45 @@ func (m *MockConnectivityTester) EXPECT() *MockConnectivityTesterMockRecorder {
 }
 
 // IsOkAndSet mocks base method
-func (m *MockConnectivityTester) IsOkAndSet(u string, f func() bool) bool {
+func (m *MockConnectivityTester) IsOkAndSet(testURL *url.URL, f func() bool) bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsOkAndSet", u, f)
+	ret := m.ctrl.Call(m, "IsOkAndSet", testURL, f)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
 // IsOkAndSet indicates an expected call of IsOkAndSet
-func (mr *MockConnectivityTesterMockRecorder) IsOkAndSet(u, f interface{}) *gomock.Call {
+func (mr *MockConnectivityTesterMockRecorder) IsOkAndSet(testURL, f interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsOkAndSet", reflect.TypeOf((*MockConnectivityTester)(nil).IsOkAndSet), u, f)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsOkAndSet", reflect.TypeOf((*MockConnectivityTester)(nil).IsOkAndSet), testURL, f)
 }
 
 // IsOk mocks base method
-func (m *MockConnectivityTester) IsOk(url string) bool {
+func (m *MockConnectivityTester) IsOk(testURL *url.URL) bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsOk", url)
+	ret := m.ctrl.Call(m, "IsOk", testURL)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
 // IsOk indicates an expected call of IsOk
-func (mr *MockConnectivityTesterMockRecorder) IsOk(url interface{}) *gomock.Call {
+func (mr *MockConnectivityTesterMockRecorder) IsOk(testURL interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsOk", reflect.TypeOf((*MockConnectivityTester)(nil).IsOk), url)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsOk", reflect.TypeOf((*MockConnectivityTester)(nil).IsOk), testURL)
 }
 
 // Test mocks base method
-func (m *MockConnectivityTester) Test(u string) error {
+func (m *MockConnectivityTester) Test(testURL *url.URL) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Test", u)
+	ret := m.ctrl.Call(m, "Test", testURL)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Test indicates an expected call of Test
-func (mr *MockConnectivityTesterMockRecorder) Test(u interface{}) *gomock.Call {
+func (mr *MockConnectivityTesterMockRecorder) Test(testURL interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Test", reflect.TypeOf((*MockConnectivityTester)(nil).Test), u)
-}
-
-// SetBrowser mocks base method
-func (m *MockConnectivityTester) SetBrowser(bow browser.Browsable) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetBrowser", bow)
-}
-
-// SetBrowser indicates an expected call of SetBrowser
-func (mr *MockConnectivityTesterMockRecorder) SetBrowser(bow interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetBrowser", reflect.TypeOf((*MockConnectivityTester)(nil).SetBrowser), bow)
-}
-
-// ClearBrowser mocks base method
-func (m *MockConnectivityTester) ClearBrowser() {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "ClearBrowser")
-}
-
-// ClearBrowser indicates an expected call of ClearBrowser
-func (mr *MockConnectivityTesterMockRecorder) ClearBrowser() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearBrowser", reflect.TypeOf((*MockConnectivityTester)(nil).ClearBrowser))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Test", reflect.TypeOf((*MockConnectivityTester)(nil).Test), testURL)
 }
 
 // Invalidate mocks base method

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/sp0x/torrentd/indexer/source"
 	"io"
+	"net/url"
 
 	"github.com/sirupsen/logrus"
 
@@ -29,7 +30,11 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 	if scrapeItem.SourceLink == "" || r.downloadsNeedResolution() {
 		// Resolve the url
 		downloadItem := r.failingSearchFields["download"]
-		result, err := r.contentFetcher.Fetch(source.NewRequestOptions(scrapeItem.Link))
+		scrapeLink, err := url.Parse(scrapeItem.Link)
+		if err != nil {
+			return nil, err
+		}
+		result, err := r.contentFetcher.Fetch(source.NewRequestOptions(scrapeLink))
 		if err != nil {
 			return nil, err
 		}
@@ -42,8 +47,7 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 			sourceLink = firstString(downloadLink)
 		}
 	}
-	urlContext, _ := r.GetURLContext()
-	fullURL, err := urlContext.GetFullURL(sourceLink)
+	fullURL, err := r.urlResolver.Resolve(sourceLink)
 	if err != nil {
 		return nil, err
 	}

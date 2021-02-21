@@ -3,6 +3,7 @@ package cache
 import (
 	"errors"
 	"github.com/sp0x/torrentd/indexer/source"
+	"net/url"
 	"sync"
 	"time"
 )
@@ -29,7 +30,7 @@ type OptimisticConnectivityCache struct {
 }
 
 // IsOk returns whether the invalidatedCache contains a successful response for the url
-func (c *OptimisticConnectivityCache) IsOk(url string) bool {
+func (c *OptimisticConnectivityCache) IsOk(url *url.URL) bool {
 	isInvalidated := c.invalidatedCache.Contains(url)
 	return !isInvalidated
 }
@@ -43,7 +44,7 @@ func (c *OptimisticConnectivityCache) Invalidate(url string) {
 
 // IsOkAndSet checks if the `u` value is contained, if it's not it checks it.
 // This operation is thread safe, you can use it to modify the invalidatedCache state in the function.
-func (c *OptimisticConnectivityCache) IsOkAndSet(u string, f func() bool) bool {
+func (c *OptimisticConnectivityCache) IsOkAndSet(u *url.URL, f func() bool) bool {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	var result bool
@@ -56,17 +57,17 @@ func (c *OptimisticConnectivityCache) IsOkAndSet(u string, f func() bool) bool {
 }
 
 // Test the connectivity for an url.
-func (c *OptimisticConnectivityCache) Test(u string) error {
+func (c *OptimisticConnectivityCache) Test(testURL *url.URL) error {
 	if c.fetcher == nil {
 		return errors.New("connectivity invalidatedCache has no browser. call SetBrowser first")
 	}
-	result, err := c.fetcher.Open(&source.RequestOptions{URL: u})
+	result, err := c.fetcher.Open(&source.RequestOptions{URL: testURL})
 	if err == nil {
 		err = validateBrowserCall(result)
 	}
 	// If the url can be opened, we remove the invalid state.
 	if err == nil {
-		c.invalidatedCache.Remove(u)
+		c.invalidatedCache.Remove(testURL.String())
 	}
 	return err
 }

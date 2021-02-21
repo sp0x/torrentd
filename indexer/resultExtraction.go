@@ -140,25 +140,25 @@ func (r *Runner) extractItem(rowIdx int, selection RawScrapeItem, context *scrap
 
 func (r *Runner) populateScrapeItemField(item search.ResultItemBase, key string, val interface{}, rowIdx int) bool {
 	scrapeItem := item.(*search.ScrapeResultItem)
-	urlContext, _ := r.GetURLContext()
+	resolver := r.urlResolver
 	switch key {
 	case "id":
 		scrapeItem.SetLocalID(firstString(val))
 	case "download":
-		u, err := urlContext.GetFullURL(firstString(val))
+		resolvedURL, err := resolver.Resolve(firstString(val))
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 			return false
 		}
-		// item.Link = u
-		scrapeItem.SourceLink = u
+		// item.Link = resolvedURL
+		scrapeItem.SourceLink = resolvedURL.String()
 	case "link":
-		u, err := urlContext.GetFullURL(firstString(val))
+		resolvedURL, err := resolver.Resolve(firstString(val))
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable url %q in %s", rowIdx, val, key)
 			return false
 		}
-		scrapeItem.Link = u
+		scrapeItem.Link = resolvedURL.String()
 	default:
 		scrapeItem.SetField(key, val)
 	}

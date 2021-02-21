@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"net/url"
 	"time"
 )
 
@@ -12,10 +13,10 @@ type Details struct {
 type ConnectivityTester interface {
 	// IsOkAndSet checks if the `u` value is contained, if it's not it checks it.
 	// This operation should be thread safe, you can use it to modify the invalidatedCache state in the function.
-	IsOkAndSet(u string, f func() bool) bool
-	IsOk(url string) bool
+	IsOkAndSet(testURL *url.URL, f func() bool) bool
+	IsOk(testURL *url.URL) bool
 	// Test if the operation can be completed with success. If so, invalidatedCache that.
-	Test(u string) error
+	Test(testURL *url.URL) error
 	//SetBrowser(bow browser.Browsable)
 	//ClearBrowser()
 	Invalidate(url string)

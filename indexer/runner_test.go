@@ -1,15 +1,12 @@
 package indexer
 
 import (
-	"strings"
+	"net/url"
 	"testing"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/golang/mock/gomock"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/surf/jar"
-
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/cache/mocks"
@@ -114,7 +111,7 @@ func TestRunner_Search(t *testing.T) {
 	connectivityTester := mocks.NewMockConnectivityTester(ctrl)
 	contentFetcher := mocks2.NewMockContentFetcher(ctrl)
 	// The browser should be set
-	connectivityTester.EXPECT().SetBrowser(gomock.Any()).AnyTimes()
+	//connectivityTester.EXPECT().SetBrowser(gomock.Any()).AnyTimes()
 	// The correct url should be tested
 	connectivityTester.EXPECT().IsOkAndSet(runnerSiteURL, gomock.Any()).
 		Return(true).AnyTimes()
@@ -129,20 +126,18 @@ func TestRunner_Search(t *testing.T) {
 	})
 	// Patch with our mocks
 	runner.connectivityTester = connectivityTester
-	runner.createBrowser()
 	runner.contentFetcher = contentFetcher
 	// In order to use our custom content fetcher.
-	runner.keepSessions = true
 
 	contentFetcher.EXPECT().Fetch(gomock.Any()).
 		AnyTimes().
 		Return(nil).
 		Do(func(target *source.FetchOptions) {
-			dom, _ := goquery.NewDocumentFromReader(strings.NewReader(`
-<div>b<div class="a">d<a href="/lol">sd</a></div></div>
-<div class="b"><a>val1</a><p>parrot</p></div>`))
-			fakeState := &jar.State{Dom: dom}
-			runner.browser.SetState(fakeState)
+//			dom, _ := goquery.NewDocumentFromReader(strings.NewReader(`
+//<div>b<div class="a">d<a href="/lol">sd</a></div></div>
+//<div class="b"><a>val1</a><p>parrot</p></div>`))
+			//fakeState := &jar.State{Dom: dom}
+			//runner.browser.SetState(fakeState)
 		})
 
 	// Shouldn't be able to search with an index that has no urls
@@ -199,7 +194,7 @@ func Test_ShouldUseUniqueIndexes(t *testing.T) {
 	contentFetcher := mocks2.NewMockContentFetcher(ctrl)
 	connectivityTester := mocks.NewMockConnectivityTester(ctrl)
 	// The browser should be set
-	connectivityTester.EXPECT().SetBrowser(gomock.Any()).AnyTimes()
+	//connectivityTester.EXPECT().SetBrowser(gomock.Any()).AnyTimes()
 	// The correct url should be tested
 	connectivityTester.EXPECT().IsOkAndSet(runnerSiteURL, gomock.Any()).
 		Return(true).AnyTimes()
@@ -241,16 +236,15 @@ func Test_ShouldUseUniqueIndexes(t *testing.T) {
 	})
 	// Patch with our mocks
 	runner.connectivityTester = connectivityTester
-	runner.createBrowser()
 	runner.contentFetcher = contentFetcher
 	contentFetcher.EXPECT().Fetch(gomock.Any()).
 		Return(nil).
 		Do(func(target *source.FetchOptions) {
-			dom, _ := goquery.NewDocumentFromReader(strings.NewReader(`
-<div>b<div class="a">d<a href="/lol">sd</a></div></div>
-<div class="b"><a>val1</a><p>parrot</p></div>`))
-			fakeState := &jar.State{Dom: dom}
-			runner.browser.SetState(fakeState)
+//			dom, _ := goquery.NewDocumentFromReader(strings.NewReader(`
+//<div>b<div class="a">d<a href="/lol">sd</a></div></div>
+//<div class="b"><a>val1</a><p>parrot</p></div>`))
+			//fakeState := &jar.State{Dom: dom}
+			//runner.browser.SetState(fakeState)
 		})
 	srch, err := runner.Search(emptyQuery, nil)
 	g.Expect(err).To(gomega.BeNil())
@@ -262,18 +256,21 @@ func TestRunner_testURLWorks_ShouldReturnFalseIfTheUrlIsDown(t *testing.T) {
 	g := gomega.NewWithT(t)
 	r := Runner{}
 	r.logger = log.New()
-	cachedCon, _ := cache.NewConnectivityCache()
+	contentFetcher := &source.WebClient{}
+	cachedCon, _ := cache.NewConnectivityCache(contentFetcher)
 	r.connectivityTester = cachedCon
-	g.Expect(r.testURL("http://example.com")).To(gomega.BeFalse())
+	pURL, _ := url.Parse("http://example.com")
+	g.Expect(r.urlResolver.connectivity.IsOk(pURL)).To(gomega.BeFalse())
 }
 
 func TestRunner_testUrlWorks_ShouldWorkWithOptimisticCaching(t *testing.T) {
 	g := gomega.NewWithT(t)
 	r := Runner{}
 	r.logger = log.New()
-	url := "http://example.com"
-	optimisticCacheCon, _ := cache.NewOptimisticConnectivityCache()
+	pURL, _ := url.Parse("http://example.com")
+	contentFetcher := &source.WebClient{}
+	optimisticCacheCon, _ := cache.NewOptimisticConnectivityCache(contentFetcher)
 	r.connectivityTester = optimisticCacheCon
-	g.Expect(r.testURL(url)).To(gomega.BeTrue())
-	r.connectivityTester.Invalidate(url)
+	g.Expect(r.connectivityTester.IsOk(pURL)).To(gomega.BeTrue())
+	r.connectivityTester.Invalidate(pURL.String())
 }
