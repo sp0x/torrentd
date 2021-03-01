@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sp0x/surf/jar"
+	"github.com/sp0x/torrentd/indexer/templates"
 	"net/url"
+	"strings"
 	"sync"
 
 	"github.com/sirupsen/logrus"
@@ -33,7 +35,7 @@ type BrowsingSession struct {
 	loginBlock     *loginBlock
 	state          LoginState
 	urlResolver    *URLResolver
-	contentFetcher *source.WebClient
+	contentFetcher source.ContentFetcher
 	config         map[string]string
 	logger         *logrus.Logger
 	statusReporter *StatusReporter
@@ -124,7 +126,7 @@ func (l *BrowsingSession) isRequired() bool {
 	return false
 }
 
-func (l *BrowsingSession) verifyLogin() (bool, error) {
+func (l *BrowsingSession) verifyLogin(f source.FetchResult) (bool, error) {
 	testBlock := l.loginBlock.Test
 	if testBlock.IsEmpty() {
 		return true, nil
@@ -132,7 +134,7 @@ func (l *BrowsingSession) verifyLogin() (bool, error) {
 	var loginResult *source.HTMLFetchResult
 
 	// Go to another url if needed
-	if testBlock.Path != "" {
+	if testBlock.Path != "" && l.contentFetcher.URL() != nil{
 		testURL, err := l.urlResolver.Resolve(testBlock.Path)
 		if err != nil {
 			return false, err
@@ -158,11 +160,7 @@ func (l *BrowsingSession) verifyLogin() (bool, error) {
 		}
 	}
 
-	if l.contentFetcher.URL() == nil {
-		return false, errors.New("no URL loaded and pageTestBlock has no path")
-	}
-
-	if testBlock.Selector != "" && l.contentFetcher.Browser.Find(testBlock.Selector).Length() == 0 {
+ 	if testBlock.Selector != "" && f.Find(testBlock.Selector).Length() == 0 {
 		return false, nil
 	}
 
@@ -181,7 +179,7 @@ func (l *BrowsingSession) extractLoginInput() (map[string]string, error) {
 		l.config,
 	}
 	for name, val := range l.loginBlock.Inputs {
-		resolved, err := applyTemplate("login_inputs", val, ctx)
+		resolved, err := templates.ApplyTemplate("login_inputs", val, ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -211,6 +209,11 @@ func (l *BrowsingSession) initLogin() error {
 	return err
 }
 
+func parseWebMethod(s string) string {
+	s = strings.ToLower(s)
+	return s
+}
+
 func (l *BrowsingSession) login() error {
 	loginURL, err := l.urlResolver.Resolve(l.loginBlock.Path)
 	if err != nil {
@@ -228,13 +231,14 @@ func (l *BrowsingSession) login() error {
 	}
 
 	method := l.loginBlock.Method
-	switch method {
+	var loginReqResult source.FetchResult
+	switch parseWebMethod(method) {
 	case "", loginMethodForm:
-		if err = l.loginViaForm(loginURL, l.loginBlock.FormSelector, loginValues); err != nil {
+		if loginReqResult, err = l.loginViaForm(loginURL, l.loginBlock.FormSelector, loginValues); err != nil {
 			return err
 		}
 	case loginMethodPost:
-		if err = l.loginViaPost(loginURL, loginValues); err != nil {
+		if loginReqResult, err = l.loginViaPost(loginURL, loginValues); err != nil {
 			return err
 		}
 	case loginMethodCookie:
@@ -242,7 +246,7 @@ func (l *BrowsingSession) login() error {
 		if cookieVal == emptyValue {
 			return &LoginError{errors.New("no login cookie configured")}
 		}
-		if err = l.loginViaCookie(loginURL, loginValues["cookie"]); err != nil {
+		if loginReqResult, err = l.loginViaCookie(loginURL, loginValues["cookie"]); err != nil {
 			return err
 		}
 	default:
@@ -250,13 +254,13 @@ func (l *BrowsingSession) login() error {
 	}
 	// Get the error
 	if len(l.loginBlock.Error) > 0 {
-		if err = l.loginBlock.hasError(l.contentFetcher.Browser); err != nil {
+		if err = l.loginBlock.hasError(loginReqResult); err != nil {
 			l.logger.WithError(err).Error("Failed to login")
 			return &LoginError{err}
 		}
 	}
 	// Check if the login was successful
-	loggedIn, err := l.verifyLogin()
+	loggedIn, err := l.verifyLogin(loginReqResult)
 	if err != nil {
 		return err
 	} else if !loggedIn {
@@ -271,30 +275,30 @@ func (l *BrowsingSession) login() error {
 	return nil
 }
 
-func (l *BrowsingSession) loginViaCookie(loginURL *url.URL, cookie string) error {
+func (l *BrowsingSession) loginViaCookie(loginURL *url.URL, cookie string) (source.FetchResult, error) {
 	cookies := parseCookieString(cookie)
 	cj := jar.NewMemoryCookies()
 	cj.SetCookies(loginURL, cookies)
 
-	l.contentFetcher.Browser.SetCookieJar(cj)
-	return nil
+	l.contentFetcher.(*source.WebClient).Browser.SetCookieJar(cj)
+	return nil, nil
 }
 
-func (l *BrowsingSession) loginViaForm(loginURL *url.URL, formSelector string, vals map[string]string) error {
-	_, err := l.contentFetcher.Fetch(&source.RequestOptions{Method: "get", URL: loginURL})
+func (l *BrowsingSession) loginViaForm(loginURL *url.URL, formSelector string, vals map[string]string) (source.FetchResult, error) {
+	fetchResult, err := l.contentFetcher.Fetch(&source.RequestOptions{Method: "get", URL: loginURL})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	webForm, err := l.contentFetcher.Browser.Form(formSelector)
+	webForm, err := l.contentFetcher.(*source.WebClient).Browser.Form(formSelector)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	for name, value := range vals {
 		if err = webForm.Input(name, value); err != nil {
 			//r.logger.WithError(err).Error("Filling input failed")
-			return err
+			return nil, err
 		}
 	}
 
@@ -302,16 +306,16 @@ func (l *BrowsingSession) loginViaForm(loginURL *url.URL, formSelector string, v
 	// defer r.cachePage()
 	if err = webForm.Submit(); err != nil {
 		l.logger.WithError(err).Error("Login failed")
-		return err
+		return nil, err
 	}
 	//r.logger.
 	//	WithFields(logrus.Fields{"code": r.browser.StatusCode(), "page": r.browser.Url()}).
 	//	Debugf("Submitted login form")
 
-	return nil
+	return fetchResult, nil
 }
 
-func (l *BrowsingSession) loginViaPost(loginURL *url.URL, vals map[string]string) error {
+func (l *BrowsingSession) loginViaPost(loginURL *url.URL, vals map[string]string) (source.FetchResult, error) {
 	data := url.Values{}
 	for key, value := range vals {
 		data.Add(key, value)
@@ -337,7 +341,7 @@ func (l *BrowsingSession) setup() error {
 }
 
 func (l *BrowsingSession) ApplyToRequest(target *source.RequestOptions) {
-	brw := l.contentFetcher.Browser
+	brw := l.contentFetcher.(*source.WebClient).Browser
 	cookies := brw.CookieJar()
 	target.CookieJar = cookies
 	target.Referer = brw.Url()

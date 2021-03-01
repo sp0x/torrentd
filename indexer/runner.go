@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/sp0x/torrentd/indexer/utils"
 	"net/http"
 	"net/url"
 	"os"
@@ -331,7 +332,7 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 }
 
 // Goes through the scraped items and converts them to the defined data structure
-func (r *Runner) processScrapedItems(rows RawScrapeItems, rowContext *scrapeContext) []search.ResultItemBase {
+func (r *Runner) processScrapedItems(rows source.RawScrapeItems, rowContext *scrapeContext) []search.ResultItemBase {
 	var results []search.ResultItemBase
 	for i := 0; i < rows.Length(); i++ {
 		if rowContext.query.HasEnoughResults(len(results)) {
@@ -477,7 +478,7 @@ func (r *Runner) hasDateHeader() bool {
 	return !r.definition.Search.Rows.DateHeaders.IsEmpty()
 }
 
-func (r *Runner) extractDateHeader(selection RawScrapeItem) (time.Time, error) {
+func (r *Runner) extractDateHeader(selection source.RawScrapeItem) (time.Time, error) {
 	dateHeaders := r.definition.Search.Rows.DateHeaders
 
 	r.logger.
@@ -490,7 +491,7 @@ func (r *Runner) extractDateHeader(selection RawScrapeItem) (time.Time, error) {
 	}
 
 	dv, _ := dateHeaders.Text(prev.First())
-	return parseFuzzyTime(dv, time.Now(), true)
+	return utils.ParseFuzzyTime(dv, time.Now(), true)
 }
 
 func (r *Runner) Ratio() (string, error) {
@@ -520,7 +521,7 @@ func (r *Runner) Ratio() (string, error) {
 	var ratio interface{}
 	switch value := resultData.(type) {
 	case *source.HTMLFetchResult:
-		ratio, err := r.definition.Ratio.Match(&DomScrapeItem{value.DOM.First()})
+		ratio, err := r.definition.Ratio.Match(&source.DomScrapeItem{Selection: value.DOM.First()})
 		if err != nil {
 			return ratio.(string), err
 		}

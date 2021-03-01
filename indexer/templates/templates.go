@@ -1,4 +1,4 @@
-package indexer
+package templates
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 )
 
 // Evaluate a template
-func applyTemplate(name, templateText string, ctx interface{}) (string, error) {
+func ApplyTemplate(name, templateText string, ctx interface{}) (string, error) {
 	funcMap := template.FuncMap{
 		"replace": strings.Replace,
 	}

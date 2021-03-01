@@ -39,7 +39,7 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 			return nil, err
 		}
 		if html, ok := result.(*source.HTMLFetchResult); ok {
-			scrapeItem := NewDOMScrape(html.DOM)
+			scrapeItem := source.NewDOMScrapeItem(html.DOM)
 			downloadLink, err := r.extractField(scrapeItem, &downloadItem)
 			if err != nil {
 				return nil, nil

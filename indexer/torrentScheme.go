@@ -1,6 +1,8 @@
 package indexer
 
 import (
+	"github.com/sp0x/torrentd/indexer/templates"
+	"github.com/sp0x/torrentd/indexer/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -57,7 +59,7 @@ func (r *Runner) populateTorrentItemField(
 		if _, ok := nonFilteredRow["title"]; ok {
 			v := nonFilteredRow["title"]
 			if strings.Contains(v, "{{") {
-				v2, err := applyTemplate("original_title", v, row)
+				v2, err := templates.ApplyTemplate("original_title", v, row)
 				if err == nil {
 					v = v2
 				}
@@ -88,14 +90,14 @@ func (r *Runner) populateTorrentItemField(
 		// r.logger.Debugf("After parsing, size is %v", bytes)
 		item.Size = uint32(bytes)
 	case "leechers":
-		leechers, err := strconv.Atoi(normalizeNumber(firstString(val)))
+		leechers, err := strconv.Atoi(utils.NormalizeNumber(firstString(val)))
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable leechers value %q in %s", rowIdx, val, key)
 			return false
 		}
 		item.Peers += leechers
 	case "seeders":
-		seeders, err := strconv.Atoi(normalizeNumber(firstString(val)))
+		seeders, err := strconv.Atoi(utils.NormalizeNumber(firstString(val)))
 		if err != nil {
 			r.logger.Debugf("Row #%d has unparseable seeders value %q in %s", rowIdx, val, key)
 			return false
@@ -105,49 +107,49 @@ func (r *Runner) populateTorrentItemField(
 	case "authorId":
 		item.AuthorID = firstString(val)
 	case "date":
-		t, err := parseFuzzyTime(firstString(val), time.Now(), true)
+		t, err := utils.ParseFuzzyTime(firstString(val), time.Now(), true)
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable time %q in %s", rowIdx, val, key)
 			return false
 		}
 		item.PublishDate = t.Unix()
 	case "files":
-		files, err := strconv.Atoi(normalizeNumber(firstString(val)))
+		files, err := strconv.Atoi(utils.NormalizeNumber(firstString(val)))
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable files value %q in %s", rowIdx, val, key)
 			return false
 		}
 		item.Files = files
 	case "grabs":
-		grabs, err := strconv.Atoi(normalizeNumber(firstString(val)))
+		grabs, err := strconv.Atoi(utils.NormalizeNumber(firstString(val)))
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable grabs value %q in %s", rowIdx, val, key)
 			return false
 		}
 		item.Grabs = grabs
 	case "downloadvolumefactor":
-		downloadvolumefactor, err := strconv.ParseFloat(normalizeNumber(firstString(val)), 64)
+		downloadvolumefactor, err := strconv.ParseFloat(utils.NormalizeNumber(firstString(val)), 64)
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable downloadvolumefactor value %q in %s", rowIdx, val, key)
 			return false
 		}
 		item.DownloadVolumeFactor = downloadvolumefactor
 	case "uploadvolumefactor":
-		uploadvolumefactor, err := strconv.ParseFloat(normalizeNumber(firstString(val)), 64)
+		uploadvolumefactor, err := strconv.ParseFloat(utils.NormalizeNumber(firstString(val)), 64)
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable uploadvolumefactor value %q in %s", rowIdx, val, key)
 			return false
 		}
 		item.UploadVolumeFactor = uploadvolumefactor
 	case "minimumratio":
-		minimumratio, err := strconv.ParseFloat(normalizeNumber(firstString(val)), 64)
+		minimumratio, err := strconv.ParseFloat(utils.NormalizeNumber(firstString(val)), 64)
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable minimumratio value %q in %s", rowIdx, val, key)
 			return false
 		}
 		item.MinimumRatio = minimumratio
 	case "minimumseedtime":
-		minimumseedtime, err := strconv.ParseFloat(normalizeNumber(firstString(val)), 64)
+		minimumseedtime, err := strconv.ParseFloat(utils.NormalizeNumber(firstString(val)), 64)
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable minimumseedtime value %q in %s", rowIdx, val, key)
 			return false

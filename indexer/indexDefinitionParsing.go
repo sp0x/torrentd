@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
+	"github.com/sp0x/torrentd/indexer/source"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -11,7 +12,6 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"github.com/sp0x/surf/browser"
 	"gopkg.in/yaml.v2"
 
 	"github.com/sp0x/torrentd/indexer/categories"
@@ -180,26 +180,34 @@ func (e *errorBlockOrSlice) UnmarshalYAML(unmarshal func(interface{}) error) err
 }
 
 type errorBlock struct {
-	Path     string        `yaml:"path"`
-	Selector string        `yaml:"selector"`
-	Message  selectorBlock `yaml:"message"`
+	Path     string               `yaml:"path"`
+	Selector string               `yaml:"selector"`
+	Message  source.SelectorBlock `yaml:"message"`
 }
 
-func (e *errorBlock) matchPage(browser browser.Browsable) bool {
+func (e *errorBlock) matchPage(res *source.HTMLFetchResult) bool {
 	if e.Path != "" {
-		return e.Path == browser.Url().Path
+		return e.Path == res.HTTPResult.URL().Path
 	} else if e.Selector != "" {
-		return browser.Find(e.Selector).Length() > 0
+		return res.Find(e.Selector).Length() > 0
 	}
 	return false
 }
 
-func (e *errorBlock) errorText(from RawScrapeItem) (string, error) {
+func scrapeItemFromHtml(res *source.HTMLFetchResult) source.RawScrapeItem {
+	return &source.DomScrapeItem{Selection: res.DOM.First()}
+}
+
+func (e *errorBlock) errorText(from *source.HTMLFetchResult) (string, error) {
 	if !e.Message.IsEmpty() {
-		matchError, err := e.Message.Match(from)
+		matchError, err := e.Message.Match(scrapeItemFromHtml(from))
 		return matchError.(string), err
 	} else if e.Selector != "" {
-		return from.Find(e.Selector).Text(), nil
+		errs := from.Find(e.Selector)
+		if errs.Length() < 1 {
+			return "error with unmatching selector", nil
+		}
+		return errs.Get(0).Text(), nil
 	}
 	return "", errors.New("error declaration must have either Message block or Selection")
 }
@@ -234,10 +242,14 @@ func (l *loginBlock) IsEmpty() bool {
 	return l.Path == "" && l.Method == ""
 }
 
-func (l *loginBlock) hasError(browser browser.Browsable) error {
+func (l *loginBlock) hasError(res source.FetchResult) error {
+	webResult, ok := res.(*source.HTMLFetchResult)
+	if !ok {
+		return errors.New("login works only with web pages")
+	}
 	for _, e := range l.Error {
-		if e.matchPage(browser) {
-			msg, err := e.errorText(&DomScrapeItem{browser.Dom()})
+		if e.matchPage(webResult) {
+			msg, err := e.errorText(webResult)
 			if err != nil {
 				return err
 			}
@@ -258,7 +270,7 @@ func (init *initBlock) IsEmpty() bool {
 
 type fieldBlock struct {
 	Field string
-	Block selectorBlock
+	Block source.SelectorBlock
 }
 
 type fieldsListBlock []fieldBlock
@@ -276,7 +288,7 @@ func (f *fieldsListBlock) UnmarshalYAML(unmarshal func(interface{}) error) error
 		if err != nil {
 			return err
 		}
-		var sb selectorBlock
+		var sb source.SelectorBlock
 		if err = yaml.Unmarshal(b, &sb); err != nil {
 			return err
 		}
@@ -293,22 +305,22 @@ func (f *fieldsListBlock) UnmarshalYAML(unmarshal func(interface{}) error) error
 }
 
 type rowsBlock struct {
-	selectorBlock
-	After       int           `yaml:"after"`
-	Remove      string        `yaml:"remove"`
-	DateHeaders selectorBlock `yaml:"dateheaders"`
+	source.SelectorBlock
+	After       int                  `yaml:"after"`
+	Remove      string               `yaml:"remove"`
+	DateHeaders source.SelectorBlock `yaml:"dateheaders"`
 }
 
 func (r *rowsBlock) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var sb selectorBlock
+	var sb source.SelectorBlock
 	if err := unmarshal(&sb); err != nil {
 		return errors.New("failed to unmarshal rowsBlock")
 	}
 
 	var rb struct {
-		After       int           `yaml:"after"`
-		Remove      string        `yaml:"remove"`
-		DateHeaders selectorBlock `yaml:"dateheaders"`
+		After       int                  `yaml:"after"`
+		Remove      string               `yaml:"remove"`
+		DateHeaders source.SelectorBlock `yaml:"dateheaders"`
 	}
 	if err := unmarshal(&rb); err != nil {
 		return errors.New("failed to unmarshal rowsBlock")
@@ -316,7 +328,7 @@ func (r *rowsBlock) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	r.After = rb.After
 	r.DateHeaders = rb.DateHeaders
-	r.selectorBlock = sb
+	r.SelectorBlock = sb
 	r.Remove = rb.Remove
 	return nil
 }
@@ -422,12 +434,12 @@ func (s *stringorslice) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 type ratioBlock struct {
-	selectorBlock
+	source.SelectorBlock
 	Path string `yaml:"path"`
 }
 
 func (r *ratioBlock) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var sb selectorBlock
+	var sb source.SelectorBlock
 	if err := unmarshal(&sb); err != nil {
 		return errors.New("failed to unmarshal ratioBlock")
 	}
@@ -439,7 +451,13 @@ func (r *ratioBlock) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return errors.New("failed to unmarshal ratioBlock")
 	}
 
-	r.selectorBlock = sb
+	r.SelectorBlock = sb
 	r.Path = rb.Path
 	return nil
+}
+
+func defaultFilterConfig() map[string]string {
+	return map[string]string{
+		"striprussian": "true",
+	}
 }

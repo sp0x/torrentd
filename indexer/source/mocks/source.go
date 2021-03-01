@@ -114,11 +114,12 @@ func (mr *MockContentFetcherMockRecorder) Fetch(target interface{}) *gomock.Call
 }
 
 // Post mocks base method
-func (m *MockContentFetcher) Post(options *source.RequestOptions) error {
+func (m *MockContentFetcher) Post(options *source.RequestOptions) (source.FetchResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Post", options)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(source.FetchResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Post indicates an expected call of Post

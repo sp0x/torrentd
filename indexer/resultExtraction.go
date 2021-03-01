@@ -2,6 +2,8 @@ package indexer
 
 import (
 	"errors"
+	"github.com/sp0x/torrentd/indexer/source"
+	"github.com/sp0x/torrentd/indexer/templates"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -12,7 +14,7 @@ import (
 const torrentScheme = "torrent"
 
 // Extracts a field's value from the given selection
-func (r *Runner) extractField(selection RawScrapeItem, field *fieldBlock) (interface{}, error) {
+func (r *Runner) extractField(selection source.RawScrapeItem, field *fieldBlock) (interface{}, error) {
 	if field == nil {
 		return "", errors.New("no field given")
 	}
@@ -47,7 +49,7 @@ func formatValues(field *fieldBlock, value interface{}, values map[string]interf
 	strValue := value.(string)
 	if strings.Contains(strValue, "{{") || (field != nil && field.Block.Pattern != "") {
 		templateData := values
-		updated, err := applyTemplate("result_template", strValue, templateData)
+		updated, err := templates.ApplyTemplate("result_template", strValue, templateData)
 		if err != nil {
 			return strValue
 		}
@@ -57,7 +59,7 @@ func formatValues(field *fieldBlock, value interface{}, values map[string]interf
 		return strValue
 	}
 	if field != nil {
-		updated, err := field.Block.ApplyFilters(strValue)
+		updated, err := field.Block.FilterText(strValue)
 		if err != nil || updated == "" {
 			return strValue
 		}
@@ -68,7 +70,7 @@ func formatValues(field *fieldBlock, value interface{}, values map[string]interf
 
 // Extract the actual result item from it's row/col
 // TODO: refactor this to reduce #complexity
-func (r *Runner) extractItem(rowIdx int, selection RawScrapeItem, context *scrapeContext) (search.ResultItemBase, error) {
+func (r *Runner) extractItem(rowIdx int, selection source.RawScrapeItem, context *scrapeContext) (search.ResultItemBase, error) {
 	row := map[string]interface{}{}
 	nonFilteredRow := map[string]string{}
 	r.logger.WithFields(logrus.Fields{}).

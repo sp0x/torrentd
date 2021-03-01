@@ -2,11 +2,12 @@ package indexer
 
 import (
 	"github.com/sirupsen/logrus"
+	"github.com/sp0x/torrentd/indexer/source"
 )
 
 // Read anything from the content that's needed
 // so we can extract info about our run
-func setupContext(r *Runner, ctx *RunContext, dom RawScrapeItem) {
+func setupContext(r *Runner, ctx *RunContext, dom source.RawScrapeItem) {
 	// ctx.SearchKeywords.DOM = dom
 	for _, item := range r.definition.Search.Context {
 		r.logger.

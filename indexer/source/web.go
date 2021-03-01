@@ -78,6 +78,7 @@ func (w *WebClient) Fetch(target *RequestOptions) (FetchResult, error) {
 		w.Cleanup()
 	}()
 	var err error
+	var result FetchResult
 	switch target.Method {
 	case "", searchMethodGet:
 		if len(target.Values) > 0 {
@@ -92,13 +93,17 @@ func (w *WebClient) Fetch(target *RequestOptions) (FetchResult, error) {
 				w.errorHandler(target)
 			}
 			return nil, err
+		} else {
+			result = extractResponseResult(w.Browser)
 		}
 	case searchMethodPost:
-		if err = w.Post(target); err != nil {
+		if postResult, err := w.Post(target); err != nil {
 			if w.errorHandler != nil {
 				w.errorHandler(target)
 			}
 			return nil, err
+		} else {
+			result = postResult
 		}
 
 	default:
@@ -106,7 +111,7 @@ func (w *WebClient) Fetch(target *RequestOptions) (FetchResult, error) {
 	}
 	w.dumpFetchData()
 
-	return extractResponseResult(w.Browser), nil
+	return result, nil
 }
 
 func extractResponseResult(browser browser.Browsable) FetchResult {
@@ -207,23 +212,23 @@ func (w *WebClient) Download(buffer io.Writer) (int64, error) {
 	return w.Browser.Download(buffer)
 }
 
-func (w *WebClient) Post(reqOps *RequestOptions) error {
+func (w *WebClient) Post(reqOps *RequestOptions) (FetchResult, error) {
 	urlStr := reqOps.URL
 	values := reqOps.Values
 
 	w.applyOptions(reqOps)
 	if err := w.Browser.PostForm(urlStr.String(), values); err != nil {
-		return err
+		return nil, err
 	}
 	if w.Cacher != nil {
 		_ = w.Cacher.CachePage(w.Browser.NewTab())
 	}
 
 	if err := w.handleMetaRefreshHeader(reqOps); err != nil {
-		return err
+		return nil, err
 	}
 	w.dumpFetchData()
-	return nil
+	return extractResponseResult(w.Browser), nil
 }
 
 //func (w *WebClient) fakeBrowserReferer(urlStr string) {
