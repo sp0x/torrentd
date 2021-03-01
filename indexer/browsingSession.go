@@ -126,6 +126,10 @@ func (l *BrowsingSession) isRequired() bool {
 	return false
 }
 
+func (l BrowsingSession) isLoggedIn() bool {
+	return l.state == LoggedIn
+}
+
 func (l *BrowsingSession) verifyLogin(f source.FetchResult) (bool, error) {
 	testBlock := l.loginBlock.Test
 	if testBlock.IsEmpty() {

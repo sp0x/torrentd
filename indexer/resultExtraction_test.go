@@ -1,6 +1,7 @@
 package indexer
 
 import (
+	"github.com/sp0x/torrentd/indexer/source"
 	"testing"
 
 	"github.com/onsi/gomega"
@@ -43,7 +44,7 @@ func Test_formatValue_ShouldFilterArrays(t *testing.T) {
 	values["b"] = "test2"
 	field := &fieldBlock{}
 	field.Block.TextVal = "valx"
-	field.Block.Filters = []filterBlock{
+	field.Block.Filters = []source.FilterBlock{
 		{
 			Name: "number",
 			Args: nil,

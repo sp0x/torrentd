@@ -62,19 +62,27 @@ func TestNewSessionMultiplexer(t *testing.T) {
 	sampleIndex.urlResolver.connectivity = mConnectivity
 
 	mConnectivity.EXPECT().IsOkAndSet(OfUrl("http://example.com/"), gomock.Any()).
-		Times(2).
+		AnyTimes().
 		Return(true)
-	expectLogin(mContentFetcher, "post", "http://example.com/login")
 
 	multiplexer, err := NewSessionMultiplexer(sampleIndex, 3)
 	patchSessions(multiplexer, mContentFetcher)
 	g.Expect(err).To(gomega.BeNil())
+
+	expectLogin(mContentFetcher, "post", "http://example.com/login")
 	s1, err := multiplexer.acquire()
 	g.Expect(err).To(gomega.BeNil())
+	g.Expect(s1.isLoggedIn())
+
+	expectLogin(mContentFetcher, "post", "http://example.com/login")
 	s2, err := multiplexer.acquire()
 	g.Expect(err).To(gomega.BeNil())
+	g.Expect(s2.isLoggedIn())
+
+	expectLogin(mContentFetcher, "post", "http://example.com/login")
 	s3, err := multiplexer.acquire()
 	g.Expect(err).To(gomega.BeNil())
+	g.Expect(s3.isLoggedIn())
 
 	g.Expect(s1).ToNot(gomega.Equal(s2))
 	g.Expect(s2).ToNot(gomega.Equal(s3))

@@ -154,13 +154,13 @@ func TestRunner_Search(t *testing.T) {
 	index.Search = searchBlock{
 		Path: "/",
 		Rows: rowsBlock{
-			selectorBlock: selectorBlock{
+			SelectorBlock: source.SelectorBlock{
 				Selector: "div.a",
 			},
 		},
 		Fields: fieldsListBlock{fieldBlock{
 			Field: "fieldA",
-			Block: selectorBlock{
+			Block: source.SelectorBlock{
 				Selector: "a",
 			},
 		}},
@@ -209,20 +209,20 @@ func Test_ShouldUseUniqueIndexes(t *testing.T) {
 		Path: "/",
 		Key:  []string{"fieldB"},
 		Rows: rowsBlock{
-			selectorBlock: selectorBlock{
+			SelectorBlock: source.SelectorBlock{
 				Selector: "div.b",
 			},
 		},
 		Fields: fieldsListBlock{
 			fieldBlock{
 				Field: "id",
-				Block: selectorBlock{
+				Block: source.SelectorBlock{
 					Selector: "a",
 				},
 			},
 			fieldBlock{
 				Field: "fieldC",
-				Block: selectorBlock{
+				Block: source.SelectorBlock{
 					Selector: "p",
 				},
 			},

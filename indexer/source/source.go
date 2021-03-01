@@ -24,7 +24,7 @@ type RawScrapeItems interface {
 	Get(i int) RawScrapeItem
 }
 
-type filterBlock struct {
+type FilterBlock struct {
 	Name string      `yaml:"name"`
 	Args interface{} `yaml:"args"`
 }
@@ -39,7 +39,7 @@ type SelectorBlock struct {
 	TextVal      string            `yaml:"text"`
 	Attribute    string            `yaml:"attribute,omitempty"`
 	Remove       string            `yaml:"remove,omitempty"`
-	Filters      []filterBlock     `yaml:"filters,omitempty"`
+	Filters      []FilterBlock     `yaml:"filters,omitempty"`
 	Case         map[string]string `yaml:"case,omitempty"`
 	FilterConfig map[string]string `yaml:"filterconfig"`
 	// If we'll use all the values
@@ -277,7 +277,7 @@ func (s *SelectorBlock) Text(el RawScrapeItem) (string, error) {
 // Filter the value through a list of filters
 func (s *SelectorBlock) FilterText(val string) (string, error) {
 	prevFilterFailed := false
-	var prevFilter filterBlock
+	var prevFilter FilterBlock
 	for _, f := range s.Filters {
 		var shouldFilter bool
 		switch f.Name {

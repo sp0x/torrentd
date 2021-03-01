@@ -1,4 +1,4 @@
-package indexer
+package source
 
 import (
 	"strings"
@@ -10,7 +10,7 @@ import (
 
 func Test_ShouldMatchTextForSimpleSelectors(t *testing.T) {
 	g := gomega.NewWithT(t)
-	selector := selectorBlock{Selector: "a"}
+	selector := SelectorBlock{Selector: "a"}
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader("<div><a>Inner Text</a></div>"))
 	if err != nil {
 		t.Fail()
@@ -20,7 +20,7 @@ func Test_ShouldMatchTextForSimpleSelectors(t *testing.T) {
 		t.Fail()
 		return
 	}
-	selection := &DomScrapeItem{doc.Contents()}
+	selection := &DomScrapeItem{Selection: doc.Contents()}
 	result, err := selector.Match(selection)
 	g.Expect(err).To(gomega.BeNil())
 	g.Expect(result).To(gomega.Equal("Inner Text"))
@@ -28,7 +28,7 @@ func Test_ShouldMatchTextForSimpleSelectors(t *testing.T) {
 
 func Test_ShouldMatchTextForSelectorsWithMultipleMatches(t *testing.T) {
 	g := gomega.NewWithT(t)
-	selector := selectorBlock{Selector: "a", All: true}
+	selector := SelectorBlock{Selector: "a", All: true}
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader("<div><a>Inner Text</a><a>Other Text</a></div>"))
 	if err != nil {
 		t.Fail()
