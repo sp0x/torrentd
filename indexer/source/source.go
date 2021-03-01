@@ -87,6 +87,7 @@ type RawScrapeItem interface {
 type FetchOptions struct {
 	ShouldDumpData bool
 	FakeReferer    bool
+	UserAgent      string
 }
 
 type RequestOptions struct {

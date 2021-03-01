@@ -14,7 +14,7 @@ import (
 	trainlog "github.com/f2prateek/train/log"
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/surf"
-	"github.com/sp0x/surf/agent"
+	"go.zoe.im/surferua"
 	"github.com/sp0x/surf/browser"
 	"github.com/spf13/viper"
 	"golang.org/x/net/proxy"
@@ -60,12 +60,13 @@ func (r *Runner) createTransport() (http.RoundTripper, error) {
 }
 
 func createContentFetcher(r *Runner) *source.WebClient {
-	bow := surf.NewBrowser()
-	bow.SetUserAgent(agent.Firefox())
-	bow.SetEncoding(r.definition.Encoding)
-	bow.SetAttribute(browser.SendReferer, true)
-	bow.SetAttribute(browser.MetaRefreshHandling, true)
-	bow.SetRateLimit(r.definition.RateLimit)
+	browsr := surf.NewBrowser()
+	userAgent := surferua.New().Desktop().Chrome().String()
+	browsr.SetUserAgent(userAgent)
+	browsr.SetEncoding(r.definition.Encoding)
+	browsr.SetAttribute(browser.SendReferer, true)
+	browsr.SetAttribute(browser.MetaRefreshHandling, true)
+	browsr.SetRateLimit(r.definition.RateLimit)
 
 	transport, err := r.createTransport()
 	if err != nil {
@@ -78,28 +79,19 @@ func createContentFetcher(r *Runner) *source.WebClient {
 
 	switch os.Getenv("DEBUG_HTTP") {
 	case "1", "true", "basic":
-		bow.SetTransport(train.TransportWith(transport, trainlog.New(os.Stderr, trainlog.Basic)))
+		browsr.SetTransport(train.TransportWith(transport, trainlog.New(os.Stderr, trainlog.Basic)))
 	case "body":
-		bow.SetTransport(train.TransportWith(transport, trainlog.New(os.Stderr, trainlog.Body)))
+		browsr.SetTransport(train.TransportWith(transport, trainlog.New(os.Stderr, trainlog.Body)))
 	case "":
-		bow.SetTransport(transport)
+		browsr.SetTransport(transport)
 	default:
 		panic("Unknown value for DEBUG_HTTP")
 	}
 	fetchOptions := source.FetchOptions{
 		ShouldDumpData: viper.GetBool("dump"),
 		FakeReferer:    true,
+		UserAgent: userAgent,
 	}
-	contentFetcher := source.NewWebContentFetcher(bow, r, fetchOptions)
+	contentFetcher := source.NewWebContentFetcher(browsr, r, fetchOptions)
 	return contentFetcher
 }
-
-//func (r *Runner) releaseBrowser() {
-//	//r.browser = nil
-//	if r.contentFetcher != nil {
-//		r.contentFetcher.Cleanup()
-//	}
-//	r.contentFetcher = nil
-//	//r.connectivityTester.ClearBrowser()
-//	//r.browserLock.Unlock()
-//}
