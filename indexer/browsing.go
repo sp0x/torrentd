@@ -4,19 +4,20 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/sp0x/torrentd/indexer/source"
 	"net"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/sp0x/torrentd/indexer/source"
+
 	"github.com/f2prateek/train"
 	trainlog "github.com/f2prateek/train/log"
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/surf"
-	"go.zoe.im/surferua"
 	"github.com/sp0x/surf/browser"
 	"github.com/spf13/viper"
+	"go.zoe.im/surferua"
 	"golang.org/x/net/proxy"
 )
 
@@ -90,7 +91,7 @@ func createContentFetcher(r *Runner) *source.WebClient {
 	fetchOptions := source.FetchOptions{
 		ShouldDumpData: viper.GetBool("dump"),
 		FakeReferer:    true,
-		UserAgent: userAgent,
+		UserAgent:      userAgent,
 	}
 	contentFetcher := source.NewWebContentFetcher(browsr, r, fetchOptions)
 	return contentFetcher

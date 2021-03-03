@@ -7,6 +7,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
+
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/cache/mocks"
@@ -25,85 +26,6 @@ var (
 	}
 )
 
-//
-//func TestRunner_SearchShouldWorkWithAnOptimisticCache(t *testing.T) {
-//	g := gomega.NewWithT(t)
-//	ctrl := gomock.NewController(t)
-//	defer ctrl.Finish()
-//	mockedBrowser := &mocks.MockedBrowser{CanOpen: false}
-//	cfg := &config.ViperConfig{}
-//	_ = cfg.Set("db", tempfile())
-//	_ = cfg.Set("storage", "boltdb")
-//	tmpIndex := *index
-//	index := &tmpIndex
-//	index.Search = searchBlock{
-//		Path: "/",
-//		Rows: rowsBlock{
-//			selectorBlock: selectorBlock{
-//				Selector: "div.a",
-//			},
-//		},
-//		Fields: fieldsListBlock{fieldBlock{
-//			Field: "fieldA",
-//			Block: selectorBlock{
-//				Selector: "a",
-//			},
-//		}},
-//	}
-//
-//	runner := NewRunner(index, RunnerOpts{
-//		Config:     cfg,
-//		CachePages: false,
-//		Transport:  nil,
-//	})
-//	//If we use a normal connectivity cache, this test would fail, because it validates the connectivity early.
-//	//conCache, _ := cache.NewConnectivityCache()
-//	//runner.connectivityTester = conCache
-//	//Patch with our mocks
-//	//runner.connectivityTester = connectivityTester
-//	runner.createBrowser()
-//	runner.connectivityTester.SetBrowser(mockedBrowser)
-//	//runner.contentFetcher = contentFetcher
-//	runner.browser = mockedBrowser
-//
-//	//We expect a single fetch, with the optimistic cache
-//	//	contentFetcher.EXPECT().Fetch(gomock.Any()).
-//	//		Times(1).
-//	//		Return(errors.New("couldn't connect")).
-//	//		Do(func(target *source.FetchOptions) {
-//	//			dom, _ := goquery.NewDocumentFromReader(strings.NewReader(`
-//	//<div>b<div class="a">d<a href="/lol">sd</a></div></div>
-//	//<div class="b"><a>val1</a><p>parrot</p></div>`))
-//	//			fakeState := &jar.State{DOM: dom}
-//	//			runner.browser.SetState(fakeState)
-//	//		})
-//
-//	dom, _ := goquery.NewDocumentFromReader(strings.NewReader(`<div></div>`))
-//	mockedBrowser.SetState(&jar.State{DOM: dom})
-//	_, err := runner.Search(emptyQuery, nil)
-//	g.Expect(err).ToNot(gomega.BeNil())
-//	//The connectivity tester should remember that that url is bad
-//	g.Expect(runner.connectivityTester.IsOk(runnerSiteURL)).To(gomega.BeFalse())
-//
-//	//Try again, now with a working browser
-//	contentFetcher := mocks2.NewMockContentFetcher(ctrl)
-//	mockedBrowser.CanOpen = true
-//	contentFetcher.EXPECT().Fetch(gomock.Any()).
-//		Times(1).
-//		Return(nil).
-//		Do(func(target *source.FetchOptions) {
-//			dom, _ := goquery.NewDocumentFromReader(strings.NewReader(`
-//<div>b<div class="a">d<a href="/lol">sd</a></div></div>
-//<div class="b"><a>val1</a><p>parrot</p></div>`))
-//			fakeState := &jar.State{DOM: dom}
-//			runner.browser.SetState(fakeState)
-//		})
-//	runner.contentFetcher = contentFetcher
-//	_, err = runner.Search(emptyQuery, nil)
-//	g.Expect(err).To(gomega.BeNil())
-//	g.Expect(runner.connectivityTester.IsOk(runnerSiteURL)).To(gomega.BeTrue())
-//}
-
 func TestRunner_Search(t *testing.T) {
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
@@ -111,7 +33,7 @@ func TestRunner_Search(t *testing.T) {
 	connectivityTester := mocks.NewMockConnectivityTester(ctrl)
 	contentFetcher := mocks2.NewMockContentFetcher(ctrl)
 	// The browser should be set
-	//connectivityTester.EXPECT().SetBrowser(gomock.Any()).AnyTimes()
+	// connectivityTester.EXPECT().SetBrowser(gomock.Any()).AnyTimes()
 	// The correct url should be tested
 	connectivityTester.EXPECT().IsOkAndSet(runnerSiteURL, gomock.Any()).
 		Return(true).AnyTimes()
@@ -133,11 +55,11 @@ func TestRunner_Search(t *testing.T) {
 		AnyTimes().
 		Return(nil).
 		Do(func(target *source.FetchOptions) {
-//			dom, _ := goquery.NewDocumentFromReader(strings.NewReader(`
-//<div>b<div class="a">d<a href="/lol">sd</a></div></div>
-//<div class="b"><a>val1</a><p>parrot</p></div>`))
-			//fakeState := &jar.State{Dom: dom}
-			//runner.browser.SetState(fakeState)
+			// dom, _ := goquery.NewDocumentFromReader(strings.NewReader(`
+			// <div>b<div class="a">d<a href="/lol">sd</a></div></div>
+			// <div class="b"><a>val1</a><p>parrot</p></div>`))
+			// fakeState := &jar.State{Dom: dom}
+			// runner.browser.SetState(fakeState)
 		})
 
 	// Shouldn't be able to search with an index that has no urls
@@ -194,12 +116,12 @@ func Test_ShouldUseUniqueIndexes(t *testing.T) {
 	contentFetcher := mocks2.NewMockContentFetcher(ctrl)
 	connectivityTester := mocks.NewMockConnectivityTester(ctrl)
 	// The browser should be set
-	//connectivityTester.EXPECT().SetBrowser(gomock.Any()).AnyTimes()
+	// connectivityTester.EXPECT().SetBrowser(gomock.Any()).AnyTimes()
 	// The correct url should be tested
 	connectivityTester.EXPECT().IsOkAndSet(runnerSiteURL, gomock.Any()).
 		Return(true).AnyTimes()
 
-	//-------Should be able to use unique indexesCollection
+	// -------Should be able to use unique indexesCollection
 	cfg := &config.ViperConfig{}
 	_ = cfg.Set("db", tempfile())
 	_ = cfg.Set("storage", "boltdb")
@@ -240,11 +162,11 @@ func Test_ShouldUseUniqueIndexes(t *testing.T) {
 	contentFetcher.EXPECT().Fetch(gomock.Any()).
 		Return(nil).
 		Do(func(target *source.FetchOptions) {
-//			dom, _ := goquery.NewDocumentFromReader(strings.NewReader(`
-//<div>b<div class="a">d<a href="/lol">sd</a></div></div>
-//<div class="b"><a>val1</a><p>parrot</p></div>`))
-			//fakeState := &jar.State{Dom: dom}
-			//runner.browser.SetState(fakeState)
+			//			dom, _ := goquery.NewDocumentFromReader(strings.NewReader(`
+			// <div>b<div class="a">d<a href="/lol">sd</a></div></div>
+			// <div class="b"><a>val1</a><p>parrot</p></div>`))
+			// fakeState := &jar.State{Dom: dom}
+			// runner.browser.SetState(fakeState)
 		})
 	srch, err := runner.Search(emptyQuery, nil)
 	g.Expect(err).To(gomega.BeNil())

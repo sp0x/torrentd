@@ -3,9 +3,10 @@ package indexer
 import (
 	"bytes"
 	"fmt"
-	"github.com/sp0x/torrentd/indexer/source"
 	"io"
 	"net/url"
+
+	"github.com/sp0x/torrentd/indexer/source"
 
 	"github.com/sirupsen/logrus"
 
@@ -73,9 +74,7 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 				fmt.Printf("%v", errx)
 			}
 		}()
-		//if !r.keepSessions {
-		//	defer r.releaseBrowser()
-		//}
+
 		downloadBuffer := bytes.NewBuffer([]byte{})
 		n, err := cf.Download(downloadBuffer)
 		if err != nil {

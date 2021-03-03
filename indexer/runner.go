@@ -4,15 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/sp0x/torrentd/indexer/utils"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/sp0x/torrentd/indexer/utils"
+
 	"github.com/PuerkitoBio/goquery"
 	log "github.com/sirupsen/logrus"
+
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/categories"
@@ -117,10 +119,9 @@ func NewRunner(def *Definition, opts RunnerOpts) *Runner {
 		sessionCount = 10
 	}
 	runner := &Runner{
-		options:    opts,
-		definition: def,
-		logger:     logger.WithFields(log.Fields{"site": def.Site}),
-		//keepSessions:        true,
+		options:             opts,
+		definition:          def,
+		logger:              logger.WithFields(log.Fields{"site": def.Site}),
 		failingSearchFields: make(map[string]fieldBlock),
 		context:             indexCtx,
 		errors:              errorCache,

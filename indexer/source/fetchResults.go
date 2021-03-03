@@ -14,7 +14,7 @@ type HTTPResult struct {
 	StatusCode  int
 }
 
-func (fr *HTTPResult) URL() *url.URL{
+func (fr *HTTPResult) URL() *url.URL {
 	loc, _ := fr.Response.Location()
 	return loc
 }

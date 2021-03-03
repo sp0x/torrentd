@@ -70,9 +70,6 @@ func GetNewScrapeItems(facade *indexer.Facade, fetchOptions *indexer.GenericSear
 		if finished {
 			break
 		}
-		//if counter != facade.pageSize {
-		//	log.Errorf("No results while parsing page %d: got %d torrents instead of %d\n", page, counter, facade.pageSize)
-		//}
 	}
 	return nil
 }

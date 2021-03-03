@@ -21,10 +21,6 @@ func init() {
 		Short: "Finds subtitles using indexers",
 		Run:   findSubtitles,
 	}
-	//flags := cmdFetchTorrents.Flags()
-	//flags.StringVarP(&subtitleIndexer, "indexer", "x", "subsunacs", "The subtitle site to use.")
-	//_ = viper.BindPFlag("indexer", flags.Lookup("indexer"))
-	//_ = viper.BindEnv("indexer")
 	rootCmd.AddCommand(cmdFetchTorrents)
 }
 

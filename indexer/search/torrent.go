@@ -132,64 +132,65 @@ func (t *TorrentResultItem) Equals(other interface{}) bool {
 	if !thisScrapeItem.Equals(otherScrapeItem) {
 		return false
 	}
-	// Doing this in this way because it's more performant
-	if t.IsMagnet != otherTItem.IsMagnet {
+
+	switch {
+	case t.IsMagnet != otherTItem.IsMagnet:
 		return false
-	} else if t.Size != otherTItem.Size {
+	case t.Size != otherTItem.Size:
 		return false
-	} else if t.Banner != otherTItem.Banner {
+	case t.Banner != otherTItem.Banner:
 		return false
-	} else if t.Site != otherTItem.Site {
+	case t.Site != otherTItem.Site:
 		return false
-	} else if t.Link != otherTItem.Link {
+	case t.Link != otherTItem.Link:
 		return false
-	} else if t.Category != otherTItem.Category {
+	case t.Category != otherTItem.Category:
 		return false
-	} else if t.Title != otherTItem.Title {
+	case t.Title != otherTItem.Title:
 		return false
-	} else if t.Seeders != otherTItem.Seeders {
+	case t.Seeders != otherTItem.Seeders:
 		return false
-	} else if t.PublishDate != otherTItem.PublishDate {
+	case t.PublishDate != otherTItem.PublishDate:
 		return false
-	} else if t.LocalID != otherTItem.LocalID {
+	case t.LocalID != otherTItem.LocalID:
 		return false
-	} else if t.MagnetLink != otherTItem.MagnetLink {
+	case t.MagnetLink != otherTItem.MagnetLink:
 		return false
-	} else if t.SourceLink != otherTItem.SourceLink {
+	case t.SourceLink != otherTItem.SourceLink:
 		return false
-	} else if t.DownloadVolumeFactor != otherTItem.DownloadVolumeFactor {
+	case t.DownloadVolumeFactor != otherTItem.DownloadVolumeFactor:
 		return false
-	} else if t.ShortTitle != otherTItem.ShortTitle {
+	case t.ShortTitle != otherTItem.ShortTitle:
 		return false
-	} else if t.Author != otherTItem.Author {
+	case t.Author != otherTItem.Author:
 		return false
-	} else if t.LocalCategoryID != otherTItem.LocalCategoryID {
+	case t.LocalCategoryID != otherTItem.LocalCategoryID:
 		return false
-	} else if t.LocalCategoryName != otherTItem.LocalCategoryName {
+	case t.LocalCategoryName != otherTItem.LocalCategoryName:
 		return false
-	} else if t.AuthorID != otherTItem.AuthorID {
+	case t.AuthorID != otherTItem.AuthorID:
 		return false
-	} else if t.Grabs != otherTItem.Grabs {
+	case t.Grabs != otherTItem.Grabs:
 		return false
-	} else if t.OriginalTitle != otherTItem.OriginalTitle {
+	case t.OriginalTitle != otherTItem.OriginalTitle:
 		return false
-	} else if t.Fingerprint != otherTItem.Fingerprint {
+	case t.Fingerprint != otherTItem.Fingerprint:
 		return false
-	} else if t.Publisher != otherTItem.Publisher {
+	case t.Publisher != otherTItem.Publisher:
 		return false
-	} else if t.PublishedWith != otherTItem.PublishedWith {
+	case t.PublishedWith != otherTItem.PublishedWith:
 		return false
-	} else if t.Peers != otherTItem.Peers {
+	case t.Peers != otherTItem.Peers:
 		return false
-	} else if t.Comments != otherTItem.Comments {
+	case t.Comments != otherTItem.Comments:
 		return false
-	} else if t.MinimumSeedTime != otherTItem.MinimumSeedTime {
+	case t.MinimumSeedTime != otherTItem.MinimumSeedTime:
 		return false
-	} else if t.MinimumRatio != otherTItem.MinimumRatio {
+	case t.MinimumRatio != otherTItem.MinimumRatio:
 		return false
-	} else if t.Description != otherTItem.Description {
+	case t.Description != otherTItem.Description:
 		return false
-	} else if t.Files != otherTItem.Files {
+	case t.Files != otherTItem.Files:
 		return false
 	}
 	return true

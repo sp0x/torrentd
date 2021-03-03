@@ -7,8 +7,7 @@ import (
 	"github.com/emirpasic/gods/maps/linkedhashmap"
 )
 
-//Key is a primary key or an indexing key, this can be a composite key as well
-//[]string
+// Key is a primary key or an indexing key, this can be a composite key as well
 type Key struct {
 	Fields      []string
 	fieldsCache map[string]interface{}
@@ -34,11 +33,6 @@ func NewKey(fieldNames ...string) *Key {
 	}
 	return &key
 }
-
-//func (k *Key) SetPrefix(val string) *Key {
-//	k.ValuePrefix = val
-//	return k
-//}
 
 // AddKeys adds multiple keys
 func (k *Key) AddKeys(newKeys *Key) {

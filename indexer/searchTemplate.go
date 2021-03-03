@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"fmt"
+
 	"github.com/sp0x/torrentd/indexer/templates"
 
 	"github.com/sp0x/torrentd/indexer/search"

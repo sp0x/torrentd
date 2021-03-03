@@ -107,10 +107,10 @@ func (ix *UniqueIndex) AllRecords(ops *indexing.CursorOptions) [][]byte {
 func (ix *UniqueIndex) Range(min []byte, max []byte, ops *indexing.CursorOptions) [][]byte {
 	shouldReverse := ops != nil && ops.Reverse
 	c := &RangeCursor{
-		C:       ix.IndexBucket.Cursor(),
-		Reverse: shouldReverse,
-		Min:     min,
-		Max:     max,
+		C:          ix.IndexBucket.Cursor(),
+		Reverse:    shouldReverse,
+		Min:        min,
+		Max:        max,
 		Comparator: bytes.Compare,
 	}
 	return scanCursor(c, ops)

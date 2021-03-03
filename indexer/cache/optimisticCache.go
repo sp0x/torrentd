@@ -2,10 +2,11 @@ package cache
 
 import (
 	"errors"
-	"github.com/sp0x/torrentd/indexer/source"
 	"net/url"
 	"sync"
 	"time"
+
+	"github.com/sp0x/torrentd/indexer/source"
 )
 
 func NewOptimisticConnectivityCache(fetcher source.ContentFetcher) (*OptimisticConnectivityCache, error) {

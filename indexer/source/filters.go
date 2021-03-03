@@ -3,14 +3,15 @@ package source
 import (
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/indexer/utils"
 	"net/url"
 	"regexp"
 	"strings"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/sp0x/torrentd/indexer/formatting"
+	"github.com/sp0x/torrentd/indexer/utils"
 )
 
 var filterLogger log.FieldLogger = log.New()
@@ -79,7 +80,6 @@ func (f *FilterService) Filter(fType string, args interface{}, value string) (st
 			return "", fmt.Errorf("filter %q requires a string argument at idx 1", fType)
 		}
 		return strings.ReplaceAll(value, from, to), nil
-
 	case "trim":
 		cutset, ok := args.(string)
 		if !ok {

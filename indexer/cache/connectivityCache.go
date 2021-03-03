@@ -2,21 +2,20 @@ package cache
 
 import (
 	"errors"
-	"github.com/sp0x/torrentd/indexer/source"
 	"net/http"
 	"net/url"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/sp0x/torrentd/indexer/source"
 )
 
 // ConnectivityCache is a invalidatedCache for URL connectivity.
 type ConnectivityCache struct {
-	//browser browser.Browsable
 	fetcher source.ContentFetcher
 	lock    sync.RWMutex
-	// invalidatedCache   map[string]Details
-	cache LRUCache
+	cache   LRUCache
 }
 
 func NewConnectivityCache(fetcher source.ContentFetcher) (*ConnectivityCache, error) {
@@ -84,8 +83,4 @@ func (c *ConnectivityCache) Test(testURL *url.URL) error {
 		})
 	}
 	return err
-}
-
-func (c *ConnectivityCache) ClearBrowser() {
-	//c.browser = nil
 }

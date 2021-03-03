@@ -3,14 +3,16 @@ package source
 import (
 	"errors"
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/indexer/templates"
 	"io"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
+
+	"github.com/PuerkitoBio/goquery"
+	"github.com/sirupsen/logrus"
+
+	"github.com/sp0x/torrentd/indexer/templates"
 )
 
 var filterService FilterService

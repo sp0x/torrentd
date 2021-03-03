@@ -3,12 +3,14 @@ package indexer
 import (
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/torrentd/config"
-	"github.com/sp0x/torrentd/indexer/cache"
 	"net/http"
 	"net/url"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
+
+	"github.com/sp0x/torrentd/config"
+	"github.com/sp0x/torrentd/indexer/cache"
 )
 
 type URLResolver struct {
@@ -109,7 +111,7 @@ func newURLResolverForIndex(definition *Definition, cfg config.Config, connectiv
 			urls = append(urls, resolved)
 		}
 	}
-	return NewURLResolver(urls, connectivity) //, errors.New("no working urls found")
+	return NewURLResolver(urls, connectivity)
 }
 
 func parseCookieString(cookie string) []*http.Cookie {

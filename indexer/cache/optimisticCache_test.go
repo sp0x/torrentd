@@ -1,10 +1,12 @@
 package cache
 
 import (
-	"github.com/golang/mock/gomock"
-	mocks2 "github.com/sp0x/torrentd/indexer/source/mocks"
 	"net/url"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+
+	mocks2 "github.com/sp0x/torrentd/indexer/source/mocks"
 
 	"github.com/onsi/gomega"
 

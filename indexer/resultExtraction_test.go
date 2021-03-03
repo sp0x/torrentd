@@ -1,8 +1,9 @@
 package indexer
 
 import (
-	"github.com/sp0x/torrentd/indexer/source"
 	"testing"
+
+	"github.com/sp0x/torrentd/indexer/source"
 
 	"github.com/onsi/gomega"
 )

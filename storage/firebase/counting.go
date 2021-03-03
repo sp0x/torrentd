@@ -62,26 +62,3 @@ func (c *counter) incrementCounter(ctx context.Context, docRef *firestore.Docume
 		{Path: "Count", Value: firestore.Increment(1)},
 	})
 }
-
-// getCount returns a total count across all shards.
-//func (c *counter) getCount(ctx context.Context, docRef *firestore.DocumentRef) (int64, error) {
-//	var total int64
-//	shards := docRef.Collection("shards").Documents(ctx)
-//	for {
-//		doc, err := shards.Next()
-//		if err == iterator.Done {
-//			break
-//		}
-//		if err != nil {
-//			return 0, fmt.Errorf("next: %v", err)
-//		}
-//
-//		vTotal := doc.Data()["Count"]
-//		shardCount, ok := vTotal.(int64)
-//		if !ok {
-//			return 0, fmt.Errorf("firestore: invalid dataType %T, want int64", vTotal)
-//		}
-//		total += shardCount
-//	}
-//	return total, nil
-//}

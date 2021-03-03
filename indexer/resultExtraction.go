@@ -2,9 +2,10 @@ package indexer
 
 import (
 	"errors"
+	"strings"
+
 	"github.com/sp0x/torrentd/indexer/source"
 	"github.com/sp0x/torrentd/indexer/templates"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 
@@ -27,11 +28,12 @@ func (r *Runner) extractField(selection source.RawScrapeItem, field *fieldBlock)
 
 // formatValues formats a field's value (singular or multiple)
 func formatValues(field *fieldBlock, value interface{}, values map[string]interface{}) interface{} {
-	if value == nil && field == nil {
+	switch {
+	case value == nil && field == nil:
 		return nil
-	} else if value == nil && field.Block.TextVal == "" {
+	case value == nil && field.Block.TextVal == "":
 		return value
-	} else if value == nil && field.Block.TextVal != "" {
+	case value == nil && field.Block.TextVal != "":
 		value = field.Block.TextVal
 	}
 

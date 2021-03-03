@@ -19,18 +19,18 @@ var (
 // Unable to merge it into date_regex due to some strange behaviour of re
 // module.
 var (
-	date2Rx, _          = regexp.Compile("^(.+)\\s+(?:по|от)\\s+(?:\\d{1,2}\\.\\d{1,2}\\.\\d{4}|\\d{4}\\.\\d{2}\\.\\d{2})(.*)$")
-	releaseCounterRx, _ = regexp.Compile("^(.+)\\s+\\d+\\s*(?:в|из)\\s*\\d+(.*)$")
-	spacesRx, _         = regexp.Compile("\\s+/.*")
-	spaces2Rx, _        = regexp.Compile("\\s+")
-	categoriesRx, _     = regexp.Compile("^(national\\s+geographic\\s*:|наука\\s+2\\.0)\\s+")
-	arrowsRx, _         = regexp.Compile("^«([^»]{6,})»")
-	cyrilicRx, _        = regexp.Compile("^([0-9a-zабвгдеёжзийклмнопрстуфхцчшщьъыэюя., \\-:]{6,}?(?:[:.?!]| - | — |\\|)).*")
-	badKeywordsRx, _    = regexp.Compile("(?:\\s|\\()(:?выпуск|выпуски|выпусков|обновлено|передачи за|серия из|сезон|серия|серии|премьера|эфир с|эфир от|эфиры от|satrip)(?:\\s|\\)|$)")
+	date2Rx          = regexp.MustCompile("^(.+)\\s+(?:по|от)\\s+(?:\\d{1,2}\\.\\d{1,2}\\.\\d{4}|\\d{4}\\.\\d{2}\\.\\d{2})(.*)$")
+	releaseCounterRx = regexp.MustCompile("^(.+)\\s+\\d+\\s*(?:в|из)\\s*\\d+(.*)$")
+	spacesRx         = regexp.MustCompile("\\s+/.*")
+	spaces2Rx        = regexp.MustCompile("\\s+")
+	categoriesRx     = regexp.MustCompile("^(national\\s+geographic\\s*:|наука\\s+2\\.0)\\s+")
+	arrowsRx         = regexp.MustCompile("^«([^»]{6,})»")
+	cyrilicRx        = regexp.MustCompile("^([0-9a-zабвгдеёжзийклмнопрстуфхцчшщьъыэюя., \\-:]{6,}?(?:[:.?!]| - | — |\\|)).*")
+	badKeywordsRx    = regexp.MustCompile("(?:\\s|\\()(:?выпуск|выпуски|выпусков|обновлено|передачи за|серия из|сезон|серия|серии|премьера|эфир с|эфир от|эфиры от|satrip)(?:\\s|\\)|$)")
 )
 
 func GetResultFingerprint(t *TorrentResultItem) string {
-	tagsRx, _ := regexp.Compile("</?[a-z]+>")
+	tagsRx := regexp.MustCompile("</?[a-z]+>")
 	name := strings.ReplaceAll(t.Title, "ё", "e")
 	name = html.UnescapeString(name)
 	name = tagsRx.ReplaceAllString(name, "")

@@ -84,7 +84,7 @@ func SizeStrToBytes(str string) uint64 {
 	str = strings.ToLower(str)
 	str = NormalizeSpace(str)
 	multiplier := 1
-	switch{
+	switch {
 	case strings.Contains(str, "gb"):
 		multiplier = 1028 * 1028 * 1028
 	case strings.Contains(str, "mb"):

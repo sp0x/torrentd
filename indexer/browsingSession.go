@@ -3,11 +3,13 @@ package indexer
 import (
 	"errors"
 	"fmt"
-	"github.com/sp0x/surf/jar"
-	"github.com/sp0x/torrentd/indexer/templates"
 	"net/url"
 	"strings"
 	"sync"
+
+	"github.com/sp0x/surf/jar"
+
+	"github.com/sp0x/torrentd/indexer/templates"
 
 	"github.com/sirupsen/logrus"
 
@@ -300,7 +302,6 @@ func (l *BrowsingSession) loginViaForm(loginURL *url.URL, formSelector string, v
 
 	for name, value := range vals {
 		if err = webForm.Input(name, value); err != nil {
-			//r.logger.WithError(err).Error("Filling input failed")
 			return nil, err
 		}
 	}
@@ -311,9 +312,6 @@ func (l *BrowsingSession) loginViaForm(loginURL *url.URL, formSelector string, v
 		l.logger.WithError(err).Error("Login failed")
 		return nil, err
 	}
-	//r.logger.
-	//	WithFields(logrus.Fields{"code": r.browser.StatusCode(), "page": r.browser.Url()}).
-	//	Debugf("Submitted login form")
 
 	return fetchResult, nil
 }

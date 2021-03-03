@@ -2,13 +2,14 @@ package utils
 
 import (
 	"fmt"
-	"github.com/bcampbell/fuzzytime"
 	"regexp"
 	"strconv"
 	"strings"
 	"text/scanner"
 	"time"
 	"unicode"
+
+	"github.com/bcampbell/fuzzytime"
 )
 
 const (

@@ -2,16 +2,18 @@ package indexer
 
 import (
 	"fmt"
+	"net/url"
+	"strings"
+	"testing"
+
 	"github.com/PuerkitoBio/goquery"
 	"github.com/golang/mock/gomock"
 	"github.com/onsi/gomega"
+
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/cache/mocks"
 	"github.com/sp0x/torrentd/indexer/source"
 	mocks2 "github.com/sp0x/torrentd/indexer/source/mocks"
-	"net/url"
-	"strings"
-	"testing"
 )
 
 func newTestingIndex() *Runner {
@@ -111,21 +113,23 @@ func patchSessions(multiplexer *BrowsingSessionMultiplexer, fetcher *mocks2.Mock
 	}
 }
 
-type ofUrl struct{ t string }
-type ofRequest struct {
-	method string
-	url    string
-}
+type (
+	ofURL     struct{ t string }
+	ofRequest struct {
+		method string
+		url    string
+	}
+)
 
 func OfRequest(method string, url string) gomock.Matcher {
 	return &ofRequest{method, url}
 }
 
 func OfURL(t string) gomock.Matcher {
-	return &ofUrl{t}
+	return &ofURL{t}
 }
 
-func (o *ofUrl) Matches(x interface{}) bool {
+func (o *ofURL) Matches(x interface{}) bool {
 	return x.(*url.URL).String() == o.t
 }
 
@@ -138,6 +142,6 @@ func (o *ofRequest) String() string {
 	return fmt.Sprintf("%s: %s", o.method, o.url)
 }
 
-func (o *ofUrl) String() string {
+func (o *ofURL) String() string {
 	return o.t
 }

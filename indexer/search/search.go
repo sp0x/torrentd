@@ -51,10 +51,12 @@ func NewSearch(query *Query) Instance {
 }
 
 func (s *Search) String() string {
-	var output = make([]string, len(s.FieldState))
+	output := make([]string, len(s.FieldState))
+	i := 0
 	for fname, fval := range s.FieldState {
 		val := fmt.Sprintf("{%s: %v}", fname, fval)
-		output = append(output, val)
+		output[i] = val
+		i++
 	}
 	return strings.Join(output, ",")
 }

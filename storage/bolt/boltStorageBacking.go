@@ -174,43 +174,6 @@ func (b *Storage) Update(query indexing.Query, item interface{}) error {
 	})
 }
 
-//StoreSearchResults stores the given results
-//func (b *Storage) StoreSearchResults(items []search.ScrapeResultItem) error {
-//	db := b.Database
-//	for ix, item := range items {
-//		//the function passed to Batch may be called multiple times,
-//		err := db.Batch(func(tx *bolt.Tx) error {
-//			categoryObj := item.GetFieldWithDefault("category", categories.Uncategorized).(*categories.Category)
-//			cgryKey := []byte(categoryObj.Name)
-//			//Use the category as a keyParts
-//			categoriesBucket, _ := tx.CreateBucketIfNotExists([]byte(categoriesBucketName))
-//			categoriesBucket, _ = categoriesBucket.CreateBucketIfNotExists(cgryKey)
-//			key, err := GetPKValueFromRecord(&item)
-//			if err != nil {
-//				return err
-//			}
-//			nextId, _ := categoriesBucket.NextSequence()
-//			item.ID = uint32(nextId)
-//			buf, err := b.marshaler.Marshal(item)
-//			if err != nil {
-//				return err
-//			}
-//			item.CreatedAt = time.Now()
-//			err = categoriesBucket.Put(key, buf)
-//			if err != nil {
-//				item.ID = 0
-//				log.Error(fmt.Sprintf("Error while inserting %d-th item. %s", ix, err))
-//				return err
-//			}
-//			return nil
-//		})
-//		if err != nil {
-//			return err
-//		}
-//	}
-//	return nil
-//}
-
 // Create a new record. This uses a new random UUID in order to identify the record.
 func (b *Storage) Create(item search.Record, additionalPK *indexing.Key) error {
 	item.SetUUID(uuid.New().String())

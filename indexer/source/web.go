@@ -3,13 +3,14 @@ package source
 import (
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/surf/jar"
 	"io"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/sp0x/surf/jar"
 
 	"github.com/sp0x/surf/browser"
 )
@@ -51,21 +52,6 @@ type ContentCacher interface {
 func (w *WebClient) Cleanup() {
 	w.Browser.HistoryJar().Clear()
 }
-
-//func (w *WebClient) Get(url string) error {
-//	target := source.FetchOptions{URL: url}
-//	err := w.get(target.URL)
-//	if err != nil {
-//		w.ConnectivityTester.Invalidate(target.URL)
-//	}
-//	switch value := result.(type) {
-//	case *web.HTMLFetchResult:
-//		return r.getRowsFromDom(value.DOM.First(), runCtx)
-//	case *web.JSONFetchResult:
-//		return r.getRowsFromJSON(value.Body)
-//	}
-//	return err
-//}
 
 // Gets the content from which we'll extract the search results
 func (w *WebClient) Fetch(target *RequestOptions) (FetchResult, error) {
@@ -226,18 +212,6 @@ func (w *WebClient) Post(reqOps *RequestOptions) (FetchResult, error) {
 	w.dumpFetchData()
 	return extractResponseResult(w.Browser), nil
 }
-
-//func (w *WebClient) fakeBrowserReferer(urlStr string) {
-//	state := w.Browser.State()
-//	refURL, _ := url.Parse(urlStr)
-//	if state.Request == nil {
-//		state.Request = &http.Request{}
-//	}
-//	state.Request.URL = refURL
-//	if state.Response != nil {
-//		state.Response.Request.URL = refURL
-//	}
-//}
 
 // this should eventually upstream into surf browser
 // Handle a header like: Refresh: 0;url=my_view_page.php

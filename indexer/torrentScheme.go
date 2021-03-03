@@ -1,11 +1,12 @@
 package indexer
 
 import (
-	"github.com/sp0x/torrentd/indexer/templates"
-	"github.com/sp0x/torrentd/indexer/utils"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/sp0x/torrentd/indexer/templates"
+	"github.com/sp0x/torrentd/indexer/utils"
 
 	"github.com/dustin/go-humanize"
 
@@ -83,7 +84,6 @@ func (r *Runner) populateTorrentItemField(
 			r.logger.Warnf("Row #%d has unparseable size %q: %v", rowIdx, val, err.Error())
 			return false
 		}
-		// r.logger.Debugf("After parsing, size is %v", bytes)
 		item.Size = uint32(bytes)
 	case "leechers":
 		leechers, err := strconv.Atoi(utils.NormalizeNumber(firstString(val)))

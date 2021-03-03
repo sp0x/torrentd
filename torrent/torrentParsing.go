@@ -50,21 +50,18 @@ func ParseTorrentFromURL(h *indexer.Facade, torrentURL string) (*Definition, err
 }
 
 func ParseTorrent(torrent string) (*Definition, error) {
-	if rxMagnet.MatchString(torrent) {
+	switch {
+	case rxMagnet.MatchString(torrent):
 		// Torrent is a magnet
 		return parseMagnet(torrent)
-		//if d.InfoHash == "" {
-		//	return nil, errors.New("could not parse magnet torrent id")
-		//}
-		//return &d, nil
-	} else if rxHex.MatchString(torrent) || rxBase32.MatchString(torrent) {
+	case rxHex.MatchString(torrent) || rxBase32.MatchString(torrent):
 		// if info is a hash (hex/base-32 str)
 		return parseMagnet("magnet:?xt=urn:btih:" + torrent)
-	} else if len(torrent) == 20 && isTorrentBuff(torrent) {
+	case len(torrent) == 20 && isTorrentBuff(torrent):
 		return parseMagnet("magnet:?xt=urn:btih:" + torrent)
-	} else if isTorrentBuff(torrent) {
+	case isTorrentBuff(torrent):
 		return decodeTorrentBuff([]byte(torrent))
-	} else {
+	default:
 		return nil, errors.New("invalid torrent")
 	}
 }

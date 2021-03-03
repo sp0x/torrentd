@@ -66,7 +66,7 @@ func (w *WebClient) dumpFetchData() {
 	dirPath := path.Join("dumps", request.Host)
 	requestURL := request.URL.Path
 	dirPath = path.Join(dirPath,
-		strings.Replace(fmt.Sprintf("%s_%s", request.Method, requestURL), "/", "_", -1))
+		strings.ReplaceAll(fmt.Sprintf("%s_%s", request.Method, requestURL), "/", "_"))
 	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
 		_ = os.MkdirAll(dirPath, 007)
 	}

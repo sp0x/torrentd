@@ -4,12 +4,13 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
-	"github.com/sp0x/torrentd/indexer/source"
 	"io/ioutil"
 	"os"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/sp0x/torrentd/indexer/source"
 
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"

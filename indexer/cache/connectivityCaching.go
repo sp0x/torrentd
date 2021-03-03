@@ -17,7 +17,5 @@ type ConnectivityTester interface {
 	IsOk(testURL *url.URL) bool
 	// Test if the operation can be completed with success. If so, invalidatedCache that.
 	Test(testURL *url.URL) error
-	//SetBrowser(bow browser.Browsable)
-	//ClearBrowser()
 	Invalidate(url string)
 }

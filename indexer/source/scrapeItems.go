@@ -2,6 +2,7 @@ package source
 
 import (
 	"fmt"
+
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/PuerkitoBio/goquery"
 )
@@ -129,7 +130,7 @@ func NewDOMScrapeItem(dom *goquery.Document) *DomScrapeItem {
 	return &DomScrapeItem{dom.First()}
 }
 
-func (d *DomScrapeItem) FindWithSelector(block * SelectorBlock) RawScrapeItem {
+func (d *DomScrapeItem) FindWithSelector(block *SelectorBlock) RawScrapeItem {
 	return &DomScrapeItem{Selection: d.Selection.Find(block.Selector)}
 }
 
@@ -187,4 +188,3 @@ func (d *DomScrapeItem) Remove() RawScrapeItem {
 }
 
 // endregion
-
