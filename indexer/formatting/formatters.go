@@ -10,9 +10,9 @@ import (
 )
 
 func NormalizeSpace(raw string) string {
-	txt := strings.Replace(raw, "\n", "", -1)
-	txt = strings.Replace(txt, "\t", " ", -1)
-	txt = strings.Replace(txt, "  ", " ", -1)
+	txt := strings.ReplaceAll(raw, "\n", "")
+	txt = strings.ReplaceAll(txt, "\t", " ")
+	txt = strings.ReplaceAll(txt, "  ", " ")
 	return txt
 }
 
@@ -33,7 +33,7 @@ func fixMonths(str string) string {
 		"Дек": "Dec",
 	}
 	for r, en := range months {
-		str = strings.Replace(str, r, en, -1)
+		str = strings.ReplaceAll(str, r, en)
 	}
 	return str
 }
@@ -41,8 +41,8 @@ func fixMonths(str string) string {
 func FormatTime(str string) time.Time {
 	// 7-Апр-20 00:06
 	str = strings.Trim(str, " \t\n\r")
-	str = strings.Replace(str, "  ", " ", -1)
-	str = strings.Replace(str, "  ", " ", -1)
+	str = strings.ReplaceAll(str, "  ", " ")
+	str = strings.ReplaceAll(str, "  ", " ")
 	str = fixMonths(str)
 	parts := strings.Split(str, " ")
 	var t time.Time
@@ -84,17 +84,18 @@ func SizeStrToBytes(str string) uint64 {
 	str = strings.ToLower(str)
 	str = NormalizeSpace(str)
 	multiplier := 1
-	if strings.Contains(str, "gb") {
+	switch{
+	case strings.Contains(str, "gb"):
 		multiplier = 1028 * 1028 * 1028
-	} else if strings.Contains(str, "mb") {
+	case strings.Contains(str, "mb"):
 		multiplier = 1028 * 1028
-	} else if strings.Contains(str, "kb") {
+	case strings.Contains(str, "kb"):
 		multiplier = 1028
 	}
-	str = strings.Replace(str, " ", "", -1)
-	str = strings.Replace(str, "gb", "", -1)
-	str = strings.Replace(str, "mb", "", -1)
-	str = strings.Replace(str, "kb", "", -1)
+	str = strings.ReplaceAll(str, " ", "")
+	str = strings.ReplaceAll(str, "gb", "")
+	str = strings.ReplaceAll(str, "mb", "")
+	str = strings.ReplaceAll(str, "kb", "")
 	chars := "1203456789.,"
 	var validChars []rune
 	for _, c := range str {
@@ -104,6 +105,6 @@ func SizeStrToBytes(str string) uint64 {
 	}
 	str = string(validChars)
 	flt, _ := strconv.ParseFloat(str, 32)
-	flt = flt * float64(multiplier)
+	flt *= float64(multiplier)
 	return uint64(flt)
 }

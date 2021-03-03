@@ -125,8 +125,8 @@ type DomScrapeItem struct {
 	Selection *goquery.Selection
 }
 
-func NewDOMScrapeItem(DOM *goquery.Document) *DomScrapeItem {
-	return &DomScrapeItem{DOM.First()}
+func NewDOMScrapeItem(dom *goquery.Document) *DomScrapeItem {
+	return &DomScrapeItem{dom.First()}
 }
 
 func (d *DomScrapeItem) FindWithSelector(block * SelectorBlock) RawScrapeItem {

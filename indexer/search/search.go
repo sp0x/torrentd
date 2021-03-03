@@ -51,7 +51,7 @@ func NewSearch(query *Query) Instance {
 }
 
 func (s *Search) String() string {
-	var output []string
+	var output = make([]string, len(s.FieldState))
 	for fname, fval := range s.FieldState {
 		val := fmt.Sprintf("{%s: %v}", fname, fval)
 		output = append(output, val)

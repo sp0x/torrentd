@@ -34,7 +34,6 @@ func (w *WebClient) SetErrorHandler(callback func(options *RequestOptions)) {
 func NewWebContentFetcher(browser browser.Browsable,
 	contentCache ContentCacher,
 	options FetchOptions) *WebClient {
-
 	browser.SetCookieJar(jar.NewMemoryCookies())
 	return &WebClient{
 		Browser: browser,
@@ -93,17 +92,15 @@ func (w *WebClient) Fetch(target *RequestOptions) (FetchResult, error) {
 				w.errorHandler(target)
 			}
 			return nil, err
-		} else {
-			result = extractResponseResult(w.Browser)
 		}
+		result = extractResponseResult(w.Browser)
 	case searchMethodPost:
-		if postResult, err := w.Post(target); err != nil {
+		result, err = w.Post(target)
+		if err != nil {
 			if w.errorHandler != nil {
 				w.errorHandler(target)
 			}
 			return nil, err
-		} else {
-			result = postResult
 		}
 
 	default:
@@ -186,8 +183,7 @@ func (w *WebClient) applyOptions(reqOptions *RequestOptions) {
 }
 
 func (w *WebClient) URL() *url.URL {
-	browserUrl := w.Browser.Url()
-	return browserUrl
+	return w.Browser.Url()
 }
 
 func (w *WebClient) Clone() ContentFetcher {

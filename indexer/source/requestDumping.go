@@ -108,8 +108,7 @@ func resolveResponseDumpFormat(state *jar.State) string {
 func contentTypeToFileExtension(fqContentType string) string {
 	contentTypeSplit := strings.Split(fqContentType, ";")
 	contentType := contentTypeSplit[0]
-	switch contentType {
-	case "application/json":
+	if contentType == "application/json" {
 		return "json"
 	}
 	return dumpFormatHTML

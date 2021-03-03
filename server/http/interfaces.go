@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//HttpContexts allows us to use gin's context
 //go:generate mockgen -source interfaces.go -destination=mocks/mock_httpContext.go -package=mocks
 type Context interface {
 	// Set a header

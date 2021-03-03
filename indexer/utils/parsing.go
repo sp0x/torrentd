@@ -16,7 +16,7 @@ const (
 )
 
 func NormalizeNumber(s string) string {
-	normalized := strings.Replace(s, ",", "", -1)
+	normalized := strings.ReplaceAll(s, ",", "")
 
 	if normalized == "" {
 		normalized = "0"

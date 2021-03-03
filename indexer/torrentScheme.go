@@ -17,11 +17,7 @@ func (r *Runner) populateTorrentData(resultItem search.ResultItemBase, context *
 	item := resultItem.(*search.TorrentResultItem)
 
 	item.Fingerprint = search.GetResultFingerprint(item)
-	if !r.resolveItemCategory(context.query, context.indexCategories, item) {
-		//if err != nil {
-		//	r.logger.Errorf("Found an item that doesn't match our search indexCategories: %s\n", err)
-		//}
-	}
+	r.resolveItemCategory(context.query, context.indexCategories, item)
 }
 
 func (r *Runner) populateTorrentItemField(
@@ -82,7 +78,7 @@ func (r *Runner) populateTorrentItemField(
 		}
 		item.MagnetLink = murl.String()
 	case "size":
-		bytes, err := humanize.ParseBytes(strings.Replace(firstString(val), ",", "", -1))
+		bytes, err := humanize.ParseBytes(strings.ReplaceAll(firstString(val), ",", ""))
 		if err != nil {
 			r.logger.Warnf("Row #%d has unparseable size %q: %v", rowIdx, val, err.Error())
 			return false

@@ -1,6 +1,9 @@
 package cache
 
 import (
+	"github.com/golang/mock/gomock"
+	mocks2 "github.com/sp0x/torrentd/indexer/source/mocks"
+	"net/url"
 	"testing"
 
 	"github.com/onsi/gomega"
@@ -10,15 +13,17 @@ import (
 
 func TestConnectivityCache_IsOk(t *testing.T) {
 	g := gomega.NewWithT(t)
-	conCache, _ := NewConnectivityCache()
-	g.Expect(conCache.IsOk("http://example.com")).To(gomega.BeFalse())
+	ctrl := gomock.NewController(t)
+	fetcher := mocks2.NewMockContentFetcher(ctrl)
+	conCache, _ := NewConnectivityCache(fetcher)
+	exampleURL, _ := url.Parse("http://example.com")
+	g.Expect(conCache.IsOk(exampleURL)).To(gomega.BeFalse())
 	br := &mocks.MockedBrowser{}
 	br.CanOpen = true
-	conCache.SetBrowser(br)
-	g.Expect(conCache.IsOkAndSet("http://example.com", func() bool {
-		err := conCache.Test("http://example.com")
+	g.Expect(conCache.IsOkAndSet(exampleURL, func() bool {
+		err := conCache.Test(exampleURL)
 		return err == nil
 	})).To(gomega.BeTrue())
 
-	g.Expect(conCache.IsOk("http://example.com")).To(gomega.BeTrue())
+	g.Expect(conCache.IsOk(exampleURL)).To(gomega.BeTrue())
 }

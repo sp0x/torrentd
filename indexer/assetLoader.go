@@ -52,8 +52,8 @@ func (l *AssetLoader) List(selector *Selector) ([]string, error) {
 	results := make([]string, len(l.Names))
 	for _, name := range l.Names {
 		fname := path.Base(name)
-		fname = strings.Replace(fname, ".yml", "", -1)
-		fname = strings.Replace(fname, ".yaml", "", -1)
+		fname = strings.ReplaceAll(fname, ".yml", "")
+		fname = strings.ReplaceAll(fname, ".yaml", "")
 		if selector != nil && !selector.Matches(fname) {
 			continue
 		}
@@ -73,8 +73,8 @@ func (l *AssetLoader) ListWithNames(names []string) ([]string, error) {
 			continue
 		}
 		fname := path.Base(name)
-		fname = strings.Replace(fname, ".yml", "", -1)
-		fname = strings.Replace(fname, ".yaml", "", -1)
+		fname = strings.ReplaceAll(fname, ".yml", "")
+		fname = strings.ReplaceAll(fname, ".yaml", "")
 		results = append(results, fname)
 	}
 	return results, nil

@@ -10,11 +10,8 @@ import (
 )
 
 func (r *Runner) populateCategory(item interface{}) {
-	switch item.(type) {
-	case *search.TorrentResultItem:
-		torrentItem := item.(*search.TorrentResultItem)
-		r.resolveCategoryForTorrent(torrentItem)
-		break
+	if torrent, ok := item.(*search.TorrentResultItem); ok {
+		r.resolveCategoryForTorrent(torrent)
 	}
 }
 

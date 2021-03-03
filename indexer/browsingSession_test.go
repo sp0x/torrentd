@@ -14,7 +14,7 @@ import (
 	"testing"
 )
 
-func newTestingIndex(mockCtrl *gomock.Controller) *Runner {
+func newTestingIndex() *Runner {
 	cfg := &config.ViperConfig{}
 	_ = cfg.Set("db", tempfile())
 	_ = cfg.Set("storage", "boltdb")
@@ -44,7 +44,7 @@ func TestNewSessionMultiplexer_ShouldCreateANumberOfSessions(t *testing.T) {
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	sampleIndex := newTestingIndex(ctrl)
+	sampleIndex := newTestingIndex()
 
 	multiplexer, err := NewSessionMultiplexer(sampleIndex, 10)
 
@@ -58,10 +58,10 @@ func TestNewSessionMultiplexer(t *testing.T) {
 	defer ctrl.Finish()
 	mConnectivity := mocks.NewMockConnectivityTester(ctrl)
 	mContentFetcher := mocks2.NewMockContentFetcher(ctrl)
-	sampleIndex := newTestingIndex(ctrl)
+	sampleIndex := newTestingIndex()
 	sampleIndex.urlResolver.connectivity = mConnectivity
 
-	mConnectivity.EXPECT().IsOkAndSet(OfUrl("http://example.com/"), gomock.Any()).
+	mConnectivity.EXPECT().IsOkAndSet(OfURL("http://example.com/"), gomock.Any()).
 		AnyTimes().
 		Return(true)
 
@@ -121,7 +121,7 @@ func OfRequest(method string, url string) gomock.Matcher {
 	return &ofRequest{method, url}
 }
 
-func OfUrl(t string) gomock.Matcher {
+func OfURL(t string) gomock.Matcher {
 	return &ofUrl{t}
 }
 

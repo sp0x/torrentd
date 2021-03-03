@@ -33,8 +33,7 @@ func GetNewScrapeItems(facade *indexer.Facade, fetchOptions *indexer.GenericSear
 		}
 		if err != nil {
 			log.Warningf("Could not fetch page %d\n", page)
-			switch err.(type) {
-			case *indexer.LoginError:
+			if _, ok := err.(*indexer.LoginError); ok {
 				return err
 			}
 		}

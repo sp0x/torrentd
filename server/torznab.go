@@ -100,7 +100,7 @@ func (s *Server) torznabHandler(c *gin.Context) {
 }
 
 func formatEncoding(nm string) string {
-	nm = strings.Replace(nm, "ows12", "ows-12", -1)
+	nm = strings.ReplaceAll(nm, "ows12", "ows-12")
 	nm = strings.Title(nm)
 	return nm
 }
@@ -154,7 +154,7 @@ func (s *Server) rewriteLinks(r *http.Request, items []search.ResultItemBase) ([
 		if err != nil {
 			return nil, err
 		}
-		filename := strings.Replace(item.UUID(), "/", "-", -1)
+		filename := strings.ReplaceAll(item.UUID(), "/", "-")
 		items[idx].AsScrapeItem().Link = fmt.Sprintf("%s/%s/%s.torrent", baseURL.String(), tokenValue, url.QueryEscape(filename))
 	}
 

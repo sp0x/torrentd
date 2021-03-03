@@ -36,7 +36,7 @@ func getInfo(_ *cobra.Command, _ []string) {
 	stats := store.GetStats(dumpAdditionalInfo)
 	if stats == nil {
 		fmt.Print("No stats information found.")
-		os.Exit(1)
+		return
 	}
 	for _, namespace := range stats.Namespaces {
 		_, _ = fmt.Fprintf(tabWr, "[%d]\t%s\n", namespace.RecordCount, namespace.Name)

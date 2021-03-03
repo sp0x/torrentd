@@ -2,12 +2,7 @@ package main
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/spf13/cobra"
-
-	"github.com/sp0x/torrentd/indexer/search"
-	"github.com/sp0x/torrentd/storage"
 )
 
 func init() {
@@ -20,12 +15,11 @@ func init() {
 	rootCmd.AddCommand(cmdTruncate)
 }
 
-func truncateTorrentDB(cmd *cobra.Command, args []string) {
-	store := storage.NewBuilder().
-		WithRecord(&search.ScrapeResultItem{}).
-		Build()
-	defer store.Close()
+func truncateTorrentDB(_ *cobra.Command, _ []string) {
 	fmt.Printf("not supported\n")
-	os.Exit(1)
-	_ = store.Truncate()
+	//store := storage.NewBuilder().
+	//	WithRecord(&search.ScrapeResultItem{}).
+	//	Build()
+	//defer store.Close()
+	//_ = store.Truncate()
 }

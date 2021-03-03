@@ -111,9 +111,7 @@ func (ix *UniqueIndex) Range(min []byte, max []byte, ops *indexing.CursorOptions
 		Reverse: shouldReverse,
 		Min:     min,
 		Max:     max,
-		Comparator: func(val, limit []byte) int {
-			return bytes.Compare(val, limit)
-		},
+		Comparator: bytes.Compare,
 	}
 	return scanCursor(c, ops)
 }

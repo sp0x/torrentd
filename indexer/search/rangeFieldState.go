@@ -12,11 +12,12 @@ type rangeFieldState struct {
 }
 
 func (r *rangeFieldState) Next() string {
-	if r.current == "" {
+	switch {
+	case r.current == "":
 		r.current = r.start
-	} else if !r.HasNext() {
+	case !r.HasNext():
 		return r.current
-	} else {
+	default:
 		r.increment()
 	}
 	return r.current

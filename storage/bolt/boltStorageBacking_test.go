@@ -225,10 +225,8 @@ func Test_getItemKey(t *testing.T) {
 			got, err := GetPKValueFromRecord(tt.args.item)
 			if tt.wantErr {
 				g.Expect(err).ShouldNot(gomega.BeNil())
-			} else {
-				if tt.notNil {
-					g.Expect(got).ShouldNot(gomega.BeNil())
-				}
+			} else if tt.notNil {
+				g.Expect(got).ShouldNot(gomega.BeNil())
 			}
 		})
 	}

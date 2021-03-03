@@ -37,8 +37,7 @@ func Get(facade *Facade, query *search.Query) error {
 		}
 		if err != nil {
 			log.Warningf("Could not fetch page %d", page)
-			switch err.(type) {
-			case *LoginError:
+			if _, ok := err.(*LoginError); ok {
 				return err
 			}
 		}

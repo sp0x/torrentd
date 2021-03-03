@@ -194,13 +194,13 @@ func (e *errorBlock) matchPage(res *source.HTMLFetchResult) bool {
 	return false
 }
 
-func scrapeItemFromHtml(res *source.HTMLFetchResult) source.RawScrapeItem {
+func scrapeItemFromHTML(res *source.HTMLFetchResult) source.RawScrapeItem {
 	return &source.DomScrapeItem{Selection: res.DOM.First()}
 }
 
 func (e *errorBlock) errorText(from *source.HTMLFetchResult) (string, error) {
 	if !e.Message.IsEmpty() {
-		matchError, err := e.Message.Match(scrapeItemFromHtml(from))
+		matchError, err := e.Message.Match(scrapeItemFromHTML(from))
 		return matchError.(string), err
 	} else if e.Selector != "" {
 		errs := from.Find(e.Selector)

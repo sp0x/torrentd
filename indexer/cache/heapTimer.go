@@ -54,10 +54,7 @@ func (h *_TimerHeap) Less(i, j int) bool {
 }
 
 func (h *_TimerHeap) Swap(i, j int) {
-	var tmp *Timer
-	tmp = h.timers[i]
-	h.timers[i] = h.timers[j]
-	h.timers[j] = tmp
+	h.timers[i], h.timers[j] = h.timers[j], h.timers[i]
 }
 
 func (h *_TimerHeap) Push(x interface{}) {

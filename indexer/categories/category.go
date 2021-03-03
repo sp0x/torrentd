@@ -216,12 +216,6 @@ func (slice Categories) Items() []*Category {
 func (slice Categories) ContainsCat(cat *Category) bool {
 	_, ok := slice[cat.ID]
 	return ok
-	//for _, mycat := range slice {
-	//	if mycat.ID == cat.ID {
-	//		return true
-	//	}
-	//}
-	//return false
 }
 
 func (slice Categories) Subset(ids ...int) Categories {

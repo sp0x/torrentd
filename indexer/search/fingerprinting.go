@@ -9,11 +9,11 @@ import (
 // Drop any additional info: timestamps, release versions, etc.
 // -->
 var (
-	squareBracesRx, _          = regexp.Compile("^(.+(?:\\s+|\\)))\\[[^\\[\\]]+?\\](.*)$")
-	precedingSquareBracesRx, _ = regexp.Compile("^(\\s*)\\[[^\\[\\]]+?\\](.+)$")
-	roundBracesRx, _           = regexp.Compile("^(.+(?:\\s+|\\]))\\([^()]+?\\)(.*)$")
-	angleBracesRx, _           = regexp.Compile("^(.+)\\s+<<.*?>>(.*)$")
-	dateRx, _                  = regexp.Compile("^(.+)\\s+(?:\\d{1,2}\\.\\d{1,2}\\.\\d{4}|\\d{4}\\.\\d{2}\\.\\d{2})(.*)$")
+	squareBracesRx          = regexp.MustCompile("^(.+(?:\\s+|\\)))\\[[^\\[\\]]+?\\](.*)$")
+	precedingSquareBracesRx = regexp.MustCompile("^(\\s*)\\[[^\\[\\]]+?\\](.+)$")
+	roundBracesRx           = regexp.MustCompile("^(.+(?:\\s+|\\]))\\([^()]+?\\)(.*)$")
+	angleBracesRx           = regexp.MustCompile("^(.+)\\s+<<.*?>>(.*)$")
+	dateRx                  = regexp.MustCompile("^(.+)\\s+(?:\\d{1,2}\\.\\d{1,2}\\.\\d{4}|\\d{4}\\.\\d{2}\\.\\d{2})(.*)$")
 )
 
 // Unable to merge it into date_regex due to some strange behaviour of re
@@ -31,7 +31,7 @@ var (
 
 func GetResultFingerprint(t *TorrentResultItem) string {
 	tagsRx, _ := regexp.Compile("</?[a-z]+>")
-	name := strings.Replace(t.Title, "ё", "e", -1)
+	name := strings.ReplaceAll(t.Title, "ё", "e")
 	name = html.UnescapeString(name)
 	name = tagsRx.ReplaceAllString(name, "")
 
@@ -51,7 +51,7 @@ func GetResultFingerprint(t *TorrentResultItem) string {
 	name = categoriesRx.ReplaceAllString(name, "")
 	name = arrowsRx.ReplaceAllString(name, "$1")
 	name = cyrilicRx.ReplaceAllString(name, "$1")
-	name = strings.Replace(name, ".", " ", -1)
+	name = strings.ReplaceAll(name, ".", " ")
 	// Drop punctuation and other non-alphabet chars
 	chars := "abcdefghijklmnopqrstuvwxyzабвгдеёжзийклмнопрстуфхцчшщьъыэюя 123456789+-_.:!,"
 	var validatedNameChars []rune
@@ -61,7 +61,7 @@ func GetResultFingerprint(t *TorrentResultItem) string {
 		}
 	}
 	name = string(validatedNameChars)
-	name = strings.Replace(name, "г.", "", -1)
+	name = strings.ReplaceAll(name, "г.", "")
 	for true {
 		newName := badKeywordsRx.ReplaceAllString(name, "")
 		if newName == name {

@@ -75,9 +75,9 @@ func (b *BrowsingSessionMultiplexer) acquire() (*BrowsingSession, error) {
 	b.index++
 	if err := session.setup(); err != nil {
 		return nil, err
-	} else {
-		return session, nil
 	}
+
+	return session, nil
 }
 
 func newIndexSessionFromRunner(runner *Runner) (*BrowsingSession, error) {
@@ -101,7 +101,6 @@ func newIndexSessionWithLogin(siteConfig map[string]string,
 	contentFetcher *source.WebClient,
 	resolver *URLResolver,
 	loginBlock *loginBlock) *BrowsingSession {
-
 	lc := &BrowsingSession{}
 	lc.loginBlock = loginBlock
 	lc.urlResolver = resolver
@@ -138,18 +137,18 @@ func (l *BrowsingSession) verifyLogin(f source.FetchResult) (bool, error) {
 	var loginResult *source.HTMLFetchResult
 
 	// Go to another url if needed
-	if testBlock.Path != "" && l.contentFetcher.URL() != nil{
+	if testBlock.Path != "" && l.contentFetcher.URL() != nil {
 		testURL, err := l.urlResolver.Resolve(testBlock.Path)
 		if err != nil {
 			return false, err
 		}
 
 		r, err := l.contentFetcher.Fetch(source.NewRequestOptions(testURL))
-		if htmlRes, ok := r.(*source.HTMLFetchResult); !ok {
+		if _, ok := r.(*source.HTMLFetchResult); !ok {
 			return false, errors.New("expected html from login")
-		} else {
-			loginResult = htmlRes
 		}
+		loginResult, _ = r.(*source.HTMLFetchResult)
+
 		if err != nil {
 			// r.logger.WithError(err).Warn("Failed to open page")
 			return false, nil
@@ -164,7 +163,7 @@ func (l *BrowsingSession) verifyLogin(f source.FetchResult) (bool, error) {
 		}
 	}
 
- 	if testBlock.Selector != "" && f.Find(testBlock.Selector).Length() == 0 {
+	if testBlock.Selector != "" && f.Find(testBlock.Selector).Length() == 0 {
 		return false, nil
 	}
 
@@ -174,7 +173,7 @@ func (l *BrowsingSession) verifyLogin(f source.FetchResult) (bool, error) {
 // extractLoginInput gets the configured input fields and values for the login.
 func (l *BrowsingSession) extractLoginInput() (map[string]string, error) {
 	result := map[string]string{}
-	loginUrl, _ := l.urlResolver.Resolve(l.loginBlock.Path)
+	loginURL, _ := l.urlResolver.Resolve(l.loginBlock.Path)
 
 	// Get configuration for the Index so we can login
 	ctx := struct {
@@ -189,7 +188,7 @@ func (l *BrowsingSession) extractLoginInput() (map[string]string, error) {
 		}
 
 		if val == "{{ .Config.password }}" && resolved == emptyValue {
-			return nil, fmt.Errorf("no password was configured for input `%s` @%s", name, loginUrl)
+			return nil, fmt.Errorf("no password was configured for input `%s` @%s", name, loginURL)
 		}
 		result[name] = resolved
 	}
@@ -250,7 +249,7 @@ func (l *BrowsingSession) login() error {
 		if cookieVal == emptyValue {
 			return &LoginError{errors.New("no login cookie configured")}
 		}
-		if loginReqResult, err = l.loginViaCookie(loginURL, loginValues["cookie"]); err != nil {
+		if loginReqResult, err = l.loginViaCookie(loginURL, loginValues["cookie"], loginValues); err != nil {
 			return err
 		}
 	default:
@@ -279,13 +278,13 @@ func (l *BrowsingSession) login() error {
 	return nil
 }
 
-func (l *BrowsingSession) loginViaCookie(loginURL *url.URL, cookie string) (source.FetchResult, error) {
+func (l *BrowsingSession) loginViaCookie(loginURL *url.URL, cookie string, values map[string]string) (source.FetchResult, error) {
 	cookies := parseCookieString(cookie)
 	cj := jar.NewMemoryCookies()
 	cj.SetCookies(loginURL, cookies)
 
 	l.contentFetcher.(*source.WebClient).Browser.SetCookieJar(cj)
-	return nil, nil
+	return l.loginViaGet(loginURL, values)
 }
 
 func (l *BrowsingSession) loginViaForm(loginURL *url.URL, formSelector string, vals map[string]string) (source.FetchResult, error) {
@@ -330,6 +329,19 @@ func (l *BrowsingSession) loginViaPost(loginURL *url.URL, vals map[string]string
 		URL:    loginURL,
 	}
 	return l.contentFetcher.Post(options)
+}
+
+func (l *BrowsingSession) loginViaGet(loginURL *url.URL, vals map[string]string) (source.FetchResult, error) {
+	data := url.Values{}
+	for key, value := range vals {
+		data.Add(key, value)
+	}
+	options := &source.RequestOptions{
+		Method: "GET",
+		Values: data,
+		URL:    loginURL,
+	}
+	return l.contentFetcher.Open(options)
 }
 
 func (l *BrowsingSession) setup() error {

@@ -60,10 +60,8 @@ func (c *ConnectivityCache) IsOkAndSet(testURL *url.URL, f func() bool) bool {
 func validateBrowserCall(br source.FetchResult) error {
 	if htmlResult, ok := br.(*source.HTMLFetchResult); !ok {
 		return errors.New("tried to fetch a non-html resource")
-	} else {
-		if htmlResult.HTTPResult.StatusCode != http.StatusOK {
-			return errors.New("returned non-ok http status code " + strconv.Itoa(htmlResult.HTTPResult.StatusCode))
-		}
+	} else if htmlResult.HTTPResult.StatusCode != http.StatusOK {
+		return errors.New("returned non-ok http status code " + strconv.Itoa(htmlResult.HTTPResult.StatusCode))
 	}
 
 	return nil

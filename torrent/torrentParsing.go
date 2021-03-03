@@ -18,9 +18,9 @@ import (
 )
 
 var (
-	rxMagnet, _ = regexp.Compile("^(stream-)?magnet:")
-	rxHex, _    = regexp.Compile("^[a-f0-9]{40}$")
-	rxBase32, _ = regexp.Compile("^[a-z2-7]{32}")
+	rxMagnet = regexp.MustCompile("^(stream-)?magnet:")
+	rxHex    = regexp.MustCompile("^[a-f0-9]{40}$")
+	rxBase32 = regexp.MustCompile("^[a-z2-7]{32}")
 )
 
 func ParseTorrentFromStream(stream io.ReadCloser) (*Definition, error) {

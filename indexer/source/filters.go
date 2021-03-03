@@ -78,7 +78,7 @@ func (f *FilterService) Filter(fType string, args interface{}, value string) (st
 		if !ok {
 			return "", fmt.Errorf("filter %q requires a string argument at idx 1", fType)
 		}
-		return strings.Replace(value, from, to, -1), nil
+		return strings.ReplaceAll(value, from, to), nil
 
 	case "trim":
 		cutset, ok := args.(string)
@@ -137,7 +137,7 @@ func (f *FilterService) Filter(fType string, args interface{}, value string) (st
 func filterMapReplace(value string, args interface{}) (string, error) {
 	replacemenets := args.(map[interface{}]interface{})
 	for oldVal, newVal := range replacemenets {
-		value = strings.Replace(value, oldVal.(string), newVal.(string), -1)
+		value = strings.ReplaceAll(value, oldVal.(string), newVal.(string))
 	}
 	return value, nil
 }
