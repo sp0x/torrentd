@@ -6,7 +6,6 @@ import (
 	"github.com/sp0x/torrentd/server/rss"
 )
 
-//http://localhost:5000/torznab/rutracker.org?apikey=210fc7bb818639a&t=search&q=bad%20boys
 func (s *Server) setupRoutes(r *gin.Engine) {
 	// Rss
 	r.GET("/all", func(c *gin.Context) { rss.ServerAll(c) })

@@ -9,8 +9,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/sp0x/torrentd/indexer/source"
-
 	"github.com/f2prateek/train"
 	trainlog "github.com/f2prateek/train/log"
 	"github.com/sirupsen/logrus"
@@ -19,6 +17,8 @@ import (
 	"github.com/spf13/viper"
 	"go.zoe.im/surferua"
 	"golang.org/x/net/proxy"
+
+	"github.com/sp0x/torrentd/indexer/source"
 )
 
 func (r *Runner) createTransport() (http.RoundTripper, error) {

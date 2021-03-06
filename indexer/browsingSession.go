@@ -7,13 +7,11 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/jar"
 
-	"github.com/sp0x/torrentd/indexer/templates"
-
-	"github.com/sirupsen/logrus"
-
 	"github.com/sp0x/torrentd/indexer/source"
+	"github.com/sp0x/torrentd/indexer/templates"
 )
 
 const emptyValue = "<no value>"

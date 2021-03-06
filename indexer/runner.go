@@ -10,8 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sp0x/torrentd/indexer/utils"
-
 	"github.com/PuerkitoBio/goquery"
 	log "github.com/sirupsen/logrus"
 
@@ -22,6 +20,7 @@ import (
 	"github.com/sp0x/torrentd/indexer/source"
 	"github.com/sp0x/torrentd/indexer/source/series"
 	"github.com/sp0x/torrentd/indexer/status"
+	"github.com/sp0x/torrentd/indexer/utils"
 	"github.com/sp0x/torrentd/storage"
 	"github.com/sp0x/torrentd/storage/indexing"
 	"github.com/sp0x/torrentd/torznab"

@@ -23,10 +23,9 @@ const (
 	filterDateAlt     = "dateparseAlt"
 )
 
-type FilterService struct {
-}
+type FilterService struct{}
 
-// Filter out whatever's needed
+// Filter the string with the filter given in `fType`
 func (f *FilterService) Filter(fType string, args interface{}, value string) (string, error) {
 	switch fType {
 	case filterQueryString:

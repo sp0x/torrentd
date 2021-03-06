@@ -5,12 +5,10 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-
-	mocks2 "github.com/sp0x/torrentd/indexer/source/mocks"
-
 	"github.com/onsi/gomega"
 
 	"github.com/sp0x/torrentd/indexer/cache/mocks"
+	mocks2 "github.com/sp0x/torrentd/indexer/source/mocks"
 )
 
 var (

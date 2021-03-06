@@ -3,9 +3,9 @@ package indexer
 import (
 	"testing"
 
-	"github.com/sp0x/torrentd/indexer/source"
-
 	"github.com/onsi/gomega"
+
+	"github.com/sp0x/torrentd/indexer/source"
 )
 
 func Test_formatValue_ShouldWorkWithoutFields(t *testing.T) {

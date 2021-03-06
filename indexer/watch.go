@@ -9,7 +9,7 @@ import (
 )
 
 // IteratePages goes over all the pages in an index and returns the results through a channel.
-func GetAllPagesFromIndex(facade *Facade, query *search.Query) <-chan search.ResultItemBase { //nolint:unused
+func GetAllPagesFromIndex(facade *Facade, query *search.Query) <-chan search.ResultItemBase {
 	outputChan := make(chan search.ResultItemBase)
 	if query == nil {
 		query = search.NewQuery()

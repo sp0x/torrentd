@@ -24,9 +24,6 @@ func Get(facade *Facade, query *search.Query) error {
 		pagesToFetch = 10
 	}
 	searchInstance := search.NewSearch(query)
-	if searchInstance == nil {
-		return fmt.Errorf("couldn't search for page %d", page)
-	}
 
 	for page = 0; page < pagesToFetch; page++ {
 		log.Infof("Fetching page %d", page)

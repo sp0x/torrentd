@@ -10,9 +10,8 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/sp0x/surf/jar"
-
 	"github.com/sp0x/surf/browser"
+	"github.com/sp0x/surf/jar"
 )
 
 const (

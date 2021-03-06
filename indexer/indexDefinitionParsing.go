@@ -10,13 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sp0x/torrentd/indexer/source"
-
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 
 	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/indexer/source"
 	"github.com/sp0x/torrentd/torznab"
 )
 
@@ -352,8 +351,8 @@ func (c *capabilitiesBlock) UnmarshalYAML(unmarshal func(interface{}) error) err
 		allCats := categories.AllCategories
 		for id, catName := range intermediate.Categories {
 			matchedCat := false
-			for key, cat := range allCats {
-				cat = allCats[key]
+			for key := range allCats {
+				cat := allCats[key]
 				if cat.Name == catName {
 					c.CategoryMap[id] = cat
 					matchedCat = true

@@ -3,6 +3,7 @@ package indexer
 import (
 	"context"
 	"fmt"
+
 	"github.com/sp0x/torrentd/indexer/cache"
 	"github.com/sp0x/torrentd/indexer/status"
 )

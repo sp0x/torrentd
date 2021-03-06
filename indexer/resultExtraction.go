@@ -4,12 +4,11 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/sp0x/torrentd/indexer/source"
-	"github.com/sp0x/torrentd/indexer/templates"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/indexer/source"
+	"github.com/sp0x/torrentd/indexer/templates"
 )
 
 const torrentScheme = "torrent"

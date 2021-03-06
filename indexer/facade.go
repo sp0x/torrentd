@@ -61,7 +61,7 @@ func NewEmptyFacade(config config.Config) *Facade {
 // NewFacade Creates a new facade for an indexer with the given name and config.
 // If any indexCategories are given, the facade must be for an indexer that supports these indexCategories.
 // If you don't provide a name or name is `all`, an aggregate is used.
-func NewFacade(indexerName string, config config.Config, cats ...categories.Category) (*Facade, error) { //nolint:unused
+func NewFacade(indexerName string, config config.Config, cats ...categories.Category) (*Facade, error) {
 	if newIndexerSelector(indexerName).isAggregate() {
 		return NewAggregateFacadeWithCategories(config, cats...), nil
 	}

@@ -3,6 +3,7 @@ package indexer
 import (
 	"encoding/json"
 	"errors"
+
 	"github.com/PuerkitoBio/goquery"
 
 	"github.com/sp0x/torrentd/indexer/source"

@@ -6,11 +6,10 @@ import (
 	"io"
 	"net/url"
 
-	"github.com/sp0x/torrentd/indexer/source"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/indexer/source"
 )
 
 func (r *Runner) downloadsNeedResolution() bool {
@@ -66,6 +65,7 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 		Reader:            pipeR,
 		ContentLengthChan: make(chan int64),
 	}
+
 	// Start a goroutine and write the response of the download to the pipe
 	go func() {
 		defer func() {
