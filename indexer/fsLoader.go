@@ -65,7 +65,7 @@ func (fs *FileIndexLoader) walkDirectories() map[string]string {
 
 func (fs *FileIndexLoader) List(selector *Selector) ([]string, error) {
 	defs := fs.walkDirectories()
-	results := make([]string, len(defs))
+	var results []string
 	for name := range defs {
 		if selector != nil && !selector.Matches(name) {
 			continue
@@ -77,7 +77,7 @@ func (fs *FileIndexLoader) List(selector *Selector) ([]string, error) {
 
 func (fs *FileIndexLoader) ListWithNames(names []string) ([]string, error) {
 	defs := fs.walkDirectories()
-	results := make([]string, len(defs))
+	var results []string
 	for k := range defs {
 		if !contains(names, k) {
 			continue

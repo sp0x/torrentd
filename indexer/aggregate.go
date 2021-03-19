@@ -44,11 +44,11 @@ func (ag *Aggregate) Errors() []string {
 func (ag *Aggregate) GetDefinition() *Definition {
 	definition := &Definition{}
 	definition.Site = aggregateSiteName
-	indexerNames := make([]string, len(ag.Indexers))
-	for _, ixr := range ag.Indexers {
-		indexerNames = append(indexerNames, ixr.GetDefinition().Name)
+	indexNames := make([]string, len(ag.Indexers))
+	for i, ixr := range ag.Indexers {
+		indexNames[i] = ixr.GetDefinition().Name
 	}
-	definition.Name = strings.Join(indexerNames, ",")
+	definition.Name = strings.Join(indexNames, ",")
 	return definition
 }
 

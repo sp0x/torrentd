@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/emirpasic/gods/maps/linkedhashmap"
+
+	"github.com/sp0x/torrentd/indexer/search"
 )
 
 // Key is a primary key or an indexing key, this can be a composite key as well
@@ -62,11 +64,11 @@ func (k *Key) Add(s string) {
 // KeyHasValue checks if all the key fields in an item have a value.
 func KeyHasValue(key *Key, item interface{}) bool {
 	val := reflect.ValueOf(item).Elem()
-	fieldsField := val.FieldByName("ExtraFields")
+	fieldsField := val.FieldByName("ModelData")
 	for _, key := range key.Fields {
-		isExtra := strings.HasPrefix(key, "ExtraFields.")
+		isExtra := strings.HasPrefix(key, "ModelData.")
 		if isExtra {
-			key = key[12:]
+			key = key[10:]
 		}
 		fld := val.FieldByName(key)
 		if fld.IsValid() {
@@ -77,7 +79,7 @@ func KeyHasValue(key *Key, item interface{}) bool {
 			continue
 		}
 		if fieldsField.IsValid() {
-			if val, found := fieldsField.Interface().(map[string]interface{})[key]; found {
+			if val, found := fieldsField.Interface().(search.ModelData)[key]; found {
 				if val == nil || val.(string) == "" {
 					return false
 				}
@@ -106,12 +108,12 @@ func NewQuery() Query {
 func GetKeyQueryFromItem(keyParts *Key, item interface{}) Query {
 	output := NewQuery()
 	val := reflect.ValueOf(item).Elem()
-	fieldsField := val.FieldByName("ExtraFields")
+	fieldsField := val.FieldByName("ModelData")
 	for _, key := range keyParts.Fields {
-		isExtra := strings.HasPrefix(key, "ExtraFields.")
+		isExtra := strings.HasPrefix(key, "ModelData.")
 		parsedKey := key
 		if isExtra {
-			parsedKey = key[12:]
+			parsedKey = key[10:]
 		}
 		fld := val.FieldByName(parsedKey)
 		if fld.IsValid() {
@@ -122,7 +124,7 @@ func GetKeyQueryFromItem(keyParts *Key, item interface{}) Query {
 		if !fieldsField.IsValid() {
 			continue
 		}
-		if val, found := fieldsField.Interface().(map[string]interface{})[parsedKey]; found {
+		if val, found := fieldsField.Interface().(search.ModelData)[parsedKey]; found {
 			output.Put(key, val)
 		}
 	}

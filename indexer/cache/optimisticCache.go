@@ -24,14 +24,13 @@ func NewOptimisticConnectivityCache(fetcher source.ContentFetcher) (*OptimisticC
 This invalidatedCache should return true from the start, and only start working if the items have been non-present.
 */
 type OptimisticConnectivityCache struct {
-	fetcher source.ContentFetcher
-	lock    sync.RWMutex
-	// invalidatedCache   map[string]Details
+	fetcher          source.ContentFetcher
+	lock             sync.RWMutex
 	invalidatedCache LRUCache
 }
 
 // IsOk returns whether the invalidatedCache contains a successful response for the url
-func (c *OptimisticConnectivityCache) IsOk(url *url.URL) bool {
+func (c *OptimisticConnectivityCache) IsOk(url string) bool {
 	isInvalidated := c.invalidatedCache.Contains(url)
 	return !isInvalidated
 }
@@ -45,7 +44,7 @@ func (c *OptimisticConnectivityCache) Invalidate(url string) {
 
 // IsOkAndSet checks if the `u` value is contained, if it's not it checks it.
 // This operation is thread safe, you can use it to modify the invalidatedCache state in the function.
-func (c *OptimisticConnectivityCache) IsOkAndSet(u *url.URL, f func() bool) bool {
+func (c *OptimisticConnectivityCache) IsOkAndSet(u string, f func() bool) bool {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	var result bool
@@ -58,17 +57,18 @@ func (c *OptimisticConnectivityCache) IsOkAndSet(u *url.URL, f func() bool) bool
 }
 
 // Test the connectivity for an url.
-func (c *OptimisticConnectivityCache) Test(testURL *url.URL) error {
+func (c *OptimisticConnectivityCache) Test(testURL string) error {
 	if c.fetcher == nil {
 		return errors.New("connectivity invalidatedCache has no browser. call SetBrowser first")
 	}
-	result, err := c.fetcher.Open(&source.RequestOptions{URL: testURL})
+	destURL, _ := url.Parse(testURL)
+	result, err := c.fetcher.Open(source.NewRequestOptions(destURL))
 	if err == nil {
 		err = validateBrowserCall(result)
 	}
 	// If the url can be opened, we remove the invalid state.
 	if err == nil {
-		c.invalidatedCache.Remove(testURL.String())
+		c.invalidatedCache.Remove(testURL)
 	}
 	return err
 }

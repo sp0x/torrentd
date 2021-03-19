@@ -38,12 +38,14 @@ type Search struct {
 func NewSearch(query *Query) Instance {
 	s := &Search{}
 	s.FieldState = make(map[string]*rangeFieldState)
-	for fieldName, fieldValue := range query.Fields {
-		if value, ok := fieldValue.(RangeField); ok {
-			s.FieldState[fieldName] = &rangeFieldState{
-				value[0],
-				value[1],
-				"",
+	if query != nil {
+		for fieldName, fieldValue := range query.Fields {
+			if value, ok := fieldValue.(RangeField); ok {
+				s.FieldState[fieldName] = &rangeFieldState{
+					value[0],
+					value[1],
+					"",
+				}
 			}
 		}
 	}

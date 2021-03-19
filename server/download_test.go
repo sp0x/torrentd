@@ -1,44 +1,61 @@
 package server
 
 import (
-	"bytes"
-	"io/ioutil"
 	"testing"
 
 	"github.com/golang/mock/gomock"
 
 	"github.com/sp0x/torrentd/config/mocks"
 	"github.com/sp0x/torrentd/indexer"
-	indexerMocks "github.com/sp0x/torrentd/indexer/mocks"
 	httpMocks "github.com/sp0x/torrentd/server/http/mocks"
 )
 
-func TestServer_downloadHandler(t *testing.T) {
-	// g := NewGomegaWithT(t)
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	config := mocks.NewMockConfig(ctrl)
+func prepareTestServer(ctrl *gomock.Controller, config *mocks.MockConfig) (*Server, *httpMocks.MockContext) {
 	context := httpMocks.NewMockContext(ctrl)
 
 	config.EXPECT().GetInt("port").Return(3333).Times(1)
 	config.EXPECT().GetString("hostname").Return("").Times(1)
 	config.EXPECT().GetBytes("api_key").Return(nil).Times(1)
-	s := NewServer(config)
-	s.indexerFacade = indexer.NewEmptyFacade(config)
-	s.Params.APIKey = []byte("demotoken")
+
+	server := NewServer(config)
+	server.indexerFacade = indexer.NewEmptyFacade(config)
+	server.Params.APIKey = []byte("demotoken")
+
+	return server, context
+}
+
+func TestServer_downloadHandler_Should_Work_WithoutAnyParams(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	config := mocks.NewMockConfig(ctrl)
+	server, context := prepareTestServer(ctrl, config)
 
 	// Test a simple download request without any params.
 	// nothing should happen.
 	context.EXPECT().Param("token").Return("")
 	context.EXPECT().Param("filename").Return("")
 	context.EXPECT().Error(gomock.Any()).Times(0)
-	s.downloadHandler(context)
+	server.downloadHandler(context)
+}
+
+func TestServer_downloadHelper_Should_ErrorOut_If_TokenIsNotJWT(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	config := mocks.NewMockConfig(ctrl)
+	server, context := prepareTestServer(ctrl, config)
 
 	// Download should error out if the token isn't in JWT
 	context.EXPECT().Param("token").Return("demotoken")
 	context.EXPECT().Param("filename").Return("")
 	context.EXPECT().Error(gomock.Any()).Times(1)
-	s.downloadHandler(context)
+	server.downloadHandler(context)
+}
+
+func TestServer_downloadHelper_Should_ErrorOut_If_TokenIsInvalid(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	config := mocks.NewMockConfig(ctrl)
+	server, context := prepareTestServer(ctrl, config)
 
 	// Download should error out if the token doesn't have a valid site.
 	tkn := token{}
@@ -47,24 +64,47 @@ func TestServer_downloadHandler(t *testing.T) {
 	context.EXPECT().Param("filename").Return("")
 	// Unknown indexer
 	context.EXPECT().String(404, gomock.Any())
-	s.downloadHandler(context)
+	server.downloadHandler(context)
+}
+
+func TestServer_downloadHandler_Should_ErrorOut_If_FilenameValueIsEmpty(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	config := mocks.NewMockConfig(ctrl)
+	server, context := prepareTestServer(ctrl, config)
 
 	// If we're not using any link for the download, just return 404
-	tkn = token{IndexName: "rutracker.org"}
-	tokenString, _ = tkn.Encode([]byte("demotoken"))
+	tkn := token{IndexName: "rutracker.org"}
+	tokenString, _ := tkn.Encode([]byte("demotoken"))
 	context.EXPECT().Param("token").Return(tokenString)
 	context.EXPECT().Param("filename").Return("")
 	context.EXPECT().String(404, gomock.Any())
 	// Unknown indexer
 	// context.EXPECT().Error(gomock.Any()).Times(1)
-	s.downloadHandler(context)
+	server.downloadHandler(context)
+}
+
+func TestServer_downloadHandler(t *testing.T) {
+	// g := gomega.NewWithT(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	config := mocks.NewMockConfig(ctrl)
+	server, context := prepareTestServer(ctrl, config)
 
 	// If we've given a valid link, we should see the download
 	scopeMock := indexer.NewMockScope(ctrl)
-	mockedIndexer := indexerMocks.NewMockIndexer(ctrl)
-	tkn = token{IndexName: "rutracker.org", Link: "http://rutracker.org"}
-	downloadResult := ioutil.NopCloser(bytes.NewReader([]byte("result")))
-	tokenString, _ = tkn.Encode([]byte("demotoken"))
+	mockedIndexer := indexer.NewMockIndexer(ctrl)
+	tkn := token{IndexName: "rutracker.org", Link: "http://rutracker.org"}
+	responseProxy, pipeWr := indexer.NewResponseProxy()
+	go func() {
+		responseProxy.ContentLengthChan <- 6
+		_, _ = pipeWr.Write([]byte("result"))
+		// g.Expect(err).To(gomega.BeNil())
+		// g.Expect(n).To(gomega.Equal(6))
+		_ = pipeWr.Close()
+	}()
+
+	tokenString, _ := tkn.Encode([]byte("demotoken"))
 	context.EXPECT().Param("token").Return(tokenString)
 	context.EXPECT().Param("filename").Return("")
 	// We expect the url of the site to be checked.
@@ -74,8 +114,9 @@ func TestServer_downloadHandler(t *testing.T) {
 	context.EXPECT().Header("Content-Transfer-Encoding", gomock.Any())
 	context.EXPECT().DataFromReader(200, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1)
 	scopeMock.EXPECT().Lookup(gomock.Any(), "rutracker.org").Return(mockedIndexer, nil)
-	mockedIndexer.EXPECT().Download(tkn.Link).Return(downloadResult, nil)
+	mockedIndexer.EXPECT().Download(tkn.Link).
+		Return(responseProxy, nil)
 
-	s.indexerFacade.LoadedIndexes = scopeMock
-	s.downloadHandler(context)
+	server.indexerFacade.LoadedIndexes = scopeMock
+	server.downloadHandler(context)
 }

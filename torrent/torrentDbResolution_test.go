@@ -7,7 +7,7 @@ import (
 	"github.com/onsi/gomega"
 
 	"github.com/sp0x/torrentd/config"
-	"github.com/sp0x/torrentd/indexer/mocks"
+	"github.com/sp0x/torrentd/indexer"
 )
 
 func TestResolveTorrents(t *testing.T) {
@@ -15,7 +15,7 @@ func TestResolveTorrents(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 	defer ctrl.Finish()
 
-	index := mocks.NewMockIndexer(ctrl)
+	index := indexer.NewMockIndexer(ctrl)
 	index.EXPECT().HealthCheck().Return(nil)
 	cfg := &config.ViperConfig{}
 	results := ResolveTorrents(index, cfg)

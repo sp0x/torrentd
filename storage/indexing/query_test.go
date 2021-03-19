@@ -16,7 +16,7 @@ func TestKeyHasValue(t *testing.T) {
 	chat := &bots.Chat{}
 	item.ModelData = make(map[string]interface{})
 	item.ModelData["time"] = "33"
-	k := NewKey("ExtraFields.time")
+	k := NewKey("ModelData.time")
 	g.Expect(KeyHasValue(k, item)).To(gomega.BeTrue())
 
 	item = &search.ScrapeResultItem{}
@@ -47,11 +47,11 @@ func TestGetKeyQueryFromItem(t *testing.T) {
 	item := &search.ScrapeResultItem{}
 	item.ModelData = make(map[string]interface{})
 	item.ModelData["time"] = "33"
-	k := NewKey("ExtraFields.time")
+	k := NewKey("ModelData.time")
 	q := GetKeyQueryFromItem(k, item)
 	g.Expect(q).ToNot(gomega.BeNil())
 	g.Expect(q.Get("time")).To(gomega.BeNil())
-	val, found := q.Get("ExtraFields.time")
+	val, found := q.Get("ModelData.time")
 	g.Expect(found).To(gomega.BeTrue())
 	g.Expect(val).To(gomega.Equal("33"))
 

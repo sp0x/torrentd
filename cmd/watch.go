@@ -67,7 +67,7 @@ func watchIndex(c *cobra.Command, _ []string) {
 
 	// Start watching the torrent tracker.
 	status.SetupPubsub(appConfig.GetString("firebase_project"))
-	query := search.ParseQueryString(c.Flag("query").Value.String())
+	query := search.NewSearchFromQuery(c.Flag("query").Value.String())
 	watchInterval := viper.GetInt("interval")
 	resultChannel := indexer.Watch(facade, query, watchInterval)
 	tabWr := new(tabwriter.Writer)

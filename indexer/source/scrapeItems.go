@@ -30,6 +30,9 @@ func NewDOMScrapeItems(s *goquery.Selection) *DomScrapeItems {
 }
 
 func (d *DomScrapeItems) Length() int {
+	if d.Items == nil {
+		return 0
+	}
 	return d.Items.Length()
 }
 

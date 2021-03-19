@@ -13,6 +13,11 @@ import (
 	"github.com/sp0x/torrentd/indexer/cache"
 )
 
+//go:generate mockgen -source utils.go -destination=utilsMock.go -package=indexer
+type IURLResolver interface {
+	Resolve(partialURL string) (*url.URL, error)
+}
+
 type URLResolver struct {
 	urls         []*url.URL
 	connectivity cache.ConnectivityTester
@@ -25,7 +30,7 @@ func (r *URLResolver) Resolve(partialURL string) (*url.URL, error) {
 	}
 	for _, cURL := range r.urls {
 		baseURL := cURL
-		if r.connectivity.IsOkAndSet(baseURL, func() bool {
+		if r.connectivity.IsOkAndSet(baseURL.String(), func() bool {
 			return defaultURLTester(r.connectivity, baseURL, r.logger)
 		}) {
 			return r.resolvePartial(baseURL, partialURL)
@@ -61,7 +66,7 @@ func (r *URLResolver) resolvePartial(baseURL *url.URL, partialURL string) (*url.
 func defaultURLTester(connectivity cache.ConnectivityTester, testURL *url.URL, logger *log.Logger) bool {
 	logger.WithField("url", testURL).
 		Info("Checking connectivity to url")
-	err := connectivity.Test(testURL)
+	err := connectivity.Test(testURL.String())
 	if err != nil {
 		logger.WithError(err).Warn("URL check failed")
 		return false
@@ -69,7 +74,7 @@ func defaultURLTester(connectivity cache.ConnectivityTester, testURL *url.URL, l
 	return true
 }
 
-func NewURLResolver(urls []*url.URL, connectivity *cache.ConnectivityCache) *URLResolver {
+func NewURLResolver(urls []*url.URL, connectivity *cache.ConnectivityCache) IURLResolver {
 	resolver := &URLResolver{
 		urls:         urls,
 		connectivity: connectivity,
@@ -92,7 +97,7 @@ func firstString(obj interface{}) string {
 	}
 }
 
-func newURLResolverForIndex(definition *Definition, cfg config.Config, connectivity *cache.ConnectivityCache) *URLResolver {
+func newURLResolverForIndex(definition *Definition, cfg config.Config, connectivity *cache.ConnectivityCache) IURLResolver {
 	var urls []*url.URL
 	configURL, ok, _ := cfg.GetSiteOption(definition.Site, "url")
 	if ok {

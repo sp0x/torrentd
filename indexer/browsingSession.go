@@ -34,7 +34,7 @@ type BrowsingSessionMultiplexer struct {
 type BrowsingSession struct {
 	loginBlock     *loginBlock
 	state          LoginState
-	urlResolver    *URLResolver
+	urlResolver    IURLResolver
 	contentFetcher source.ContentFetcher
 	config         map[string]string
 	logger         *logrus.Logger
@@ -99,7 +99,7 @@ func newIndexSessionFromRunner(runner *Runner) (*BrowsingSession, error) {
 func newIndexSessionWithLogin(siteConfig map[string]string,
 	statusReporter *StatusReporter,
 	contentFetcher *source.WebClient,
-	resolver *URLResolver,
+	resolver IURLResolver,
 	loginBlock *loginBlock) *BrowsingSession {
 	lc := &BrowsingSession{}
 	lc.loginBlock = loginBlock
@@ -205,10 +205,7 @@ func (l *BrowsingSession) initLogin() error {
 	if err != nil {
 		return err
 	}
-	_, err = l.contentFetcher.Fetch(&source.RequestOptions{
-		Method: "get",
-		URL:    initURL,
-	})
+	_, err = l.contentFetcher.Fetch(source.NewRequestOptions(initURL))
 	return err
 }
 
@@ -288,7 +285,7 @@ func (l *BrowsingSession) loginViaCookie(loginURL *url.URL, cookie string, value
 }
 
 func (l *BrowsingSession) loginViaForm(loginURL *url.URL, formSelector string, vals map[string]string) (source.FetchResult, error) {
-	fetchResult, err := l.contentFetcher.Fetch(&source.RequestOptions{Method: "get", URL: loginURL})
+	fetchResult, err := l.contentFetcher.Fetch(source.NewRequestOptions(loginURL))
 	if err != nil {
 		return nil, err
 	}

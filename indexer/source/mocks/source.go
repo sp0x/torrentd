@@ -12,6 +12,273 @@ import (
 	reflect "reflect"
 )
 
+// MockFilterProvider is a mock of FilterProvider interface
+type MockFilterProvider struct {
+	ctrl     *gomock.Controller
+	recorder *MockFilterProviderMockRecorder
+}
+
+// MockFilterProviderMockRecorder is the mock recorder for MockFilterProvider
+type MockFilterProviderMockRecorder struct {
+	mock *MockFilterProvider
+}
+
+// NewMockFilterProvider creates a new mock instance
+func NewMockFilterProvider(ctrl *gomock.Controller) *MockFilterProvider {
+	mock := &MockFilterProvider{ctrl: ctrl}
+	mock.recorder = &MockFilterProviderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockFilterProvider) EXPECT() *MockFilterProviderMockRecorder {
+	return m.recorder
+}
+
+// Filter mocks base method
+func (m *MockFilterProvider) Filter(fType string, args interface{}, value string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Filter", fType, args, value)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Filter indicates an expected call of Filter
+func (mr *MockFilterProviderMockRecorder) Filter(fType, args, value interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Filter", reflect.TypeOf((*MockFilterProvider)(nil).Filter), fType, args, value)
+}
+
+// MockRawScrapeItems is a mock of RawScrapeItems interface
+type MockRawScrapeItems struct {
+	ctrl     *gomock.Controller
+	recorder *MockRawScrapeItemsMockRecorder
+}
+
+// MockRawScrapeItemsMockRecorder is the mock recorder for MockRawScrapeItems
+type MockRawScrapeItemsMockRecorder struct {
+	mock *MockRawScrapeItems
+}
+
+// NewMockRawScrapeItems creates a new mock instance
+func NewMockRawScrapeItems(ctrl *gomock.Controller) *MockRawScrapeItems {
+	mock := &MockRawScrapeItems{ctrl: ctrl}
+	mock.recorder = &MockRawScrapeItemsMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockRawScrapeItems) EXPECT() *MockRawScrapeItemsMockRecorder {
+	return m.recorder
+}
+
+// Length mocks base method
+func (m *MockRawScrapeItems) Length() int {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Length")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// Length indicates an expected call of Length
+func (mr *MockRawScrapeItemsMockRecorder) Length() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Length", reflect.TypeOf((*MockRawScrapeItems)(nil).Length))
+}
+
+// Get mocks base method
+func (m *MockRawScrapeItems) Get(i int) source.RawScrapeItem {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", i)
+	ret0, _ := ret[0].(source.RawScrapeItem)
+	return ret0
+}
+
+// Get indicates an expected call of Get
+func (mr *MockRawScrapeItemsMockRecorder) Get(i interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRawScrapeItems)(nil).Get), i)
+}
+
+// MockRawScrapeItem is a mock of RawScrapeItem interface
+type MockRawScrapeItem struct {
+	ctrl     *gomock.Controller
+	recorder *MockRawScrapeItemMockRecorder
+}
+
+// MockRawScrapeItemMockRecorder is the mock recorder for MockRawScrapeItem
+type MockRawScrapeItemMockRecorder struct {
+	mock *MockRawScrapeItem
+}
+
+// NewMockRawScrapeItem creates a new mock instance
+func NewMockRawScrapeItem(ctrl *gomock.Controller) *MockRawScrapeItem {
+	mock := &MockRawScrapeItem{ctrl: ctrl}
+	mock.recorder = &MockRawScrapeItemMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockRawScrapeItem) EXPECT() *MockRawScrapeItemMockRecorder {
+	return m.recorder
+}
+
+// FindWithSelector mocks base method
+func (m *MockRawScrapeItem) FindWithSelector(block *source.SelectorBlock) source.RawScrapeItem {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindWithSelector", block)
+	ret0, _ := ret[0].(source.RawScrapeItem)
+	return ret0
+}
+
+// FindWithSelector indicates an expected call of FindWithSelector
+func (mr *MockRawScrapeItemMockRecorder) FindWithSelector(block interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindWithSelector", reflect.TypeOf((*MockRawScrapeItem)(nil).FindWithSelector), block)
+}
+
+// Find mocks base method
+func (m *MockRawScrapeItem) Find(selectorOrPath string) source.RawScrapeItem {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Find", selectorOrPath)
+	ret0, _ := ret[0].(source.RawScrapeItem)
+	return ret0
+}
+
+// Find indicates an expected call of Find
+func (mr *MockRawScrapeItemMockRecorder) Find(selectorOrPath interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockRawScrapeItem)(nil).Find), selectorOrPath)
+}
+
+// Length mocks base method
+func (m *MockRawScrapeItem) Length() int {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Length")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// Length indicates an expected call of Length
+func (mr *MockRawScrapeItemMockRecorder) Length() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Length", reflect.TypeOf((*MockRawScrapeItem)(nil).Length))
+}
+
+// Is mocks base method
+func (m *MockRawScrapeItem) Is(selector string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Is", selector)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// Is indicates an expected call of Is
+func (mr *MockRawScrapeItemMockRecorder) Is(selector interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Is", reflect.TypeOf((*MockRawScrapeItem)(nil).Is), selector)
+}
+
+// Has mocks base method
+func (m *MockRawScrapeItem) Has(selector string) source.RawScrapeItem {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Has", selector)
+	ret0, _ := ret[0].(source.RawScrapeItem)
+	return ret0
+}
+
+// Has indicates an expected call of Has
+func (mr *MockRawScrapeItemMockRecorder) Has(selector interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Has", reflect.TypeOf((*MockRawScrapeItem)(nil).Has), selector)
+}
+
+// Map mocks base method
+func (m *MockRawScrapeItem) Map(f func(int, source.RawScrapeItem) string) []string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Map", f)
+	ret0, _ := ret[0].([]string)
+	return ret0
+}
+
+// Map indicates an expected call of Map
+func (mr *MockRawScrapeItemMockRecorder) Map(f interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Map", reflect.TypeOf((*MockRawScrapeItem)(nil).Map), f)
+}
+
+// Text mocks base method
+func (m *MockRawScrapeItem) Text() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Text")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Text indicates an expected call of Text
+func (mr *MockRawScrapeItemMockRecorder) Text() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Text", reflect.TypeOf((*MockRawScrapeItem)(nil).Text))
+}
+
+// Attr mocks base method
+func (m *MockRawScrapeItem) Attr(attributeName string) (string, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Attr", attributeName)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// Attr indicates an expected call of Attr
+func (mr *MockRawScrapeItemMockRecorder) Attr(attributeName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Attr", reflect.TypeOf((*MockRawScrapeItem)(nil).Attr), attributeName)
+}
+
+// Remove mocks base method
+func (m *MockRawScrapeItem) Remove() source.RawScrapeItem {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Remove")
+	ret0, _ := ret[0].(source.RawScrapeItem)
+	return ret0
+}
+
+// Remove indicates an expected call of Remove
+func (mr *MockRawScrapeItemMockRecorder) Remove() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockRawScrapeItem)(nil).Remove))
+}
+
+// PrevAllFiltered mocks base method
+func (m *MockRawScrapeItem) PrevAllFiltered(selector string) source.RawScrapeItem {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PrevAllFiltered", selector)
+	ret0, _ := ret[0].(source.RawScrapeItem)
+	return ret0
+}
+
+// PrevAllFiltered indicates an expected call of PrevAllFiltered
+func (mr *MockRawScrapeItemMockRecorder) PrevAllFiltered(selector interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrevAllFiltered", reflect.TypeOf((*MockRawScrapeItem)(nil).PrevAllFiltered), selector)
+}
+
+// First mocks base method
+func (m *MockRawScrapeItem) First() source.RawScrapeItem {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "First")
+	ret0, _ := ret[0].(source.RawScrapeItem)
+	return ret0
+}
+
+// First indicates an expected call of First
+func (mr *MockRawScrapeItemMockRecorder) First() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "First", reflect.TypeOf((*MockRawScrapeItem)(nil).First))
+}
+
 // MockFetchResult is a mock of FetchResult interface
 type MockFetchResult struct {
 	ctrl     *gomock.Controller
@@ -61,6 +328,20 @@ func (m *MockFetchResult) Encoding() string {
 func (mr *MockFetchResultMockRecorder) Encoding() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Encoding", reflect.TypeOf((*MockFetchResult)(nil).Encoding))
+}
+
+// Find mocks base method
+func (m *MockFetchResult) Find(selector string) source.RawScrapeItems {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Find", selector)
+	ret0, _ := ret[0].(source.RawScrapeItems)
+	return ret0
+}
+
+// Find indicates an expected call of Find
+func (mr *MockFetchResultMockRecorder) Find(selector interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockFetchResult)(nil).Find), selector)
 }
 
 // MockContentFetcher is a mock of ContentFetcher interface

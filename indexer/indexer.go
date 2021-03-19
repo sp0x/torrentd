@@ -20,7 +20,15 @@ type ResponseProxy struct {
 	ContentLengthChan chan int64
 }
 
-//go:generate mockgen -source indexer.go -destination=mocks/indexer.go -package=mocks
+func NewResponseProxy() (*ResponseProxy, *io.PipeWriter) {
+	pipeR, pipeW := io.Pipe()
+	return &ResponseProxy{
+		Reader:            pipeR,
+		ContentLengthChan: make(chan int64),
+	}, pipeW
+}
+
+//go:generate mockgen -source indexer.go -destination=indexerMocks.go -package=indexer
 type Indexer interface {
 	Info() Info
 	GetDefinition() *Definition

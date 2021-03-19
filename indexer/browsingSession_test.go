@@ -1,8 +1,6 @@
 package indexer
 
 import (
-	"fmt"
-	"net/url"
 	"strings"
 	"testing"
 
@@ -61,7 +59,7 @@ func TestNewSessionMultiplexer(t *testing.T) {
 	mConnectivity := mocks.NewMockConnectivityTester(ctrl)
 	mContentFetcher := mocks2.NewMockContentFetcher(ctrl)
 	sampleIndex := newTestingIndex()
-	sampleIndex.urlResolver.connectivity = mConnectivity
+	// sampleIndex.urlResolver.connectivity = mConnectivity
 
 	mConnectivity.EXPECT().IsOkAndSet(OfURL("http://example.com/"), gomock.Any()).
 		AnyTimes().
@@ -111,37 +109,4 @@ func patchSessions(multiplexer *BrowsingSessionMultiplexer, fetcher *mocks2.Mock
 	for _, s := range multiplexer.sessions {
 		s.contentFetcher = fetcher
 	}
-}
-
-type (
-	ofURL     struct{ t string }
-	ofRequest struct {
-		method string
-		url    string
-	}
-)
-
-func OfRequest(method string, url string) gomock.Matcher {
-	return &ofRequest{method, url}
-}
-
-func OfURL(t string) gomock.Matcher {
-	return &ofURL{t}
-}
-
-func (o *ofURL) Matches(x interface{}) bool {
-	return x.(*url.URL).String() == o.t
-}
-
-func (o *ofRequest) Matches(x interface{}) bool {
-	req := x.(*source.RequestOptions)
-	return req.URL.String() == o.url && req.Method == o.method
-}
-
-func (o *ofRequest) String() string {
-	return fmt.Sprintf("%s: %s", o.method, o.url)
-}
-
-func (o *ofURL) String() string {
-	return o.t
 }

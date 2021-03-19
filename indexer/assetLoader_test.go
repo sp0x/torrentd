@@ -45,7 +45,7 @@ func TestGetDefaultEmbeddedDefinitionSource(t *testing.T) {
 	src := getDefaultEmbeddedDefinitionSource()
 	names, err := src.List(nil)
 	g.Expect(err).To(BeNil())
-	g.Expect(len(names) > 10).To(BeTrue())
+	g.Expect(len(names)).To(Equal(64))
 }
 
 func TestAssetLoader_ShouldWorkWithCommaSelectors(t *testing.T) {
@@ -53,5 +53,5 @@ func TestAssetLoader_ShouldWorkWithCommaSelectors(t *testing.T) {
 	src := getDefaultEmbeddedDefinitionSource()
 	names, err := src.List(newIndexerSelector("zamunda,arenabg"))
 	g.Expect(err).To(BeNil())
-	g.Expect(len(names) == 2).To(BeTrue())
+	g.Expect(len(names)).To(Equal(2))
 }

@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/sp0x/torrentd/indexer/search"
 )
 
 type Index interface {
@@ -58,12 +60,13 @@ func GetIndexValueFromItem(keyParts *Key, item interface{}) []byte {
 	val := reflect.ValueOf(item)
 	element := val.Elem()
 	valueParts := make([]string, len(keyParts.Fields))
-	fieldsField := element.FieldByName("ExtraFields")
+	fieldsField := element.FieldByName("ModelData")
+	modelData := fieldsField.Interface().(search.ModelData)
 	for ix, fieldName := range keyParts.Fields {
 		parsedFieldName := fieldName
-		isExtra := strings.HasPrefix(fieldName, "ExtraFields.")
+		isExtra := strings.HasPrefix(fieldName, "ModelData.")
 		if isExtra {
-			parsedFieldName = parsedFieldName[12:]
+			parsedFieldName = parsedFieldName[10:]
 		}
 		fld := element.FieldByName(fieldName)
 		if fld.IsValid() {
@@ -79,7 +82,7 @@ func GetIndexValueFromItem(keyParts *Key, item interface{}) []byte {
 		if !fieldsField.IsValid() {
 			continue
 		}
-		if value, found := fieldsField.Interface().(map[string]interface{})[parsedFieldName]; found {
+		if value, found := modelData[parsedFieldName]; found {
 			valueParts[ix] = serializeKeyValue(value)
 		}
 	}

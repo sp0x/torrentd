@@ -55,7 +55,7 @@ type Runner struct {
 	errors              cache.LRUCache
 	sessions            *BrowsingSessionMultiplexer
 	statusReporter      *StatusReporter
-	urlResolver         *URLResolver
+	urlResolver         IURLResolver
 }
 
 type RunContext struct {
@@ -299,8 +299,8 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 		return nil, err
 	}
 	rows, err := r.getRows(fetchResult, &runCtx)
-	if rows == nil {
-		return nil, fmt.Errorf("result items could not be enumerated")
+	if rows == nil || err != nil {
+		return nil, fmt.Errorf("result items could not be enumerated.%v", err)
 	}
 	r.logger.
 		WithFields(log.Fields{

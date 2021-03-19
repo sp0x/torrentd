@@ -56,15 +56,12 @@ func (r *Runner) Open(scrapeResultItem search.ResultItemBase) (*ResponseProxy, e
 	if _, err := cf.Open(&source.RequestOptions{
 		NoEncoding: true,
 		URL:        fullURL,
+		Method:     "get",
 	}); err != nil {
 		return nil, err
 	}
 
-	pipeR, pipeW := io.Pipe()
-	responsePx := &ResponseProxy{
-		Reader:            pipeR,
-		ContentLengthChan: make(chan int64),
-	}
+	responsePx, pipeW := NewResponseProxy()
 
 	// Start a goroutine and write the response of the download to the pipe
 	go func() {

@@ -13,7 +13,7 @@ func TestGetIndexValueFromItem(t *testing.T) {
 	item := &search.ScrapeResultItem{}
 	item.ModelData = make(map[string]interface{})
 	item.ModelData["time"] = "33"
-	k := NewKey("ExtraFields.time")
+	k := NewKey("ModelData.time")
 	val := GetIndexValueFromItem(k, item)
 	g.Expect(val).ToNot(gomega.BeNil())
 	g.Expect(string(val)).To(gomega.Equal("33"))

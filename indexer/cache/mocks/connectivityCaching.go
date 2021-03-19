@@ -6,7 +6,6 @@ package mocks
 
 import (
 	gomock "github.com/golang/mock/gomock"
-	url "net/url"
 	reflect "reflect"
 )
 
@@ -34,7 +33,7 @@ func (m *MockConnectivityTester) EXPECT() *MockConnectivityTesterMockRecorder {
 }
 
 // IsOkAndSet mocks base method
-func (m *MockConnectivityTester) IsOkAndSet(testURL *url.URL, f func() bool) bool {
+func (m *MockConnectivityTester) IsOkAndSet(testURL string, f func() bool) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsOkAndSet", testURL, f)
 	ret0, _ := ret[0].(bool)
@@ -48,7 +47,7 @@ func (mr *MockConnectivityTesterMockRecorder) IsOkAndSet(testURL, f interface{})
 }
 
 // IsOk mocks base method
-func (m *MockConnectivityTester) IsOk(testURL *url.URL) bool {
+func (m *MockConnectivityTester) IsOk(testURL string) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsOk", testURL)
 	ret0, _ := ret[0].(bool)
@@ -62,7 +61,7 @@ func (mr *MockConnectivityTesterMockRecorder) IsOk(testURL interface{}) *gomock.
 }
 
 // Test mocks base method
-func (m *MockConnectivityTester) Test(testURL *url.URL) error {
+func (m *MockConnectivityTester) Test(testURL string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Test", testURL)
 	ret0, _ := ret[0].(error)

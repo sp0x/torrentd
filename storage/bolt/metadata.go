@@ -14,7 +14,7 @@ type Metadata struct {
 	Indexes map[string]indexing.IndexMetadata `json:"indexes"`
 }
 
-func (b *Storage) hasNamespace() bool {
+func (b *Storage) isNamespaced() bool {
 	return b.rootBucket != nil
 }
 
@@ -24,7 +24,7 @@ func (b *Storage) setupMetadata() error {
 		if err != nil {
 			return err
 		}
-		if b.hasNamespace() {
+		if b.isNamespaced() {
 			nsBucket, err := b.assertNamespaceBucket(tx, namespaceResultsBucketName)
 			if err != nil {
 				return err
@@ -51,9 +51,10 @@ func (b *Storage) loadMetadata(bucket *bolt.Bucket) {
 			os.Exit(1)
 		}
 	}
-	if b.hasNamespace() {
-		b.metadata = metadata
-	}
+	b.metadata = metadata
+	//if b.isNamespaced() {
+	//	b.metadata = metadata
+	//}
 }
 
 func (b *Storage) GetIndexes() map[string]indexing.IndexMetadata {

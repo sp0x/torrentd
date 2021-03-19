@@ -85,7 +85,7 @@ func (id *Definition) getSearchEntity() *entityBlock {
 	for ix, k := range key {
 		field := t.FieldByName(k)
 		if !field.IsValid() {
-			k = fmt.Sprintf("ExtraFields.%s", k)
+			k = fmt.Sprintf("ModelData.%s", k)
 		}
 		localizedKey[ix] = k
 	}

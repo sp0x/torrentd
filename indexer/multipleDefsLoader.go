@@ -41,8 +41,10 @@ func (ml MultipleDefinitionLoader) List(selector *Selector) ([]string, error) {
 
 	results := make([]string, len(allResults))
 
+	i := 0
 	for key := range allResults {
-		results = append(results, key)
+		results[i] = key
+		i++
 	}
 
 	sort.Strings(results)

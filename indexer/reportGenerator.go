@@ -8,7 +8,7 @@ import (
 
 type StandardReportGenerator struct{}
 
-//go:generate mockgen -source reportGenerator.go -destination=mocks/reportGenerator.go -package=mocks
+//go:generate mockgen -source reportGenerator.go -destination=reportGeneratorMocks.go -package=indexer
 type ReportGenerator interface {
 	GetLatestItems() []models.LatestResult
 	GetIndexesStatus(s *Facade) []models.IndexStatus

@@ -49,7 +49,7 @@ func CreateEmbeddedDefinitionSource(definitionNames []string, loader DefinitionD
 
 // List all the names of the embedded definitions
 func (l *AssetLoader) List(selector *Selector) ([]string, error) {
-	results := make([]string, len(l.Names))
+	var results []string
 	for _, name := range l.Names {
 		fname := path.Base(name)
 		fname = strings.ReplaceAll(fname, ".yml", "")
@@ -67,7 +67,7 @@ func (l *AssetLoader) String() string {
 }
 
 func (l *AssetLoader) ListWithNames(names []string) ([]string, error) {
-	results := make([]string, len(l.Names))
+	var results []string
 	for _, name := range l.Names {
 		if !contains(names, name) {
 			continue

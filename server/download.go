@@ -18,7 +18,8 @@ func (s *Server) downloadHandler(c http.Context) {
 	if token == "" {
 		return
 	}
-	log.WithFields(log.Fields{"filename": filename}).Debugf("Processing download via handler")
+	log.WithFields(log.Fields{"filename": filename}).
+		Debugf("Processing download via handler")
 
 	apiKey := s.sharedKey()
 	t, err := decodeToken(token, apiKey)
@@ -44,7 +45,7 @@ func (s *Server) downloadHandler(c http.Context) {
 		_ = c.Error(err)
 		return
 	}
-	if downloadProxy == nil || nil == downloadProxy.Reader {
+	if downloadProxy == nil || downloadProxy.Reader == nil {
 		_ = c.Error(errors.New("couldn't open stream for download"))
 		return
 	}

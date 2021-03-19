@@ -9,7 +9,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/onsi/gomega"
 
-	"github.com/sp0x/torrentd/indexer/mocks"
+	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/indexer/status/models"
 )
 
@@ -18,7 +18,7 @@ func TestServer_Status(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	testObj := &Server{}
-	reportGen := mocks.NewMockReportGenerator(ctrl)
+	reportGen := indexer.NewMockReportGenerator(ctrl)
 	// Mocks
 	reportGen.EXPECT().GetLatestItems().Return([]models.LatestResult{})
 	reportGen.EXPECT().GetIndexesStatus(gomock.Any()).Return([]models.IndexStatus{})

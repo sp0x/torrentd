@@ -69,6 +69,7 @@ func NewBoltStorage(dbPath string, recordTypePtr interface{}) (*Storage, error) 
 		Database:   dbx,
 		marshaler:  serializers.NewDynamicMarshaler(recordTypePtr, json.Serializer),
 		recordType: reflect.Indirect(reflect.ValueOf(recordTypePtr)).Type(),
+		metadata:   &Metadata{},
 	}
 	err = bolts.setupMetadata()
 	if err != nil {

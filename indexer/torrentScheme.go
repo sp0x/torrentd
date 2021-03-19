@@ -73,7 +73,7 @@ func (r *Runner) populateTorrentItemField(
 	case "magnet":
 		murl, err := r.urlResolver.Resolve(firstString(val))
 		if err != nil {
-			r.logger.Warningf("Couldn't resolve magnet url from value %s\n", val)
+			r.logger.Warningf("Could not resolve magnet url from value %s\n", val)
 			return false
 		}
 		item.MagnetLink = murl.String()

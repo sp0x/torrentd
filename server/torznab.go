@@ -106,7 +106,8 @@ func formatEncoding(nm string) string {
 }
 
 func (s *Server) torznabSearch(r *http.Request, query *search.Query, indexer indexer.Indexer) (*torznab.ResultFeed, error) {
-	srch, err := indexer.Search(query, nil)
+	srch := search.NewSearch(query)
+	srch, err := indexer.Search(query, srch)
 	if err != nil {
 		return nil, err
 	}

@@ -104,7 +104,8 @@ type RequestOptions struct {
 
 func NewRequestOptions(destURL *url.URL) *RequestOptions {
 	return &RequestOptions{
-		URL: destURL,
+		URL:    destURL,
+		Method: "get",
 	}
 }
 

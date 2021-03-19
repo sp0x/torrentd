@@ -9,9 +9,9 @@ import (
 	"github.com/sp0x/torrentd/config"
 )
 
-func TestCachedScope_CreateAggregate_ShouldNotHang(t *testing.T) {
+func TestIndexCollection_CreateAggregate_ShouldNotHang(t *testing.T) {
 	g := gomega.NewWithT(t)
-	timeout := time.After(30 * time.Second)
+	timeout := time.After(5 * time.Second)
 	done := make(chan struct{})
 	facade := Facade{}
 	facade.LoadedIndexes = NewScope()
