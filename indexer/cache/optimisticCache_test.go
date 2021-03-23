@@ -8,7 +8,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/onsi/gomega"
 
-	"github.com/sp0x/torrentd/indexer/cache/mocks"
 	"github.com/sp0x/torrentd/indexer/source"
 	mocks2 "github.com/sp0x/torrentd/indexer/source/mocks"
 )
@@ -23,9 +22,6 @@ func Test_NewOptimisticConnectivityCache(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	fetcher := mocks2.NewMockContentFetcher(ctrl)
 	conCache, _ := NewOptimisticConnectivityCache(fetcher)
-	br := &mocks.MockedBrowser{}
-	br.CanOpen = true
-
 	g.Expect(conCache.IsOk(optimisticURL.String())).To(gomega.BeTrue())
 
 	conCache.Invalidate(optimisticURL.String())
@@ -38,8 +34,6 @@ func TestOptimisticCache_ShouldReturnTrueFromTheStart(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	fetcher := mocks2.NewMockContentFetcher(ctrl)
 	conCache, _ := NewOptimisticConnectivityCache(fetcher)
-	br := &mocks.MockedBrowser{}
-	br.CanOpen = true
 
 	g.Expect(conCache.IsOk(optimisticURL.String())).To(gomega.BeTrue())
 	g.Expect(conCache.IsOk(optimisticURL.String())).To(gomega.BeTrue())
@@ -50,8 +44,6 @@ func Test_OptimisticCache_ShouldReturnFalseIfInvalidated(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	fetcher := mocks2.NewMockContentFetcher(ctrl)
 	conCache, _ := NewOptimisticConnectivityCache(fetcher)
-	br := &mocks.MockedBrowser{}
-	br.CanOpen = true
 	g.Expect(conCache.IsOk(optimisticURL.String())).To(gomega.BeTrue())
 	conCache.Invalidate(optimisticURL.String())
 	g.Expect(conCache.IsOk(optimisticURL.String())).To(gomega.BeFalse())
@@ -59,6 +51,7 @@ func Test_OptimisticCache_ShouldReturnFalseIfInvalidated(t *testing.T) {
 	// Second case
 	conCache, _ = NewOptimisticConnectivityCache(fetcher)
 	conCache.Invalidate(optimisticURL.String())
+
 	g.Expect(conCache.IsOk(optimisticURL.String())).To(gomega.BeFalse())
 	g.Expect(conCache.IsOk(optimisticURL2.String())).To(gomega.BeTrue())
 }

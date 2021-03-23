@@ -8,7 +8,7 @@ import (
 
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/indexer/source"
-	"github.com/sp0x/torrentd/indexer/templates"
+	"github.com/sp0x/torrentd/indexer/utils"
 )
 
 const torrentScheme = "torrent"
@@ -50,7 +50,7 @@ func formatValues(field *fieldBlock, value interface{}, values map[string]interf
 	strValue := value.(string)
 	if strings.Contains(strValue, "{{") || (field != nil && field.Block.Pattern != "") {
 		templateData := values
-		updated, err := templates.ApplyTemplate("result_template", strValue, templateData)
+		updated, err := utils.ApplyTemplate("result_template", strValue, templateData)
 		if err != nil {
 			return strValue
 		}

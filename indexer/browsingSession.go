@@ -11,7 +11,7 @@ import (
 	"github.com/sp0x/surf/jar"
 
 	"github.com/sp0x/torrentd/indexer/source"
-	"github.com/sp0x/torrentd/indexer/templates"
+	"github.com/sp0x/torrentd/indexer/utils"
 )
 
 const emptyValue = "<no value>"
@@ -182,7 +182,7 @@ func (l *BrowsingSession) extractLoginInput() (map[string]string, error) {
 		l.config,
 	}
 	for name, val := range l.loginBlock.Inputs {
-		resolved, err := templates.ApplyTemplate("login_inputs", val, ctx)
+		resolved, err := utils.ApplyTemplate("login_inputs", val, ctx)
 		if err != nil {
 			return nil, err
 		}

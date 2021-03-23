@@ -8,7 +8,6 @@ import (
 	"github.com/dustin/go-humanize"
 
 	"github.com/sp0x/torrentd/indexer/search"
-	"github.com/sp0x/torrentd/indexer/templates"
 	"github.com/sp0x/torrentd/indexer/utils"
 )
 
@@ -55,7 +54,7 @@ func (r *Runner) populateTorrentItemField(
 		if _, ok := nonFilteredRow["title"]; ok {
 			v := nonFilteredRow["title"]
 			if strings.Contains(v, "{{") {
-				v2, err := templates.ApplyTemplate("original_title", v, row)
+				v2, err := utils.ApplyTemplate("original_title", v, row)
 				if err == nil {
 					v = v2
 				}

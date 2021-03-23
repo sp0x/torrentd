@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/sp0x/torrentd/indexer/search"
-	"github.com/sp0x/torrentd/indexer/templates"
+	"github.com/sp0x/torrentd/indexer/utils"
 )
 
 type SearchTemplateData struct {
@@ -15,7 +15,7 @@ type SearchTemplateData struct {
 }
 
 func (s *SearchTemplateData) ApplyTo(name string, templateText string) (string, error) {
-	return templates.ApplyTemplate(name, templateText, s)
+	return utils.ApplyTemplate(name, templateText, s)
 }
 
 func (s *SearchTemplateData) HasQueryField(name string) bool {

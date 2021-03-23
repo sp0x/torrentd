@@ -19,7 +19,6 @@ const (
 	searchMethodGet  = "get"
 )
 
-// WebClient is a content fetcher that deals with the state of sources
 type WebClient struct {
 	Browser      browser.Browsable
 	Cacher       ContentCacher

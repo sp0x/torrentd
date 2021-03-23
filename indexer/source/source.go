@@ -12,7 +12,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/sirupsen/logrus"
 
-	"github.com/sp0x/torrentd/indexer/templates"
+	"github.com/sp0x/torrentd/indexer/utils"
 )
 
 var filterService FilterService
@@ -315,7 +315,7 @@ func (s *SelectorBlock) FilterText(val string) (string, error) {
 			}{
 				s.FilterConfig,
 			}
-			newVal, err = templates.ApplyTemplate("filter_template", newVal, filterContext)
+			newVal, err = utils.ApplyTemplate("filter_template", newVal, filterContext)
 			if err != nil {
 				// We revert back..
 				newVal = val
