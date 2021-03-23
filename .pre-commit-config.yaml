@@ -1,5 +1,3 @@
-# See https://pre-commit.com for more information
-# See https://pre-commit.com/hooks.html for more hooks
 repos:
   - repo: https://github.com/sp0x/pre-commit-golang
     rev: "49b0e59"
@@ -10,26 +8,6 @@ repos:
       - id: go-gofumpt
       - id: go-gci
         args: ["-local", "github.com/sp0x/torrentd", "-w"]
+      - id: golangci-lint-mod
       - id: go-test-mod
       - id: go-build-repo-mod
-      #      - id: go-test-pkg
-      #      - id: go-test-repo-mod
-      #      - id: go-test-repo-pkg
-      #      #
-      #      # Formatters
-      #      #
-      # - id: go-fmt
-      # - id: go-imports # replaces go-fmt
-      #      - id: go-returns # replaces go-imports & go-fmt
-      #- id: golangci-lint-mod
-#      #
-#      # GolangCI-Lint
-#      # - Fast Multi-Linter
-#      # - Can be configured to replace MOST other hooks
-#      # - Supports repo config file for configuration
-#      # - https://github.com/golangci/golangci-lint
-#      #
-#      - id: golangci-lint
-#      - id: golangci-lint-pkg
-#      - id: golangci-lint-repo-mod
-#      - id: golangci-lint-repo-pkg
