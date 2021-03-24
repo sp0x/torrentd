@@ -1,4 +1,4 @@
-package search
+package formatting
 
 import (
 	"html"
@@ -29,9 +29,9 @@ var (
 	badKeywordsRx    = regexp.MustCompile("(?:\\s|\\()(:?выпуск|выпуски|выпусков|обновлено|передачи за|серия из|сезон|серия|серии|премьера|эфир с|эфир от|эфиры от|satrip)(?:\\s|\\)|$)")
 )
 
-func GetResultFingerprint(t *TorrentResultItem) string {
+func GetResultFingerprint(title string) string {
 	tagsRx := regexp.MustCompile("</?[a-z]+>")
-	name := strings.ReplaceAll(t.Title, "ё", "e")
+	name := strings.ReplaceAll(title, "ё", "e")
 	name = html.UnescapeString(name)
 	name = tagsRx.ReplaceAllString(name, "")
 

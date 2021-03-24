@@ -33,7 +33,7 @@ func (o *ofURL) Matches(x interface{}) bool {
 func (o *ofRequest) Matches(x interface{}) bool {
 	req := x.(*source.RequestOptions)
 	testURL := req.URL.String()
-	return testURL == o.url && strings.ToLower(req.Method) == strings.ToLower(o.method)
+	return testURL == o.url && strings.EqualFold(req.Method, o.method)
 }
 
 func (o *ofRequest) String() string {

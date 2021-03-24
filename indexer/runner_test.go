@@ -52,15 +52,16 @@ func getIndex(ctrl *gomock.Controller) *Runner {
 	cfg := &config.ViperConfig{}
 	_ = cfg.Set("db", tempfile())
 	_ = cfg.Set("storage", "boltdb")
-	runner := NewRunner(getIndexDefinition(), RunnerOpts{
+	index := NewRunner(getIndexDefinition(), RunnerOpts{
 		Config:     cfg,
 		CachePages: false,
 		Transport:  nil,
 	})
 	// Patch with our mocks
-	runner.connectivityTester = connectivityTester
-	runner.contentFetcher = contentFetcher
-	runner.urlResolver = urlResolver
+	index.connectivityTester = connectivityTester
+	index.contentFetcher = contentFetcher
+	index.urlResolver = urlResolver
+	index.definition.Search.Inputs = make(map[string]string)
 
 	// The browser should be set
 	// connectivityTester.EXPECT().SetBrowser(gomock.Any()).AnyTimes()
@@ -77,7 +78,7 @@ func getIndex(ctrl *gomock.Controller) *Runner {
 		AnyTimes().
 		Return(fetchResult, nil)
 
-	return runner
+	return index
 }
 
 func Test_ShouldntBeAbleToSearchWithoutUrls(t *testing.T) {
@@ -92,7 +93,7 @@ func Test_ShouldntBeAbleToSearchWithoutUrls(t *testing.T) {
 	// Shouldn't be able to search with an index that has no urls
 	srch := search.NewSearch(search.NewQuery())
 	runner.definition.Search.Rows = rowsBlock{SelectorBlock: source.SelectorBlock{Selector: ".a"}}
-	urlResolveMock = urlResolveMock.Return(nil, errors.New("err")).Times(1)
+	urlResolveMock.Return(nil, errors.New("err")).Times(1)
 
 	_, err := runner.Search(search.NewQuery(), srch)
 
@@ -125,8 +126,8 @@ func TestRunner_Search(t *testing.T) {
 	connectivityTester := runner.connectivityTester.(*mocks.MockConnectivityTester)
 	contentFetcher := runner.contentFetcher.(*mocks2.MockContentFetcher)
 	urlResolver := runner.urlResolver.(*MockIURLResolver)
-	destUrl, _ := url.Parse("http://localhost/")
-	urlResolver.EXPECT().Resolve("/").Return(destUrl, nil).AnyTimes()
+	destURL, _ := url.Parse("http://localhost/")
+	urlResolver.EXPECT().Resolve("/").Return(destURL, nil).AnyTimes()
 
 	// Shouldn't be able to search with an index that has no search urls
 	runner.definition.Links = []string{runnerSiteURL}
@@ -150,9 +151,9 @@ func Test_Given_SearchFindsResults_Then_Results_Should_BeStoredInTheIndexStorage
 	defer ctrl.Finish()
 	runner := getIndex(ctrl)
 	urlResolver := runner.urlResolver.(*MockIURLResolver)
-	destUrl, _ := url.Parse("http://localhost/")
+	destURL, _ := url.Parse("http://localhost/")
 	urlResolver.EXPECT().Resolve("/").
-		Return(destUrl, nil).AnyTimes()
+		Return(destURL, nil).AnyTimes()
 
 	newSearch := search.NewSearch(nil)
 	srch, err := runner.Search(search.NewQuery(), newSearch)
@@ -240,4 +241,27 @@ func TestRunner_testUrlWorks_ShouldWorkWithOptimisticCaching(t *testing.T) {
 	g.Expect(r.connectivityTester.IsOk(pURL.String())).To(gomega.BeTrue())
 
 	r.connectivityTester.Invalidate(pURL.String())
+}
+
+func Test_extractURLValues(t *testing.T) {
+	g := gomega.NewWithT(t)
+	ctrl := gomock.NewController(t)
+	runner := getIndex(ctrl)
+	runner.definition.Search.Inputs["rangeField"] = ""
+	searchTemplateData := &SearchTemplateData{Query: search.NewQuery()}
+	searchTemplateData.Query.Fields["rangeField"] = search.NewRangeField("001", "010")
+	searchInstance := search.NewSearch(searchTemplateData.Query)
+
+	searchTemplateData.Context = RunContext{
+		Search: searchInstance.(*search.Search),
+	}
+
+	values, err := getURLValuesForEarch(&runner.definition.Search, searchTemplateData)
+
+	g.Expect(err).To(gomega.BeNil())
+	g.Expect(values).ToNot(gomega.BeNil())
+	g.Expect(values.Encode()).To(gomega.Equal("rangeField=001"))
+	values, _ = getURLValuesForEarch(&runner.definition.Search, searchTemplateData)
+	//goland:noinspection GoNilness
+	g.Expect(values.Encode()).To(gomega.Equal("rangeField=002"))
 }

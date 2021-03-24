@@ -52,9 +52,9 @@ func (b *Storage) loadMetadata(bucket *bolt.Bucket) {
 		}
 	}
 	b.metadata = metadata
-	//if b.isNamespaced() {
+	// if b.isNamespaced() {
 	//	b.metadata = metadata
-	//}
+	// }
 }
 
 func (b *Storage) GetIndexes() map[string]indexing.IndexMetadata {

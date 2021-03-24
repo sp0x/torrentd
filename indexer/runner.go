@@ -288,6 +288,7 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 	localCats := r.getLocalCategoriesMatchingQuery(query)
 	reqOpts, err := r.createRequest(query, localCats, runCtx, session)
 	if err != nil {
+		r.logger.WithError(err).Warn(err)
 		status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.TargetError, err, r.definition))
 		return nil, err
 	}
@@ -412,7 +413,7 @@ func (r *Runner) createRequest(query *search.Query, lCategories []string, contex
 		return nil, err
 	}
 	// Get our Index url values
-	vals, err := r.extractURLValues(templateData)
+	vals, err := getURLValuesForEarch(&r.definition.Search, templateData)
 	if err != nil {
 		return nil, err
 	}
@@ -427,34 +428,34 @@ func (r *Runner) createRequest(query *search.Query, lCategories []string, contex
 	return target, nil
 }
 
-func (r *Runner) extractURLValues(templateData *SearchTemplateData) (url.Values, error) {
+func getURLValuesForEarch(srchDef *searchBlock, templateData *SearchTemplateData) (url.Values, error) {
 	// Parse the values that will be used in the url for the search
 	urlValues := url.Values{}
-	for inputName, inputValueFromScheme := range r.definition.Search.Inputs {
-		if templateData.HasQueryField(inputName) {
-			inputValueFromScheme = templateData.ApplyField(inputName)
+
+	for inputFieldName, inputValueFromScheme := range srchDef.Inputs {
+		if templateData.HasQueryField(inputFieldName) {
+			inputValueFromScheme, _ = templateData.ApplyField(inputFieldName)
 		}
 		resolveInputValue, err := templateData.ApplyTo("search_inputs", inputValueFromScheme)
 		if err != nil {
 			return nil, err
 		}
-		switch inputName {
+		switch inputFieldName {
 		case "$raw":
-			err := evalRawSearchInputs(resolveInputValue, r, urlValues)
+			err := evalRawSearchInputs(resolveInputValue, urlValues)
 			if err != nil {
 				return urlValues, err
 			}
 		default:
-			urlValues.Add(inputName, resolveInputValue)
+			urlValues.Add(inputFieldName, resolveInputValue)
 		}
 	}
 	return urlValues, nil
 }
 
-func evalRawSearchInputs(resolvedInputValue string, r *Runner, vals url.Values) error {
+func evalRawSearchInputs(resolvedInputValue string, vals url.Values) error {
 	parsedVals, err := url.ParseQuery(resolvedInputValue)
 	if err != nil {
-		r.logger.WithError(err).Warn(err)
 		return fmt.Errorf("error parsing $raw input: %s", err.Error())
 	}
 

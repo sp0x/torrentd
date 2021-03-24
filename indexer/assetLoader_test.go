@@ -37,7 +37,7 @@ func TestAssetLoader_Load(t *testing.T) {
 	g.Expect(err).To(BeNil())
 	g.Expect(definition).ToNot(BeNil())
 	g.Expect(definition.Site).To(Equal("rutracker.org"))
-	g.Expect(definition.Name).To(Equal("Rutracker.org"))
+	g.Expect(definition.Name).To(Equal("rutracker.org"))
 }
 
 func TestGetDefaultEmbeddedDefinitionSource(t *testing.T) {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/dustin/go-humanize"
 
+	"github.com/sp0x/torrentd/indexer/formatting"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/indexer/utils"
 )
@@ -15,7 +16,7 @@ func (r *Runner) populateTorrentData(resultItem search.ResultItemBase, context *
 	// Maybe don't do that always?
 	item := resultItem.(*search.TorrentResultItem)
 
-	item.Fingerprint = search.GetResultFingerprint(item)
+	item.Fingerprint = formatting.GetResultFingerprint(item.Title)
 	r.resolveItemCategory(context.query, context.indexCategories, item)
 }
 
