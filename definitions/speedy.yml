@@ -34,7 +34,7 @@ search:
     searchDomestic: "true"
     searchForeign: "true"
     localityId:
-    phone: "$phone:range(0000001, 0000010)"
+    phone: "$phone:rng(0000001, 0000010)"
     name:
     object:
     type: "all"

@@ -315,7 +315,7 @@ func (s *SelectorBlock) FilterText(val string) (string, error) {
 			}{
 				s.FilterConfig,
 			}
-			newVal, err = utils.ApplyTemplate("filter_template", newVal, filterContext)
+			newVal, err = utils.ApplyTemplate("filter_template", newVal, filterContext, utils.GetDefaultFunctionMap())
 			if err != nil {
 				// We revert back..
 				newVal = val

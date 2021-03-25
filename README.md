@@ -29,7 +29,7 @@ You can query using the `--query` flag.
 The query value can be:
 - Text  
 - Range
-An example range is: `$phone:range(0000001, 0000010)`.
+An example range is: `$phone:rng(0000001, 0000010)`.
 This would use the values in the range of 0000001 to 0000010 for the field `phone`
 The current range value will be stored in the search instance, so each request increments the `phone` value.
 

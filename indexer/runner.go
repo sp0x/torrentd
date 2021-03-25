@@ -281,7 +281,7 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 		return searchInstance, err
 	}
 
-	runCtx := RunContext{
+	runCtx := &RunContext{
 		Search: searchInstance.(*search.Search),
 	}
 
@@ -299,7 +299,7 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 		status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.ContentError, err, r.definition))
 		return nil, err
 	}
-	rows, err := r.getRows(fetchResult, &runCtx)
+	rows, err := r.getRows(fetchResult, runCtx)
 	if rows == nil || err != nil {
 		return nil, fmt.Errorf("result items could not be enumerated.%v", err)
 	}
@@ -399,7 +399,7 @@ func (r *Runner) clearDom(dom *goquery.Selection) error {
 	return nil
 }
 
-func (r *Runner) createRequest(query *search.Query, lCategories []string, context RunContext, session *BrowsingSession) (*source.RequestOptions, error) {
+func (r *Runner) createRequest(query *search.Query, lCategories []string, context *RunContext, session *BrowsingSession) (*source.RequestOptions, error) {
 	// Exposed fields to add:
 	templateData := r.getSearchTemplateData(query, lCategories, context)
 	// ApplyTo our context to the search path
@@ -413,7 +413,7 @@ func (r *Runner) createRequest(query *search.Query, lCategories []string, contex
 		return nil, err
 	}
 	// Get our Index url values
-	vals, err := getURLValuesForEarch(&r.definition.Search, templateData)
+	vals, err := getURLValuesForSearch(&r.definition.Search, templateData)
 	if err != nil {
 		return nil, err
 	}
@@ -428,7 +428,7 @@ func (r *Runner) createRequest(query *search.Query, lCategories []string, contex
 	return target, nil
 }
 
-func getURLValuesForEarch(srchDef *searchBlock, templateData *SearchTemplateData) (url.Values, error) {
+func getURLValuesForSearch(srchDef *searchBlock, templateData *SearchTemplateData) (url.Values, error) {
 	// Parse the values that will be used in the url for the search
 	urlValues := url.Values{}
 
@@ -436,7 +436,7 @@ func getURLValuesForEarch(srchDef *searchBlock, templateData *SearchTemplateData
 		if templateData.HasQueryField(inputFieldName) {
 			inputValueFromScheme, _ = templateData.ApplyField(inputFieldName)
 		}
-		resolveInputValue, err := templateData.ApplyTo("search_inputs", inputValueFromScheme)
+		resolveInputValue, err := templateData.ApplyTo(inputFieldName, inputValueFromScheme)
 		if err != nil {
 			return nil, err
 		}
@@ -468,10 +468,10 @@ func evalRawSearchInputs(resolvedInputValue string, vals url.Values) error {
 }
 
 // Get the default run context
-func (r *Runner) getSearchTemplateData(query *search.Query, lCategories []string, context RunContext) *SearchTemplateData {
+func (r *Runner) getSearchTemplateData(query *search.Query, lCategories []string, ctxt *RunContext) *SearchTemplateData {
 	startIndex := int(query.Page) * r.definition.Search.PageSize
-	context.Search.SetStartIndex(r, startIndex)
-	data := newSearchTemplateData(query, lCategories, context)
+	ctxt.Search.SetStartIndex(r, startIndex)
+	data := newSearchTemplateData(query, lCategories, ctxt)
 	return data
 }
 
@@ -550,7 +550,7 @@ func (r *Runner) noteError(err error) {
 
 // region Status messages
 
-func generateSchemeOkStatus(definition *Definition, runCtx RunContext) *status.ScrapeSchemeMessage {
+func generateSchemeOkStatus(definition *Definition, runCtx *RunContext) *status.ScrapeSchemeMessage {
 	statusCode := "ok"
 	resultsFound := 0
 	if runCtx.Search != nil && len(runCtx.Search.Results) > 0 {

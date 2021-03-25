@@ -55,7 +55,7 @@ func (r *Runner) populateTorrentItemField(
 		if _, ok := nonFilteredRow["title"]; ok {
 			v := nonFilteredRow["title"]
 			if strings.Contains(v, "{{") {
-				v2, err := utils.ApplyTemplate("original_title", v, row)
+				v2, err := utils.ApplyTemplate("title", v, row, nil)
 				if err == nil {
 					v = v2
 				}

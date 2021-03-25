@@ -3,6 +3,7 @@ package indexer
 import (
 	"errors"
 	"fmt"
+	"text/template"
 
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/indexer/utils"
@@ -12,11 +13,16 @@ type SearchTemplateData struct {
 	Query      *search.Query
 	Keywords   string
 	Categories []string
-	Context    RunContext
+	Context    *RunContext
+	Functions  template.FuncMap
 }
 
-func (s *SearchTemplateData) ApplyTo(name string, templateText string) (string, error) {
-	return utils.ApplyTemplate(name, templateText, s)
+func (s *SearchTemplateData) ApplyTo(fieldName string, templateText string) (string, error) {
+	fmap := s.Functions
+	fmap["rng"] = func(start, end string) string {
+		return s.RangeValue(fieldName)
+	}
+	return utils.ApplyTemplate(fieldName, templateText, s, s.Functions)
 }
 
 func (s *SearchTemplateData) HasQueryField(name string) bool {
@@ -53,12 +59,13 @@ func (s *SearchTemplateData) RangeValue(name string) string {
 	return nextValue
 }
 
-func newSearchTemplateData(query *search.Query, localCategories []string, context RunContext) *SearchTemplateData {
+func newSearchTemplateData(query *search.Query, localCategories []string, context *RunContext) *SearchTemplateData {
 	searchData := &SearchTemplateData{
 		query,
 		query.Keywords(),
 		localCategories,
 		context,
+		utils.GetDefaultFunctionMap(),
 	}
 	return searchData
 }

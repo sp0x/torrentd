@@ -182,7 +182,7 @@ func (l *BrowsingSession) extractLoginInput() (map[string]string, error) {
 		l.config,
 	}
 	for name, val := range l.loginBlock.Inputs {
-		resolved, err := utils.ApplyTemplate("login_inputs", val, ctx)
+		resolved, err := utils.ApplyTemplate("login_inputs", val, ctx, nil)
 		if err != nil {
 			return nil, err
 		}

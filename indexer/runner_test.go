@@ -243,25 +243,48 @@ func TestRunner_testUrlWorks_ShouldWorkWithOptimisticCaching(t *testing.T) {
 	r.connectivityTester.Invalidate(pURL.String())
 }
 
-func Test_extractURLValues(t *testing.T) {
-	g := gomega.NewWithT(t)
-	ctrl := gomock.NewController(t)
-	runner := getIndex(ctrl)
-	runner.definition.Search.Inputs["rangeField"] = ""
-	searchTemplateData := &SearchTemplateData{Query: search.NewQuery()}
-	searchTemplateData.Query.Fields["rangeField"] = search.NewRangeField("001", "010")
+func getSearchTemplateData() *SearchTemplateData {
+	searchTemplateData := newSearchTemplateData(search.NewQuery(), nil, nil)
 	searchInstance := search.NewSearch(searchTemplateData.Query)
 
-	searchTemplateData.Context = RunContext{
+	searchTemplateData.Context = &RunContext{
 		Search: searchInstance.(*search.Search),
 	}
 
-	values, err := getURLValuesForEarch(&runner.definition.Search, searchTemplateData)
+	return searchTemplateData
+}
+
+func Test_getURLValuesForSearch_Given_RangeFieldInDefinition_Should_UseItInSearch(t *testing.T){
+	g := gomega.NewWithT(t)
+	ctrl := gomock.NewController(t)
+	runner := getIndex(ctrl)
+	runner.definition.Search.Inputs["rangeField"] = "{{ rng \"001\" \"010\" }}"
+	searchTemplateData := getSearchTemplateData()
+
+	values, err := getURLValuesForSearch(&runner.definition.Search, searchTemplateData)
 
 	g.Expect(err).To(gomega.BeNil())
 	g.Expect(values).ToNot(gomega.BeNil())
 	g.Expect(values.Encode()).To(gomega.Equal("rangeField=001"))
-	values, _ = getURLValuesForEarch(&runner.definition.Search, searchTemplateData)
+	values, _ = getURLValuesForSearch(&runner.definition.Search, searchTemplateData)
+	//goland:noinspection GoNilness
+	g.Expect(values.Encode()).To(gomega.Equal("rangeField=002"))
+}
+
+func Test_getURLValuesForSearch_Given_RangeFieldInQuery_Should_UseItInSearch(t *testing.T) {
+	g := gomega.NewWithT(t)
+	ctrl := gomock.NewController(t)
+	runner := getIndex(ctrl)
+	runner.definition.Search.Inputs["rangeField"] = ""
+	searchTemplateData := getSearchTemplateData()
+	searchTemplateData.Query.Fields["rangeField"] = search.NewRangeField("001", "010")
+
+	values, err := getURLValuesForSearch(&runner.definition.Search, searchTemplateData)
+
+	g.Expect(err).To(gomega.BeNil())
+	g.Expect(values).ToNot(gomega.BeNil())
+	g.Expect(values.Encode()).To(gomega.Equal("rangeField=001"))
+	values, _ = getURLValuesForSearch(&runner.definition.Search, searchTemplateData)
 	//goland:noinspection GoNilness
 	g.Expect(values.Encode()).To(gomega.Equal("rangeField=002"))
 }

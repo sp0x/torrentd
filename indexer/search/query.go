@@ -14,12 +14,12 @@ import (
 
 type Query struct {
 	*PaginationSearch
-	Type                               string
-	Q, Series, Ep, Season, Movie, Year string
-	Limit, Offset                      int
-	Extended                           bool
-	Categories                         []int
-	APIKey                             string
+	Type                                         string
+	QueryString, Series, Ep, Season, Movie, Year string
+	Limit, Offset                                int
+	Extended                                     bool
+	Categories                                   []int
+	APIKey                                       string
 
 	// identifier types
 	TVDBID   string
@@ -42,21 +42,21 @@ func NewSearchFromQuery(query string) *Query {
 	q := NewQuery()
 	q.Type = "search"
 	q.Fields = make(map[string]interface{})
-	if queryIsDynamic(query) {
-		parseDynamicQuery(q, query)
+	if queryUsesPatterns(query) {
+		parsePatternQuery(q, query)
 	} else {
-		q.Q = query
+		q.QueryString = query
 	}
 	return q
 }
 
-func parseDynamicQuery(q *Query, pattern string) {
-	parts := strings.Split(pattern, ";")
-	for _, part := range parts {
+func parsePatternQuery(q *Query, rawQuery string) {
+	patterns := strings.Split(rawQuery, ";")
+	for _, part := range patterns {
 		partSplit := strings.SplitN(part, ":", 2)
 		field := partSplit[0][1:]
 		fieldValue := partSplit[1]
-		if function := parseQueryFunction(fieldValue); function != nil {
+		if function := parseQueryPatternValue(fieldValue); function != nil {
 			populateFieldWithQueryFunction(q, field, function)
 		}
 	}
@@ -74,9 +74,9 @@ func trimSpaces(params []string) []string {
 	return params
 }
 
-func parseQueryFunction(str string) *queryFunction {
-	if strings.Contains(str, "(") && strings.Contains(str, ")") {
-		split := strings.SplitN(str, "(", 2)
+func parseQueryPatternValue(patternValue string) *queryFunction {
+	if strings.Contains(patternValue, "(") && strings.Contains(patternValue, ")") {
+		split := strings.SplitN(patternValue, "(", 2)
 		funcName := split[0]
 		if funcName == "range" {
 			paramsStr := split[1][0 : len(split[1])-1]
@@ -97,9 +97,9 @@ func populateFieldWithQueryFunction(q *Query, field string, function *queryFunct
 	}
 }
 
-func queryIsDynamic(query string) bool {
-	parts := strings.Split(query, ";")
-	for _, part := range parts {
+func queryUsesPatterns(query string) bool {
+	patterns := strings.Split(query, ";")
+	for _, part := range patterns {
 		if strings.HasPrefix(part, "$") {
 			return true
 		}
@@ -122,7 +122,7 @@ func ParseQuery(v url.Values) (*Query, error) {
 			cnt, _ := strconv.Atoi(vals[0])
 			query.PageCount = uint(cnt)
 		case "q":
-			query.Q = strings.Join(vals, " ")
+			query.QueryString = strings.Join(vals, " ")
 
 		case "series":
 			query.Series = strings.Join(vals, " ")
@@ -287,8 +287,8 @@ func fieldsToString(q *Query) string {
 func (query *Query) Keywords() string {
 	tokens := []string{}
 
-	if query.Q != "" {
-		tokens = append(tokens, query.Q)
+	if query.QueryString != "" {
+		tokens = append(tokens, query.QueryString)
 	}
 
 	if query.Series != "" {
@@ -320,8 +320,8 @@ func (query *Query) Encode() string {
 		v.Set("t", "search")
 	}
 
-	if query.Q != "" {
-		v.Set("q", query.Q)
+	if query.QueryString != "" {
+		v.Set("q", query.QueryString)
 	}
 
 	if query.Ep != "" {

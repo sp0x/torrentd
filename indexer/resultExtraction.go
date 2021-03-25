@@ -50,7 +50,7 @@ func formatValues(field *fieldBlock, value interface{}, values map[string]interf
 	strValue := value.(string)
 	if strings.Contains(strValue, "{{") || (field != nil && field.Block.Pattern != "") {
 		templateData := values
-		updated, err := utils.ApplyTemplate("result_template", strValue, templateData)
+		updated, err := utils.ApplyTemplate("result_template", strValue, templateData, utils.GetDefaultFunctionMap())
 		if err != nil {
 			return strValue
 		}

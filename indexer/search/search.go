@@ -20,8 +20,8 @@ type Instance interface {
 	SetStartIndex(key interface{}, i int)
 	SetResults(extracted []ResultItemBase)
 	SetID(val string)
-	IsDynamicSearch() bool
-	HasCompletedDynamicSearch() bool
+	HasFieldState() bool
+	HasNext() bool
 }
 
 type RangeField []string
@@ -67,7 +67,8 @@ func (s *Search) String() string {
 	return strings.Join(output, ",")
 }
 
-func (s *Search) IsDynamicSearch() bool {
+// IsDynamicSearch returns true if there are any fields with state
+func (s *Search) HasFieldState() bool {
 	for _, field := range s.FieldState {
 		if field != nil {
 			return true
@@ -76,13 +77,16 @@ func (s *Search) IsDynamicSearch() bool {
 	return false
 }
 
-func (s *Search) HasCompletedDynamicSearch() bool {
+func (s *Search) HasNext() bool {
+	if !s.HasFieldState(){
+		return false
+	}
 	for _, field := range s.FieldState {
 		if field.HasNext() {
-			return false
+			return true
 		}
 	}
-	return true
+	return false
 }
 
 func (s *Search) GetStartingIndex() int {

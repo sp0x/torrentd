@@ -18,7 +18,7 @@ func Test_RangeValue_ShouldChangeAfterEveryCall(t *testing.T) {
 	qry.Fields["rangeField"] = rangef
 
 	srch := search.NewSearch(qry)
-	data.Context = RunContext{
+	data.Context = &RunContext{
 		Search: srch.(*search.Search),
 	}
 
@@ -35,7 +35,7 @@ func Test_ApplyField_Given_RangeField_Should_ReturnCorrectValues(t *testing.T) {
 	rangef = append(rangef, []string{"001", "010"}...)
 	data.Query.Fields["rangeField"] = rangef
 	srch := search.NewSearch(data.Query)
-	data.Context = RunContext{
+	data.Context = &RunContext{
 		Search: srch.(*search.Search),
 	}
 

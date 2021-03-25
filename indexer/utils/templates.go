@@ -6,12 +6,18 @@ import (
 	"text/template"
 )
 
-// Evaluate a template
-func ApplyTemplate(name, templateText string, ctx interface{}) (string, error) {
-	funcMap := template.FuncMap{
-		"replace": strings.Replace,
+func GetDefaultFunctionMap() template.FuncMap {
+	return template.FuncMap{
+		"replace": strings.ReplaceAll,
 	}
-	tmpl, err := template.New(name).Funcs(funcMap).Parse(templateText)
+}
+
+// Evaluate a template
+func ApplyTemplate(name, templateText string, ctx interface{}, functions template.FuncMap) (string, error) {
+	if functions == nil {
+		functions = GetDefaultFunctionMap()
+	}
+	tmpl, err := template.New(name).Funcs(functions).Parse(templateText)
 	if err != nil {
 		return "", err
 	}
