@@ -63,7 +63,7 @@ func (mapping categoryMap) Resolve(cat *categories.Category) []string {
 }
 
 func (mapping categoryMap) ResolveAll(cats ...*categories.Category) []string {
-	var results []string
+	results := make([]string, 0, len(cats))
 	for _, cat := range cats {
 		results = append(results, mapping.Resolve(cat)...)
 	}
