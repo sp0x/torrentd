@@ -20,7 +20,7 @@ type SearchTemplateData struct {
 func (s *SearchTemplateData) ApplyTo(fieldName string, templateText string) (string, error) {
 	fmap := s.Functions
 	fmap["rng"] = func(start, end string) string {
-		return s.RangeValue(fieldName)
+		return s.RangeValue(fieldName, start, end)
 	}
 	return utils.ApplyTemplate(fieldName, templateText, s, s.Functions)
 }
@@ -40,18 +40,19 @@ func (s *SearchTemplateData) ApplyField(fieldName string) (string, error) {
 	fieldValue := s.Query.Fields[fieldName]
 	switch value := fieldValue.(type) {
 	case search.RangeField:
-		return s.RangeValue(fieldName), nil
+		return s.RangeValue(fieldName, value[0], value[1]), nil
 	default:
 		return fmt.Sprint(value), nil
 	}
 }
 
-func (s *SearchTemplateData) RangeValue(name string) string {
-	fieldStates := s.Context.Search.FieldState
-	if _, ok := fieldStates[name]; !ok {
+func (s *SearchTemplateData) RangeValue(name, start, end string) string {
+	fieldState, err := s.Context.Search.GetFieldState(name, func() *search.RangeFieldState {
+		return search.NewRangeFieldState(start, end)
+	})
+	if err != nil {
 		return ""
 	}
-	fieldState := fieldStates[name]
 	if !fieldState.HasNext() {
 		return ""
 	}

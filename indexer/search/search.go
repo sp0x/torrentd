@@ -1,6 +1,7 @@
 package search
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -32,7 +33,7 @@ type Search struct {
 	StartIndex int
 	Results    []ResultItemBase
 	// Stores the state of stateful search fields
-	FieldState map[string]*rangeFieldState
+	FieldState map[string]*RangeFieldState
 }
 
 func NewRangeField(values ...string) RangeField {
@@ -41,18 +42,8 @@ func NewRangeField(values ...string) RangeField {
 
 func NewSearch(query *Query) Instance {
 	s := &Search{}
-	s.FieldState = make(map[string]*rangeFieldState)
-	if query != nil {
-		for fieldName, fieldValue := range query.Fields {
-			if value, ok := fieldValue.(RangeField); ok {
-				s.FieldState[fieldName] = &rangeFieldState{
-					value[0],
-					value[1],
-					"",
-				}
-			}
-		}
-	}
+	s.FieldState = make(map[string]*RangeFieldState)
+	s.setFieldStateFromQuery(query)
 	return s
 }
 
@@ -78,7 +69,7 @@ func (s *Search) HasFieldState() bool {
 }
 
 func (s *Search) HasNext() bool {
-	if !s.HasFieldState(){
+	if !s.HasFieldState() {
 		return false
 	}
 	for _, field := range s.FieldState {
@@ -111,6 +102,38 @@ func (s *Search) SetResults(results []ResultItemBase) {
 
 func (s *Search) SetID(val string) {
 	s.ID = val
+}
+
+func (s *Search) setFieldStateFromQuery(query *Query) {
+	if query != nil {
+		for fieldName, fieldValue := range query.Fields {
+			s.setFieldState(fieldName, fieldValue)
+		}
+	}
+}
+
+func (s *Search) setFieldState(name string, value interface{}) {
+	if value, ok := value.(RangeField); ok {
+		s.FieldState[name] = &RangeFieldState{
+			value[0],
+			value[1],
+			"",
+		}
+	}
+}
+
+func (s *Search) GetFieldState(name string, args func() *RangeFieldState) (*RangeFieldState, interface{}) {
+	value, found := s.FieldState[name]
+	if !found {
+		if args == nil {
+			return nil, errors.New("field has no state")
+		} else {
+			s.FieldState[name] = args()
+			value = s.FieldState[name]
+		}
+	}
+
+	return value, nil
 }
 
 type PaginationSearch struct {

@@ -5,13 +5,21 @@ import (
 	"strconv"
 )
 
-type rangeFieldState struct {
+type RangeFieldState struct {
 	start   string
 	end     string
 	current string
 }
 
-func (r *rangeFieldState) Next() string {
+func NewRangeFieldState(start, end string) *RangeFieldState {
+	return &RangeFieldState{
+		start,
+		end,
+		"",
+	}
+}
+
+func (r *RangeFieldState) Next() string {
 	switch {
 	case r.current == "":
 		r.current = r.start
@@ -23,15 +31,15 @@ func (r *rangeFieldState) Next() string {
 	return r.current
 }
 
-func (r *rangeFieldState) String() string {
+func (r *RangeFieldState) String() string {
 	return r.current
 }
 
-func (r *rangeFieldState) HasNext() bool {
+func (r *RangeFieldState) HasNext() bool {
 	return r.current != r.end
 }
 
-func (r *rangeFieldState) increment() {
+func (r *RangeFieldState) increment() {
 	length := len(r.current)
 	num, _ := strconv.Atoi(r.current)
 	num++

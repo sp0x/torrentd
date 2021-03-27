@@ -23,7 +23,7 @@ func Test_RangeValue_ShouldChangeAfterEveryCall(t *testing.T) {
 	}
 
 	for i := 1; i < 11; i++ {
-		val := data.RangeValue("rangeField")
+		val := data.RangeValue("rangeField", rangef[0], rangef[1])
 		g.Expect(val).To(gomega.Equal(fmt.Sprintf("%03d", i)))
 	}
 }
