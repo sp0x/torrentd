@@ -3,6 +3,7 @@ repos:
     rev: "49b0e59"
     hooks:
       - id: go-fmt
+        args: ["-s"]
       - id: go-imports
         args: ["-local", "github.com/sp0x/torrentd"]
       - id: go-gofumpt

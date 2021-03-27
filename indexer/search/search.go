@@ -8,12 +8,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-type Mode struct {
-	Key             string
-	Available       bool
-	SupportedParams []string
-}
-
 // An instance of a search
 type Instance interface {
 	GetStartingIndex() int
@@ -23,6 +17,13 @@ type Instance interface {
 	SetID(val string)
 	HasFieldState() bool
 	HasNext() bool
+	GetFieldState(name string, args func() *RangeFieldState) (*RangeFieldState, interface{})
+}
+
+type Capability struct {
+	Key             string
+	Available       bool
+	SupportedParams []string
 }
 
 type RangeField []string
@@ -127,10 +128,9 @@ func (s *Search) GetFieldState(name string, args func() *RangeFieldState) (*Rang
 	if !found {
 		if args == nil {
 			return nil, errors.New("field has no state")
-		} else {
-			s.FieldState[name] = args()
-			value = s.FieldState[name]
 		}
+		s.FieldState[name] = args()
+		value = s.FieldState[name]
 	}
 
 	return value, nil
@@ -144,4 +144,51 @@ type PaginationSearch struct {
 type RunOptions struct {
 	MaxRequestsPerSecond uint
 	StopOnStaleTorrents  bool
+}
+
+type AggregatedSearch struct {
+	SearchContexts map[interface{}]Instance
+	results        []ResultItemBase
+}
+
+func (a *AggregatedSearch) GetFieldState(name string, args func() *RangeFieldState) (*RangeFieldState, interface{}) {
+	panic("this is a stub")
+}
+
+func (a *AggregatedSearch) HasFieldState() bool {
+	panic("this is a stub")
+}
+
+func (a *AggregatedSearch) HasNext() bool {
+	panic("this is a stub")
+}
+
+func (a *AggregatedSearch) GetResults() []ResultItemBase {
+	return a.results
+}
+
+func (a *AggregatedSearch) GetStartingIndex() int {
+	panic("this is a stub")
+}
+
+func (a *AggregatedSearch) SetID(val string) {
+	panic("this is a stub")
+}
+
+func (a *AggregatedSearch) SetStartIndex(key interface{}, i int) {
+	srch := a.SearchContexts[key]
+	if srch == nil {
+		return
+	}
+	srch.SetStartIndex(nil, i)
+}
+
+func (a *AggregatedSearch) SetResults(results []ResultItemBase) {
+	a.results = results
+}
+
+func NewAggregatedSearch() *AggregatedSearch {
+	ag := &AggregatedSearch{}
+	ag.SearchContexts = make(map[interface{}]Instance)
+	return ag
 }

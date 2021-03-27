@@ -192,7 +192,7 @@ func (ag *Aggregate) Search(query *search.Query, searchInstance search.Instance)
 
 func (ag *Aggregate) Capabilities() torznab.Capabilities {
 	return torznab.Capabilities{
-		SearchModes: []search.Mode{
+		SearchModes: []search.Capability{
 			{Key: "movie-search", Available: true, SupportedParams: []string{"q", "imdbid"}},
 			{Key: "tv-search", Available: true, SupportedParams: []string{"q", "season", "ep"}},
 			{Key: "search", Available: true, SupportedParams: []string{"q"}},

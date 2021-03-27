@@ -34,7 +34,7 @@ search:
     searchDomestic: "true"
     searchForeign: "true"
     localityId:
-    phone: "$phone:rng(0000001, 0000010)"
+    phone: "{{ .Query.Keywords }}"
     name:
     object:
     type: "all"

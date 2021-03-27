@@ -1,8 +1,9 @@
 package utils
 
 import (
-	"github.com/onsi/gomega"
 	"testing"
+
+	"github.com/onsi/gomega"
 )
 
 func TestApplyTemplate(t *testing.T) {

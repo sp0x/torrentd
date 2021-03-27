@@ -335,7 +335,7 @@ func (r *rowsBlock) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 type capabilitiesBlock struct {
 	CategoryMap categoryMap
-	SearchModes []search.Mode
+	SearchModes []search.Capability
 }
 
 // UnmarshalYAML implements the Unmarshaller interface.
@@ -368,10 +368,10 @@ func (c *capabilitiesBlock) UnmarshalYAML(unmarshal func(interface{}) error) err
 			}
 		}
 
-		c.SearchModes = []search.Mode{}
+		c.SearchModes = []search.Capability{}
 
 		for key, supported := range intermediate.Modes {
-			c.SearchModes = append(c.SearchModes, search.Mode{Key: key, Available: true, SupportedParams: supported})
+			c.SearchModes = append(c.SearchModes, search.Capability{Key: key, Available: true, SupportedParams: supported})
 		}
 
 		return nil
@@ -384,11 +384,11 @@ func (c *capabilitiesBlock) UnmarshalYAML(unmarshal func(interface{}) error) err
 func (c *capabilitiesBlock) ToTorznab() torznab.Capabilities {
 	caps := torznab.Capabilities{
 		Categories:  c.CategoryMap.Categories(),
-		SearchModes: []search.Mode{},
+		SearchModes: []search.Capability{},
 	}
 
 	// All indexesCollection support search
-	caps.SearchModes = append(caps.SearchModes, search.Mode{
+	caps.SearchModes = append(caps.SearchModes, search.Capability{
 		Key:             "search",
 		Available:       true,
 		SupportedParams: []string{"q"},
@@ -396,7 +396,7 @@ func (c *capabilitiesBlock) ToTorznab() torznab.Capabilities {
 
 	// Some support TV
 	if caps.HasTVShows() {
-		caps.SearchModes = append(caps.SearchModes, search.Mode{
+		caps.SearchModes = append(caps.SearchModes, search.Capability{
 			Key:             "tv-search",
 			Available:       true,
 			SupportedParams: []string{"q", "season", "ep"},
@@ -405,7 +405,7 @@ func (c *capabilitiesBlock) ToTorznab() torznab.Capabilities {
 
 	// Some support Movies
 	if caps.HasMovies() {
-		caps.SearchModes = append(caps.SearchModes, search.Mode{
+		caps.SearchModes = append(caps.SearchModes, search.Capability{
 			Key:             "movie-search",
 			Available:       true,
 			SupportedParams: []string{"q"},

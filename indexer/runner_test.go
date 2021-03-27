@@ -254,7 +254,7 @@ func getSearchTemplateData() *SearchTemplateData {
 	return searchTemplateData
 }
 
-func Test_getURLValuesForSearch_Given_RangeFieldInDefinition_Should_UseItInSearch(t *testing.T){
+func Test_getURLValuesForSearch_Given_RangeFieldInDefinition_Should_UseItInSearch(t *testing.T) {
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
 	runner := getIndex(ctrl)

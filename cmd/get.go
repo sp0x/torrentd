@@ -22,11 +22,13 @@ func init() {
 	storage := ""
 	query := ""
 	forks := 0
+	users := 1
 	cmdFlags := cmdGet.PersistentFlags()
 	cmdFlags.StringVarP(&storage, "storage", "o", "boltdb", `The storage backing to use.
 Currently supported storage backings: boltdb, firebase, sqlite`)
 	cmdFlags.StringVar(&query, "query", "", `Query to use when searching`)
 	cmdFlags.IntVar(&forks, "forks", 0, "The number of parallel searches that can be used.")
+	cmdFlags.IntVar(&users, "users", 1, "The number of user sessions to use in rotation.")
 	firebaseProject := ""
 	firebaseCredentials := ""
 	cmdFlags.StringVarP(&firebaseCredentials, "firebase_project", "", "", "The project id for firebase")
@@ -55,6 +57,7 @@ func getCommand(c *cobra.Command, _ []string) {
 	status.SetupPubsub(appConfig.GetString("firebase_project"))
 	queryStr := c.Flag("query").Value.String()
 	query := search.NewSearchFromQuery(queryStr)
+	// users := viper.GetInt("users")
 	//  forks := viper.GetInt("forks")
 	err := indexer.Get(facade, query)
 	if err != nil {
