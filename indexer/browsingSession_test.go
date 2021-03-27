@@ -32,7 +32,7 @@ func newTestingIndex() *Runner {
 			Init: initBlock{},
 		},
 	}
-	runner := NewRunner(indexDef, RunnerOpts{
+	runner := NewRunner(indexDef, &RunnerOpts{
 		Config:     cfg,
 		CachePages: false,
 		Transport:  nil,

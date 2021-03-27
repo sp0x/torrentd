@@ -52,7 +52,7 @@ func getIndex(ctrl *gomock.Controller) *Runner {
 	cfg := &config.ViperConfig{}
 	_ = cfg.Set("db", tempfile())
 	_ = cfg.Set("storage", "boltdb")
-	index := NewRunner(getIndexDefinition(), RunnerOpts{
+	index := NewRunner(getIndexDefinition(), &RunnerOpts{
 		Config:     cfg,
 		CachePages: false,
 		Transport:  nil,

@@ -38,28 +38,36 @@ func NewQuery() *Query {
 	return q
 }
 
-func NewSearchFromQuery(query string) *Query {
+func NewSearchFromQuery(query string) (*Query, error) {
 	q := NewQuery()
 	q.Type = "search"
 	q.Fields = make(map[string]interface{})
 	if queryUsesPatterns(query) {
-		parsePatternQuery(q, query)
+		err := parsePatternQuery(q, query)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		q.QueryString = query
 	}
-	return q
+	return q, nil
 }
 
-func parsePatternQuery(q *Query, rawQuery string) {
+func parsePatternQuery(q *Query, rawQuery string) error {
 	patterns := strings.Split(rawQuery, ";")
 	for _, part := range patterns {
 		partSplit := strings.SplitN(part, ":", 2)
 		field := partSplit[0][1:]
 		fieldValue := partSplit[1]
 		if function := parseQueryPatternValue(fieldValue); function != nil {
-			populateFieldWithQueryFunction(q, field, function)
+			err := populateFieldWithQueryFunction(q, field, function)
+			if err != nil {
+				return err
+			}
 		}
 	}
+
+	return nil
 }
 
 type queryFunction struct {
@@ -91,10 +99,14 @@ func parseQueryPatternValue(patternValue string) *queryFunction {
 	return nil
 }
 
-func populateFieldWithQueryFunction(q *Query, field string, function *queryFunction) {
+func populateFieldWithQueryFunction(q *Query, field string, function *queryFunction) error {
 	if function.name == "range" {
 		q.Fields[field] = RangeField(function.params)
+	} else {
+		return fmt.Errorf("function `%s` is not supported", function.name)
 	}
+
+	return nil
 }
 
 func queryUsesPatterns(query string) bool {

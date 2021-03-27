@@ -37,15 +37,17 @@ const (
 )
 
 type RunnerOpts struct {
-	Config     config.Config
-	CachePages bool
-	Transport  http.RoundTripper
+	Config       config.Config
+	CachePages   bool
+	Transport    http.RoundTripper
+	UserSessions int
+	Workers      int
 }
 
 // Runner works index definitions in order to extract data.
 type Runner struct {
 	definition          *Definition
-	options             RunnerOpts
+	options             *RunnerOpts
 	logger              log.FieldLogger
 	connectivityTester  cache.ConnectivityTester
 	failingSearchFields map[string]fieldBlock
@@ -99,24 +101,31 @@ func NewRunnerByNameOrSelector(indexerName string, config config.Config) (Indexe
 		return nil, err
 	}
 
-	log.WithFields(log.Fields{"Index": indexerName}).Debugf("Loaded Index")
-	indexer := NewRunner(def, RunnerOpts{
-		Config: config,
-	})
+	indexer := NewRunner(def, runnerOptsFromConfig(config))
 	return indexer, nil
 }
 
+func runnerOptsFromConfig(config config.Config) *RunnerOpts {
+	opts := &RunnerOpts{
+		Config:       config,
+		UserSessions: config.GetInt("users"),
+		Workers:      config.GetInt("workers"),
+	}
+	return opts
+}
+
 // NewRunner Start a runner for a given indexer.
-func NewRunner(def *Definition, opts RunnerOpts) *Runner {
+func NewRunner(def *Definition, opts *RunnerOpts) *Runner {
 	logger := log.New()
 	logger.Level = log.GetLevel()
 	// Use an optimistic cache instead.
 	errorCache, _ := cache.NewTTL(10, errorTTL)
 	indexCtx := context.Background()
-	sessionCount := opts.Config.GetInt("sessionCount")
-	if sessionCount == 0 {
-		sessionCount = 10
+	userSessions := opts.UserSessions
+	if userSessions <= 0 {
+		userSessions = 1
 	}
+
 	runner := &Runner{
 		options:             opts,
 		definition:          def,
@@ -134,11 +143,11 @@ func NewRunner(def *Definition, opts RunnerOpts) *Runner {
 		connectivity.Invalidate(options.URL.String())
 	})
 
-	if session, err := NewSessionMultiplexer(runner, sessionCount); err != nil {
+	if sessionsMx, err := NewSessionMultiplexer(runner, userSessions); err != nil {
 		fmt.Printf("Couldn't create index sessions: %v", err)
 		os.Exit(1)
 	} else {
-		runner.sessions = session
+		runner.sessions = sessionsMx
 	}
 	return runner
 }
