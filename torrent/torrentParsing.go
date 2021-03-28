@@ -28,20 +28,21 @@ func ParseTorrentFromStream(stream io.ReadCloser) (*Definition, error) {
 	if err != nil {
 		return nil, err
 	}
-	// ioutil.WriteFile("/tmp/rss.torrent", body, os.ModePerm)
+
 	return ParseTorrent(string(body))
 }
 
-func ParseTorrentFromURL(h *indexer.Facade, torrentURL string) (*Definition, error) {
-	respProxy, err := h.Index.Download(torrentURL)
+func ParseTorrentFromURL(index indexer.Indexer, torrentURL string) (*Definition, error) {
+	respProxy, err := index.Download(torrentURL)
 	if err != nil {
 		return nil, err
 	}
 
-	if err != nil {
-		return nil, err
-	}
-	defer respProxy.Reader.Close()
+	defer func() {
+		_ = respProxy.Reader.Close()
+	}()
+	size := <-respProxy.ContentLengthChan
+	log.Debugf("Downloaded torrent definition: %d bytes", size)
 	body, err := ioutil.ReadAll(respProxy.Reader)
 	if err != nil {
 		return nil, err

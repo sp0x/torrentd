@@ -99,8 +99,6 @@ func TestServer_downloadHandler(t *testing.T) {
 	go func() {
 		responseProxy.ContentLengthChan <- 6
 		_, _ = pipeWr.Write([]byte("result"))
-		// g.Expect(err).To(gomega.BeNil())
-		// g.Expect(n).To(gomega.Equal(6))
 		_ = pipeWr.Close()
 	}()
 
