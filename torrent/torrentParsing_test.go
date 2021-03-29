@@ -32,10 +32,16 @@ func Test_ParseTorrentFromURL(t *testing.T) {
 
 	g.Expect(err).To(gomega.BeNil())
 	g.Expect(def).ToNot(gomega.BeNil())
+	magnetURL := def.ToMagnetURL()
+	torrentSize := def.GetTotalFileSize()
 	g.Expect(def.Announce).To(gomega.Equal("http://bttracker.debian.org:6969/announce"))
 	g.Expect(def.Comment).To(gomega.Equal("\"Debian CD from cdimage.debian.org\""))
 	g.Expect(def.Info.Name).To(gomega.Equal("debian-10.9.0-amd64-netinst.iso"))
 	g.Expect(def.Info.PieceLength).To(gomega.Equal(uint(262144)))
+	g.Expect(magnetURL).ToNot(gomega.BeNil())
+	g.Expect(magnetURL).To(gomega.Equal("magnet:?xt=urn:btih:3b1cd97eb93cf0921b8abbf9a84cd811eccbb691"))
+	g.Expect(torrentSize).To(gomega.Equal(uint32(0)))
+	g.Expect(def.Info.Files).To(gomega.BeNil())
 }
 
 func getTorrentBuffer() []byte {
