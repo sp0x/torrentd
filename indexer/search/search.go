@@ -17,6 +17,7 @@ type Instance interface {
 	SetID(val string)
 	HasFieldState() bool
 	HasNext() bool
+	IsComplete(q *Query) bool
 	GetFieldState(name string, args func() *RangeFieldState) (*RangeFieldState, interface{})
 }
 
@@ -79,6 +80,15 @@ func (s *Search) HasNext() bool {
 		}
 	}
 	return false
+}
+
+func (s *Search) IsComplete(q *Query) bool {
+	hasNextPage := s.HasNext()
+	hasExceededPages := q.PageCount <= q.Page && q.Page != 0 && q.PageCount != 0
+	if hasExceededPages {
+		return true
+	}
+	return !hasNextPage && hasExceededPages
 }
 
 func (s *Search) GetStartingIndex() int {
@@ -161,6 +171,16 @@ func (a *AggregatedSearch) HasFieldState() bool {
 
 func (a *AggregatedSearch) HasNext() bool {
 	panic("this is a stub")
+}
+
+func (a *AggregatedSearch) IsComplete(q *Query) bool {
+	for _, search := range a.SearchContexts {
+		if !search.IsComplete(q) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (a *AggregatedSearch) GetResults() []ResultItemBase {

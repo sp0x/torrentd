@@ -9,3 +9,4 @@ keys
 ignored
 dumps
 bin
+*.exe

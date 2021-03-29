@@ -15,25 +15,24 @@ func Get(facade *Facade, query *search.Query) error {
 	if query == nil {
 		query = search.NewQuery()
 	}
-	page := uint(0)
+
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
 
-	pagesToFetch := query.PageCount
-	if pagesToFetch == 0 {
-		pagesToFetch = 10
+	if query.PageCount == 0 {
+		query.PageCount = 10
 	}
 	searchInstance := search.NewSearch(query)
 
-	for page = 0; page < pagesToFetch; page++ {
-		log.Infof("Fetching page %d", page)
+	for true {
+		log.Infof("Fetching page %d", query.Page)
 		var err error
 		searchInstance, err = facade.Search(searchInstance, query)
 		if searchInstance == nil {
-			return fmt.Errorf("couldn't search for page %d", page)
+			return fmt.Errorf("couldn't search for page %d", query.Page)
 		}
 		if err != nil {
-			log.Warningf("Could not fetch page %d", page)
+			log.Warningf("Could not fetch page %d", query.Page)
 			if _, ok := err.(*LoginError); ok {
 				return err
 			}
@@ -55,6 +54,11 @@ func Get(facade *Facade, query *search.Query) error {
 			}
 		}
 		if finished {
+			break
+		}
+
+		query.Page++
+		if searchInstance.IsComplete(query) {
 			break
 		}
 	}
