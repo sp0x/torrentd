@@ -14,11 +14,28 @@ type StatusReporter struct {
 	errors          cache.LRUCache
 }
 
-func (r *StatusReporter) Error(err error) {
+type ReportableError struct {
+	error
+	Type string
+}
+
+func (r *ReportableError) Error() string {
+	return r.error.Error()
+}
+
+func NewError(errType string, err error) *ReportableError {
+	return &ReportableError{
+		Type:  errType,
+		error: err,
+	}
+}
+
+func (r *StatusReporter) Error(err *ReportableError) {
 	if err == nil {
 		return
 	}
-	status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.LoginError, err, r.indexDefinition))
+	status.PublishSchemeError(r.context, generateSchemeErrorStatus(err.Type, err.error, r.indexDefinition))
+
 	errorID := r.errors.Len()
 	r.errors.Add(errorID, err)
 }

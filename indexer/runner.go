@@ -106,10 +106,19 @@ func NewRunnerByNameOrSelector(indexerName string, config config.Config) (Indexe
 }
 
 func runnerOptsFromConfig(config config.Config) *RunnerOpts {
+	userSessions := config.GetInt("users")
+	if userSessions <= 0 {
+		userSessions = 1
+	}
+	workers := config.GetInt("workers")
+	if workers <= 0 {
+		workers = 1
+	}
+
 	opts := &RunnerOpts{
 		Config:       config,
-		UserSessions: config.GetInt("users"),
-		Workers:      config.GetInt("workers"),
+		UserSessions: userSessions,
+		Workers:      workers,
 	}
 	return opts
 }
@@ -121,10 +130,6 @@ func NewRunner(def *Definition, opts *RunnerOpts) *Runner {
 	// Use an optimistic cache instead.
 	errorCache, _ := cache.NewTTL(10, errorTTL)
 	indexCtx := context.Background()
-	userSessions := opts.UserSessions
-	if userSessions <= 0 {
-		userSessions = 1
-	}
 
 	runner := &Runner{
 		options:             opts,
@@ -143,7 +148,7 @@ func NewRunner(def *Definition, opts *RunnerOpts) *Runner {
 		connectivity.Invalidate(options.URL.String())
 	})
 
-	if sessionsMx, err := NewSessionMultiplexer(runner, userSessions); err != nil {
+	if sessionsMx, err := NewSessionMultiplexer(runner, opts.UserSessions); err != nil {
 		fmt.Printf("Couldn't create index sessions: %v", err)
 		os.Exit(1)
 	} else {
@@ -282,8 +287,9 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 		return nil, errors.New("search instance is null")
 	}
 	var err error
+	errType := status.LoginError
 	// Collect errors on exit
-	defer func() { r.noteError(err) }()
+	defer func() { r.noteError(errType, err) }()
 
 	session, err := r.sessions.acquire()
 	if err != nil {
@@ -297,19 +303,20 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 	localCats := r.getLocalCategoriesMatchingQuery(query)
 	reqOpts, err := r.createRequest(query, localCats, runCtx, session)
 	if err != nil {
+		errType = status.TargetError
 		r.logger.WithError(err).Warn(err)
-		status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.TargetError, err, r.definition))
 		return nil, err
 	}
 	timer := time.Now()
 	// Get the content
 	fetchResult, err := r.contentFetcher.Fetch(reqOpts)
 	if err != nil {
-		status.PublishSchemeError(r.context, generateSchemeErrorStatus(status.ContentError, err, r.definition))
+		errType = status.ContentError
 		return nil, err
 	}
 	rows, err := r.getRows(fetchResult, runCtx)
 	if rows == nil || err != nil {
+		errType = status.ContentError
 		return nil, fmt.Errorf("result items could not be enumerated.%v", err)
 	}
 	r.logger.
@@ -426,15 +433,15 @@ func (r *Runner) createRequest(query *search.Query, lCategories []string, contex
 	if err != nil {
 		return nil, err
 	}
-	target := &source.RequestOptions{
+	req := &source.RequestOptions{
 		URL:    searchURL,
 		Values: vals,
 		Method: r.definition.Search.Method,
 	}
 	if session != nil {
-		session.ApplyToRequest(target)
+		session.ApplyToRequest(req)
 	}
-	return target, nil
+	return req, nil
 }
 
 func getURLValuesForSearch(srchDef *searchBlock, templateData *SearchTemplateData) (url.Values, error) {
@@ -553,8 +560,8 @@ func (r *Runner) Errors() []string {
 	return r.statusReporter.GetErrors()
 }
 
-func (r *Runner) noteError(err error) {
-	r.statusReporter.Error(err)
+func (r *Runner) noteError(errorType string, err error) {
+	r.statusReporter.Error(NewError(errorType, err))
 }
 
 // region Status messages

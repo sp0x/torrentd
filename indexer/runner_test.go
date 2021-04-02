@@ -81,7 +81,7 @@ func getIndex(ctrl *gomock.Controller) *Runner {
 	return index
 }
 
-func Test_ShouldntBeAbleToSearchWithoutUrls(t *testing.T) {
+func Test_Should_NotBeAbleToSearch_WithoutURLs(t *testing.T) {
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

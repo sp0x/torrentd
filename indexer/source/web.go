@@ -52,9 +52,9 @@ func (w *WebClient) Cleanup() {
 }
 
 // Gets the content from which we'll extract the search results
-func (w *WebClient) Fetch(target *RequestOptions) (FetchResult, error) {
-	if target == nil {
-		return nil, errors.New("target is required for searching")
+func (w *WebClient) Fetch(req *RequestOptions) (FetchResult, error) {
+	if req == nil {
+		return nil, errors.New("req is required for searching")
 	}
 	defer func() {
 		// After we're done we'll cleanup the history of the browser.
@@ -62,33 +62,27 @@ func (w *WebClient) Fetch(target *RequestOptions) (FetchResult, error) {
 	}()
 	var err error
 	var result FetchResult
-	switch target.Method {
+	switch req.Method {
 	case "", searchMethodGet:
-		if len(target.Values) > 0 {
-			pURL, err := url.Parse(fmt.Sprintf("%s?%s", target.URL, target.Values.Encode()))
-			if err != nil {
-				return nil, err
-			}
-			target.URL = pURL
-		}
-		if err = w.get(target); err != nil {
+		if err = w.get(req); err != nil {
 			if w.errorHandler != nil {
-				w.errorHandler(target)
+				w.errorHandler(req)
 			}
 			return nil, err
 		}
 		result = extractResponseResult(w.Browser)
 	case searchMethodPost:
-		result, err = w.Post(target)
+		postResult, err := w.Post(req)
 		if err != nil {
 			if w.errorHandler != nil {
-				w.errorHandler(target)
+				w.errorHandler(req)
 			}
 			return nil, err
 		}
+		result = postResult
 
 	default:
-		return nil, fmt.Errorf("unknown search method %q", target.Method)
+		return nil, fmt.Errorf("unknown search method %q", req.Method)
 	}
 	w.dumpFetchData()
 
@@ -126,9 +120,17 @@ func extractResponseResult(browser browser.Browsable) FetchResult {
 	}
 }
 
-func (w *WebClient) get(reqOptions *RequestOptions) error {
-	w.applyOptions(reqOptions)
-	err := w.Browser.Open(reqOptions.URL.String())
+func (w *WebClient) get(req *RequestOptions) error {
+	destURL := req.URL
+	if len(req.Values) > 0 {
+		pURL, err := url.Parse(fmt.Sprintf("%s?%s", req.URL, req.Values.Encode()))
+		if err != nil {
+			return err
+		}
+		destURL = pURL
+	}
+	w.applyOptions(req)
+	err := w.Browser.Open(destURL.String())
 	if err != nil {
 		return err
 	}
@@ -136,12 +138,9 @@ func (w *WebClient) get(reqOptions *RequestOptions) error {
 		_ = w.Cacher.CachePage(w.Browser.NewTab())
 	}
 
-	log.
-		WithFields(log.Fields{"code": w.Browser.StatusCode(), "page": w.Browser.Url()}).
-		Debugf("Finished request")
-	if err = w.handleMetaRefreshHeader(reqOptions); err != nil {
+	if err = w.handleMetaRefreshHeader(req); err != nil {
 		if w.errorHandler != nil {
-			w.errorHandler(reqOptions)
+			w.errorHandler(req)
 		}
 		return err
 	}

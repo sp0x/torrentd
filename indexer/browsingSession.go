@@ -71,6 +71,9 @@ func NewSessionMultiplexer(runner *Runner, sessionCount int) (*BrowsingSessionMu
 }
 
 func (b *BrowsingSessionMultiplexer) acquire() (*BrowsingSession, error) {
+	if len(b.sessions) == 0 {
+		return nil, nil
+	}
 	session := b.sessions[b.index%len(b.sessions)]
 	b.index++
 	if err := session.setup(); err != nil {
@@ -343,7 +346,6 @@ func (l *BrowsingSession) setup() error {
 	}
 	if err := l.login(); err != nil {
 		l.logger.WithError(err).Error("Login failed")
-		l.statusReporter.Error(err)
 		return err
 	}
 	return nil
