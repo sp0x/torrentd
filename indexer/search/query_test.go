@@ -21,7 +21,7 @@ func TestQuery_AddCategory(t *testing.T) {
 
 func TestParseQueryString_GivenSimpleStringThenQFieldShouldBeUsed(t *testing.T) {
 	g := NewGomegaWithT(t)
-	q, err := NewSearchFromQuery("simple query")
+	q, err := NewQueryFromQueryString("simple query")
 
 	g.Expect(err).To(BeNil())
 	g.Expect(q.QueryString).ToNot(BeEmpty())
@@ -31,7 +31,7 @@ func TestParseQueryString_GivenSimpleStringThenQFieldShouldBeUsed(t *testing.T) 
 func TestParseQueryString_Given_RangeQuery_Then_ItShouldBeParsed(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	q, err := NewSearchFromQuery("$phone:range(1, 200)")
+	q, err := NewQueryFromQueryString("$phone:range(1, 200)")
 
 	g.Expect(err).To(BeNil())
 	g.Expect(q.QueryString).To(BeEmpty())

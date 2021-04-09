@@ -110,7 +110,7 @@ func (th *Facade) Search(searchInst search.Instance, query *search.Query) (searc
 
 // SearchKeywords performs a search for a given page
 func (th *Facade) SearchKeywords(searchContext search.Instance, query string, page uint) (search.Instance, error) {
-	qrobj, err := search.NewSearchFromQuery(query)
+	qrobj, err := search.NewQueryFromQueryString(query)
 	if err != nil {
 		return nil, err
 	}
@@ -119,18 +119,14 @@ func (th *Facade) SearchKeywords(searchContext search.Instance, query string, pa
 }
 
 // SearchKeywordsWithCategory Search for *keywords* matching the needed category.
-func (th *Facade) SearchKeywordsWithCategory(searchContext search.Instance, query string, cat categories.Category, page uint) (search.Instance, error) {
-	qrobj, err := search.NewSearchFromQuery(query)
+func (th *Facade) SearchKeywordsWithCategory(srch search.Instance, query string, cat categories.Category, page uint) (search.Instance, error) {
+	qrobj, err := search.NewQueryFromQueryString(query)
 	if err != nil {
 		return nil, err
 	}
 	qrobj.Page = page
 	qrobj.Categories = []int{cat.ID}
-	srch, err := th.Index.Search(qrobj, searchContext)
-	if err != nil {
-		return nil, err
-	}
-	return srch, nil
+	return th.Search(srch, qrobj)
 }
 
 // GetDefaultSearchOptions gets the default search options

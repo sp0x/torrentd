@@ -38,7 +38,7 @@ func NewQuery() *Query {
 	return q
 }
 
-func NewSearchFromQuery(query string) (*Query, error) {
+func NewQueryFromQueryString(query string) (*Query, error) {
 	q := NewQuery()
 	q.Type = "search"
 	q.Fields = make(map[string]interface{})

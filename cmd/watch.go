@@ -67,7 +67,7 @@ func watchIndex(c *cobra.Command, _ []string) {
 
 	// Start watching the torrent tracker.
 	status.SetupPubsub(appConfig.GetString("firebase_project"))
-	query, err := search.NewSearchFromQuery(c.Flag("query").Value.String())
+	query, err := search.NewQueryFromQueryString(c.Flag("query").Value.String())
 	if err != nil {
 		log.Error(err)
 		os.Exit(1)

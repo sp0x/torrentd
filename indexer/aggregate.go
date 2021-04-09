@@ -137,8 +137,7 @@ func (ag *Aggregate) Search(query *search.Query, searchInstance search.Instance)
 		return nil, errors.New("can't use normal search on an aggregate")
 	}
 	aggregatedSearch := searchInstance.(*search.AggregatedSearch)
-	// indexerSearches := make(map[int]*search.SearchKeywords)
-	// fetch all results
+
 	if ag.Indexers == nil {
 		log.Warnf("searching an aggregate[%s] that has no indexesCollection", ag.selector)
 		return nil, errors.New("no indexesCollection are set for this aggregate")

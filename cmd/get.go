@@ -58,7 +58,7 @@ func getCommand(c *cobra.Command, _ []string) {
 	// Start watching the torrent tracker.
 	status.SetupPubsub(appConfig.GetString("firebase_project"))
 	queryStr := c.Flag("query").Value.String()
-	query, _ := search.NewSearchFromQuery(queryStr)
+	query, _ := search.NewQueryFromQueryString(queryStr)
 	err := indexer.Get(facade, query)
 	if err != nil {
 		fmt.Printf("Couldn't get results: ")
