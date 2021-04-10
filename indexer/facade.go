@@ -17,6 +17,7 @@ const (
 )
 
 // Facade for an indexer/aggregate, helps manage the scope of the index, it's configuration and the index itself.
+// All results are also stored after fetching them.
 type Facade struct {
 	// The indexer that we're using
 	Index         Indexer

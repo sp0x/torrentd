@@ -78,7 +78,7 @@ func (s *Server) torznabHandler(c *gin.Context) {
 		if cachedFeed, ok := searchCache.Get(query.UniqueKey()); ok {
 			feed = cachedFeed.(*torznab.ResultFeed)
 		} else {
-			feed, err = s.torznabSearch(c.Request, query, searchIndex)
+			feed, err = s.torznabSearch(c.Request, query, s.indexerFacade)
 			searchCache.Add(query.UniqueKey(), feed)
 		}
 		if err != nil {
@@ -105,13 +105,13 @@ func formatEncoding(nm string) string {
 	return nm
 }
 
-func (s *Server) torznabSearch(r *http.Request, query *search.Query, indexer indexer.Indexer) (*torznab.ResultFeed, error) {
+func (s *Server) torznabSearch(r *http.Request, query *search.Query, indexer *indexer.Facade) (*torznab.ResultFeed, error) {
 	srch := search.NewSearch(query)
-	srch, err := indexer.Search(query, srch)
+	srch, err := indexer.Search(srch, query)
 	if err != nil {
 		return nil, err
 	}
-	nfo := indexer.Info()
+	nfo := indexer.Index.Info()
 
 	feed := &torznab.ResultFeed{
 		Info: torznab.Info{

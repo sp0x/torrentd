@@ -314,26 +314,20 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 		errType = status.ContentError
 		return nil, err
 	}
-	rows, err := r.getRows(fetchResult, runCtx)
-	if rows == nil || err != nil {
+	scrapeItems, err := r.extractScrapeItems(fetchResult, runCtx)
+	if scrapeItems == nil || err != nil {
 		errType = status.ContentError
 		return nil, fmt.Errorf("result items could not be enumerated.%v", err)
 	}
-	r.logger.
-		WithFields(log.Fields{
-			"rows":     rows.Length(),
-			"selector": r.definition.Search.Rows,
-			"limit":    query.Limit,
-			"offset":   query.Offset,
-		}).Debugf("Found %d rows", rows.Length())
 
+	strg := r.GetStorage()
 	rowContext := &scrapeContext{
 		query,
 		localCats,
-		r.GetStorage(),
+		strg,
 	}
-	defer rowContext.storage.Close()
-	results := r.processScrapedItems(rows, rowContext)
+	defer strg.Close()
+	results := r.processScrapedItems(scrapeItems, rowContext)
 
 	r.logger.
 		WithFields(log.Fields{
@@ -349,14 +343,14 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 }
 
 // Goes through the scraped items and converts them to the defined data structure
-func (r *Runner) processScrapedItems(rows source.RawScrapeItems, rowContext *scrapeContext) []search.ResultItemBase {
+func (r *Runner) processScrapedItems(scrapeItems source.RawScrapeItems, rowContext *scrapeContext) []search.ResultItemBase {
 	var results []search.ResultItemBase
-	for i := 0; i < rows.Length(); i++ {
+	for i := 0; i < scrapeItems.Length(); i++ {
 		if rowContext.query.HasEnoughResults(len(results)) {
 			break
 		}
 		// Get the result from the row
-		item, err := r.extractItem(i+1, rows.Get(i), rowContext)
+		item, err := r.extractItem(i+1, scrapeItems.Get(i), rowContext)
 		if err != nil {
 			continue
 		}

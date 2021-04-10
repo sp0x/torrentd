@@ -150,13 +150,10 @@ func (ag *Aggregate) Search(query *search.Query, searchInstance search.Instance)
 			continue
 		}
 		errorGroup.Go(func() error {
-			indexID := pIndex.Info().GetID()
 			indexSearch := aggregatedSearch.SearchContexts[&pIndex]
-			log.WithFields(log.Fields{"Index": indexID}).
-				Debug("Aggregate index search")
 			resultingSearch, err := pIndex.Search(query, indexSearch)
 			if err != nil {
-				log.Warnf("Index %q failed: %s", indexID, err)
+				log.Warnf("Index %q failed: %s", pIndex.Info().GetID(), err)
 				return nil
 			}
 			aggregatedSearch.SearchContexts[&pIndex] = resultingSearch

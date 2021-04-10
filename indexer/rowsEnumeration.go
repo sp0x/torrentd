@@ -9,7 +9,7 @@ import (
 	"github.com/sp0x/torrentd/indexer/source"
 )
 
-func (r *Runner) getRows(result source.FetchResult, runCtx *RunContext) (source.RawScrapeItems, error) {
+func (r *Runner) extractScrapeItems(result source.FetchResult, runCtx *RunContext) (source.RawScrapeItems, error) {
 	switch value := result.(type) {
 	case *source.HTMLFetchResult:
 		return r.getRowsFromDom(value.DOM.First(), runCtx)
