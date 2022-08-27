@@ -79,7 +79,7 @@ func (mr *MockScopeMockRecorder) LookupAll(config, selector interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LookupAll", reflect.TypeOf((*MockScope)(nil).LookupAll), config, selector)
 }
 
-// NewAggregateIndexesWithCategories mocks base method.
+// LookupWithCategories mocks base method.
 func (m *MockScope) LookupWithCategories(config config.Config, selector *Selector, cats []categories.Category) (IndexCollection, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LookupWithCategories", config, selector, cats)
@@ -88,8 +88,8 @@ func (m *MockScope) LookupWithCategories(config config.Config, selector *Selecto
 	return ret0, ret1
 }
 
-// NewAggregateIndexesWithCategories indicates an expected call of NewAggregateIndexesWithCategories.
-func (mr *MockScopeMockRecorder) NewAggregateIndexesWithCategories(config, selector, cats interface{}) *gomock.Call {
+// LookupWithCategories indicates an expected call of LookupWithCategories.
+func (mr *MockScopeMockRecorder) LookupWithCategories(config, selector, cats interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LookupWithCategories", reflect.TypeOf((*MockScope)(nil).LookupWithCategories), config, selector, cats)
 }

@@ -5,37 +5,38 @@
 package mocks
 
 import (
-	gomock "github.com/golang/mock/gomock"
-	source "github.com/sp0x/torrentd/indexer/source"
 	io "io"
 	url "net/url"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
+	source "github.com/sp0x/torrentd/indexer/source"
 )
 
-// MockFilterProvider is a mock of FilterProvider interface
+// MockFilterProvider is a mock of FilterProvider interface.
 type MockFilterProvider struct {
 	ctrl     *gomock.Controller
 	recorder *MockFilterProviderMockRecorder
 }
 
-// MockFilterProviderMockRecorder is the mock recorder for MockFilterProvider
+// MockFilterProviderMockRecorder is the mock recorder for MockFilterProvider.
 type MockFilterProviderMockRecorder struct {
 	mock *MockFilterProvider
 }
 
-// NewMockFilterProvider creates a new mock instance
+// NewMockFilterProvider creates a new mock instance.
 func NewMockFilterProvider(ctrl *gomock.Controller) *MockFilterProvider {
 	mock := &MockFilterProvider{ctrl: ctrl}
 	mock.recorder = &MockFilterProviderMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFilterProvider) EXPECT() *MockFilterProviderMockRecorder {
 	return m.recorder
 }
 
-// Filter mocks base method
+// Filter mocks base method.
 func (m *MockFilterProvider) Filter(fType string, args interface{}, value string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Filter", fType, args, value)
@@ -44,50 +45,36 @@ func (m *MockFilterProvider) Filter(fType string, args interface{}, value string
 	return ret0, ret1
 }
 
-// Filter indicates an expected call of Filter
+// Filter indicates an expected call of Filter.
 func (mr *MockFilterProviderMockRecorder) Filter(fType, args, value interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Filter", reflect.TypeOf((*MockFilterProvider)(nil).Filter), fType, args, value)
 }
 
-// MockRawScrapeItems is a mock of RawScrapeItems interface
+// MockRawScrapeItems is a mock of RawScrapeItems interface.
 type MockRawScrapeItems struct {
 	ctrl     *gomock.Controller
 	recorder *MockRawScrapeItemsMockRecorder
 }
 
-// MockRawScrapeItemsMockRecorder is the mock recorder for MockRawScrapeItems
+// MockRawScrapeItemsMockRecorder is the mock recorder for MockRawScrapeItems.
 type MockRawScrapeItemsMockRecorder struct {
 	mock *MockRawScrapeItems
 }
 
-// NewMockRawScrapeItems creates a new mock instance
+// NewMockRawScrapeItems creates a new mock instance.
 func NewMockRawScrapeItems(ctrl *gomock.Controller) *MockRawScrapeItems {
 	mock := &MockRawScrapeItems{ctrl: ctrl}
 	mock.recorder = &MockRawScrapeItemsMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockRawScrapeItems) EXPECT() *MockRawScrapeItemsMockRecorder {
 	return m.recorder
 }
 
-// Length mocks base method
-func (m *MockRawScrapeItems) Length() int {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Length")
-	ret0, _ := ret[0].(int)
-	return ret0
-}
-
-// Length indicates an expected call of Length
-func (mr *MockRawScrapeItemsMockRecorder) Length() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Length", reflect.TypeOf((*MockRawScrapeItems)(nil).Length))
-}
-
-// Get mocks base method
+// Get mocks base method.
 func (m *MockRawScrapeItems) Get(i int) source.RawScrapeItem {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", i)
@@ -95,134 +82,50 @@ func (m *MockRawScrapeItems) Get(i int) source.RawScrapeItem {
 	return ret0
 }
 
-// Get indicates an expected call of Get
+// Get indicates an expected call of Get.
 func (mr *MockRawScrapeItemsMockRecorder) Get(i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRawScrapeItems)(nil).Get), i)
 }
 
-// MockRawScrapeItem is a mock of RawScrapeItem interface
-type MockRawScrapeItem struct {
-	ctrl     *gomock.Controller
-	recorder *MockRawScrapeItemMockRecorder
-}
-
-// MockRawScrapeItemMockRecorder is the mock recorder for MockRawScrapeItem
-type MockRawScrapeItemMockRecorder struct {
-	mock *MockRawScrapeItem
-}
-
-// NewMockRawScrapeItem creates a new mock instance
-func NewMockRawScrapeItem(ctrl *gomock.Controller) *MockRawScrapeItem {
-	mock := &MockRawScrapeItem{ctrl: ctrl}
-	mock.recorder = &MockRawScrapeItemMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockRawScrapeItem) EXPECT() *MockRawScrapeItemMockRecorder {
-	return m.recorder
-}
-
-// FindWithSelector mocks base method
-func (m *MockRawScrapeItem) FindWithSelector(block *source.SelectorBlock) source.RawScrapeItem {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindWithSelector", block)
-	ret0, _ := ret[0].(source.RawScrapeItem)
-	return ret0
-}
-
-// FindWithSelector indicates an expected call of FindWithSelector
-func (mr *MockRawScrapeItemMockRecorder) FindWithSelector(block interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindWithSelector", reflect.TypeOf((*MockRawScrapeItem)(nil).FindWithSelector), block)
-}
-
-// Find mocks base method
-func (m *MockRawScrapeItem) Find(selectorOrPath string) source.RawScrapeItem {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Find", selectorOrPath)
-	ret0, _ := ret[0].(source.RawScrapeItem)
-	return ret0
-}
-
-// Find indicates an expected call of Find
-func (mr *MockRawScrapeItemMockRecorder) Find(selectorOrPath interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockRawScrapeItem)(nil).Find), selectorOrPath)
-}
-
-// Length mocks base method
-func (m *MockRawScrapeItem) Length() int {
+// Length mocks base method.
+func (m *MockRawScrapeItems) Length() int {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Length")
 	ret0, _ := ret[0].(int)
 	return ret0
 }
 
-// Length indicates an expected call of Length
-func (mr *MockRawScrapeItemMockRecorder) Length() *gomock.Call {
+// Length indicates an expected call of Length.
+func (mr *MockRawScrapeItemsMockRecorder) Length() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Length", reflect.TypeOf((*MockRawScrapeItem)(nil).Length))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Length", reflect.TypeOf((*MockRawScrapeItems)(nil).Length))
 }
 
-// Is mocks base method
-func (m *MockRawScrapeItem) Is(selector string) bool {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Is", selector)
-	ret0, _ := ret[0].(bool)
-	return ret0
+// MockRawScrapeItem is a mock of RawScrapeItem interface.
+type MockRawScrapeItem struct {
+	ctrl     *gomock.Controller
+	recorder *MockRawScrapeItemMockRecorder
 }
 
-// Is indicates an expected call of Is
-func (mr *MockRawScrapeItemMockRecorder) Is(selector interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Is", reflect.TypeOf((*MockRawScrapeItem)(nil).Is), selector)
+// MockRawScrapeItemMockRecorder is the mock recorder for MockRawScrapeItem.
+type MockRawScrapeItemMockRecorder struct {
+	mock *MockRawScrapeItem
 }
 
-// Has mocks base method
-func (m *MockRawScrapeItem) Has(selector string) source.RawScrapeItem {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Has", selector)
-	ret0, _ := ret[0].(source.RawScrapeItem)
-	return ret0
+// NewMockRawScrapeItem creates a new mock instance.
+func NewMockRawScrapeItem(ctrl *gomock.Controller) *MockRawScrapeItem {
+	mock := &MockRawScrapeItem{ctrl: ctrl}
+	mock.recorder = &MockRawScrapeItemMockRecorder{mock}
+	return mock
 }
 
-// Has indicates an expected call of Has
-func (mr *MockRawScrapeItemMockRecorder) Has(selector interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Has", reflect.TypeOf((*MockRawScrapeItem)(nil).Has), selector)
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRawScrapeItem) EXPECT() *MockRawScrapeItemMockRecorder {
+	return m.recorder
 }
 
-// Map mocks base method
-func (m *MockRawScrapeItem) Map(f func(int, source.RawScrapeItem) string) []string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Map", f)
-	ret0, _ := ret[0].([]string)
-	return ret0
-}
-
-// Map indicates an expected call of Map
-func (mr *MockRawScrapeItemMockRecorder) Map(f interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Map", reflect.TypeOf((*MockRawScrapeItem)(nil).Map), f)
-}
-
-// Text mocks base method
-func (m *MockRawScrapeItem) Text() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Text")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// Text indicates an expected call of Text
-func (mr *MockRawScrapeItemMockRecorder) Text() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Text", reflect.TypeOf((*MockRawScrapeItem)(nil).Text))
-}
-
-// Attr mocks base method
+// Attr mocks base method.
 func (m *MockRawScrapeItem) Attr(attributeName string) (string, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Attr", attributeName)
@@ -231,41 +134,41 @@ func (m *MockRawScrapeItem) Attr(attributeName string) (string, bool) {
 	return ret0, ret1
 }
 
-// Attr indicates an expected call of Attr
+// Attr indicates an expected call of Attr.
 func (mr *MockRawScrapeItemMockRecorder) Attr(attributeName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Attr", reflect.TypeOf((*MockRawScrapeItem)(nil).Attr), attributeName)
 }
 
-// Remove mocks base method
-func (m *MockRawScrapeItem) Remove() source.RawScrapeItem {
+// Find mocks base method.
+func (m *MockRawScrapeItem) Find(selectorOrPath string) source.RawScrapeItem {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Remove")
+	ret := m.ctrl.Call(m, "Find", selectorOrPath)
 	ret0, _ := ret[0].(source.RawScrapeItem)
 	return ret0
 }
 
-// Remove indicates an expected call of Remove
-func (mr *MockRawScrapeItemMockRecorder) Remove() *gomock.Call {
+// Find indicates an expected call of Find.
+func (mr *MockRawScrapeItemMockRecorder) Find(selectorOrPath interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockRawScrapeItem)(nil).Remove))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockRawScrapeItem)(nil).Find), selectorOrPath)
 }
 
-// PrevAllFiltered mocks base method
-func (m *MockRawScrapeItem) PrevAllFiltered(selector string) source.RawScrapeItem {
+// FindWithSelector mocks base method.
+func (m *MockRawScrapeItem) FindWithSelector(block *source.SelectorBlock) source.RawScrapeItem {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PrevAllFiltered", selector)
+	ret := m.ctrl.Call(m, "FindWithSelector", block)
 	ret0, _ := ret[0].(source.RawScrapeItem)
 	return ret0
 }
 
-// PrevAllFiltered indicates an expected call of PrevAllFiltered
-func (mr *MockRawScrapeItemMockRecorder) PrevAllFiltered(selector interface{}) *gomock.Call {
+// FindWithSelector indicates an expected call of FindWithSelector.
+func (mr *MockRawScrapeItemMockRecorder) FindWithSelector(block interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrevAllFiltered", reflect.TypeOf((*MockRawScrapeItem)(nil).PrevAllFiltered), selector)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindWithSelector", reflect.TypeOf((*MockRawScrapeItem)(nil).FindWithSelector), block)
 }
 
-// First mocks base method
+// First mocks base method.
 func (m *MockRawScrapeItem) First() source.RawScrapeItem {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "First")
@@ -273,36 +176,134 @@ func (m *MockRawScrapeItem) First() source.RawScrapeItem {
 	return ret0
 }
 
-// First indicates an expected call of First
+// First indicates an expected call of First.
 func (mr *MockRawScrapeItemMockRecorder) First() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "First", reflect.TypeOf((*MockRawScrapeItem)(nil).First))
 }
 
-// MockFetchResult is a mock of FetchResult interface
+// Has mocks base method.
+func (m *MockRawScrapeItem) Has(selector string) source.RawScrapeItem {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Has", selector)
+	ret0, _ := ret[0].(source.RawScrapeItem)
+	return ret0
+}
+
+// Has indicates an expected call of Has.
+func (mr *MockRawScrapeItemMockRecorder) Has(selector interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Has", reflect.TypeOf((*MockRawScrapeItem)(nil).Has), selector)
+}
+
+// Is mocks base method.
+func (m *MockRawScrapeItem) Is(selector string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Is", selector)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// Is indicates an expected call of Is.
+func (mr *MockRawScrapeItemMockRecorder) Is(selector interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Is", reflect.TypeOf((*MockRawScrapeItem)(nil).Is), selector)
+}
+
+// Length mocks base method.
+func (m *MockRawScrapeItem) Length() int {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Length")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// Length indicates an expected call of Length.
+func (mr *MockRawScrapeItemMockRecorder) Length() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Length", reflect.TypeOf((*MockRawScrapeItem)(nil).Length))
+}
+
+// Map mocks base method.
+func (m *MockRawScrapeItem) Map(f func(int, source.RawScrapeItem) string) []string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Map", f)
+	ret0, _ := ret[0].([]string)
+	return ret0
+}
+
+// Map indicates an expected call of Map.
+func (mr *MockRawScrapeItemMockRecorder) Map(f interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Map", reflect.TypeOf((*MockRawScrapeItem)(nil).Map), f)
+}
+
+// PrevAllFiltered mocks base method.
+func (m *MockRawScrapeItem) PrevAllFiltered(selector string) source.RawScrapeItem {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PrevAllFiltered", selector)
+	ret0, _ := ret[0].(source.RawScrapeItem)
+	return ret0
+}
+
+// PrevAllFiltered indicates an expected call of PrevAllFiltered.
+func (mr *MockRawScrapeItemMockRecorder) PrevAllFiltered(selector interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrevAllFiltered", reflect.TypeOf((*MockRawScrapeItem)(nil).PrevAllFiltered), selector)
+}
+
+// Remove mocks base method.
+func (m *MockRawScrapeItem) Remove() source.RawScrapeItem {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Remove")
+	ret0, _ := ret[0].(source.RawScrapeItem)
+	return ret0
+}
+
+// Remove indicates an expected call of Remove.
+func (mr *MockRawScrapeItemMockRecorder) Remove() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockRawScrapeItem)(nil).Remove))
+}
+
+// Text mocks base method.
+func (m *MockRawScrapeItem) Text() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Text")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Text indicates an expected call of Text.
+func (mr *MockRawScrapeItemMockRecorder) Text() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Text", reflect.TypeOf((*MockRawScrapeItem)(nil).Text))
+}
+
+// MockFetchResult is a mock of FetchResult interface.
 type MockFetchResult struct {
 	ctrl     *gomock.Controller
 	recorder *MockFetchResultMockRecorder
 }
 
-// MockFetchResultMockRecorder is the mock recorder for MockFetchResult
+// MockFetchResultMockRecorder is the mock recorder for MockFetchResult.
 type MockFetchResultMockRecorder struct {
 	mock *MockFetchResult
 }
 
-// NewMockFetchResult creates a new mock instance
+// NewMockFetchResult creates a new mock instance.
 func NewMockFetchResult(ctrl *gomock.Controller) *MockFetchResult {
 	mock := &MockFetchResult{ctrl: ctrl}
 	mock.recorder = &MockFetchResultMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFetchResult) EXPECT() *MockFetchResultMockRecorder {
 	return m.recorder
 }
 
-// ContentType mocks base method
+// ContentType mocks base method.
 func (m *MockFetchResult) ContentType() string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ContentType")
@@ -310,13 +311,13 @@ func (m *MockFetchResult) ContentType() string {
 	return ret0
 }
 
-// ContentType indicates an expected call of ContentType
+// ContentType indicates an expected call of ContentType.
 func (mr *MockFetchResultMockRecorder) ContentType() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ContentType", reflect.TypeOf((*MockFetchResult)(nil).ContentType))
 }
 
-// Encoding mocks base method
+// Encoding mocks base method.
 func (m *MockFetchResult) Encoding() string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Encoding")
@@ -324,13 +325,13 @@ func (m *MockFetchResult) Encoding() string {
 	return ret0
 }
 
-// Encoding indicates an expected call of Encoding
+// Encoding indicates an expected call of Encoding.
 func (mr *MockFetchResultMockRecorder) Encoding() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Encoding", reflect.TypeOf((*MockFetchResult)(nil).Encoding))
 }
 
-// Find mocks base method
+// Find mocks base method.
 func (m *MockFetchResult) Find(selector string) source.RawScrapeItems {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Find", selector)
@@ -338,92 +339,48 @@ func (m *MockFetchResult) Find(selector string) source.RawScrapeItems {
 	return ret0
 }
 
-// Find indicates an expected call of Find
+// Find indicates an expected call of Find.
 func (mr *MockFetchResultMockRecorder) Find(selector interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockFetchResult)(nil).Find), selector)
 }
 
-// MockContentFetcher is a mock of ContentFetcher interface
+// MockContentFetcher is a mock of ContentFetcher interface.
 type MockContentFetcher struct {
 	ctrl     *gomock.Controller
 	recorder *MockContentFetcherMockRecorder
 }
 
-// MockContentFetcherMockRecorder is the mock recorder for MockContentFetcher
+// MockContentFetcherMockRecorder is the mock recorder for MockContentFetcher.
 type MockContentFetcherMockRecorder struct {
 	mock *MockContentFetcher
 }
 
-// NewMockContentFetcher creates a new mock instance
+// NewMockContentFetcher creates a new mock instance.
 func NewMockContentFetcher(ctrl *gomock.Controller) *MockContentFetcher {
 	mock := &MockContentFetcher{ctrl: ctrl}
 	mock.recorder = &MockContentFetcherMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockContentFetcher) EXPECT() *MockContentFetcherMockRecorder {
 	return m.recorder
 }
 
-// Cleanup mocks base method
+// Cleanup mocks base method.
 func (m *MockContentFetcher) Cleanup() {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Cleanup")
 }
 
-// Cleanup indicates an expected call of Cleanup
+// Cleanup indicates an expected call of Cleanup.
 func (mr *MockContentFetcherMockRecorder) Cleanup() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Cleanup", reflect.TypeOf((*MockContentFetcher)(nil).Cleanup))
 }
 
-// Fetch mocks base method
-func (m *MockContentFetcher) Fetch(target *source.RequestOptions) (source.FetchResult, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Fetch", target)
-	ret0, _ := ret[0].(source.FetchResult)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Fetch indicates an expected call of Fetch
-func (mr *MockContentFetcherMockRecorder) Fetch(target interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Fetch", reflect.TypeOf((*MockContentFetcher)(nil).Fetch), target)
-}
-
-// Post mocks base method
-func (m *MockContentFetcher) Post(options *source.RequestOptions) (source.FetchResult, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Post", options)
-	ret0, _ := ret[0].(source.FetchResult)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Post indicates an expected call of Post
-func (mr *MockContentFetcherMockRecorder) Post(options interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Post", reflect.TypeOf((*MockContentFetcher)(nil).Post), options)
-}
-
-// URL mocks base method
-func (m *MockContentFetcher) URL() *url.URL {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "URL")
-	ret0, _ := ret[0].(*url.URL)
-	return ret0
-}
-
-// URL indicates an expected call of URL
-func (mr *MockContentFetcherMockRecorder) URL() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "URL", reflect.TypeOf((*MockContentFetcher)(nil).URL))
-}
-
-// Clone mocks base method
+// Clone mocks base method.
 func (m *MockContentFetcher) Clone() source.ContentFetcher {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Clone")
@@ -431,28 +388,13 @@ func (m *MockContentFetcher) Clone() source.ContentFetcher {
 	return ret0
 }
 
-// Clone indicates an expected call of Clone
+// Clone indicates an expected call of Clone.
 func (mr *MockContentFetcherMockRecorder) Clone() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Clone", reflect.TypeOf((*MockContentFetcher)(nil).Clone))
 }
 
-// Open mocks base method
-func (m *MockContentFetcher) Open(options *source.RequestOptions) (source.FetchResult, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Open", options)
-	ret0, _ := ret[0].(source.FetchResult)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Open indicates an expected call of Open
-func (mr *MockContentFetcherMockRecorder) Open(options interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Open", reflect.TypeOf((*MockContentFetcher)(nil).Open), options)
-}
-
-// Download mocks base method
+// Download mocks base method.
 func (m *MockContentFetcher) Download(buffer io.Writer) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Download", buffer)
@@ -461,20 +403,79 @@ func (m *MockContentFetcher) Download(buffer io.Writer) (int64, error) {
 	return ret0, ret1
 }
 
-// Download indicates an expected call of Download
+// Download indicates an expected call of Download.
 func (mr *MockContentFetcherMockRecorder) Download(buffer interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Download", reflect.TypeOf((*MockContentFetcher)(nil).Download), buffer)
 }
 
-// SetErrorHandler mocks base method
+// Fetch mocks base method.
+func (m *MockContentFetcher) Fetch(target *source.RequestOptions) (source.FetchResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Fetch", target)
+	ret0, _ := ret[0].(source.FetchResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Fetch indicates an expected call of Fetch.
+func (mr *MockContentFetcherMockRecorder) Fetch(target interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Fetch", reflect.TypeOf((*MockContentFetcher)(nil).Fetch), target)
+}
+
+// Open mocks base method.
+func (m *MockContentFetcher) Open(options *source.RequestOptions) (source.FetchResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Open", options)
+	ret0, _ := ret[0].(source.FetchResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Open indicates an expected call of Open.
+func (mr *MockContentFetcherMockRecorder) Open(options interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Open", reflect.TypeOf((*MockContentFetcher)(nil).Open), options)
+}
+
+// Post mocks base method.
+func (m *MockContentFetcher) Post(options *source.RequestOptions) (source.FetchResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Post", options)
+	ret0, _ := ret[0].(source.FetchResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Post indicates an expected call of Post.
+func (mr *MockContentFetcherMockRecorder) Post(options interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Post", reflect.TypeOf((*MockContentFetcher)(nil).Post), options)
+}
+
+// SetErrorHandler mocks base method.
 func (m *MockContentFetcher) SetErrorHandler(callback func(*source.RequestOptions)) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetErrorHandler", callback)
 }
 
-// SetErrorHandler indicates an expected call of SetErrorHandler
+// SetErrorHandler indicates an expected call of SetErrorHandler.
 func (mr *MockContentFetcherMockRecorder) SetErrorHandler(callback interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetErrorHandler", reflect.TypeOf((*MockContentFetcher)(nil).SetErrorHandler), callback)
+}
+
+// URL mocks base method.
+func (m *MockContentFetcher) URL() *url.URL {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "URL")
+	ret0, _ := ret[0].(*url.URL)
+	return ret0
+}
+
+// URL indicates an expected call of URL.
+func (mr *MockContentFetcherMockRecorder) URL() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "URL", reflect.TypeOf((*MockContentFetcher)(nil).URL))
 }

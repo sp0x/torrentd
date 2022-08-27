@@ -5,49 +5,36 @@
 package indexer
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	models "github.com/sp0x/torrentd/indexer/status/models"
-	reflect "reflect"
 )
 
-// MockReportGenerator is a mock of ReportGenerator interface
+// MockReportGenerator is a mock of ReportGenerator interface.
 type MockReportGenerator struct {
 	ctrl     *gomock.Controller
 	recorder *MockReportGeneratorMockRecorder
 }
 
-// MockReportGeneratorMockRecorder is the mock recorder for MockReportGenerator
+// MockReportGeneratorMockRecorder is the mock recorder for MockReportGenerator.
 type MockReportGeneratorMockRecorder struct {
 	mock *MockReportGenerator
 }
 
-// NewMockReportGenerator creates a new mock instance
+// NewMockReportGenerator creates a new mock instance.
 func NewMockReportGenerator(ctrl *gomock.Controller) *MockReportGenerator {
 	mock := &MockReportGenerator{ctrl: ctrl}
 	mock.recorder = &MockReportGeneratorMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockReportGenerator) EXPECT() *MockReportGeneratorMockRecorder {
 	return m.recorder
 }
 
-// GetLatestItems mocks base method
-func (m *MockReportGenerator) GetLatestItems() []models.LatestResult {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLatestItems")
-	ret0, _ := ret[0].([]models.LatestResult)
-	return ret0
-}
-
-// GetLatestItems indicates an expected call of GetLatestItems
-func (mr *MockReportGeneratorMockRecorder) GetLatestItems() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestItems", reflect.TypeOf((*MockReportGenerator)(nil).GetLatestItems))
-}
-
-// GetIndexesStatus mocks base method
+// GetIndexesStatus mocks base method.
 func (m *MockReportGenerator) GetIndexesStatus(s *Facade) []models.IndexStatus {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetIndexesStatus", s)
@@ -55,8 +42,22 @@ func (m *MockReportGenerator) GetIndexesStatus(s *Facade) []models.IndexStatus {
 	return ret0
 }
 
-// GetIndexesStatus indicates an expected call of GetIndexesStatus
+// GetIndexesStatus indicates an expected call of GetIndexesStatus.
 func (mr *MockReportGeneratorMockRecorder) GetIndexesStatus(s interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIndexesStatus", reflect.TypeOf((*MockReportGenerator)(nil).GetIndexesStatus), s)
+}
+
+// GetLatestItems mocks base method.
+func (m *MockReportGenerator) GetLatestItems() []models.LatestResult {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLatestItems")
+	ret0, _ := ret[0].([]models.LatestResult)
+	return ret0
+}
+
+// GetLatestItems indicates an expected call of GetLatestItems.
+func (mr *MockReportGeneratorMockRecorder) GetLatestItems() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestItems", reflect.TypeOf((*MockReportGenerator)(nil).GetLatestItems))
 }

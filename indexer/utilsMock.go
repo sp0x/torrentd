@@ -5,35 +5,36 @@
 package indexer
 
 import (
-	gomock "github.com/golang/mock/gomock"
 	url "net/url"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
 )
 
-// MockIURLResolver is a mock of IURLResolver interface
+// MockIURLResolver is a mock of IURLResolver interface.
 type MockIURLResolver struct {
 	ctrl     *gomock.Controller
 	recorder *MockIURLResolverMockRecorder
 }
 
-// MockIURLResolverMockRecorder is the mock recorder for MockIURLResolver
+// MockIURLResolverMockRecorder is the mock recorder for MockIURLResolver.
 type MockIURLResolverMockRecorder struct {
 	mock *MockIURLResolver
 }
 
-// NewMockIURLResolver creates a new mock instance
+// NewMockIURLResolver creates a new mock instance.
 func NewMockIURLResolver(ctrl *gomock.Controller) *MockIURLResolver {
 	mock := &MockIURLResolver{ctrl: ctrl}
 	mock.recorder = &MockIURLResolverMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockIURLResolver) EXPECT() *MockIURLResolverMockRecorder {
 	return m.recorder
 }
 
-// Resolve mocks base method
+// Resolve mocks base method.
 func (m *MockIURLResolver) Resolve(partialURL string) (*url.URL, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Resolve", partialURL)
@@ -42,7 +43,7 @@ func (m *MockIURLResolver) Resolve(partialURL string) (*url.URL, error) {
 	return ret0, ret1
 }
 
-// Resolve indicates an expected call of Resolve
+// Resolve indicates an expected call of Resolve.
 func (mr *MockIURLResolverMockRecorder) Resolve(partialURL interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Resolve", reflect.TypeOf((*MockIURLResolver)(nil).Resolve), partialURL)

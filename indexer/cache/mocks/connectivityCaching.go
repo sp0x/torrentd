@@ -5,48 +5,47 @@
 package mocks
 
 import (
-	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
 )
 
-// MockConnectivityTester is a mock of ConnectivityTester interface
+// MockConnectivityTester is a mock of ConnectivityTester interface.
 type MockConnectivityTester struct {
 	ctrl     *gomock.Controller
 	recorder *MockConnectivityTesterMockRecorder
 }
 
-// MockConnectivityTesterMockRecorder is the mock recorder for MockConnectivityTester
+// MockConnectivityTesterMockRecorder is the mock recorder for MockConnectivityTester.
 type MockConnectivityTesterMockRecorder struct {
 	mock *MockConnectivityTester
 }
 
-// NewMockConnectivityTester creates a new mock instance
+// NewMockConnectivityTester creates a new mock instance.
 func NewMockConnectivityTester(ctrl *gomock.Controller) *MockConnectivityTester {
 	mock := &MockConnectivityTester{ctrl: ctrl}
 	mock.recorder = &MockConnectivityTesterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockConnectivityTester) EXPECT() *MockConnectivityTesterMockRecorder {
 	return m.recorder
 }
 
-// IsOkAndSet mocks base method
-func (m *MockConnectivityTester) IsValidOrSet(testURL string, f func() bool) bool {
+// Invalidate mocks base method.
+func (m *MockConnectivityTester) Invalidate(url string) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsValidOrSet", testURL, f)
-	ret0, _ := ret[0].(bool)
-	return ret0
+	m.ctrl.Call(m, "Invalidate", url)
 }
 
-// IsOkAndSet indicates an expected call of IsOkAndSet
-func (mr *MockConnectivityTesterMockRecorder) IsOkAndSet(testURL, f interface{}) *gomock.Call {
+// Invalidate indicates an expected call of Invalidate.
+func (mr *MockConnectivityTesterMockRecorder) Invalidate(url interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsValidOrSet", reflect.TypeOf((*MockConnectivityTester)(nil).IsValidOrSet), testURL, f)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Invalidate", reflect.TypeOf((*MockConnectivityTester)(nil).Invalidate), url)
 }
 
-// IsOk mocks base method
+// IsOk mocks base method.
 func (m *MockConnectivityTester) IsOk(testURL string) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsOk", testURL)
@@ -54,13 +53,27 @@ func (m *MockConnectivityTester) IsOk(testURL string) bool {
 	return ret0
 }
 
-// IsOk indicates an expected call of IsOk
+// IsOk indicates an expected call of IsOk.
 func (mr *MockConnectivityTesterMockRecorder) IsOk(testURL interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsOk", reflect.TypeOf((*MockConnectivityTester)(nil).IsOk), testURL)
 }
 
-// Test mocks base method
+// IsValidOrSet mocks base method.
+func (m *MockConnectivityTester) IsValidOrSet(testURL string, f func() bool) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsValidOrSet", testURL, f)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsValidOrSet indicates an expected call of IsValidOrSet.
+func (mr *MockConnectivityTesterMockRecorder) IsValidOrSet(testURL, f interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsValidOrSet", reflect.TypeOf((*MockConnectivityTester)(nil).IsValidOrSet), testURL, f)
+}
+
+// Test mocks base method.
 func (m *MockConnectivityTester) Test(testURL string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Test", testURL)
@@ -68,20 +81,8 @@ func (m *MockConnectivityTester) Test(testURL string) error {
 	return ret0
 }
 
-// Test indicates an expected call of Test
+// Test indicates an expected call of Test.
 func (mr *MockConnectivityTesterMockRecorder) Test(testURL interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Test", reflect.TypeOf((*MockConnectivityTester)(nil).Test), testURL)
-}
-
-// Invalidate mocks base method
-func (m *MockConnectivityTester) Invalidate(url string) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Invalidate", url)
-}
-
-// Invalidate indicates an expected call of Invalidate
-func (mr *MockConnectivityTesterMockRecorder) Invalidate(url interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Invalidate", reflect.TypeOf((*MockConnectivityTester)(nil).Invalidate), url)
 }

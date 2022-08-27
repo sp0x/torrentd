@@ -8,7 +8,6 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-
 	search "github.com/sp0x/torrentd/indexer/search"
 	storage "github.com/sp0x/torrentd/storage"
 	torznab "github.com/sp0x/torrentd/torznab"

@@ -7,8 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/google/martian/log"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/jar"
 
 	"github.com/sp0x/torrentd/indexer/source"
@@ -38,7 +37,7 @@ type BrowsingSession struct {
 	urlResolver    IURLResolver
 	contentFetcher source.ContentFetcher
 	config         map[string]string
-	logger         *logrus.Logger
+	logger         *log.Logger
 	statusReporter *StatusReporter
 }
 
@@ -110,7 +109,7 @@ func newIndexSessionWithLogin(siteConfig map[string]string,
 	lc.urlResolver = resolver
 	lc.contentFetcher = contentFetcher
 	lc.config = siteConfig
-	lc.logger = logrus.New()
+	lc.logger = log.New()
 	lc.statusReporter = statusReporter
 	if loginBlock.IsEmpty() {
 		lc.state = NoLoginRequired
