@@ -22,7 +22,7 @@ func ResolveTorrents(index indexer.IndexCollection, config config.Config) []sear
 		log.Errorf("Failed while checking indexer %s. Err: %s\n", reflect.TypeOf(index), err)
 		return nil
 	}
-	indexScope := indexer.NewScope()
+	indexScope := indexer.NewScope(nil)
 	for i, searchItem := range results {
 		// Skip already resolved results.
 		item := searchItem.(*search.TorrentResultItem)

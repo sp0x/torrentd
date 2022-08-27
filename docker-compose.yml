@@ -7,7 +7,7 @@ services:
   torrentd:
     image: sp0x/torrentd:latest
     build: .
-    command: watch -x zamunda,arenabg,rutracker.org --config /config.yaml -i 1800
+    command: watch -x zamunda,rutracker.org --config /config.yaml -i 1800
     env_file:
       - .env
     volumes:

@@ -15,7 +15,6 @@ var rootCmd = &cobra.Command{
 var configFile = ""
 
 func init() {
-	// Init our db
 	cobra.OnInitialize(initConfig)
 	flags := rootCmd.PersistentFlags()
 	var verbose bool

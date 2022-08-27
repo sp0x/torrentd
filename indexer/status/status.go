@@ -2,7 +2,6 @@ package status
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/lileio/pubsub"
 	"github.com/lileio/pubsub/middleware/defaults"
@@ -37,7 +36,6 @@ func SetupPubsub(projectID string) {
 	provider, err := google.NewGoogleCloud(projectID)
 	if err != nil {
 		log.Errorf("%v\n", err)
-		fmt.Printf("couldn't initialize google pubsub provider. status will not be published\n")
 		return
 	}
 	// Service credentials exposed through: GOOGLE_APPLICATION_CREDENTIALS

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/google/martian/log"
 	"github.com/sirupsen/logrus"
 	"github.com/sp0x/surf/jar"
 
@@ -192,6 +193,8 @@ func (l *BrowsingSession) extractLoginInput() (map[string]string, error) {
 
 		if val == "{{ .Config.password }}" && resolved == emptyValue {
 			return nil, fmt.Errorf("no password was configured for input `%s` @%s", name, loginURL)
+		} else if resolved == emptyValue {
+			log.Debugf("no value resolved for login block input pattern `$s`", val)
 		}
 		result[name] = resolved
 	}
