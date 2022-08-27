@@ -13,9 +13,8 @@ func (v *ViperConfig) SetSiteOption(section, key, value string) error {
 	return nil
 }
 
-func (v *ViperConfig) Set(key, value interface{}) error {
+func (v *ViperConfig) Set(key, value interface{}) {
 	viper.Set(fmt.Sprintf("%s", key), value)
-	return nil
 }
 
 func (v *ViperConfig) GetSiteOption(name, key string) (string, bool, error) {
@@ -32,8 +31,16 @@ func (v *ViperConfig) GetSite(name string) (map[string]string, error) {
 	return indexerMap, nil
 }
 
+func (v *ViperConfig) Get(key string) interface{} {
+	return viper.Get(key)
+}
+
 func (v *ViperConfig) GetInt(param string) int {
 	return viper.GetInt(param)
+}
+
+func (v *ViperConfig) GetBool(param string) bool {
+	return viper.GetBool(param)
 }
 
 func (v *ViperConfig) GetString(param string) string {

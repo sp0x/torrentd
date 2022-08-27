@@ -12,7 +12,7 @@ import (
 )
 
 // Gets torrent information from a given tracker and updates the torrent db
-func ResolveTorrents(index indexer.Indexer, config config.Config) []search.ResultItemBase {
+func ResolveTorrents(index indexer.IndexCollection, config config.Config) []search.ResultItemBase {
 	store := storage.NewBuilder().
 		WithRecord(&search.ScrapeResultItem{}).
 		Build()

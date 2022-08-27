@@ -26,6 +26,6 @@ func resolveTorrents(_ *cobra.Command, _ []string) {
 		log.Error("Couldn't initialize facade.")
 		return
 	}
-	index := facade.Index
-	torrent.ResolveTorrents(index, &appConfig)
+	indexes := facade.Indexes
+	torrent.ResolveTorrents(indexes, &appConfig)
 }

@@ -9,17 +9,17 @@ import (
 	"github.com/sp0x/torrentd/indexer/source"
 )
 
-func (r *Runner) extractScrapeItems(result source.FetchResult, runCtx *RunContext) (source.RawScrapeItems, error) {
+func (r *Runner) extractScrapeItems(result source.FetchResult, srch *workerJob) (source.RawScrapeItems, error) {
 	switch value := result.(type) {
 	case *source.HTMLFetchResult:
-		return r.getRowsFromDom(value.DOM.First(), runCtx)
+		return r.extractItemsFromDom(value.DOM.First(), srch)
 	case *source.JSONFetchResult:
-		return r.getRowsFromJSON(value.Body)
+		return r.extractItemsFromJSON(value.Body)
 	}
 	return nil, nil
 }
 
-func (r *Runner) getRowsFromJSON(body []byte) (*source.JSONScrapeItems, error) {
+func (r *Runner) extractItemsFromJSON(body []byte) (*source.JSONScrapeItems, error) {
 	data := make(map[string]interface{})
 	err := json.Unmarshal(body, &data)
 	if err != nil {
@@ -32,11 +32,11 @@ func (r *Runner) getRowsFromJSON(body []byte) (*source.JSONScrapeItems, error) {
 	}, nil
 }
 
-func (r *Runner) getRowsFromDom(dom *goquery.Selection, runCtx *RunContext) (*source.DomScrapeItems, error) {
+func (r *Runner) extractItemsFromDom(dom *goquery.Selection, srch *workerJob) (*source.DomScrapeItems, error) {
 	if dom == nil {
 		return nil, errors.New("DOM was nil")
 	}
-	setupContext(r, runCtx, &source.DomScrapeItem{Selection: dom.First()})
+	updateSearchDataFromScrapeItem(r, srch, &source.DomScrapeItem{Selection: dom.First()})
 	// merge following rows for After selector
 	err := r.clearDom(dom)
 	if err != nil {

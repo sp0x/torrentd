@@ -14,7 +14,9 @@ func TestAssetLoader_List(t *testing.T) {
 	ldr := CreateEmbeddedDefinitionSource([]string{"a", "b", "c.yml"}, func(key string) ([]byte, error) {
 		return nil, nil
 	})
-	names, err := ldr.List(nil)
+
+	names, err := ldr.ListAvailableIndexes(nil)
+
 	g.Expect(err).To(BeNil())
 	g.Expect(len(names)).To(Equal(3))
 	g.Expect(names[0]).To(Equal("a"))
@@ -43,7 +45,7 @@ func TestAssetLoader_Load(t *testing.T) {
 func TestGetDefaultEmbeddedDefinitionSource(t *testing.T) {
 	g := NewWithT(t)
 	src := getDefaultEmbeddedDefinitionSource()
-	names, err := src.List(nil)
+	names, err := src.ListAvailableIndexes(nil)
 	g.Expect(err).To(BeNil())
 	g.Expect(len(names)).To(Equal(64))
 }
@@ -51,7 +53,9 @@ func TestGetDefaultEmbeddedDefinitionSource(t *testing.T) {
 func TestAssetLoader_ShouldWorkWithCommaSelectors(t *testing.T) {
 	g := NewWithT(t)
 	src := getDefaultEmbeddedDefinitionSource()
-	names, err := src.List(newIndexerSelector("zamunda,arenabg"))
+
+	names, err := src.ListAvailableIndexes(newIndexSelector("zamunda,arenabg"))
+
 	g.Expect(err).To(BeNil())
 	g.Expect(len(names)).To(Equal(2))
 }

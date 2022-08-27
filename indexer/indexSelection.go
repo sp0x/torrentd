@@ -14,6 +14,7 @@ func (s Selector) isAggregate() bool {
 	return s.selector == "" || s.selector == indexSelectorAggregate || s.selector == indexSelectorAll || strings.Contains(s.selector, ",")
 }
 
+// Selector that helps with index lookup
 type Selector struct {
 	selector string
 	parts    []string
@@ -30,16 +31,16 @@ func ResolveIndexID(scope Scope, id string) string {
 	shouldChooseFirstIndex := id == ""
 	var firstWorkingIndex string
 	// We're searching for the first index
-	for ixID, ix := range indexes {
-		hasErrors := len(ix.Errors()) > 0
-		_, isAggregate := ix.(*Aggregate)
+	for ixID, indexes := range indexes {
+		hasErrors := len(indexes.Errors()) > 0
+		isAggregate := len(indexes) > 1
 		if hasErrors && !isAggregate {
 			continue
 		}
 		if firstWorkingIndex == "" {
 			firstWorkingIndex = ixID
 		}
-		if _, ok := ix.(*Aggregate); ok {
+		if isAggregate {
 			return ixID
 		}
 	}
@@ -73,6 +74,10 @@ func (s Selector) Value() string {
 	return s.selector
 }
 
-func newIndexerSelector(selector string) *Selector {
-	return &Selector{selector: selector, parts: strings.Split(selector, ",")}
+func newIndexSelector(selector string) *Selector {
+	parts := strings.Split(selector, ",")
+	for i := range parts {
+		parts[i] = strings.TrimSpace(parts[i])
+	}
+	return &Selector{selector: selector, parts: parts}
 }

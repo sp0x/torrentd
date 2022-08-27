@@ -31,6 +31,14 @@ func (r *RangeFieldState) Next() string {
 	return r.current
 }
 
+func (r *RangeFieldState) GetCurrent() string {
+	if r.current == "" {
+		return r.start
+	} else {
+		return r.current
+	}
+}
+
 func (r *RangeFieldState) String() string {
 	return r.current
 }
@@ -40,8 +48,12 @@ func (r *RangeFieldState) HasNext() bool {
 }
 
 func (r *RangeFieldState) increment() {
-	length := len(r.current)
-	num, _ := strconv.Atoi(r.current)
+	if !r.HasNext() {
+		return
+	}
+	current := r.GetCurrent()
+	length := len(current)
+	num, _ := strconv.Atoi(current)
 	num++
 	r.current = fmt.Sprintf("%0"+strconv.Itoa(length)+"d", num)
 }

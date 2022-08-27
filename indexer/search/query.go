@@ -13,7 +13,6 @@ import (
 )
 
 type Query struct {
-	*PaginationSearch
 	Type                                         string
 	QueryString, Series, Ep, Season, Movie, Year string
 	Limit, Offset                                int
@@ -22,18 +21,20 @@ type Query struct {
 	APIKey                                       string
 
 	// identifier types
-	TVDBID   string
-	TVRageID string
-	IMDBID   string
-	TVMazeID string
-	TraktID  string
-	Page     uint
-	Fields   map[string]interface{}
+	TVDBID       string
+	TVRageID     string
+	IMDBID       string
+	TVMazeID     string
+	TraktID      string
+	Fields       map[string]interface{}
+	StopOnStale          bool
+	NumberOfPagesToFetch uint
+	//StartingPage uint
+	Page         uint
 }
 
 func NewQuery() *Query {
 	q := &Query{}
-	q.PaginationSearch = &PaginationSearch{}
 	q.Fields = make(map[string]interface{})
 	return q
 }
@@ -132,7 +133,7 @@ func ParseQuery(v url.Values) (*Query, error) {
 			query.Type = vals[0]
 		case "p":
 			cnt, _ := strconv.Atoi(vals[0])
-			query.PageCount = uint(cnt)
+			query.NumberOfPagesToFetch = uint(cnt)
 		case "q":
 			query.QueryString = strings.Join(vals, " ")
 

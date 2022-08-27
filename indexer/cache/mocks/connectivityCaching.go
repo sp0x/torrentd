@@ -33,9 +33,9 @@ func (m *MockConnectivityTester) EXPECT() *MockConnectivityTesterMockRecorder {
 }
 
 // IsOkAndSet mocks base method
-func (m *MockConnectivityTester) IsOkAndSet(testURL string, f func() bool) bool {
+func (m *MockConnectivityTester) IsValidOrSet(testURL string, f func() bool) bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsOkAndSet", testURL, f)
+	ret := m.ctrl.Call(m, "IsValidOrSet", testURL, f)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
@@ -43,7 +43,7 @@ func (m *MockConnectivityTester) IsOkAndSet(testURL string, f func() bool) bool 
 // IsOkAndSet indicates an expected call of IsOkAndSet
 func (mr *MockConnectivityTesterMockRecorder) IsOkAndSet(testURL, f interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsOkAndSet", reflect.TypeOf((*MockConnectivityTester)(nil).IsOkAndSet), testURL, f)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsValidOrSet", reflect.TypeOf((*MockConnectivityTester)(nil).IsValidOrSet), testURL, f)
 }
 
 // IsOk mocks base method

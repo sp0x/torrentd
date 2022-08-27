@@ -18,7 +18,7 @@ import (
 )
 
 func (s *Server) aggregatesStatus(c *gin.Context) {
-	aggregate, err := s.indexerFacade.LoadedIndexes.Lookup(s.config, "all")
+	indexes, err := s.indexerFacade.IndexScope.Lookup(s.config, "all")
 	if err != nil {
 		_ = c.Error(err)
 		return
@@ -27,7 +27,7 @@ func (s *Server) aggregatesStatus(c *gin.Context) {
 	statusObj := struct {
 		ActiveIndexers []string `json:"latest"`
 	}{}
-	for _, ixr := range aggregate.(*indexer.Aggregate).Indexers {
+	for _, ixr := range indexes {
 		ixrInfo := ixr.Info()
 		statusObj.ActiveIndexers = append(statusObj.ActiveIndexers, ixrInfo.GetTitle())
 	}
@@ -39,13 +39,15 @@ var searchCache, _ = cache.NewTTL(100, 1*time.Hour)
 // Handle queries
 func (s *Server) torznabHandler(c *gin.Context) {
 	_ = c.Params
-	indexerID := indexer.ResolveIndexID(s.indexerFacade.LoadedIndexes, c.Param("searchIndex"))
+	indexerID := indexer.ResolveIndexID(s.indexerFacade.IndexScope, c.Param("searchIndexes"))
 	t := c.Query("t")
-	searchIndex, err := s.indexerFacade.LoadedIndexes.Lookup(s.config, indexerID)
+	searchIndexes, err := s.indexerFacade.IndexScope.Lookup(s.config, indexerID)
 	if err != nil {
 		torznab.Error(c, err.Error(), torznab.ErrIncorrectParameter)
 		return
 	}
+	searchIndex := searchIndexes[0]
+
 	if t == "caps" {
 		searchIndex.Capabilities().ServeHTTP(c.Writer, c.Request)
 		return
@@ -105,13 +107,16 @@ func formatEncoding(nm string) string {
 	return nm
 }
 
-func (s *Server) torznabSearch(r *http.Request, query *search.Query, indexer *indexer.Facade) (*torznab.ResultFeed, error) {
-	srch := search.NewSearch(query)
-	srch, err := indexer.Search(srch, query)
+func (s *Server) torznabSearch(r *http.Request, query *search.Query, indexFacade *indexer.Facade) (*torznab.ResultFeed, error) {
+	resultsChan, err := indexFacade.Search(query)
 	if err != nil {
 		return nil, err
 	}
-	nfo := indexer.Index.Info()
+	nfo := indexFacade.Indexes.Info()
+	var results []search.ResultItemBase
+	for resultPage := range resultsChan {
+		results = append(results, resultPage...)
+	}
 
 	feed := &torznab.ResultFeed{
 		Info: torznab.Info{
@@ -122,11 +127,11 @@ func (s *Server) torznabSearch(r *http.Request, query *search.Query, indexer *in
 			Language:    nfo.GetLanguage(),
 			Category:    "",
 		},
-		Items: srch.GetResults(),
+		Items: results,
 	}
 	feed.Info.Category = query.Type
 
-	rewritten, err := s.rewriteLinks(r, srch.GetResults())
+	rewritten, err := s.rewriteLinks(r, results)
 	if err != nil {
 		return nil, err
 	}

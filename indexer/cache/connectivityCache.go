@@ -43,7 +43,7 @@ func (c *ConnectivityCache) IsOk(testURL string) bool {
 
 // IsOkAndSet checks if the `u` value is contained, if it's not it checks it.
 // This operation is thread safe, you can use it to modify the invalidatedCache state in the function.
-func (c *ConnectivityCache) IsOkAndSet(testURL string, f func() bool) bool {
+func (c *ConnectivityCache) IsValidOrSet(testURL string, f func() bool) bool {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	var result bool

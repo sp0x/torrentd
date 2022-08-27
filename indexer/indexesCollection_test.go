@@ -14,15 +14,15 @@ func TestIndexCollection_CreateAggregate_ShouldNotHang(t *testing.T) {
 	timeout := time.After(5 * time.Second)
 	done := make(chan struct{})
 	facade := Facade{}
-	facade.LoadedIndexes = NewScope()
+	facade.IndexScope = NewScope(nil)
 	cfg := &config.ViperConfig{}
-	_ = cfg.Set("db", tempfile())
-	_ = cfg.Set("storage", "boltdb")
-	var aggregate Indexer
+	cfg.Set("db", tempfile())
+	cfg.Set("storage", "boltdb")
+	var indexes IndexCollection
 	var err error
 
 	go func() {
-		aggregate, err = facade.LoadedIndexes.CreateAggregate(cfg, nil)
+		indexes, err = facade.IndexScope.LookupAll(cfg, nil)
 		g.Expect(err).To(gomega.BeNil())
 		close(done)
 	}()
@@ -33,5 +33,5 @@ func TestIndexCollection_CreateAggregate_ShouldNotHang(t *testing.T) {
 	case <-done:
 	}
 	g.Expect(err).To(gomega.BeNil())
-	g.Expect(aggregate).ToNot(gomega.BeNil())
+	g.Expect(indexes).ToNot(gomega.BeNil())
 }

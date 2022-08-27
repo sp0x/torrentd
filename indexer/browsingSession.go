@@ -178,7 +178,7 @@ func (l *BrowsingSession) extractLoginInput() (map[string]string, error) {
 	result := map[string]string{}
 	loginURL, _ := l.urlResolver.Resolve(l.loginBlock.Path)
 
-	// Get configuration for the Index so we can login
+	// Search configuration for the Indexes so we can login
 	ctx := struct {
 		Config map[string]string
 	}{
@@ -255,7 +255,7 @@ func (l *BrowsingSession) login() error {
 	default:
 		return fmt.Errorf("unknown login method %q for site %s", method, loginURL)
 	}
-	// Get the error
+	// Search the error
 	if len(l.loginBlock.Error) > 0 {
 		if err = l.loginBlock.hasError(loginReqResult); err != nil {
 			l.logger.WithError(err).Error("Failed to login")

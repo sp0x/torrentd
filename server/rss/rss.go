@@ -22,35 +22,30 @@ func ServerAll(c http2.Context) {
 	// SendRssFeed("", "torrents", torrents, c)
 }
 
-func SearchAndServe(ixr *indexer.Facade, options *indexer.GenericSearchOptions, c http2.Context) {
+func SearchAndServe(indexFacade *indexer.Facade, options *indexer.GenericSearchOptions, c http2.Context) {
 	tabWriter := new(tabwriter.Writer)
 	tabWriter.Init(os.Stdout, 0, 8, 0, '\t', 0)
 
-	var srch search.Instance
 	currentPage := uint(0)
 	name := c.Param("name")
 	name = url.QueryEscape(name)
 	var items []*search.TorrentResultItem
 
-	for true {
-		var err error
-		if srch == nil {
-			srch, err = ixr.SearchKeywords(nil, name, 0)
-		} else {
-			srch, err = ixr.SearchKeywords(srch, name, currentPage)
-		}
-		if err != nil {
-			log.Warningf("Error while searching for torrent: %s . %s", name, err)
-			switch err.(type) {
-			case *indexer.LoginError:
-				break
-			}
-		}
-		if currentPage >= options.PageCount {
+	//for {
+	resultsChannel, err := indexFacade.SearchWithKeywords(name, 1, 1)
+	if err != nil {
+		log.Warningf("Error while searching for torrent: %s . %s", name, err)
+		switch err.(type) {
+		case *indexer.LoginError:
 			break
 		}
-		for _, torrentItem := range srch.GetResults() {
-			torrent := torrentItem.(*search.TorrentResultItem)
+	}
+	//if currentPage >= options.NumberOfPagesToFetch {
+	//	break
+	//}
+	for resultGroup := range resultsChannel {
+		for _, result := range resultGroup {
+			torrent := result.(*search.TorrentResultItem)
 			if torrent.IsNew() || torrent.IsUpdate() {
 				if torrent.IsNew() && !torrent.IsUpdate() {
 					_, _ = fmt.Fprintf(tabWriter, "Found new result #%s:\t%s\t[%s]:\t%s\n",
@@ -66,9 +61,10 @@ func SearchAndServe(ixr *indexer.Facade, options *indexer.GenericSearchOptions, 
 			items = append(items, torrent)
 			_ = tabWriter.Flush()
 		}
-
-		currentPage++
 	}
+
+	currentPage++
+	//}
 	SendRssFeed("", name, items, c)
 }
 

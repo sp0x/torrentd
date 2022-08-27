@@ -42,9 +42,9 @@ func (c *OptimisticConnectivityCache) Invalidate(url string) {
 	})
 }
 
-// IsOkAndSet checks if the `u` value is contained, if it's not it checks it.
+// IsValidOrSet checks if the `u` value is contained, if it's not it checks it.
 // This operation is thread safe, you can use it to modify the invalidatedCache state in the function.
-func (c *OptimisticConnectivityCache) IsOkAndSet(u string, f func() bool) bool {
+func (c *OptimisticConnectivityCache) IsValidOrSet(u string, factory func() bool) bool {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	var result bool
@@ -52,7 +52,7 @@ func (c *OptimisticConnectivityCache) IsOkAndSet(u string, f func() bool) bool {
 	if !invalidated {
 		return true
 	}
-	result = f()
+	result = factory()
 	return result
 }
 

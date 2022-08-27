@@ -20,6 +20,7 @@ var (
 func Test_NewOptimisticConnectivityCache(t *testing.T) {
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 	fetcher := mocks2.NewMockContentFetcher(ctrl)
 	conCache, _ := NewOptimisticConnectivityCache(fetcher)
 	g.Expect(conCache.IsOk(optimisticURL.String())).To(gomega.BeTrue())
@@ -32,6 +33,7 @@ func Test_NewOptimisticConnectivityCache(t *testing.T) {
 func TestOptimisticCache_ShouldReturnTrueFromTheStart(t *testing.T) {
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 	fetcher := mocks2.NewMockContentFetcher(ctrl)
 	conCache, _ := NewOptimisticConnectivityCache(fetcher)
 
@@ -42,6 +44,7 @@ func TestOptimisticCache_ShouldReturnTrueFromTheStart(t *testing.T) {
 func Test_OptimisticCache_ShouldReturnFalseIfInvalidated(t *testing.T) {
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 	fetcher := mocks2.NewMockContentFetcher(ctrl)
 	conCache, _ := NewOptimisticConnectivityCache(fetcher)
 	g.Expect(conCache.IsOk(optimisticURL.String())).To(gomega.BeTrue())
@@ -59,6 +62,7 @@ func Test_OptimisticCache_ShouldReturnFalseIfInvalidated(t *testing.T) {
 func Test_OptimisticCache_ShouldTestUrlsOnceTheyWereInvalidated(t *testing.T) {
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 	fetcher := mocks2.NewMockContentFetcher(ctrl)
 	conCache, _ := NewOptimisticConnectivityCache(fetcher)
 	mockGetRequest(fetcher, optimisticURL.String())
@@ -91,31 +95,35 @@ func mockFailingGetRequest(fetcher *mocks2.MockContentFetcher, destURL string) *
 		Return(nil, errors.New("offline"))
 }
 
-func Test_OptimisticCache_ShouldWorkWithOkAndSet(t *testing.T) {
+func Test_OptimisticCache_IsValidOrSet_Should_UpdateTheCache_If_Item_IsInvalidated(t *testing.T) {
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 	fetcher := mocks2.NewMockContentFetcher(ctrl)
 	conCache, _ := NewOptimisticConnectivityCache(fetcher)
+	conCache.Invalidate(optimisticURL.String())
 	mockGetRequest(fetcher, optimisticURL.String())
 
 	// Do this like that so it's locked.
-	ok := conCache.IsOkAndSet(optimisticURL.String(), func() bool {
+	ok := conCache.IsValidOrSet(optimisticURL.String(), func() bool {
 		err := conCache.Test(optimisticURL.String())
 		return err == nil
 	})
+
 	g.Expect(ok).To(gomega.BeTrue())
 }
 
 func Test_OptimisticCache_InvalidationShouldWorkWithOkAndSet(t *testing.T) {
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 	fetcher := mocks2.NewMockContentFetcher(ctrl)
 	conCache, _ := NewOptimisticConnectivityCache(fetcher)
 	mockGetRequest(fetcher, optimisticURL.String())
 
 	// Do this like that so it's locked.
 	conCache.Invalidate(optimisticURL.String())
-	ok := conCache.IsOkAndSet(optimisticURL.String(), func() bool {
+	ok := conCache.IsValidOrSet(optimisticURL.String(), func() bool {
 		err := conCache.Test(optimisticURL.String())
 		return err == nil
 	})
@@ -126,6 +134,7 @@ func Test_OptimisticCache_InvalidationShouldWorkWithOkAndSet(t *testing.T) {
 func Test_OptimisticCache_NonWorkingURLs_Should_BeInvalidated(t *testing.T) {
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 	fetcher := mocks2.NewMockContentFetcher(ctrl)
 	conCache, _ := NewOptimisticConnectivityCache(fetcher)
 	mockFailingGetRequest(fetcher, optimisticURL.String())
@@ -139,13 +148,14 @@ func Test_OptimisticCache_NonWorkingURLs_Should_BeInvalidated(t *testing.T) {
 func Test_OptimisticCache_BadUrlsShouldStayInvalidated(t *testing.T) {
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 	fetcher := mocks2.NewMockContentFetcher(ctrl)
 	conCache, _ := NewOptimisticConnectivityCache(fetcher)
 	requestMock := mockGetRequest(fetcher, optimisticURL.String()).
 		Times(1)
 
 	// Initially the url should seem like it's OK
-	ok := conCache.IsOkAndSet(optimisticURL.String(), func() bool {
+	ok := conCache.IsValidOrSet(optimisticURL.String(), func() bool {
 		err := conCache.Test(optimisticURL.String())
 		return err == nil
 	})
@@ -157,7 +167,7 @@ func Test_OptimisticCache_BadUrlsShouldStayInvalidated(t *testing.T) {
 	requestMock.Return(nil, errors.New("offline"))
 	// mockFailingGetRequest(fetcher, optimisticURL.String()).Times(1)
 
-	ok = conCache.IsOkAndSet(optimisticURL.String(), func() bool {
+	ok = conCache.IsValidOrSet(optimisticURL.String(), func() bool {
 		err := conCache.Test(optimisticURL.String())
 		g.Expect(err).ToNot(gomega.BeNil())
 		return err == nil

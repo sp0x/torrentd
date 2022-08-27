@@ -10,10 +10,7 @@ import (
 
 	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/indexer/categories"
-	"github.com/sp0x/torrentd/indexer/search"
 )
-
-// var subtitleIndexer string
 
 func init() {
 	cmdFetchTorrents := &cobra.Command{
@@ -29,17 +26,17 @@ func findSubtitles(_ *cobra.Command, args []string) {
 	if helper == nil {
 		os.Exit(1)
 	}
-	var currentSearch search.Instance
-	var err error
 	searchQuery := strings.Join(args, " ")
 	subCat := categories.Subtitle
-	currentSearch, err = helper.SearchKeywordsWithCategory(nil, searchQuery, subCat, 0)
+	results, err := helper.SearchKeywordsWithCategory(searchQuery, 0, subCat)
 	if err != nil {
 		log.Error("Couldn't search for subtitles.")
 		os.Exit(1)
 	}
-	for _, r := range currentSearch.GetResults() {
-		scrape := r.AsScrapeItem()
-		fmt.Printf("%s - %s\n", r.String(), scrape.Link)
+	for resultPage := range results {
+		for _, r := range resultPage {
+			scrape := r.AsScrapeItem()
+			fmt.Printf("%s - %s\n", r.String(), scrape.Link)
+		}
 	}
 }

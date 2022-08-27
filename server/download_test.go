@@ -115,6 +115,6 @@ func TestServer_downloadHandler(t *testing.T) {
 	mockedIndexer.EXPECT().Download(tkn.Link).
 		Return(responseProxy, nil)
 
-	server.indexerFacade.LoadedIndexes = scopeMock
+	server.indexerFacade.IndexScope = scopeMock
 	server.downloadHandler(context)
 }

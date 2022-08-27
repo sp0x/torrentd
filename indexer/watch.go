@@ -14,36 +14,16 @@ func GetAllPagesFromIndex(facade *Facade, query *search.Query) <-chan search.Res
 	if query == nil {
 		query = search.NewQuery()
 	}
+	maxPages := facade.Indexes.MaxSearchPages()
+	query.NumberOfPagesToFetch = maxPages
+	query.StopOnStale = true
+	resultsChan, _ := facade.Search(query)
 	go func() {
-		var currentSearch search.Instance
-		maxPages := facade.Index.MaxSearchPages()
-		for {
-			var err error
-			if currentSearch == nil {
-				currentSearch, err = facade.Search(nil, query)
-			} else {
-				currentSearch, err = facade.Search(currentSearch, query)
-			}
-			if err != nil {
-				log.Errorf("Couldn't search: %v", err)
-				break
-			}
-			if currentSearch == nil {
-				log.Warningf("Could not fetch page: %d\n", query.Page)
-				break
-			}
-			for _, result := range currentSearch.GetResults() {
-				tmpResult := result
-				outputChan <- tmpResult
-			}
-			// Go to the next page
-			query.Page++
-			// If we've reached the end we stop
-			if maxPages == query.Page {
-				break
+		for items := range resultsChan {
+			for _, item := range items {
+				outputChan <- item
 			}
 		}
-		close(outputChan)
 	}()
 	return outputChan
 }
@@ -56,18 +36,12 @@ func Watch(facade *Facade, initialQuery *search.Query, intervalSec int) <-chan s
 	if initialQuery == nil {
 		initialQuery = search.NewQuery()
 	}
+	startingPage := initialQuery.Page
+	initialQuery.NumberOfPagesToFetch = facade.Indexes.MaxSearchPages()
+	initialQuery.StopOnStale = true
 	go func() {
-		var currentSearch search.Instance
-		startingPage := initialQuery.Page
-		maxPages := facade.Index.MaxSearchPages()
-		// Go over all pages
 		for {
-			var err error
-			if currentSearch == nil {
-				currentSearch, err = facade.Search(nil, initialQuery)
-			} else {
-				currentSearch, err = facade.Search(currentSearch, initialQuery)
-			}
+			results, err := facade.Search(initialQuery)
 			if err != nil {
 				switch err.(type) {
 				case *LoginError:
@@ -78,67 +52,33 @@ func Watch(facade *Facade, initialQuery *search.Query, intervalSec int) <-chan s
 				}
 				time.Sleep(time.Second * time.Duration(intervalSec))
 			}
-			if currentSearch == nil {
-				log.Warningf("Could not fetch page: %d", initialQuery.Page)
-				time.Sleep(time.Second * time.Duration(intervalSec))
-				continue
-			}
-			sendSearchResults(currentSearch, outputChan)
-			// Parse the currentPage and see if there are any new torrents
-			// if there aren't any, sleep the intervalSec
-			finished := false
-			hasReachedStaleItems := false
-			resultItems := currentSearch.GetResults()
-			for _, result := range resultItems {
-				if finished {
-					break
-				}
-				if result.IsNew() || result.IsUpdate() {
-					scrapeItem := result.AsScrapeItem()
-					if result.IsNew() && !result.IsUpdate() {
-						log.WithFields(log.Fields{"id": result.UUID(), "data": result.String(), "published": scrapeItem.PublishDate}).
-							Info("Found new result")
-					} else {
-						log.WithFields(log.Fields{"id": result.UUID(), "data": result.String(), "published": scrapeItem.PublishDate}).
-							Info("Updated result")
-					}
-				}
-				if !result.IsNew() {
-					hasReachedStaleItems = true
-					finished = true
-					break
-				}
+			for resultsPage := range results {
+				sendSearchResults(resultsPage, outputChan)
 			}
 
-			// If we have stale torrents we wait some time and try again
-			if hasReachedStaleItems ||
-				(len(resultItems) == 0 && !currentSearch.HasFieldState()) ||
-				!currentSearch.HasNext() {
-				log.WithFields(log.Fields{"page": initialQuery.PageCount}).
-					Infof("Search is complete.")
-				time.Sleep(time.Second * time.Duration(intervalSec))
-				currentSearch = nil
-				initialQuery.Page = startingPage
-				continue
-			}
-			// Otherwise we proceed to the next currentPage if there's any
-			initialQuery.Page++
-			// We've exceeded the pages, sleep and go to the start
-			if maxPages == initialQuery.Page {
-				initialQuery.Page = startingPage
-				currentSearch = nil
-				time.Sleep(time.Second * time.Duration(intervalSec))
-			}
-			log.WithFields(log.Fields{"page": initialQuery.Page, "max-pages": maxPages}).
-				Debugf("going through next page in query")
+			// If we have stale items we wait some time and try again
+			log.WithFields(log.Fields{"page": initialQuery.NumberOfPagesToFetch}).
+				Infof("Search is complete.")
+			time.Sleep(time.Second * time.Duration(intervalSec))
+			initialQuery.Page = startingPage
 		}
 	}()
 	return outputChan
 }
 
-func sendSearchResults(currentSearch search.Instance, outputChan chan search.ResultItemBase) {
-	for _, result := range currentSearch.GetResults() {
+func sendSearchResults(results []search.ResultItemBase, outputChan chan search.ResultItemBase) {
+	for _, result := range results {
 		tmpResult := result
+		if result.IsNew() || result.IsUpdate() {
+			scrapeItem := result.AsScrapeItem()
+			if result.IsNew() && !result.IsUpdate() {
+				log.WithFields(log.Fields{"id": result.UUID(), "data": result.String(), "published": scrapeItem.PublishDate}).
+					Info("Found new result")
+			} else {
+				log.WithFields(log.Fields{"id": result.UUID(), "data": result.String(), "published": scrapeItem.PublishDate}).
+					Info("Updated result")
+			}
+		}
 		outputChan <- tmpResult
 	}
 }

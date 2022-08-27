@@ -1,8 +1,10 @@
 package indexer
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -11,6 +13,7 @@ import (
 
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/cache"
+	"github.com/sp0x/torrentd/indexer/search"
 )
 
 //go:generate mockgen -source utils.go -destination=utilsMock.go -package=indexer
@@ -30,7 +33,7 @@ func (r *URLResolver) Resolve(partialURL string) (*url.URL, error) {
 	}
 	for _, cURL := range r.urls {
 		baseURL := cURL
-		if r.connectivity.IsOkAndSet(baseURL.String(), func() bool {
+		if r.connectivity.IsValidOrSet(baseURL.String(), func() bool {
 			return defaultURLTester(r.connectivity, baseURL, r.logger)
 		}) {
 			return r.resolvePartial(baseURL, partialURL)
@@ -41,14 +44,11 @@ func (r *URLResolver) Resolve(partialURL string) (*url.URL, error) {
 }
 
 func isUnresolvable(partialURL string) bool {
-	if strings.HasPrefix(partialURL, "magnet:") {
-		return true
-	}
-	return false
+	return strings.HasPrefix(partialURL, "magnet:")
 }
 
 func (r *URLResolver) resolvePartial(baseURL *url.URL, partialURL string) (*url.URL, error) {
-	// Get the baseURL url of the Index
+	// Search the baseURL url of the Indexes
 	if baseURL == nil {
 		return nil, errors.New("base url is nil")
 	}
@@ -123,4 +123,22 @@ func parseCookieString(cookie string) []*http.Cookie {
 	h := http.Header{"Cookie": []string{cookie}}
 	r := http.Request{Header: h}
 	return r.Cookies()
+}
+
+func PrintResults(items []search.ResultItemBase, writer io.Writer) {
+	for _, item := range items {
+		if item.IsNew() || item.IsUpdate() {
+			if item.IsNew() && !item.IsUpdate() {
+				serialized, _ := json.Marshal(item)
+				_, _ = fmt.Fprintf(writer, "Found new result #%s:\t%s\n",
+					item.UUID(), string(serialized))
+			} else {
+				_, _ = fmt.Fprintf(writer, "Updated result #%s:\t%s\n",
+					item.UUID(), item.String())
+			}
+		} else {
+			_, _ = fmt.Fprintf(writer, "Result #%s:\t%s\n",
+				item.UUID(), item.String())
+		}
+	}
 }

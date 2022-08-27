@@ -16,8 +16,8 @@ import (
 
 func newTestingIndex() *Runner {
 	cfg := &config.ViperConfig{}
-	_ = cfg.Set("db", tempfile())
-	_ = cfg.Set("storage", "boltdb")
+	cfg.Set("db", tempfile())
+	cfg.Set("storage", "boltdb")
 	indexDef := &Definition{
 		Site:  "example.com",
 		Name:  "example",

@@ -21,54 +21,34 @@ func GetNewScrapeItems(facade *indexer.Facade, fetchOptions *indexer.GenericSear
 	page := uint(0)
 	tabWr := new(tabwriter.Writer)
 	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
+	query := search.NewQuery()
+	query.StopOnStale = true
 
-	var currentSearch search.Instance
-	for page = 0; page < fetchOptions.PageCount; page++ {
-		log.Infof("Getting page %d\n", page)
-		var err error
-		if currentSearch == nil {
-			currentSearch, err = facade.SearchKeywords(nil, "", page)
-		} else {
-			currentSearch, err = facade.SearchKeywords(currentSearch, "", page)
+	resultsChannel, err := facade.Search(query)
+	if err != nil {
+		log.Warningf("Could not fetch page %d\n", page)
+		if _, ok := err.(*indexer.LoginError); ok {
+			return err
 		}
-		if err != nil {
-			log.Warningf("Could not fetch page %d\n", page)
-			if _, ok := err.(*indexer.LoginError); ok {
-				return err
-			}
-		}
-		/*
-			Scan all pages every time. It's not safe to skip them by last scrapeItem ID in the database,
-			because some of them might be hidden at the previous run.
-		*/
-		counter := uint(0)
-		finished := false
-		for _, scrapeItem := range currentSearch.GetResults() {
-			if finished {
-				break
-			}
-
-			if scrapeItem.IsNew() || scrapeItem.IsUpdate() {
-				if scrapeItem.IsNew() && !scrapeItem.IsUpdate() {
-					_, _ = fmt.Fprintf(tabWr, "Found new result #%s:\t%s\n",
-						scrapeItem.UUID(), scrapeItem.String())
+	}
+	/*
+		Scan all pages every time. It's not safe to skip them by last scrapeItem ID in the database,
+		because some of them might be hidden at the previous run.
+	*/
+	counter := uint(0)
+	for resultsPage := range resultsChannel {
+		for _, result := range resultsPage {
+			if result.IsNew() || result.IsUpdate() {
+				if result.IsNew() && !result.IsUpdate() {
+					_, _ = fmt.Fprintf(tabWr, "Found new result #%s:\t%s\n", result.UUID(), result.String())
 				} else {
-					_, _ = fmt.Fprintf(tabWr, "Updated result #%s:\t%s\n",
-						scrapeItem.UUID(), scrapeItem.String())
+					_, _ = fmt.Fprintf(tabWr, "Updated result #%s:\t%s\n", result.UUID(), result.String())
 				}
 			} else {
-				_, _ = fmt.Fprintf(tabWr, "Result #%s:\t%s\n",
-					scrapeItem.UUID(), scrapeItem.String())
+				_, _ = fmt.Fprintf(tabWr, "Result #%s:\t%s\n", result.UUID(), result.String())
 			}
 			_ = tabWr.Flush()
-			if !scrapeItem.IsNew() && fetchOptions.StopOnStaleResults {
-				finished = true
-				break
-			}
 			counter++
-		}
-		if finished {
-			break
 		}
 	}
 	return nil

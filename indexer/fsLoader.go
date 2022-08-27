@@ -16,10 +16,10 @@ type FileIndexLoader struct {
 	Directories []string
 }
 
-// NewFsLoader creates a new file index loader which looks for definitions in ~/.#{appName}/indexesCollection and ./indexesCollection
+// NewFsLoader creates a new file index loader which looks for definitions in ~/.#{appName}/indexMap and ./indexMap
 func NewFsLoader(appName string) *FileIndexLoader {
 	localDirectory := ""
-	entityName := "indexesCollection"
+	entityName := "indexMap"
 	if cwd, err := os.Getwd(); err == nil {
 		localDirectory = filepath.Join(cwd, entityName)
 	}
@@ -63,7 +63,7 @@ func (fs *FileIndexLoader) walkDirectories() map[string]string {
 	return defs
 }
 
-func (fs *FileIndexLoader) List(selector *Selector) ([]string, error) {
+func (fs *FileIndexLoader) ListAvailableIndexes(selector *Selector) ([]string, error) {
 	defs := fs.walkDirectories()
 	results := make([]string, 0, len(defs))
 	for name := range defs {

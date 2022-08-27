@@ -9,11 +9,13 @@ type healthCheckResponse struct {
 
 func (s *Server) HealthCheck() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		indexes := s.indexerFacade.LoadedIndexes.Indexes()
+		indexes := s.indexerFacade.IndexScope.Indexes()
 		output := make(map[string]healthCheckResponse)
-		for _, index := range indexes {
-			err := index.HealthCheck()
-			output[index.Site()] = healthCheckResponse{
+		for _, indexGroup := range indexes {
+			err := indexGroup.HealthCheck()
+			firstIndex := indexGroup[0]
+
+			output[firstIndex.Site()] = healthCheckResponse{
 				Ok:    err == nil,
 				Error: err,
 			}

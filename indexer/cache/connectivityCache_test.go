@@ -27,7 +27,7 @@ func TestConnectivityCache_IsOk(t *testing.T) {
 			DOM: nil,
 		}, nil)
 
-	result := conCache.IsOkAndSet(exampleURL.String(), func() bool {
+	result := conCache.IsValidOrSet(exampleURL.String(), func() bool {
 		err := conCache.Test(exampleURL.String())
 		return err == nil
 	})

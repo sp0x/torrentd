@@ -40,18 +40,18 @@ func (st *StandardReportGenerator) GetIndexesStatus(indexFacade *Facade) []model
 	storageStats := store.GetStats(false)
 	store.Close()
 
-	indexCount := len(indexFacade.LoadedIndexes.Indexes())
+	indexCount := len(indexFacade.IndexScope.Indexes())
 	statuses := make([]models.IndexStatus, indexCount)
 
-	for indexKey, ix := range indexFacade.LoadedIndexes.Indexes() {
-		if ix == nil {
+	for indexKey, indexes := range indexFacade.IndexScope.Indexes() {
+		if indexes == nil {
 			continue
 		}
-		_, isAggregate := ix.(*Aggregate)
+		isAggregate := len(indexes) > 1
 		indexStats := models.IndexStatus{
 			Index:       indexKey,
 			IsAggregate: isAggregate,
-			Errors:      ix.Errors(),
+			Errors:      indexes.Errors(),
 		}
 		if storageStats != nil {
 			nsp := storageStats.GetNamespace(indexKey)

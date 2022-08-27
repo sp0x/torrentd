@@ -12,12 +12,13 @@ func TestResolveIndexId_ShouldWorkWithCommaIndexes(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockedScope := NewMockScope(ctrl)
-	loadedIndexes := make(map[string]Indexer)
+	loadedIndexes := make(map[string]IndexCollection)
 	aggregateKey := "ix1,ix2,ix3"
-	loadedIndexes[aggregateKey] = &Aggregate{}
+	loadedIndexes[aggregateKey] = IndexCollection{}
 	mockedScope.EXPECT().Indexes().
 		Times(1).
 		Return(loadedIndexes)
+
 	rid := ResolveIndexID(mockedScope, "")
 
 	g.Expect(rid).To(gomega.BeEquivalentTo(aggregateKey))
@@ -28,12 +29,13 @@ func TestResolveIndexId_ShouldWorkWithGlobalIndexes(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockedScope := NewMockScope(ctrl)
-	loadedIndexes := make(map[string]Indexer)
+	loadedIndexes := make(map[string]IndexCollection)
 	aggregateKey := "all"
-	loadedIndexes[aggregateKey] = &Aggregate{}
+	loadedIndexes[aggregateKey] = IndexCollection{}
 	mockedScope.EXPECT().Indexes().
 		Times(1).
 		Return(loadedIndexes)
+
 	rid := ResolveIndexID(mockedScope, "")
 
 	g.Expect(rid).To(gomega.BeEquivalentTo(aggregateKey))

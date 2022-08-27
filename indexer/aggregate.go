@@ -5,9 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
-	"golang.org/x/sync/errgroup"
-
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/storage"
 	"github.com/sp0x/torrentd/torznab"
@@ -16,7 +13,7 @@ import (
 const aggregateSiteName = "aggregate"
 
 type Aggregate struct {
-	Indexers []Indexer
+	Indexes  []Indexer
 	Storage  storage.ItemStorage
 	selector *Selector
 }
@@ -31,7 +28,7 @@ func (ag *Aggregate) GetStorage() storage.ItemStorage {
 
 func (ag *Aggregate) Errors() []string {
 	var errs []string
-	for _, index := range ag.Indexers {
+	for _, index := range ag.Indexes {
 		indexErrors := index.Errors()
 		site := index.GetDefinition().Site
 		for _, indexError := range indexErrors {
@@ -44,41 +41,18 @@ func (ag *Aggregate) Errors() []string {
 func (ag *Aggregate) GetDefinition() *Definition {
 	definition := &Definition{}
 	definition.Site = aggregateSiteName
-	indexNames := make([]string, len(ag.Indexers))
-	for i, ixr := range ag.Indexers {
+	indexNames := make([]string, len(ag.Indexes))
+	for i, ixr := range ag.Indexes {
 		indexNames[i] = ixr.GetDefinition().Name
 	}
 	definition.Name = strings.Join(indexNames, ",")
 	return definition
 }
 
-func (ag *Aggregate) Open(scrapeItem search.ResultItemBase) (*ResponseProxy, error) {
-	// Find the Index
-	scrapeItemRoot := scrapeItem.AsScrapeItem()
-	for _, ixr := range ag.Indexers {
-		nfo := ixr.Info()
-		if nfo.GetTitle() == scrapeItemRoot.Site {
-			return ixr.Open(scrapeItem)
-		}
-	}
-	return nil, errors.New("couldn't find Index")
-}
-
-// MaxSearchPages returns the maximum number of pages that this aggregate can search, this is using the maximum paged index in the aggregate.
-func (ag *Aggregate) MaxSearchPages() uint {
-	maxValue := uint(0)
-	for _, index := range ag.Indexers {
-		if index.MaxSearchPages() > maxValue {
-			maxValue = index.MaxSearchPages()
-		}
-	}
-	return maxValue
-}
-
-// SearchIsSinglePaged this is true only if all indexesCollection inside the aggregate are single paged.
+// SearchIsSinglePaged this is true only if all indexMap inside the aggregate are single paged.
 func (ag *Aggregate) SearchIsSinglePaged() bool {
-	// For this, all indexesCollection must be single paged
-	for _, index := range ag.Indexers {
+	// For this, all indexMap must be single paged
+	for _, index := range ag.Indexes {
 		if !index.SearchIsSinglePaged() {
 			return false
 		}
@@ -87,7 +61,7 @@ func (ag *Aggregate) SearchIsSinglePaged() bool {
 }
 
 func (ag *Aggregate) GetEncoding() string {
-	for _, indexer := range ag.Indexers {
+	for _, indexer := range ag.Indexes {
 		return indexer.GetEncoding()
 	}
 	return "utf-8"
@@ -95,96 +69,69 @@ func (ag *Aggregate) GetEncoding() string {
 
 func (ag *Aggregate) Site() string {
 	sites := ""
-	for _, indx := range ag.Indexers {
+	for _, indx := range ag.Indexes {
 		sites += indx.Site() + ","
 	}
 	sites = strings.TrimRight(sites, ",")
 	return sites
 }
 
-// HealthCheck checks all indexesCollection, if they can be searched.
-func (ag *Aggregate) HealthCheck() error {
-	errorGroup := errgroup.Group{}
-	for _, ixr := range ag.Indexers {
-		indexerID := ixr.Info().GetID()
-		// Run the Index in a goroutine
-		errorGroup.Go(func() error {
-			err := ixr.HealthCheck()
-			if err != nil {
-				log.Warnf("Index %q failed: %s", indexerID, err)
-				return nil
-			}
-			return nil
-		})
-	}
-	if err := errorGroup.Wait(); err != nil {
-		log.Warn(err)
-		return err
-	}
-	return nil
-}
-
-func (ag *Aggregate) Search(query *search.Query, searchInstance search.Instance) (search.Instance, error) {
-	errorGroup := errgroup.Group{}
-	allResults := make([][]search.ResultItemBase, len(ag.Indexers))
-	maxLength := 0
-	if searchInstance == nil {
-		searchInstance = search.NewAggregatedSearch()
-	}
-	switch searchInstance.(type) {
-	case *search.AggregatedSearch:
-	default:
-		return nil, errors.New("can't use normal search on an aggregate")
-	}
-	aggregatedSearch := searchInstance.(*search.AggregatedSearch)
-
-	if ag.Indexers == nil {
-		log.Warnf("searching an aggregate[%s] that has no indexesCollection", ag.selector)
-		return nil, errors.New("no indexesCollection are set for this aggregate")
-	}
-	for idx, pIndexer := range ag.Indexers {
-		// Run the Index in a goroutine
-		i, pIndex := idx, pIndexer
-		if len(pIndexer.Errors()) > 0 {
-			log.WithFields(log.Fields{"index": pIndexer}).Debug("Skipping index because it has errors")
-			continue
-		}
-		errorGroup.Go(func() error {
-			indexSearch := aggregatedSearch.SearchContexts[&pIndex]
-			resultingSearch, err := pIndex.Search(query, indexSearch)
-			if err != nil {
-				log.Warnf("Index %q failed: %s", pIndex.Info().GetID(), err)
-				return nil
-			}
-			aggregatedSearch.SearchContexts[&pIndex] = resultingSearch
-			allResults[i] = resultingSearch.GetResults()
-			if l := len(resultingSearch.GetResults()); l > maxLength {
-				maxLength = l
-			}
-			return nil
-		})
-	}
-	if err := errorGroup.Wait(); err != nil {
-		log.Warn(err)
-		return nil, err
-	}
-	var results []search.ResultItemBase
-
-	// interleave search results to preserve ordering
-	for i := 0; i <= maxLength; i++ {
-		for _, r := range allResults {
-			if len(r) > i {
-				results = append(results, r[i])
-			}
-		}
-	}
-
-	if query.Limit > 0 && len(results) > query.Limit {
-		results = results[:query.Limit]
-	}
-	aggregatedSearch.SetResults(results)
-	return aggregatedSearch, nil
-}
+//
+//func (ag *Aggregate) Search(query *search.Query, _ *workerJob) ([]search.ResultItemBase, error) {
+//	errorGroup := errgroup.Group{}
+//	allResults := make([][]search.ResultItemBase, len(ag.Indexes))
+//	maxLength := 0
+//
+//	if ag.Indexes == nil {
+//		log.Warnf("searching an aggregate[%s] that has no indexMap", ag.selector)
+//		return nil, errors.New("no indexMap are set for this aggregate")
+//	}
+//	// TODO: This should be done in the facade instead, since it can use workers
+//	aggregate := search.NewAggregatedSearch()
+//	for idx, pIndexer := range ag.Indexes {
+//		// Run the Indexes in a goroutine
+//		i, pIndex := idx, pIndexer
+//		if len(pIndexer.Errors()) > 0 {
+//			log.WithFields(log.Fields{"index": pIndexer}).Debug("Skipping index because it has errors")
+//			continue
+//		}
+//		errorGroup.Go(func() error {
+//			iter := aggregate.SearchIterators[&pIndex]
+//			fields, page := iter.Next()
+//			results, err := pIndex.Search(query, createWorkerJob(pIndex, fields, page))
+//			if err != nil {
+//				log.Warnf("Indexes %q failed: %s", pIndex.Info().GetID(), err)
+//				return nil
+//			}
+//			iter.ScanForStaleResults(results)
+//			allResults[i] = results
+//			if l := len(results); l > maxLength {
+//				maxLength = l
+//			}
+//			return nil
+//		})
+//	}
+//	if err := errorGroup.Wait(); err != nil {
+//		log.Warn(err)
+//		return nil, err
+//	}
+//	var results []search.ResultItemBase
+//
+//	// interleave search results to preserve ordering
+//	for i := 0; i <= maxLength; i++ {
+//		for _, r := range allResults {
+//			if len(r) > i {
+//				results = append(results, r[i])
+//			}
+//		}
+//	}
+//
+//	if query.Limit > 0 && len(results) > query.Limit {
+//		results = results[:query.Limit]
+//	}
+//
+//	return results, nil
+//}
 
 func (ag *Aggregate) Capabilities() torznab.Capabilities {
 	return torznab.Capabilities{
@@ -200,24 +147,3 @@ func (ag *Aggregate) Download(string) (*ResponseProxy, error) {
 	return nil, errors.New("not implemented")
 }
 
-type AggregateInfo struct{}
-
-func (a *AggregateInfo) GetLanguage() string {
-	return "en-US"
-}
-
-func (a *AggregateInfo) GetLink() string {
-	return ""
-}
-
-func (a *AggregateInfo) GetTitle() string {
-	return "Aggregated Index"
-}
-
-func (a *AggregateInfo) GetID() string {
-	return aggregateSiteName
-}
-
-func (ag *Aggregate) Info() Info {
-	return &AggregateInfo{}
-}

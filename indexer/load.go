@@ -9,17 +9,17 @@ import (
 var (
 	ErrUnknownIndexer       = errors.New("unknown indexer")
 	DefaultDefinitionLoader DefinitionLoader
-	Loader                  DefinitionLoader
+	loader                  DefinitionLoader
 )
 
-// ListBuiltInIndexes returns a list of all the embedded indexesCollection that are supported.
+// ListBuiltInIndexes returns a list of all the embedded indexMap that are supported.
 func ListBuiltInIndexes() ([]string, error) {
-	return DefaultDefinitionLoader.List(nil)
+	return DefaultDefinitionLoader.ListAvailableIndexes(nil)
 }
 
-// LoadEnabledDefinitions loads all of the definitions that are covered by the current definition loader (`Loader`).
+// LoadEnabledDefinitions loads all the definitions that are covered by the current definition loader (`Loader`).
 func LoadEnabledDefinitions(conf interface{}) ([]*Definition, error) {
-	keys, err := Loader.List(nil)
+	keys, err := GetIndexDefinitionLoader().ListAvailableIndexes(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func LoadEnabledDefinitions(conf interface{}) ([]*Definition, error) {
 	for _, key := range keys {
 		section := viper.Get(key)
 		if section != nil {
-			def, err := Loader.Load(key)
+			def, err := GetIndexDefinitionLoader().Load(key)
 			if err != nil {
 				return nil, err
 			}
@@ -37,16 +37,20 @@ func LoadEnabledDefinitions(conf interface{}) ([]*Definition, error) {
 	return defs, nil
 }
 
-// DefinitionLoader loads an index definition by name or lists the names of the supported indexesCollection.
+// DefinitionLoader loads an index definition by name or lists the names of the supported indexMap.
 type DefinitionLoader interface {
-	// List - Lists available trackers.
-	List(selector *Selector) ([]string, error)
-	// Load - Load a definition of an Indexer from it's name
+	// ListAvailableIndexes - Lists available indexes
+	ListAvailableIndexes(selector *Selector) ([]string, error)
+	// Load - Load a definition of an Indexer from the name of the index
 	Load(key string) (*Definition, error)
 }
 
 func init() {
 	DefaultDefinitionLoader = defaultMultiLoader()
 	// Start with the default loader.
-	Loader = DefaultDefinitionLoader
+	loader = DefaultDefinitionLoader
+}
+
+func GetIndexDefinitionLoader() DefinitionLoader {
+	return loader
 }

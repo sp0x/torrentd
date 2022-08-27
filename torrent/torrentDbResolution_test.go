@@ -18,7 +18,7 @@ func TestResolveTorrents(t *testing.T) {
 	index := indexer.NewMockIndexer(ctrl)
 	index.EXPECT().HealthCheck().Return(nil)
 	cfg := &config.ViperConfig{}
-	results := ResolveTorrents(index, cfg)
+	results := ResolveTorrents(indexer.IndexCollection{index}, cfg)
 
 	g.Expect(len(results)).To(gomega.BeEquivalentTo(0))
 }

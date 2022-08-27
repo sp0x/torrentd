@@ -387,7 +387,7 @@ func (c *capabilitiesBlock) ToTorznab() torznab.Capabilities {
 		SearchModes: []search.Capability{},
 	}
 
-	// All indexesCollection support search
+	// All indexMap support search
 	caps.SearchModes = append(caps.SearchModes, search.Capability{
 		Key:             "search",
 		Available:       true,
@@ -413,6 +413,27 @@ func (c *capabilitiesBlock) ToTorznab() torznab.Capabilities {
 	}
 
 	return caps
+}
+
+// GetLocalCategoriesMatchingQuery returns a slice of local indexCategories that should be searched
+func GetLocalCategoriesMatchingQuery(query *search.Query, caps *capabilitiesBlock) []string {
+	var localCats []string
+	set := make(map[string]struct{})
+	queryCategories := query.Categories
+	categoriesMap := caps.CategoryMap
+	if len(queryCategories) > 0 {
+		queryCats := categories.AllCategories.Subset(queryCategories...)
+		// resolve query indexCategories to the exact local, or the local based on parent cat
+		for _, id := range categoriesMap.ResolveAll(queryCats.Items()...) {
+			// Add only if it doesn't exist
+			if _, ok := set[id]; !ok {
+				localCats = append(localCats, id)
+				set[id] = struct{}{}
+			}
+		}
+	}
+
+	return localCats
 }
 
 type stringorslice []string

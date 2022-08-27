@@ -9,23 +9,23 @@ import (
 	"github.com/sp0x/torrentd/indexer/search"
 )
 
-func Test_RangeValue_ShouldChangeAfterEveryCall(t *testing.T) {
+func Test_IsComplete_Given_RangeFieldIsUsed_Then_IsComplete_ShouldBeTrue_IfRangeIsComplete(t *testing.T) {
 	g := gomega.NewWithT(t)
 	data := SearchTemplateData{}
 	qry := search.NewQuery()
-	rangef := search.RangeField{}
-	rangef = append(rangef, []string{"001", "010"}...)
-	qry.Fields["rangeField"] = rangef
+	var rangeFieldValue search.RangeField = []string{"001", "010"}
+	qry.Fields["rangeField"] = rangeFieldValue
 
-	srch := search.NewSearch(qry)
-	data.Context = &RunContext{
-		Search: srch.(*search.Search),
-	}
+	iter := search.NewIterator(qry)
 
 	for i := 1; i < 11; i++ {
-		val := data.RangeValue("rangeField", rangef[0], rangef[1])
+		fields, page := iter.Next()
+		data.Search = createWorkerJob(nil, nil, fields, page)
+		val, _ := data.GetSearchFieldValue("rangeField")
 		g.Expect(val).To(gomega.Equal(fmt.Sprintf("%03d", i)))
 	}
+
+	g.Expect(iter.IsComplete()).To(gomega.BeTrue())
 }
 
 func Test_ApplyField_Given_RangeField_Should_ReturnCorrectValues(t *testing.T) {
@@ -34,13 +34,12 @@ func Test_ApplyField_Given_RangeField_Should_ReturnCorrectValues(t *testing.T) {
 	rangef := search.RangeField{}
 	rangef = append(rangef, []string{"001", "010"}...)
 	data.Query.Fields["rangeField"] = rangef
-	srch := search.NewSearch(data.Query)
-	data.Context = &RunContext{
-		Search: srch.(*search.Search),
-	}
+	iter := search.NewIterator(data.Query)
 
 	for i := 1; i < 11; i++ {
-		val, _ := data.ApplyField("rangeField")
+		fields, page := iter.Next()
+		data.Search = createWorkerJob(nil, nil, fields, page)
+		val, _ := data.GetSearchFieldValue("rangeField")
 		g.Expect(val).To(gomega.Equal(fmt.Sprintf("%03d", i)))
 	}
 }

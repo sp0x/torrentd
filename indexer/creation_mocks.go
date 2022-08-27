@@ -12,84 +12,84 @@ import (
 	categories "github.com/sp0x/torrentd/indexer/categories"
 )
 
-// MockScope is a mock of Scope interface
+// MockScope is a mock of Scope interface.
 type MockScope struct {
 	ctrl     *gomock.Controller
 	recorder *MockScopeMockRecorder
 }
 
-// MockScopeMockRecorder is the mock recorder for MockScope
+// MockScopeMockRecorder is the mock recorder for MockScope.
 type MockScopeMockRecorder struct {
 	mock *MockScope
 }
 
-// NewMockScope creates a new mock instance
+// NewMockScope creates a new mock instance.
 func NewMockScope(ctrl *gomock.Controller) *MockScope {
 	mock := &MockScope{ctrl: ctrl}
 	mock.recorder = &MockScopeMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockScope) EXPECT() *MockScopeMockRecorder {
 	return m.recorder
 }
 
-// Lookup mocks base method
-func (m *MockScope) Lookup(config config.Config, key string) (Indexer, error) {
+// Indexes mocks base method.
+func (m *MockScope) Indexes() map[string]IndexCollection {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Indexes")
+	ret0, _ := ret[0].(map[string]IndexCollection)
+	return ret0
+}
+
+// Indexes indicates an expected call of Indexes.
+func (mr *MockScopeMockRecorder) Indexes() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Indexes", reflect.TypeOf((*MockScope)(nil).Indexes))
+}
+
+// Lookup mocks base method.
+func (m *MockScope) Lookup(config config.Config, key string) (IndexCollection, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Lookup", config, key)
-	ret0, _ := ret[0].(Indexer)
+	ret0, _ := ret[0].(IndexCollection)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Lookup indicates an expected call of Lookup
+// Lookup indicates an expected call of Lookup.
 func (mr *MockScopeMockRecorder) Lookup(config, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Lookup", reflect.TypeOf((*MockScope)(nil).Lookup), config, key)
 }
 
-// CreateAggregateForCategories mocks base method
-func (m *MockScope) CreateAggregateForCategories(config config.Config, selector *Selector, cats []categories.Category) (Indexer, error) {
+// LookupAll mocks base method.
+func (m *MockScope) LookupAll(config config.Config, selector *Selector) (IndexCollection, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateAggregateForCategories", config, selector, cats)
-	ret0, _ := ret[0].(Indexer)
+	ret := m.ctrl.Call(m, "LookupAll", config, selector)
+	ret0, _ := ret[0].(IndexCollection)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateAggregateForCategories indicates an expected call of CreateAggregateForCategories
-func (mr *MockScopeMockRecorder) CreateAggregateForCategories(config, selector, cats interface{}) *gomock.Call {
+// LookupAll indicates an expected call of LookupAll.
+func (mr *MockScopeMockRecorder) LookupAll(config, selector interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAggregateForCategories", reflect.TypeOf((*MockScope)(nil).CreateAggregateForCategories), config, selector, cats)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LookupAll", reflect.TypeOf((*MockScope)(nil).LookupAll), config, selector)
 }
 
-// CreateAggregate mocks base method
-func (m *MockScope) CreateAggregate(config config.Config, selector *Selector) (Indexer, error) {
+// NewAggregateIndexesWithCategories mocks base method.
+func (m *MockScope) LookupWithCategories(config config.Config, selector *Selector, cats []categories.Category) (IndexCollection, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateAggregate", config, selector)
-	ret0, _ := ret[0].(Indexer)
+	ret := m.ctrl.Call(m, "LookupWithCategories", config, selector, cats)
+	ret0, _ := ret[0].(IndexCollection)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateAggregate indicates an expected call of CreateAggregate
-func (mr *MockScopeMockRecorder) CreateAggregate(config, selector interface{}) *gomock.Call {
+// NewAggregateIndexesWithCategories indicates an expected call of NewAggregateIndexesWithCategories.
+func (mr *MockScopeMockRecorder) NewAggregateIndexesWithCategories(config, selector, cats interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAggregate", reflect.TypeOf((*MockScope)(nil).CreateAggregate), config, selector)
-}
-
-// Indexes mocks base method
-func (m *MockScope) Indexes() map[string]Indexer {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Indexes")
-	ret0, _ := ret[0].(map[string]Indexer)
-	return ret0
-}
-
-// Indexes indicates an expected call of Indexes
-func (mr *MockScopeMockRecorder) Indexes() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Indexes", reflect.TypeOf((*MockScope)(nil).Indexes))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LookupWithCategories", reflect.TypeOf((*MockScope)(nil).LookupWithCategories), config, selector, cats)
 }

@@ -28,19 +28,21 @@ func (s *Server) downloadHandler(c http.Context) {
 		return
 	}
 	if t.Link == "" {
-		c.String(404, "Index link not found")
+		c.String(404, "Indexes link not found")
 		return
 	}
-	index, err := s.indexerFacade.LoadedIndexes.Lookup(s.config, t.IndexName)
+	indexes, err := s.indexerFacade.IndexScope.Lookup(s.config, t.IndexName)
 	if err != nil {
 		_ = c.Error(err)
 		return
 	}
-	if index == nil {
+	if indexes == nil {
 		_ = c.Error(errors.New("indexer not found"))
 		return
 	}
-	downloadProxy, err := index.Download(t.Link)
+	firstIndex := indexes[0]
+
+	downloadProxy, err := firstIndex.Download(t.Link)
 	if err != nil {
 		_ = c.Error(err)
 		return

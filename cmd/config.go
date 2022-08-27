@@ -38,7 +38,6 @@ func initConfig() {
 			os.Exit(1)
 		}
 	}
-	if viper.GetBool("verbose") {
-		log.SetLevel(log.DebugLevel)
-	}
+
+	log.SetLevel(config.GetMinLogLevel(&appConfig))
 }

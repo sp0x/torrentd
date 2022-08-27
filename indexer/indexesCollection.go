@@ -2,6 +2,9 @@ package indexer
 
 import (
 	"errors"
+	"github.com/sp0x/torrentd/indexer/search"
+	"golang.org/x/sync/errgroup"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -9,110 +12,214 @@ import (
 	"github.com/sp0x/torrentd/indexer/categories"
 )
 
-//go:generate mockgen -source creation.go -destination=creation_mocks_test.go -package=indexer
+//go:generate mockgen -source indexesCollection.go -destination=creation_mocks.go -package=indexer
 type Scope interface {
-	Lookup(config config.Config, key string) (Indexer, error)
-	CreateAggregateForCategories(config config.Config, selector *Selector, cats []categories.Category) (Indexer, error)
-	CreateAggregate(config config.Config, selector *Selector) (Indexer, error)
-	Indexes() map[string]Indexer
+	Lookup(config config.Config, key string) (IndexCollection, error)
+	LookupWithCategories(config config.Config, selector *Selector, cats []categories.Category) (IndexCollection, error)
+	LookupAll(config config.Config, selector *Selector) (IndexCollection, error)
+	Indexes() map[string]IndexCollection
 }
 
-type indexesCollection struct {
-	indexes map[string]Indexer
+type IndexCollection []Indexer
+
+func (i IndexCollection) Name() string {
+	indexNames := make([]string, len(i))
+	for i, ixr := range i {
+		indexNames[i] = ixr.GetDefinition().Name
+	}
+	return strings.Join(indexNames, ",")
 }
 
-// NewScope creates a new scope for indexer runners
-func NewScope() Scope {
-	sc := &indexesCollection{}
-	sc.indexes = make(map[string]Indexer)
+// HealthCheck checks all indexMap, if they can be searched.
+func (i IndexCollection) HealthCheck() error {
+	errorGroup := errgroup.Group{}
+	for _, ixr := range i {
+		indexerID := ixr.Info().GetID()
+		// Run the Indexes in a goroutine
+		errorGroup.Go(func() error {
+			err := ixr.HealthCheck()
+			if err != nil {
+				log.Warnf("Indexes %q failed: %s", indexerID, err)
+				return nil
+			}
+			return nil
+		})
+	}
+	if err := errorGroup.Wait(); err != nil {
+		log.Warn(err)
+		return err
+	}
+	return nil
+}
+
+// Open try to open a scraping item from a collection of indexes
+func (i IndexCollection) Open(scrapeItem search.ResultItemBase) (*ResponseProxy, error) {
+	// Find the Indexes
+	scrapeItemRoot := scrapeItem.AsScrapeItem()
+	for _, index := range i {
+		nfo := index.Info()
+		if nfo.GetTitle() == scrapeItemRoot.Site {
+			return index.Open(scrapeItem)
+		}
+	}
+	return nil, errors.New("couldn't find Indexes")
+}
+
+func (i IndexCollection) Errors() []string {
+	var allErrors []string
+	for _, index := range i {
+		allErrors = append(allErrors, index.Errors()...)
+	}
+	return allErrors
+}
+
+// MaxSearchPages returns the maximum number of pages that this aggregate can search, this is using the maximum paged index in the aggregate.
+func (i IndexCollection) MaxSearchPages() uint {
+	maxValue := uint(0)
+	for _, index := range i {
+		if index.MaxSearchPages() > maxValue {
+			maxValue = index.MaxSearchPages()
+		}
+	}
+	return maxValue
+}
+
+func (i IndexCollection) HasCategories(categories []categories.Category) bool {
+	for _, index := range i {
+		if index.Capabilities().HasCategories(categories) {
+			return true
+		}
+	}
+	return false
+}
+
+type indexMap struct {
+	indexes map[string]IndexCollection
+	loader  DefinitionLoader
+}
+
+// NewScope creates a new scope for indexes that can be or are loaded
+func NewScope(definitionLoader DefinitionLoader) Scope {
+	sc := &indexMap{}
+	sc.indexes = make(map[string]IndexCollection)
+	if definitionLoader == nil {
+		definitionLoader = GetIndexDefinitionLoader()
+	}
+	sc.loader = definitionLoader
 	return sc
 }
 
-// Indexes returns the currently loaded indexesCollection
-func (c *indexesCollection) Indexes() map[string]Indexer {
+// Indexes returns the currently loaded indexMap
+func (c *indexMap) Indexes() map[string]IndexCollection {
 	return c.indexes
 }
 
 // Lookup finds the matching Indexer.
-func (c *indexesCollection) Lookup(config config.Config, key string) (Indexer, error) {
+func (c *indexMap) Lookup(config config.Config, indexSelectionKey string) (IndexCollection, error) {
 	// If we already have that indexer running, we don't create a new one.
-	selector := newIndexerSelector(key)
+	selector := newIndexSelector(indexSelectionKey)
 	log.Debugf("Looking up scoped index: %v\n", selector)
-	if _, ok := c.indexes[key]; !ok {
-		var indexer Indexer
+	if _, ok := c.indexes[indexSelectionKey]; !ok {
+		var indexes []Indexer
 		var err error
-		// If we're looking up an aggregate indexer, we just create an aggregate
+		// If we're looking up an aggregate indexes, we just create an aggregate
 		if selector.isAggregate() {
-			indexer, err = c.CreateAggregate(config, selector)
+			indexes, err = c.LookupAll(config, selector)
 		} else {
-			indexer, err = NewRunnerByNameOrSelector(selector.Value(), config)
+			indexes, err = NewRunnerByNameOrSelector(selector.Value(), config)
 		}
 		if err != nil {
 			return nil, err
 		}
-		c.indexes[key] = indexer
+		c.indexes[indexSelectionKey] = indexes
 	}
-	return c.indexes[key], nil
+	return c.indexes[indexSelectionKey], nil
 }
 
-// CreateAggregateForCategories creates a new aggregate with the indexesCollection that match a set of indexCategories
-func (c *indexesCollection) CreateAggregateForCategories(config config.Config, selector *Selector, cats []categories.Category) (Indexer, error) {
-	ixrKeys, err := Loader.List(selector)
+// LookupWithCategories creates a new aggregate with the indexMap that match a set of indexCategories
+func (c *indexMap) LookupWithCategories(config config.Config, selector *Selector, cats []categories.Category) (IndexCollection, error) {
+	indexKeys, err := c.loader.ListAvailableIndexes(selector)
 	if err != nil {
 		return nil, err
 	}
 
-	result := &Aggregate{}
-	for _, key := range ixrKeys {
-		ixr, err := c.Lookup(config, key)
+	var indexes IndexCollection
+	for _, key := range indexKeys {
+		currentIndexes, err := c.Lookup(config, key)
 		if err != nil {
 			return nil, err
 		}
-		if !ixr.Capabilities().HasCategories(cats) {
-			continue
+		for _, ix := range currentIndexes {
+			if !ix.Capabilities().HasCategories(cats) {
+				continue
+			}
+			indexes = append(indexes, ix)
 		}
-		result.Indexers = append(result.Indexers, ixr)
 	}
-	return result, nil
+	return indexes, nil
 }
 
-// CreateAggregate creates an aggregate of all the valid configured indexesCollection
-// this includes indexesCollection that don't need a login.
-func (c *indexesCollection) CreateAggregate(config config.Config, selector *Selector) (Indexer, error) {
+// LookupAll creates an aggregate of all the valid configured indexMap
+// this includes indexMap that don't need a login.
+func (c *indexMap) LookupAll(config config.Config, selector *Selector) (IndexCollection, error) {
 	var keysToLoad []string
 	var err error
-	keysToLoad, err = Loader.List(selector)
+	keysToLoad, err = c.loader.ListAvailableIndexes(selector)
 	if err != nil {
 		return nil, err
 	}
 	if keysToLoad == nil {
-		log.WithFields(log.Fields{"selector": selector, "loader": Loader}).
-			Debug("Tried to create an aggregate index where no child indexesCollection could be found")
-		return nil, errors.New("no indexesCollection matched the given selector")
+		log.WithFields(log.Fields{"selector": selector, "loader": c.loader}).
+			Debug("Tried to create an aggregate index where no child indexMap could be found")
+		return nil, errors.New("no indexMap matched the given selector")
 	}
 
-	result := &Aggregate{}
+	//result := &Aggregate{}
+	var indexes []Indexer
 	if selector != nil {
-		selectorCopy := *selector
-		result.selector = &selectorCopy
+		//selectorCopy := *selector
+		//result.selector = &selectorCopy
 	}
 	for _, key := range keysToLoad {
-		// Get the site configuration, we only use configured indexesCollection
-		indexConfig, _ := config.GetSite(key) // Get all the configured indexesCollection
+		// Search the site configuration, we only use configured indexMap
+		indexConfig, _ := config.GetSite(key) // Search all the configured indexMap
 		if indexConfig != nil {
 			index, err := c.Lookup(config, key)
 			if err != nil {
 				return nil, err
 			}
-			result.Indexers = append(result.Indexers, index)
+			//result.Indexes = append(result.Indexes, index)
+			indexes = append(indexes, index...)
 		} else {
 			log.WithFields(log.Fields{"index": key}).
 				Debug("Tried to load an index that has no config")
 		}
 	}
-	if result.Indexers == nil {
+	if len(indexes) == 0 {
 		log.WithFields(log.Fields{"selector": selector}).
-			Debug("Created aggregate without any indexesCollection")
+			Debug("Created aggregate without any indexMap")
 	}
-	return result, nil
+	return indexes, nil
+}
+
+type IndexCollectionInfo struct{}
+
+func (a *IndexCollectionInfo) GetLanguage() string {
+	return "en-US"
+}
+
+func (a *IndexCollectionInfo) GetLink() string {
+	return ""
+}
+
+func (a *IndexCollectionInfo) GetTitle() string {
+	return "Index collection"
+}
+
+func (a *IndexCollectionInfo) GetID() string {
+	return aggregateSiteName
+}
+
+func (i IndexCollection) Info() Info {
+	return &IndexCollectionInfo{}
 }

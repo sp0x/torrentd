@@ -15,14 +15,12 @@ import (
 
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/cache"
-	"github.com/sp0x/torrentd/indexer/categories"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/indexer/source"
 	"github.com/sp0x/torrentd/indexer/source/series"
 	"github.com/sp0x/torrentd/indexer/status"
 	"github.com/sp0x/torrentd/indexer/utils"
 	"github.com/sp0x/torrentd/storage"
-	"github.com/sp0x/torrentd/storage/indexing"
 	"github.com/sp0x/torrentd/torznab"
 )
 
@@ -41,7 +39,6 @@ type RunnerOpts struct {
 	CachePages   bool
 	Transport    http.RoundTripper
 	UserSessions int
-	Workers      int
 }
 
 // Runner works index definitions in order to extract data.
@@ -60,14 +57,9 @@ type Runner struct {
 	urlResolver         IURLResolver
 }
 
-type RunContext struct {
-	Search *search.Search
-}
-
 type scrapeContext struct {
 	query           *search.Query
 	indexCategories []string
-	storage         storage.ItemStorage
 }
 
 func (r *Runner) GetDefinition() *Definition {
@@ -93,16 +85,28 @@ func (r *Runner) SearchIsSinglePaged() bool {
 	return r.definition.Search.IsSinglePage()
 }
 
+func getConfiguredIndexLoader(conf config.Config) DefinitionLoader {
+	loader := conf.Get("indexLoader")
+	if loader == nil {
+		return GetIndexDefinitionLoader()
+	}
+	return loader.(DefinitionLoader)
+}
+
+func setConfiguredIndexLoader(loader DefinitionLoader, conf config.Config) {
+	conf.Set("indexLoader", loader)
+}
+
 // NewRunnerByNameOrSelector creates a new Indexer or aggregate Indexer with the given configuration.
-func NewRunnerByNameOrSelector(indexerName string, config config.Config) (Indexer, error) {
-	def, err := Loader.Load(indexerName)
+func NewRunnerByNameOrSelector(indexerName string, config config.Config) (IndexCollection, error) {
+	def, err := getConfiguredIndexLoader(config).Load(indexerName)
 	if err != nil {
 		log.WithError(err).Warnf("Failed to load definition for %q. %v", indexerName, err)
 		return nil, err
 	}
 
-	indexer := NewRunner(def, runnerOptsFromConfig(config))
-	return indexer, nil
+	index := NewRunner(def, runnerOptsFromConfig(config))
+	return IndexCollection{index}, nil
 }
 
 func runnerOptsFromConfig(config config.Config) *RunnerOpts {
@@ -118,14 +122,13 @@ func runnerOptsFromConfig(config config.Config) *RunnerOpts {
 	opts := &RunnerOpts{
 		Config:       config,
 		UserSessions: userSessions,
-		Workers:      workers,
 	}
 	return opts
 }
 
 // NewRunner Start a runner for a given indexer.
 func NewRunner(def *Definition, opts *RunnerOpts) *Runner {
-	logger := log.New()
+	logger := log.New().WithFields(log.Fields{"site": def.Site})
 	logger.Level = log.GetLevel()
 	// Use an optimistic cache instead.
 	errorCache, _ := cache.NewTTL(10, errorTTL)
@@ -134,7 +137,7 @@ func NewRunner(def *Definition, opts *RunnerOpts) *Runner {
 	runner := &Runner{
 		options:             opts,
 		definition:          def,
-		logger:              logger.WithFields(log.Fields{"site": def.Site}),
+		logger:              logger,
 		failingSearchFields: make(map[string]fieldBlock),
 		context:             indexCtx,
 		errors:              errorCache,
@@ -158,32 +161,32 @@ func NewRunner(def *Definition, opts *RunnerOpts) *Runner {
 }
 
 func (r *Runner) GetStorage() storage.ItemStorage {
-	itemStorage := getIndexStorage(r, r.options.Config)
+	itemStorage := getStorageForIndex(r.definition.Name, r.definition.getSearchEntity(), r.options.Config)
 	return itemStorage
 }
 
-func getIndexStorage(indexer Indexer, conf config.Config) storage.ItemStorage {
-	definition := indexer.GetDefinition()
-	entityType := definition.getSearchEntity()
+func getStorageForIndexes(indexes IndexCollection, conf config.Config) storage.ItemStorage {
+	return getStorageForIndex(indexes.Name(), nil, conf)
+}
+
+func getStorageForIndex(name string, searchEntityBlock *entityBlock, conf config.Config) storage.ItemStorage {
 	storageType := conf.GetString("storage")
 	if storageType == "" {
 		panic("no storage type configured")
 	}
 	var itemStorage storage.ItemStorage
 	dbPath := conf.GetString("db")
-	if entityType != nil {
-		// All the results will be stored in a collection with the same name as the index.
+	if searchEntityBlock != nil {
 		itemStorage = storage.NewBuilder().
-			WithNamespace(definition.Name).
+			WithNamespace(name).
 			WithEndpoint(dbPath).
-			WithPK(entityType.GetKey()).
+			WithPK(searchEntityBlock.GetKey()).
 			WithBacking(storageType).
 			WithRecord(&search.ScrapeResultItem{}).
 			Build()
 	} else {
-		// All the results will be stored in a collection with the same name as the index.
 		itemStorage = storage.NewBuilder().
-			WithNamespace(definition.Name).
+			WithNamespace(name).
 			WithEndpoint(dbPath).
 			WithBacking(storageType).
 			WithRecord(&search.ScrapeResultItem{}).
@@ -219,25 +222,6 @@ func (r *Runner) Capabilities() torznab.Capabilities {
 	return caps
 }
 
-// getLocalCategoriesMatchingQuery returns a slice of local indexCategories that should be searched
-func (r *Runner) getLocalCategoriesMatchingQuery(query *search.Query) []string {
-	var localCats []string
-	set := make(map[string]struct{})
-	if len(query.Categories) > 0 {
-		queryCats := categories.AllCategories.Subset(query.Categories...)
-		// resolve query indexCategories to the exact local, or the local based on parent cat
-		for _, id := range r.definition.Capabilities.CategoryMap.ResolveAll(queryCats.Items()...) {
-			// Add only if it doesn't exist
-			if _, ok := set[id]; !ok {
-				localCats = append(localCats, id)
-				set[id] = struct{}{}
-			}
-		}
-	}
-
-	return localCats
-}
-
 // GetEncoding returns the encoding that's set to be used in this index.
 // This can be changed in the index's definition.
 func (r *Runner) GetEncoding() string {
@@ -251,16 +235,15 @@ func (r *Runner) HealthCheck() error {
 	if verifiedSpan < indexVerificationSpan {
 		return nil
 	}
-	searchResult, err := r.Search(search.NewQuery(), nil)
+	results, err := r.Search(search.NewQuery(), nil)
 	if err != nil {
 		return err
 	}
-	if searchResult == nil {
+	if results == nil {
 		return fmt.Errorf("search result was null")
 	}
 
-	resultItems := searchResult.GetResults()
-	if len(resultItems) == 0 {
+	if len(results) == 0 {
 		return fmt.Errorf("failed health check. no items returned")
 	}
 
@@ -268,24 +251,21 @@ func (r *Runner) HealthCheck() error {
 	return nil
 }
 
-func (r *Runner) getUniqueIndex(item search.ResultItemBase) *indexing.Key {
-	if item == nil {
-		return nil
-	}
-	key := indexing.NewKey()
-	scrapeItem := item.AsScrapeItem()
-	// Local id would be a good bet.
-	if len(scrapeItem.LocalID) > 0 {
-		key.Add("LocalID")
-	}
-	return key
-}
+//func getUniqueIndex(item search.ResultItemBase) *indexing.Key {
+//	if item == nil {
+//		return nil
+//	}
+//	key := indexing.NewKey()
+//	scrapeItem := item.AsScrapeItem()
+//	// Local id would be a good bet.
+//	if len(scrapeItem.LocalID) > 0 {
+//		key.Add("LocalID")
+//	}
+//	return key
+//}
 
-// SearchKeywords for a given torrent
-func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (search.Instance, error) {
-	if searchInstance == nil {
-		return nil, errors.New("search instance is null")
-	}
+// Search for a given torrent
+func (r *Runner) Search(query *search.Query, srch *workerJob) ([]search.ResultItemBase, error) {
 	var err error
 	errType := status.LoginError
 	// Collect errors on exit
@@ -293,53 +273,46 @@ func (r *Runner) Search(query *search.Query, searchInstance search.Instance) (se
 
 	session, err := r.sessions.acquire()
 	if err != nil {
-		return searchInstance, err
+		return nil, err
 	}
 
-	runCtx := &RunContext{
-		Search: searchInstance.(*search.Search),
-	}
-
-	localCats := r.getLocalCategoriesMatchingQuery(query)
-	reqOpts, err := r.createRequest(query, localCats, runCtx, session)
+	localCats := GetLocalCategoriesMatchingQuery(query, &r.definition.Capabilities)
+	reqOpts, err := r.createRequest(query, localCats, srch, session)
 	if err != nil {
 		errType = status.TargetError
 		r.logger.WithError(err).Warn(err)
 		return nil, err
 	}
-	timer := time.Now()
-	// Get the content
+	startedOn := time.Now()
+	// Search the content
 	fetchResult, err := r.contentFetcher.Fetch(reqOpts)
 	if err != nil {
 		errType = status.ContentError
 		return nil, err
 	}
-	scrapeItems, err := r.extractScrapeItems(fetchResult, runCtx)
+	scrapeItems, err := r.extractScrapeItems(fetchResult, srch)
 	if scrapeItems == nil || err != nil {
 		errType = status.ContentError
 		return nil, fmt.Errorf("result items could not be enumerated.%v", err)
 	}
-
-	strg := r.GetStorage()
 	rowContext := &scrapeContext{
 		query,
 		localCats,
-		strg,
 	}
-	defer strg.Close()
+
 	results := r.processScrapedItems(scrapeItems, rowContext)
 
 	r.logger.
 		WithFields(log.Fields{
-			"Index":  r.definition.Site,
-			"search": runCtx.Search.String(),
-			"q":      query.Keywords(),
-			"time":   time.Since(timer),
+			"Indexes": r.definition.Site,
+			"search":  srch.String(),
+			"q":       query.Keywords(),
+			"time":    time.Since(startedOn),
 		}).
 		Infof("Query returned %d results", len(results))
-	runCtx.Search.SetResults(results)
-	status.PublishSchemeStatus(r.context, generateSchemeOkStatus(r.definition, runCtx))
-	return runCtx.Search, nil
+
+	status.PublishSchemeStatus(r.context, generateSchemeOkStatus(r.definition, results))
+	return results, nil
 }
 
 // Goes through the scraped items and converts them to the defined data structure
@@ -349,16 +322,13 @@ func (r *Runner) processScrapedItems(scrapeItems source.RawScrapeItems, rowConte
 		if rowContext.query.HasEnoughResults(len(results)) {
 			break
 		}
-		// Get the result from the row
+		// Search the result from the row
 		item, err := r.extractItem(i+1, scrapeItems.Get(i), rowContext)
 		if err != nil {
+			r.logger.Errorf("Couldn't extract item: %v", err)
 			continue
 		}
-		_ = rowContext.storage.SetKey(r.getUniqueIndex(item))
-		err = rowContext.storage.Add(item)
-		if err != nil {
-			r.logger.Errorf("Couldn't add item: %s\n", err)
-		}
+
 		results = append(results, item)
 	}
 	return results
@@ -381,7 +351,7 @@ func (r *Runner) resolveItemCategory(query *search.Query, localCats []string, it
 			return false
 		}
 	}
-	// Try to map the category from the Index to the global indexCategories
+	// Try to map the category from the Indexes to the global indexCategories
 	r.populateCategory(item)
 	return !series.IsSeriesAndNotMatching(query, torrentItem)
 }
@@ -409,9 +379,9 @@ func (r *Runner) clearDom(dom *goquery.Selection) error {
 	return nil
 }
 
-func (r *Runner) createRequest(query *search.Query, lCategories []string, context *RunContext, session *BrowsingSession) (*source.RequestOptions, error) {
+func (r *Runner) createRequest(query *search.Query, lCategories []string, srch *workerJob, session *BrowsingSession) (*source.RequestOptions, error) {
 	// Exposed fields to add:
-	templateData := r.getSearchTemplateData(query, lCategories, context)
+	templateData := r.getSearchTemplateData(query, srch, lCategories)
 	// ApplyTo our context to the search path
 	initialSrcURL, err := templateData.ApplyTo("search_path", r.definition.Search.Path)
 	if err != nil {
@@ -422,7 +392,7 @@ func (r *Runner) createRequest(query *search.Query, lCategories []string, contex
 	if err != nil {
 		return nil, err
 	}
-	// Get our Index url values
+	// Search our Indexes url values
 	vals, err := getURLValuesForSearch(&r.definition.Search, templateData)
 	if err != nil {
 		return nil, err
@@ -438,13 +408,13 @@ func (r *Runner) createRequest(query *search.Query, lCategories []string, contex
 	return req, nil
 }
 
-func getURLValuesForSearch(srchDef *searchBlock, templateData *SearchTemplateData) (url.Values, error) {
+func getURLValuesForSearch(searchDef *searchBlock, templateData *SearchTemplateData) (url.Values, error) {
 	// Parse the values that will be used in the url for the search
 	urlValues := url.Values{}
 
-	for inputFieldName, inputValueFromScheme := range srchDef.Inputs {
+	for inputFieldName, inputValueFromScheme := range searchDef.Inputs {
 		if templateData.HasQueryField(inputFieldName) {
-			inputValueFromScheme, _ = templateData.ApplyField(inputFieldName)
+			inputValueFromScheme, _ = templateData.GetSearchFieldValue(inputFieldName)
 		}
 		resolveInputValue, err := templateData.ApplyTo(inputFieldName, inputValueFromScheme)
 		if err != nil {
@@ -477,11 +447,11 @@ func evalRawSearchInputs(resolvedInputValue string, vals url.Values) error {
 	return nil
 }
 
-// Get the default run context
-func (r *Runner) getSearchTemplateData(query *search.Query, lCategories []string, ctxt *RunContext) *SearchTemplateData {
-	startIndex := int(query.Page) * r.definition.Search.PageSize
-	ctxt.Search.SetStartIndex(r, startIndex)
-	data := newSearchTemplateData(query, lCategories, ctxt)
+// Search the default run context
+func (r *Runner) getSearchTemplateData(query *search.Query, srch *workerJob, lCategories []string) *SearchTemplateData {
+	// startIndex := int(query.Page) * r.definition.Search.PageSize
+	// TODO: srch.SetStartIndex(r, startIndex)
+	data := newSearchTemplateData(query, srch, lCategories)
 	return data
 }
 
@@ -560,12 +530,12 @@ func (r *Runner) noteError(errorType string, err error) {
 
 // region Status messages
 
-func generateSchemeOkStatus(definition *Definition, runCtx *RunContext) *status.ScrapeSchemeMessage {
+func generateSchemeOkStatus(definition *Definition, searchResults []search.ResultItemBase) *status.ScrapeSchemeMessage {
 	statusCode := "ok"
 	resultsFound := 0
-	if runCtx.Search != nil && len(runCtx.Search.Results) > 0 {
+	if len(searchResults) > 0 {
 		statusCode = "ok-data"
-		resultsFound = len(runCtx.Search.Results)
+		resultsFound = len(searchResults)
 	}
 	msg := &status.ScrapeSchemeMessage{
 		Code:          statusCode,

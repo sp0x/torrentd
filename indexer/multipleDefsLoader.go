@@ -26,11 +26,11 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func (ml MultipleDefinitionLoader) List(selector *Selector) ([]string, error) {
+func (ml MultipleDefinitionLoader) ListAvailableIndexes(selector *Selector) ([]string, error) {
 	allResults := map[string]struct{}{}
 
 	for _, loader := range ml {
-		result, err := loader.List(selector)
+		result, err := loader.ListAvailableIndexes(selector)
 		if err != nil {
 			return nil, err
 		}
@@ -49,7 +49,7 @@ func (ml MultipleDefinitionLoader) List(selector *Selector) ([]string, error) {
 
 	sort.Strings(results)
 	log.WithFields(log.Fields{"results": results, "loader": ml}).
-		Debug("Multiple definitions loader listed indexesCollection")
+		Debug("Multiple definitions loader listed indexMap")
 	return results, nil
 }
 
@@ -74,7 +74,7 @@ func (ml MultipleDefinitionLoader) Load(key string) (*Definition, error) {
 		}
 		loaded, err := loader.Load(key)
 		if err != nil {
-			log.Debugf("Couldn't load the Index `%s` using %s. Error : %s\n", key, loader, err)
+			log.Debugf("Couldn't load the Indexes `%s` using %s. Error : %s\n", key, loader, err)
 			continue
 		}
 		// If it's newer than our last one
@@ -84,7 +84,7 @@ func (ml MultipleDefinitionLoader) Load(key string) (*Definition, error) {
 	}
 
 	if def == nil {
-		log.Infof("No loaders managed to load Index `%s` from any of these locations: \n", key)
+		log.Infof("No loaders managed to load Indexes `%s` from any of these locations: \n", key)
 		for _, ldr := range ml {
 			log.Infof("%s\n", ldr)
 		}

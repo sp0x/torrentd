@@ -73,7 +73,7 @@ func (ix *ListIndex) Add(val []byte, id []byte) error {
 	return ix.IndexBucket.Put(idKey, id)
 }
 
-// List indexes are formed like this: <index value>__<id>
+// ListAvailableIndexes indexes are formed like this: <index value>__<id>
 func generatePrefix(indexValue []byte) []byte {
 	prefix := make([]byte, len(indexValue)+2)
 	var i int

@@ -1,6 +1,7 @@
 package config
 
 import (
+	log "github.com/sirupsen/logrus"
 	"os"
 	"path"
 	"path/filepath"
@@ -13,12 +14,21 @@ var appname = "torrentd"
 //go:generate mockgen -destination=mocks/mock_config.go -package=mocks . Config
 type Config interface {
 	GetSiteOption(name, key string) (string, bool, error)
-	GetSite(section string) (map[string]string, error)
-	GetInt(param string) int
-	GetString(s string) string
-	GetBytes(s string) []byte
+	GetSite(key string) (map[string]string, error)
+	GetInt(key string) int
+	GetString(key string) string
+	GetBool(key string) bool
+	GetBytes(key string) []byte
+	Get(key string) interface{}
 	SetSiteOption(section, key, value string) error
-	Set(key, value interface{}) error
+	Set(key, value interface{})
+}
+
+func GetMinLogLevel(c Config) log.Level {
+	if c.GetBool("verbose") {
+		return log.DebugLevel
+	}
+	return log.InfoLevel
 }
 
 func GetCachePath(subdir string) string {
@@ -29,7 +39,7 @@ func GetCachePath(subdir string) string {
 }
 
 func SetDefaults(cfg Config) {
-	_ = cfg.Set("definition.dirs", GetDefinitionDirs())
+	cfg.Set("definition.dirs", GetDefinitionDirs())
 }
 
 func init() {

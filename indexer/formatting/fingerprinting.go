@@ -9,24 +9,24 @@ import (
 // Drop any additional info: timestamps, release versions, etc.
 // -->
 var (
-	squareBracesRx          = regexp.MustCompile("^(.+(?:\\s+|\\)))\\[[^\\[\\]]+?\\](.*)$")
-	precedingSquareBracesRx = regexp.MustCompile("^(\\s*)\\[[^\\[\\]]+?\\](.+)$")
-	roundBracesRx           = regexp.MustCompile("^(.+(?:\\s+|\\]))\\([^()]+?\\)(.*)$")
-	angleBracesRx           = regexp.MustCompile("^(.+)\\s+<<.*?>>(.*)$")
-	dateRx                  = regexp.MustCompile("^(.+)\\s+(?:\\d{1,2}\\.\\d{1,2}\\.\\d{4}|\\d{4}\\.\\d{2}\\.\\d{2})(.*)$")
+	squareBracesRx          = regexp.MustCompile(`^(.+(?:\s+|\)))\[[^\[\]]+?\](.*)$`)
+	precedingSquareBracesRx = regexp.MustCompile(`^(\s*)\[[^\[\]]+?\](.+)$`)
+	roundBracesRx           = regexp.MustCompile(`^(.+(?:\s+|\]))\([^()]+?\)(.*)$`)
+	angleBracesRx           = regexp.MustCompile(`^(.+)\s+<<.*?>>(.*)$`)
+	dateRx                  = regexp.MustCompile(`^(.+)\s+(?:\d{1,2}\.\d{1,2}\.\d{4}|\d{4}\.\d{2}\.\d{2})(.*)$`)
 )
 
 // Unable to merge it into date_regex due to some strange behaviour of re
 // module.
 var (
-	date2Rx          = regexp.MustCompile("^(.+)\\s+(?:по|от)\\s+(?:\\d{1,2}\\.\\d{1,2}\\.\\d{4}|\\d{4}\\.\\d{2}\\.\\d{2})(.*)$")
-	releaseCounterRx = regexp.MustCompile("^(.+)\\s+\\d+\\s*(?:в|из)\\s*\\d+(.*)$")
-	spacesRx         = regexp.MustCompile("\\s+/.*")
-	spaces2Rx        = regexp.MustCompile("\\s+")
-	categoriesRx     = regexp.MustCompile("^(national\\s+geographic\\s*:|наука\\s+2\\.0)\\s+")
+	date2Rx          = regexp.MustCompile(`^(.+)\s+(?:по|от)\s+(?:\d{1,2}\.\d{1,2}\.\d{4}|\d{4}\.\d{2}\.\d{2})(.*)$`)
+	releaseCounterRx = regexp.MustCompile(`^(.+)\s+\d+\s*(?:в|из)\s*\d+(.*)$`)
+	spacesRx         = regexp.MustCompile(`\s+/.*`)
+	spaces2Rx        = regexp.MustCompile(`\s+`)
+	categoriesRx     = regexp.MustCompile(`^(national\s+geographic\s*:|наука\s+2\.0)\s+`)
 	arrowsRx         = regexp.MustCompile("^«([^»]{6,})»")
-	cyrilicRx        = regexp.MustCompile("^([0-9a-zабвгдеёжзийклмнопрстуфхцчшщьъыэюя., \\-:]{6,}?(?:[:.?!]| - | — |\\|)).*")
-	badKeywordsRx    = regexp.MustCompile("(?:\\s|\\()(:?выпуск|выпуски|выпусков|обновлено|передачи за|серия из|сезон|серия|серии|премьера|эфир с|эфир от|эфиры от|satrip)(?:\\s|\\)|$)")
+	cyrilicRx        = regexp.MustCompile(`^([0-9a-zабвгдеёжзийклмнопрстуфхцчшщьъыэюя., \-:]{6,}?(?:[:.?!]| - | — |\|)).*`)
+	badKeywordsRx    = regexp.MustCompile(`(?:\s|\()(:?выпуск|выпуски|выпусков|обновлено|передачи за|серия из|сезон|серия|серии|премьера|эфир с|эфир от|эфиры от|satrip)(?:\s|\)|$)`)
 )
 
 func GetResultFingerprint(title string) string {
@@ -62,7 +62,7 @@ func GetResultFingerprint(title string) string {
 	}
 	name = string(validatedNameChars)
 	name = strings.ReplaceAll(name, "г.", "")
-	for true {
+	for {
 		newName := badKeywordsRx.ReplaceAllString(name, "")
 		if newName == name {
 			break

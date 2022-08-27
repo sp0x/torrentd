@@ -5,73 +5,108 @@
 package mocks
 
 import (
-	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
 )
 
-// MockConfig is a mock of Config interface
+// MockConfig is a mock of Config interface.
 type MockConfig struct {
 	ctrl     *gomock.Controller
 	recorder *MockConfigMockRecorder
 }
 
-// MockConfigMockRecorder is the mock recorder for MockConfig
+// MockConfigMockRecorder is the mock recorder for MockConfig.
 type MockConfigMockRecorder struct {
 	mock *MockConfig
 }
 
-// NewMockConfig creates a new mock instance
+// NewMockConfig creates a new mock instance.
 func NewMockConfig(ctrl *gomock.Controller) *MockConfig {
 	mock := &MockConfig{ctrl: ctrl}
 	mock.recorder = &MockConfigMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockConfig) EXPECT() *MockConfigMockRecorder {
 	return m.recorder
 }
 
-// GetBytes mocks base method
+// Get mocks base method.
+func (m *MockConfig) Get(arg0 string) interface{} {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", arg0)
+	ret0, _ := ret[0].(interface{})
+	return ret0
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockConfigMockRecorder) Get(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockConfig)(nil).Get), arg0)
+}
+
+// GetBool mocks base method.
+func (m *MockConfig) GetBool(arg0 string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBool", arg0)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// GetBool indicates an expected call of GetBool.
+func (mr *MockConfigMockRecorder) GetBool(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBool", reflect.TypeOf((*MockConfig)(nil).GetBool), arg0)
+}
+
+// GetBytes mocks base method.
 func (m *MockConfig) GetBytes(arg0 string) []byte {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBytes", arg0)
 	ret0, _ := ret[0].([]byte)
 	return ret0
 }
 
-// GetBytes indicates an expected call of GetBytes
+// GetBytes indicates an expected call of GetBytes.
 func (mr *MockConfigMockRecorder) GetBytes(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBytes", reflect.TypeOf((*MockConfig)(nil).GetBytes), arg0)
 }
 
-// GetInt mocks base method
+// GetInt mocks base method.
 func (m *MockConfig) GetInt(arg0 string) int {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetInt", arg0)
 	ret0, _ := ret[0].(int)
 	return ret0
 }
 
-// GetInt indicates an expected call of GetInt
+// GetInt indicates an expected call of GetInt.
 func (mr *MockConfigMockRecorder) GetInt(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInt", reflect.TypeOf((*MockConfig)(nil).GetInt), arg0)
 }
 
-// GetSite mocks base method
+// GetSite mocks base method.
 func (m *MockConfig) GetSite(arg0 string) (map[string]string, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSite", arg0)
 	ret0, _ := ret[0].(map[string]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetSite indicates an expected call of GetSite
+// GetSite indicates an expected call of GetSite.
 func (mr *MockConfigMockRecorder) GetSite(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSite", reflect.TypeOf((*MockConfig)(nil).GetSite), arg0)
 }
 
-// GetSiteOption mocks base method
+// GetSiteOption mocks base method.
 func (m *MockConfig) GetSiteOption(arg0, arg1 string) (string, bool, error) {
-
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSiteOption", arg0, arg1)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(bool)
@@ -79,43 +114,48 @@ func (m *MockConfig) GetSiteOption(arg0, arg1 string) (string, bool, error) {
 	return ret0, ret1, ret2
 }
 
-// GetSiteOption indicates an expected call of GetSiteOption
+// GetSiteOption indicates an expected call of GetSiteOption.
 func (mr *MockConfigMockRecorder) GetSiteOption(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSiteOption", reflect.TypeOf((*MockConfig)(nil).GetSiteOption), arg0, arg1)
 }
 
-// GetString mocks base method
+// GetString mocks base method.
 func (m *MockConfig) GetString(arg0 string) string {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetString", arg0)
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// GetString indicates an expected call of GetString
+// GetString indicates an expected call of GetString.
 func (mr *MockConfigMockRecorder) GetString(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetString", reflect.TypeOf((*MockConfig)(nil).GetString), arg0)
 }
 
-// Set mocks base method
-func (m *MockConfig) Set(arg0, arg1 interface{}) error {
-	ret := m.ctrl.Call(m, "Set", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
+// Set mocks base method.
+func (m *MockConfig) Set(arg0, arg1 interface{}) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Set", arg0, arg1)
 }
 
-// Set indicates an expected call of Set
+// Set indicates an expected call of Set.
 func (mr *MockConfigMockRecorder) Set(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockConfig)(nil).Set), arg0, arg1)
 }
 
-// SetSiteOption mocks base method
+// SetSiteOption mocks base method.
 func (m *MockConfig) SetSiteOption(arg0, arg1, arg2 string) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetSiteOption", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SetSiteOption indicates an expected call of SetSiteOption
+// SetSiteOption indicates an expected call of SetSiteOption.
 func (mr *MockConfigMockRecorder) SetSiteOption(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSiteOption", reflect.TypeOf((*MockConfig)(nil).SetSiteOption), arg0, arg1, arg2)
 }

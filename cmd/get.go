@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"os"
+	"text/tabwriter"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -50,18 +50,30 @@ Currently supported storage backings: boltdb, firebase, sqlite`)
 }
 
 func getCommand(c *cobra.Command, _ []string) {
+	status.SetupPubsub(appConfig.GetString("firebase_project"))
 	facade := indexer.NewFacadeFromConfiguration(&appConfig)
 	if facade == nil {
-		log.Error("Couldn't initialize torrent facade.")
+		log.Error("Couldn't initialize index facade.")
 		return
 	}
-	// Start watching the torrent tracker.
-	status.SetupPubsub(appConfig.GetString("firebase_project"))
+
+	tabWr := new(tabwriter.Writer)
+	tabWr.Init(os.Stdout, 0, 8, 0, '\t', 0)
+
 	queryStr := c.Flag("query").Value.String()
 	query, _ := search.NewQueryFromQueryString(queryStr)
-	err := indexer.Get(facade, query)
+	query.StopOnStale = true
+	if query.NumberOfPagesToFetch == 0 {
+		query.NumberOfPagesToFetch = 20
+	}
+	results, err := facade.Search(query)
 	if err != nil {
-		fmt.Printf("Couldn't get results: ")
+		log.Error(err)
 		os.Exit(1)
+	}
+
+	for resultsBatch := range results {
+		indexer.PrintResults(resultsBatch, tabWr)
+		_ = tabWr.Flush()
 	}
 }

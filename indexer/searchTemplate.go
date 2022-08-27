@@ -13,15 +13,15 @@ type SearchTemplateData struct {
 	Query      *search.Query
 	Keywords   string
 	Categories []string
-	Context    *RunContext
 	Functions  template.FuncMap
+	Search     *workerJob
 }
 
 func (s *SearchTemplateData) ApplyTo(fieldName string, templateText string) (string, error) {
-	fmap := s.Functions
-	fmap["rng"] = func(start, end string) string {
-		return s.RangeValue(fieldName, start, end)
-	}
+	//fmap := s.Functions
+	//fmap["rng"] = func(start, end string) string {
+	//	return s.RangeValue(fieldName, start, end)
+	//}
 	return utils.ApplyTemplate(fieldName, templateText, s, s.Functions)
 }
 
@@ -33,40 +33,27 @@ func (s *SearchTemplateData) HasQueryField(name string) bool {
 	return ok
 }
 
-func (s *SearchTemplateData) ApplyField(fieldName string) (string, error) {
-	if s.Query == nil {
-		return "", errors.New("template has no query")
+func (s *SearchTemplateData) GetSearchFieldValue(fieldName string) (string, error) {
+	if s.Search == nil || s.Search.Fields == nil {
+		return "", errors.New("template has no search state")
 	}
-	fieldValue := s.Query.Fields[fieldName]
+	fieldValue := s.Search.Fields[fieldName]
+	if fieldValue==nil {
+		return "", nil
+	}
 	switch value := fieldValue.(type) {
-	case search.RangeField:
-		return s.RangeValue(fieldName, value[0], value[1]), nil
 	default:
 		return fmt.Sprint(value), nil
 	}
 }
 
-func (s *SearchTemplateData) RangeValue(name, start, end string) string {
-	fieldState, err := s.Context.Search.GetFieldState(name, func() *search.RangeFieldState {
-		return search.NewRangeFieldState(start, end)
-	})
-	if err != nil {
-		return ""
-	}
-	if !fieldState.HasNext() {
-		return ""
-	}
-	nextValue := fieldState.Next()
-	return nextValue
-}
-
-func newSearchTemplateData(query *search.Query, localCategories []string, context *RunContext) *SearchTemplateData {
+func newSearchTemplateData(query *search.Query, srch *workerJob, localCategories []string) *SearchTemplateData {
 	searchData := &SearchTemplateData{
 		query,
 		query.Keywords(),
 		localCategories,
-		context,
 		utils.GetDefaultFunctionMap(),
+		srch,
 	}
 	return searchData
 }
