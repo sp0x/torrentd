@@ -34,7 +34,7 @@ func (s *Server) checkAPIKey(inputKey string) bool {
 		return false
 	}
 	k := s.sharedKey()
-	keyToMatch := fmt.Sprintf("%s", k)
+	keyToMatch := string(k)
 	if inputKey == keyToMatch {
 		return true
 	}

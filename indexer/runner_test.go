@@ -66,7 +66,7 @@ func getIndex(ctrl *gomock.Controller) *Runner {
 	// The browser should be set
 	// connectivityTester.EXPECT().SetBrowser(gomock.Any()).AnyTimes()
 	// The correct url should be tested
-	connectivityTester.EXPECT().IsOkAndSet(runnerSiteURL, gomock.Any()).
+	connectivityTester.EXPECT().IsValidOrSet(runnerSiteURL, gomock.Any()).
 		Return(true).
 		AnyTimes()
 

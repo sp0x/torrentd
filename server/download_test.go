@@ -12,10 +12,12 @@ import (
 
 func prepareTestServer(ctrl *gomock.Controller, config *mocks.MockConfig) (*Server, *httpMocks.MockContext) {
 	context := httpMocks.NewMockContext(ctrl)
-
-	config.EXPECT().GetInt("port").Return(3333).Times(1)
-	config.EXPECT().GetString("hostname").Return("").Times(1)
-	config.EXPECT().GetBytes("api_key").Return(nil).Times(1)
+	config.EXPECT().Get("indexLoader").Return(nil).AnyTimes()
+	config.EXPECT().GetInt("workerCount").Return(2)
+	config.EXPECT().GetInt("port").Return(3333)
+	config.EXPECT().GetString("hostname").Return("")
+	config.EXPECT().GetBytes("api_key").Return(nil)
+	config.EXPECT().GetBool("verbose").Return(true)
 
 	server := NewServer(config)
 	server.indexerFacade = indexer.NewEmptyFacade(config)
@@ -28,6 +30,7 @@ func TestServer_downloadHandler_Should_Work_WithoutAnyParams(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	config := mocks.NewMockConfig(ctrl)
+
 	server, context := prepareTestServer(ctrl, config)
 
 	// Test a simple download request without any params.
@@ -35,6 +38,7 @@ func TestServer_downloadHandler_Should_Work_WithoutAnyParams(t *testing.T) {
 	context.EXPECT().Param("token").Return("")
 	context.EXPECT().Param("filename").Return("")
 	context.EXPECT().Error(gomock.Any()).Times(0)
+
 	server.downloadHandler(context)
 }
 
@@ -43,11 +47,11 @@ func TestServer_downloadHelper_Should_ErrorOut_If_TokenIsNotJWT(t *testing.T) {
 	defer ctrl.Finish()
 	config := mocks.NewMockConfig(ctrl)
 	server, context := prepareTestServer(ctrl, config)
-
 	// Download should error out if the token isn't in JWT
 	context.EXPECT().Param("token").Return("demotoken")
 	context.EXPECT().Param("filename").Return("")
 	context.EXPECT().Error(gomock.Any()).Times(1)
+
 	server.downloadHandler(context)
 }
 

@@ -61,7 +61,7 @@ func TestNewSessionMultiplexer(t *testing.T) {
 	sampleIndex := newTestingIndex()
 	// sampleIndex.urlResolver.connectivity = mConnectivity
 
-	mConnectivity.EXPECT().IsOkAndSet(OfURL("http://example.com/"), gomock.Any()).
+	mConnectivity.EXPECT().IsValidOrSet(OfURL("http://example.com/"), gomock.Any()).
 		AnyTimes().
 		Return(true)
 
