@@ -13,11 +13,11 @@ import (
 func prepareTestServer(ctrl *gomock.Controller, config *mocks.MockConfig) (*Server, *httpMocks.MockContext) {
 	context := httpMocks.NewMockContext(ctrl)
 	config.EXPECT().Get("indexLoader").Return(nil).AnyTimes()
-	config.EXPECT().GetInt("workerCount").Return(2)
+	config.EXPECT().GetInt("workerCount").Return(2).AnyTimes()
 	config.EXPECT().GetInt("port").Return(3333)
 	config.EXPECT().GetString("hostname").Return("")
 	config.EXPECT().GetBytes("api_key").Return(nil)
-	config.EXPECT().GetBool("verbose").Return(true)
+	config.EXPECT().GetBool("verbose").Return(true).AnyTimes()
 
 	server := NewServer(config)
 	server.indexerFacade = indexer.NewEmptyFacade(config)
@@ -115,7 +115,7 @@ func TestServer_downloadHandler(t *testing.T) {
 	context.EXPECT().Header("Content-Disposition", gomock.Any())
 	context.EXPECT().Header("Content-Transfer-Encoding", gomock.Any())
 	context.EXPECT().DataFromReader(200, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1)
-	scopeMock.EXPECT().Lookup(gomock.Any(), "rutracker.org").Return(mockedIndexer, nil)
+	scopeMock.EXPECT().Lookup(gomock.Any(), "rutracker.org").Return([]indexer.Indexer{mockedIndexer}, nil)
 	mockedIndexer.EXPECT().Download(tkn.Link).
 		Return(responseProxy, nil)
 

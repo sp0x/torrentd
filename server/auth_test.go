@@ -45,10 +45,8 @@ func TestServer_sharedKey(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	config := mocks.NewMockConfig(ctrl)
-	config.EXPECT().GetInt("port").Return(3333).Times(1)
-	config.EXPECT().GetString("hostname").Return("").Times(1)
-	config.EXPECT().GetBytes("api_key").Return(nil).Times(1)
+	config := mocks.GetMockedConfig(ctrl)
+
 	// Test
 	s := NewServer(config)
 	bytes := s.sharedKey()
