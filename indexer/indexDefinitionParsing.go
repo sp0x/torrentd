@@ -57,7 +57,7 @@ func (id *Definition) Stats() DefinitionStats {
 	return id.stats
 }
 
-func (id *Definition) getNewResultItem() search.ResultItemBase {
+func (id *Definition) createNewResultItem() search.ResultItemBase {
 	if id.Scheme == "" {
 		return &search.ScrapeResultItem{
 			ModelData: make(map[string]interface{}),

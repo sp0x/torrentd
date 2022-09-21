@@ -72,53 +72,53 @@ func formatValues(field *fieldBlock, value interface{}, values map[string]interf
 // Extract the actual result item from it's row/col
 // TODO: refactor this to reduce #complexity
 func (r *Runner) extractItem(rowIdx int, selection source.RawScrapeItem, context *scrapeContext) (search.ResultItemBase, error) {
-	row := map[string]interface{}{}
+	fieldValues := map[string]interface{}{}
 	nonFilteredRow := map[string]string{}
 	r.logger.WithFields(logrus.Fields{}).
 		Debug("Processing row")
 
-	for _, item := range r.definition.Search.Fields {
+	for _, searchField := range r.definition.Search.Fields {
 		r.logger.
-			WithFields(logrus.Fields{"row": rowIdx, "block": item.Block.String()}).
-			Debugf("Processing field %q", item.Field)
-		val, err := item.Block.Match(selection)
-		if item.Field == "title" {
-			valRaw, err := item.Block.MatchRawText(selection)
+			WithFields(logrus.Fields{"row": rowIdx, "block": searchField.Block.String()}).
+			Debugf("Processing field %q", searchField.Field)
+		fieldValue, err := searchField.Block.Match(selection)
+		if searchField.Field == "title" {
+			valRaw, err := searchField.Block.MatchRawText(selection)
 			if err == nil {
-				nonFilteredRow[item.Field] = valRaw
+				nonFilteredRow[searchField.Field] = valRaw
 			}
 		}
 
 		if err != nil {
-			r.logger.WithFields(logrus.Fields{"error": err, "selector": item.Field}).
+			r.logger.WithFields(logrus.Fields{"error": err, "selector": searchField.Field}).
 				Debugf("Couldn't process selector")
-			r.failingSearchFields[item.Field] = item
+			r.failingSearchFields[searchField.Field] = searchField
 			continue
 		}
 
-		row[item.Field] = val
+		fieldValues[searchField.Field] = fieldValue
 	}
 
 	// Evaluate pattern items
-	for _, item := range r.definition.Search.Fields {
-		value := row[item.Field]
-		currentItem := item
-		value = formatValues(&currentItem, value, row)
-		row[item.Field] = value
+	for _, searchField := range r.definition.Search.Fields {
+		value := fieldValues[searchField.Field]
+		currentItem := searchField
+		value = formatValues(&currentItem, value, fieldValues)
+		fieldValues[searchField.Field] = value
 	}
 
-	item := r.definition.getNewResultItem()
-	item.SetSite(r.definition.Site)
-	item.SetIndexer(r.getIndexer())
+	result := r.definition.createNewResultItem()
+	result.SetSite(r.definition.Site)
+	result.SetIndexer(r.getIndexer())
 
 	// Fill in the extracted values
-	for key, val := range row {
-		formatValues(nil, val, row)
+	for key, val := range fieldValues {
+		formatValues(nil, val, fieldValues)
 
 		if r.definition.Scheme == torrentScheme {
-			r.populateTorrentItemField(item, key, val, row, nonFilteredRow, rowIdx)
+			r.populateTorrentItemField(result, key, val, fieldValues, nonFilteredRow, rowIdx)
 		} else {
-			r.populateScrapeItemField(item, key, val, rowIdx)
+			r.populateScrapeItemField(result, key, val, rowIdx)
 		}
 	}
 
@@ -128,17 +128,17 @@ func (r *Runner) extractItem(rowIdx int, selection source.RawScrapeItem, context
 			return &search.ScrapeResultItem{}, err
 		}
 
-		item.SetPublishDate(date.Unix())
+		result.SetPublishDate(date.Unix())
 	}
 
 	if r.definition.Scheme == torrentScheme {
-		r.populateTorrentData(item, context)
+		r.populateTorrentData(result, context)
 	}
 
-	r.logger.WithFields(logrus.Fields{"row": rowIdx, "data": row}).
-		Debugf("Finished row %d", rowIdx)
+	r.logger.WithFields(logrus.Fields{"row": rowIdx, "data": fieldValues}).
+		Debugf("Finished processing result element %d", rowIdx)
 
-	return item, nil
+	return result, nil
 }
 
 func (r *Runner) populateScrapeItemField(item search.ResultItemBase, key string, val interface{}, rowIdx int) bool {

@@ -276,8 +276,8 @@ func (r *Runner) Search(query *search.Query, srch *workerJob) ([]search.ResultIt
 		return nil, err
 	}
 
-	localCats := GetLocalCategoriesMatchingQuery(query, &r.definition.Capabilities)
-	reqOpts, err := r.createRequest(query, localCats, srch, session)
+	categories := GetLocalCategoriesMatchingQuery(query, &r.definition.Capabilities)
+	reqOpts, err := r.createRequest(query, categories, srch, session)
 	if err != nil {
 		errType = status.TargetError
 		r.logger.WithError(err).Warn(err)
@@ -297,7 +297,7 @@ func (r *Runner) Search(query *search.Query, srch *workerJob) ([]search.ResultIt
 	}
 	rowContext := &scrapeContext{
 		query,
-		localCats,
+		categories,
 	}
 
 	results := r.processScrapedItems(scrapeItems, rowContext)
