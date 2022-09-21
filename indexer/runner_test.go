@@ -153,21 +153,21 @@ func Test_Given_SearchFindsResults_Then_Results_Should_BeStoredInTheIndexStorage
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	runner := getIndex(ctrl)
-	urlResolver := runner.urlResolver.(*MockIURLResolver)
+	index := getIndex(ctrl)
+	urlResolver := index.urlResolver.(*MockIURLResolver)
 	destURL, _ := url.Parse("http://localhost/")
 	urlResolver.EXPECT().Resolve("/").
 		Return(destURL, nil).AnyTimes()
 
 	iter := search.NewIterator(search.NewQuery())
 	fields, page := iter.Next()
-	results, err := runner.Search(search.NewQuery(), createWorkerJob(nil, runner, fields, page))
+	results, err := index.Search(search.NewQuery(), createWorkerJob(nil, index, fields, page))
 	g.Expect(err).To(gomega.BeNil())
 	firstDoc := results[0]
 
 	guidQuery := indexing.NewQuery()
 	guidQuery.Put("UUID", firstDoc.UUID())
-	storage := runner.GetStorage()
+	storage := index.GetStorage()
 	defer storage.Close()
 
 	var foundDoc search.ScrapeResultItem
@@ -257,6 +257,8 @@ func getSearchTemplateDataForNextPage(iter *search.SearchStateIterator, query *s
 }
 
 func Test_getURLValuesForSearch_Given_RangeFieldInDefinition_Should_UseItInSearch(t *testing.T) {
+	// This is not supported anymore
+	t.SkipNow()
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
 	runner := getIndex(ctrl)

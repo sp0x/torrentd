@@ -6,6 +6,7 @@ import (
 	"text/template"
 
 	"github.com/sp0x/torrentd/indexer/search"
+	"github.com/sp0x/torrentd/indexer/templates"
 	"github.com/sp0x/torrentd/indexer/utils"
 )
 
@@ -17,12 +18,31 @@ type SearchTemplateData struct {
 	Search     *workerJob
 }
 
-func (s *SearchTemplateData) ApplyTo(fieldName string, templateText string) (string, error) {
-	//fmap := s.Functions
-	//fmap["rng"] = func(start, end string) string {
-	//	return s.RangeValue(fieldName, start, end)
-	//}
-	return utils.ApplyTemplate(fieldName, templateText, s, s.Functions)
+func (s *SearchTemplateData) ApplyTo(name string, templateText string) (string, error) {
+	return templates.ApplyTemplate(name, templateText, s)
+}
+
+func (s *SearchTemplateData) RangeValue(name string) string {
+	fieldStates := s.Search.Fields
+	if _, ok := fieldStates[name]; !ok {
+		return ""
+	}
+	fieldState := fieldStates[name]
+	// if !fieldState.HasNext() {
+	// 	return ""
+	// }
+	// nextValue := fieldState.Next()
+	return fieldState.(string)
+}
+
+func (s *SearchTemplateData) ApplyField(name string) string {
+	fieldValue := s.Query.Fields[name]
+	switch value := fieldValue.(type) {
+	case search.RangeField:
+		return s.RangeValue(name)
+	default:
+		return fmt.Sprint(value)
+	}
 }
 
 func (s *SearchTemplateData) HasQueryField(name string) bool {
@@ -38,7 +58,7 @@ func (s *SearchTemplateData) GetSearchFieldValue(fieldName string) (string, erro
 		return "", errors.New("template has no search state")
 	}
 	fieldValue := s.Search.Fields[fieldName]
-	if fieldValue==nil {
+	if fieldValue == nil {
 		return "", nil
 	}
 	switch value := fieldValue.(type) {
@@ -48,11 +68,12 @@ func (s *SearchTemplateData) GetSearchFieldValue(fieldName string) (string, erro
 }
 
 func newSearchTemplateData(query *search.Query, srch *workerJob, localCategories []string) *SearchTemplateData {
+	funcMap := utils.GetDefaultFunctionMap()
 	searchData := &SearchTemplateData{
 		query,
 		query.Keywords(),
 		localCategories,
-		utils.GetDefaultFunctionMap(),
+		funcMap,
 		srch,
 	}
 	return searchData

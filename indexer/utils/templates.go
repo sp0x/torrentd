@@ -7,9 +7,9 @@ import (
 )
 
 func GetDefaultFunctionMap() template.FuncMap {
-	return template.FuncMap{
-		"replace": strings.ReplaceAll,
-	}
+	fmap := template.FuncMap{}
+	fmap["replace"] = strings.ReplaceAll
+	return fmap
 }
 
 // Evaluate a template
