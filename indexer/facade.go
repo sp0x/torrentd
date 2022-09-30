@@ -18,7 +18,7 @@ import (
 
 const (
 	noIndexError           = "no index configured. you have to pick an index"
-	saveResultsOnDiscovery = false
+	saveResultsOnDiscovery = true
 )
 
 // Facade for an indexer/aggregate, helps manage the scope of the index, it's configuration and the index itself.

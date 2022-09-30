@@ -17,7 +17,6 @@ import (
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/indexer/source"
 	mocks2 "github.com/sp0x/torrentd/indexer/source/mocks"
-	"github.com/sp0x/torrentd/storage/indexing"
 )
 
 var runnerSiteURL = "http://localhost/"
@@ -44,7 +43,7 @@ func getIndexDefinition() *Definition {
 	}
 }
 
-func getIndex(ctrl *gomock.Controller) *Runner {
+func getSUT(ctrl *gomock.Controller) *Runner {
 	connectivityTester := mocks.NewMockConnectivityTester(ctrl)
 	contentFetcher := mocks2.NewMockContentFetcher(ctrl)
 	urlResolver := NewMockIURLResolver(ctrl)
@@ -85,7 +84,7 @@ func Test_Should_NotBeAbleToSearch_WithoutURLs(t *testing.T) {
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	index := getIndex(ctrl)
+	index := getSUT(ctrl)
 	urlResolver := index.urlResolver.(*MockIURLResolver)
 
 	urlResolveMock := urlResolver.EXPECT().Resolve("/")
@@ -105,7 +104,7 @@ func Test_Given_UrlResolverCanNotResolveUrls_Search_Should_ErrorOut(t *testing.T
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	index := getIndex(ctrl)
+	index := getSUT(ctrl)
 
 	// Shouldn't be able to search with an index that has no search urls
 	urlResolver := index.urlResolver.(*MockIURLResolver)
@@ -124,7 +123,7 @@ func TestRunner_Search(t *testing.T) {
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	index := getIndex(ctrl)
+	index := getSUT(ctrl)
 	connectivityTester := index.connectivityTester.(*mocks.MockConnectivityTester)
 	contentFetcher := index.contentFetcher.(*mocks2.MockContentFetcher)
 	urlResolver := index.urlResolver.(*MockIURLResolver)
@@ -133,7 +132,6 @@ func TestRunner_Search(t *testing.T) {
 
 	// Shouldn't be able to search with an index that has no search urls
 	index.definition.Links = []string{runnerSiteURL}
-
 	index.contentFetcher = contentFetcher
 	index.connectivityTester = connectivityTester
 	// We need to mock our content fetching also
@@ -146,34 +144,7 @@ func TestRunner_Search(t *testing.T) {
 	g.Expect(len(results) > 0).To(gomega.BeTrue())
 	firstDoc := results[0]
 
-	g.Expect(firstDoc.UUID()).To(gomega.Not(gomega.BeEmpty()))
-}
-
-func Test_Given_SearchFindsResults_Then_Results_Should_BeStoredInTheIndexStorage(t *testing.T) {
-	g := gomega.NewWithT(t)
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	index := getIndex(ctrl)
-	urlResolver := index.urlResolver.(*MockIURLResolver)
-	destURL, _ := url.Parse("http://localhost/")
-	urlResolver.EXPECT().Resolve("/").
-		Return(destURL, nil).AnyTimes()
-
-	iter := search.NewIterator(search.NewQuery())
-	fields, page := iter.Next()
-	results, err := index.Search(search.NewQuery(), createWorkerJob(nil, index, fields, page))
-	g.Expect(err).To(gomega.BeNil())
-	firstDoc := results[0]
-
-	guidQuery := indexing.NewQuery()
-	guidQuery.Put("UUID", firstDoc.UUID())
-	storage := index.GetStorage()
-	defer storage.Close()
-
-	var foundDoc search.ScrapeResultItem
-	g.Expect(storage.Find(guidQuery, &foundDoc)).To(gomega.BeNil())
-	g.Expect(foundDoc.UUIDValue).To(gomega.Equal(firstDoc.UUID()))
-	g.Expect(foundDoc.ModelData["fieldA"]).To(gomega.Equal("sd"))
+	g.Expect(firstDoc.AsScrapeItem().ModelData["fieldA"]).To(gomega.Not(gomega.BeEmpty()))
 }
 
 func Test_ShouldUseUniqueIndexes(t *testing.T) {
@@ -182,7 +153,7 @@ func Test_ShouldUseUniqueIndexes(t *testing.T) {
 	defer ctrl.Finish()
 
 	// -------Should be able to use unique indexMap
-	index := getIndex(ctrl)
+	index := getSUT(ctrl)
 	index.definition.Links = []string{runnerSiteURL}
 	index.definition.Search = searchBlock{
 		Path: "/",
@@ -261,7 +232,7 @@ func Test_getURLValuesForSearch_Given_RangeFieldInDefinition_Should_UseItInSearc
 	t.SkipNow()
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
-	runner := getIndex(ctrl)
+	runner := getSUT(ctrl)
 	runner.definition.Search.Inputs["rangeField"] = "{{ rng \"001\" \"010\" }}"
 	query := search.NewQuery()
 	iter := search.NewIterator(query)
@@ -280,7 +251,7 @@ func Test_getURLValuesForSearch_Given_RangeFieldInDefinition_Should_UseItInSearc
 func Test_getURLValuesForSearch_Given_RangeFieldInQuery_Then_URLValues_Should_ContainRange(t *testing.T) {
 	g := gomega.NewWithT(t)
 	ctrl := gomock.NewController(t)
-	runner := getIndex(ctrl)
+	runner := getSUT(ctrl)
 	runner.definition.Search.Inputs["rangeField"] = ""
 	query := search.NewQuery()
 	query.Fields["rangeField"] = search.NewRangeField("001", "010")
