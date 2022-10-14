@@ -23,6 +23,9 @@ ifneq ($(origin CI), undefined)
 	WORKDIR := $(GOPATH)/src/github.com/$(AUTHOR)/$(NAME)
 endif
 
+build:
+	go build -o $(NAME) ./cmd
+
 bin/golangci-lint: bin/golangci-lint-${GOLANGCI_VERSION}
 	@ln -sf golangci-lint-${GOLANGCI_VERSION} bin/golangci-lint
 bin/golangci-lint-${GOLANGCI_VERSION}:
@@ -40,9 +43,6 @@ lint: bin/golangci-lint ## Run linter
 .PHONY: fix
 fix: bin/golangci-lint ## Fix lint violations
 	bin/golangci-lint run --fix
-
-build:
-	go build -o $(NAME) ./cmd
 
 #Note that gox is required for multi-arch build
 build-multi-arch:
