@@ -13,7 +13,7 @@ func GetDefaultFunctionMap() template.FuncMap {
 }
 
 // Evaluate a template
-func ApplyTemplate(name, templateText string, ctx interface{}, functions template.FuncMap) (string, error) {
+func ApplyTemplate(name, templateText string, templateContext interface{}, functions template.FuncMap) (string, error) {
 	if functions == nil {
 		functions = GetDefaultFunctionMap()
 	}
@@ -22,7 +22,7 @@ func ApplyTemplate(name, templateText string, ctx interface{}, functions templat
 		return "", err
 	}
 	b := &bytes.Buffer{}
-	err = tmpl.Execute(b, ctx) // Evaluate the template
+	err = tmpl.Execute(b, templateContext)
 	if err != nil {
 		return "", err
 	}

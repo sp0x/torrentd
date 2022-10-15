@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	ErrUnknownIndexer       = errors.New("unknown indexer")
+	ErrUnknownIndex         = errors.New("unknown indexer")
 	DefaultDefinitionLoader DefinitionLoader
 	loader                  DefinitionLoader
 )

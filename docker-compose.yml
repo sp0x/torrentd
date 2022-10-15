@@ -11,7 +11,7 @@ services:
     env_file:
       - .env
     volumes:
-      - db:/db
+      - ./ignored/db:/db
       - ./ignored/watch.yaml:/config.yaml
     ports:
       - 4000:5000

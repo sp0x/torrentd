@@ -90,6 +90,10 @@ func newIndexSessionFromRunner(runner *Runner) (*BrowsingSession, error) {
 	if err != nil {
 		return nil, err
 	}
+	if len(siteConfig) == 0 {
+		log.WithFields(log.Fields{"name": definition.Name}).
+			Warning("Couldn't find any configuration for site.")
+	}
 	browsingSession := newIndexSessionWithLogin(
 		siteConfig,
 		runner.statusReporter,
@@ -179,21 +183,21 @@ func (l *BrowsingSession) extractLoginInput() (map[string]string, error) {
 	loginURL, _ := l.urlResolver.Resolve(l.loginBlock.Path)
 
 	// Search configuration for the Indexes so we can login
-	ctx := struct {
+	templateContext := struct {
 		Config map[string]string
 	}{
 		l.config,
 	}
-	for name, val := range l.loginBlock.Inputs {
-		resolved, err := utils.ApplyTemplate("login_inputs", val, ctx, nil)
+	for name, templateValue := range l.loginBlock.Inputs {
+		resolved, err := utils.ApplyTemplate("login_inputs", templateValue, templateContext, nil)
 		if err != nil {
 			return nil, err
 		}
 
-		if val == "{{ .Config.password }}" && resolved == emptyValue {
+		if templateValue == "{{ .Config.password }}" && resolved == emptyValue {
 			return nil, fmt.Errorf("no password was configured for input `%s` @%s", name, loginURL)
 		} else if resolved == emptyValue {
-			log.Debugf("no value resolved for login block input pattern `%s`", val)
+			log.Debugf("no value resolved for login block input pattern `%s`", templateValue)
 		}
 		result[name] = resolved
 	}

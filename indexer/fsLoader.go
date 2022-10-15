@@ -101,7 +101,7 @@ func (fs *FileIndexLoader) Load(key string) (*Definition, error) {
 	defs := fs.walkDirectories()
 	fileName, ok := defs[key]
 	if !ok {
-		return nil, ErrUnknownIndexer
+		return nil, ErrUnknownIndex
 	}
 
 	f, err := os.Open(fileName)

@@ -97,8 +97,8 @@ func setConfiguredIndexLoader(loader DefinitionLoader, conf config.Config) {
 	conf.Set("indexLoader", loader)
 }
 
-// NewRunnerByNameOrSelector creates a new Indexer or aggregate Indexer with the given configuration.
-func NewRunnerByNameOrSelector(indexerName string, config config.Config) (IndexCollection, error) {
+// NewIndexRunnerByNameOrSelector creates a new Indexer or aggregate Indexer with the given configuration.
+func NewIndexRunnerByNameOrSelector(indexerName string, config config.Config) (IndexCollection, error) {
 	def, err := getConfiguredIndexLoader(config).Load(indexerName)
 	if err != nil {
 		log.WithError(err).Warnf("Failed to load definition for %q. %v", indexerName, err)

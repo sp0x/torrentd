@@ -2,9 +2,10 @@ package indexer
 
 import (
 	"errors"
+	"strings"
+
 	"github.com/sp0x/torrentd/indexer/search"
 	"golang.org/x/sync/errgroup"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -126,7 +127,7 @@ func (c *indexMap) Lookup(config config.Config, indexSelectionKey string) (Index
 		if selector.isAggregate() {
 			indexes, err = c.LookupAll(config, selector)
 		} else {
-			indexes, err = NewRunnerByNameOrSelector(selector.Value(), config)
+			indexes, err = NewIndexRunnerByNameOrSelector(selector.Value(), config)
 		}
 		if err != nil {
 			return nil, err

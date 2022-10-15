@@ -53,15 +53,17 @@ type workerJob struct {
 // NewFacadeFromConfiguration Creates a new facade using the configuration
 func NewFacadeFromConfiguration(cfg config.Config) *Facade {
 	facade := NewEmptyFacade(cfg)
-	indexerName := cfg.GetString("index")
-	if indexerName == "" {
+	indexName := cfg.GetString("index")
+	if indexName == "" {
 		fmt.Print(noIndexError)
 		os.Exit(1)
 	}
-	log.Debugf("Creating new facade from configuration: %v\n", indexerName)
-	indexes, err := facade.IndexScope.Lookup(cfg, indexerName)
+	log.WithFields(log.Fields{"name": indexName}).
+		Debug("Creating new facade from configuration")
+	indexes, err := facade.IndexScope.Lookup(cfg, indexName)
 	if err != nil {
-		log.Errorf("Could not find Indexes `%s`.\n", indexerName)
+		log.WithFields(log.Fields{"name": indexName}).
+			Error("Could not find Indexes.")
 		return nil
 	}
 	facade.Indexes = indexes
@@ -117,7 +119,7 @@ func NewAggregateFacadeWithCategories(indexNames string, cfg config.Config, cats
 	selector := newIndexSelector(indexNames)
 	indexes, err := facade.IndexScope.LookupWithCategories(cfg, selector, cats)
 	if err != nil {
-		return nil, fmt.Errorf("Could not find Indexes `%s`.\n", indexNames)
+		return nil, fmt.Errorf("Could not find Indexes `%s`.", indexNames)
 	}
 	facade.Indexes = indexes
 	return facade, nil
@@ -241,7 +243,8 @@ func saveDiscoveredItems(searchResults []search.ResultItemBase, resultStorage st
 	for _, item := range searchResults {
 		err := resultStorage.Add(item)
 		if err != nil {
-			log.WithFields(log.Fields{}).Errorf("Couldn't persist item: %s\n", err)
+			log.WithFields(log.Fields{"error": err}).
+				Error("Couldn't persist item.")
 		}
 	}
 }

@@ -74,7 +74,8 @@ func (ml MultipleDefinitionLoader) Load(key string) (*Definition, error) {
 		}
 		loaded, err := loader.Load(key)
 		if err != nil {
-			log.Debugf("Couldn't load the Indexes `%s` using %s. Error : %s\n", key, loader, err)
+			log.WithFields(log.Fields{"index": key, "loader": loader, "error": err}).
+				Debugf("Couldn't load the Indexes.\n")
 			continue
 		}
 		// If it's newer than our last one
@@ -88,7 +89,7 @@ func (ml MultipleDefinitionLoader) Load(key string) (*Definition, error) {
 		for _, ldr := range ml {
 			log.Infof("%s\n", ldr)
 		}
-		return nil, ErrUnknownIndexer
+		return nil, ErrUnknownIndex
 	}
 
 	return def, nil
