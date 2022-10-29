@@ -28,7 +28,7 @@ type Facade struct {
 	IndexScope  Scope
 	Config      config.Config
 	workerCount int
-	Storage     storage.ItemStorage
+	storage     storage.ItemStorage
 	logger      *log.Logger
 }
 
@@ -126,20 +126,26 @@ func NewAggregateFacadeWithCategories(indexNames string, cfg config.Config, cats
 }
 
 func (f *Facade) OpenStorage() storage.ItemStorage {
-	return getStorageForIndexes(f.Indexes, f.Config)
+	return getMultiIndexDatabase(f.Indexes, f.Config)
+}
+
+func (f *Facade) ensureDatabaseConnection() {
+	if f.storage != nil {
+		return
+	}
+	f.storage = f.OpenStorage()
 }
 
 func (f *Facade) Search(query *search.Query) (chan []search.ResultItemBase, error) {
-	indexStorage := f.OpenStorage()
-	defer indexStorage.Close()
+	f.ensureDatabaseConnection()
 	itemKey := indexing.NewKey("LocalID")
-	err := indexStorage.SetKey(itemKey)
+	err := f.storage.SetKey(itemKey)
 	if err != nil {
 		log.WithFields(log.Fields{}).Errorf("Couldn't get item index: %s\n", err)
 		return nil, err
 	}
 
-	workerPool := f.createWorkerPool(f.Indexes, indexStorage, query, f.workerCount)
+	workerPool := f.createWorkerPool(f.Indexes, f.storage, query, f.workerCount)
 
 	f.feedWorkerPool(workerPool)
 

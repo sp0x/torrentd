@@ -161,21 +161,24 @@ func NewRunner(def *Definition, opts *RunnerOpts) *Runner {
 }
 
 func (r *Runner) GetStorage() storage.ItemStorage {
-	itemStorage := getStorageForIndex(r.definition.Name, r.definition.getSearchEntity(), r.options.Config)
+	itemStorage := getIndexDatabase(r.definition.Name, r.definition.getSearchEntity(), r.options.Config)
 	return itemStorage
 }
 
-func getStorageForIndexes(indexes IndexCollection, conf config.Config) storage.ItemStorage {
-	return getStorageForIndex(indexes.Name(), nil, conf)
+func getMultiIndexDatabase(indexes IndexCollection, conf config.Config) storage.ItemStorage {
+	return getIndexDatabase(indexes.Name(), nil, conf)
 }
 
-func getStorageForIndex(name string, searchEntityBlock *entityBlock, conf config.Config) storage.ItemStorage {
+func getIndexDatabase(name string, searchEntityBlock *entityBlock, conf config.Config) storage.ItemStorage {
 	storageType := conf.GetString("storage")
 	if storageType == "" {
-		panic("no storage type configured")
+		panic("no database type configured")
 	}
 	var itemStorage storage.ItemStorage
 	dbEndpoint := conf.GetString("storageendpoint")
+	if dbEndpoint == "" {
+		panic("no database endpoint configured")
+	}
 	if searchEntityBlock != nil {
 		itemStorage = storage.NewBuilder().
 			WithNamespace(name).
