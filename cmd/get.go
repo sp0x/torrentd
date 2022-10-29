@@ -11,6 +11,7 @@ import (
 	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/indexer/status"
+	"github.com/sp0x/torrentd/storage/bolt"
 )
 
 func init() {
@@ -20,12 +21,14 @@ func init() {
 		Run:   getCommand,
 	}
 	storage := ""
+	storageEndpoint := ""
 	query := ""
 	workers := 0
 	users := 1
 	cmdFlags := cmdGet.PersistentFlags()
 	cmdFlags.StringVarP(&storage, "storage", "o", "boltdb", `The storage backing to use.
 Currently supported storage backings: boltdb, firebase, sqlite`)
+	cmdFlags.StringVarP(&storageEndpoint, "storageendpoint", "s", bolt.GetDefaultDatabasePath(), `The endpoint that should be used for storing data.`)
 	cmdFlags.StringVar(&query, "query", "", `Query to use when searching`)
 	cmdFlags.IntVar(&workers, "workers", 0, "The number of parallel searches that can be used.")
 	cmdFlags.IntVar(&users, "users", 1, "The number of user sessions to use in rotation.")
@@ -38,6 +41,8 @@ Currently supported storage backings: boltdb, firebase, sqlite`)
 	// Storage config
 	_ = viper.BindPFlag("storage", cmdFlags.Lookup("storage"))
 	_ = viper.BindEnv("storage")
+	_ = viper.BindEnv("storageendpoint")
+	_ = viper.BindPFlag("storageendpoint", cmdFlags.Lookup("storageendpoint"))
 	// Firebase related
 	_ = viper.BindPFlag("firebase_project", cmdFlags.Lookup("firebase_project"))
 	_ = viper.BindEnv("firebase_project")

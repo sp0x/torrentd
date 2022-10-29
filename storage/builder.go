@@ -106,7 +106,7 @@ func (b *Builder) Build() ItemStorage {
 
 func init() {
 	storageBackingMap["boltdb"] = func(builder *Builder) ItemStorageBacking {
-		b, err := bolt.NewBoltStorage(builder.endpoint, builder.recordTypePtr)
+		b, err := bolt.NewBoltDbStorage(builder.endpoint, builder.recordTypePtr)
 		if err != nil {
 			fmt.Printf("Error while constructing boltdb storage: %v", err)
 			os.Exit(1)

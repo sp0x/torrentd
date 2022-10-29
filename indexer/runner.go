@@ -175,11 +175,11 @@ func getStorageForIndex(name string, searchEntityBlock *entityBlock, conf config
 		panic("no storage type configured")
 	}
 	var itemStorage storage.ItemStorage
-	dbPath := conf.GetString("db")
+	dbEndpoint := conf.GetString("storageendpoint")
 	if searchEntityBlock != nil {
 		itemStorage = storage.NewBuilder().
 			WithNamespace(name).
-			WithEndpoint(dbPath).
+			WithEndpoint(dbEndpoint).
 			WithPK(searchEntityBlock.GetKey()).
 			WithBacking(storageType).
 			WithRecord(&search.ScrapeResultItem{}).
@@ -187,7 +187,7 @@ func getStorageForIndex(name string, searchEntityBlock *entityBlock, conf config
 	} else {
 		itemStorage = storage.NewBuilder().
 			WithNamespace(name).
-			WithEndpoint(dbPath).
+			WithEndpoint(dbEndpoint).
 			WithBacking(storageType).
 			WithRecord(&search.ScrapeResultItem{}).
 			Build()

@@ -38,7 +38,7 @@ var _ = Describe("Bolt storage", func() {
 		key := indexing.NewKey("ChatID")
 		// Init db
 		BeforeEach(func() {
-			tmpBstore, err := NewBoltStorage(tempfile(), &bots.Chat{})
+			tmpBstore, err := NewBoltDbStorage(tempfile(), &bots.Chat{})
 			if err != nil {
 				Fail(fmt.Sprintf("Couldn't open a db: %v", err))
 				return
@@ -195,7 +195,7 @@ func TestNewBoltStorage(t *testing.T) {
 	for _, tt := range tests {
 		// Run as a subtest
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewBoltStorage(tempfile(), &bots.Chat{})
+			got, err := NewBoltDbStorage(tempfile(), &bots.Chat{})
 			g.Expect(err).ShouldNot(gomega.HaveOccurred())
 			g.Expect(got).ShouldNot(gomega.BeNil())
 		})
@@ -234,7 +234,7 @@ func Test_getItemKey(t *testing.T) {
 
 func TestBoltStorage_GetBucket(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
-	storage, err := NewBoltStorage(tempfile(), &bots.Chat{})
+	storage, err := NewBoltDbStorage(tempfile(), &bots.Chat{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -269,7 +269,7 @@ func TestBoltStorage_GetBucket(t *testing.T) {
 
 func TestBoltStorage_Find(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
-	storage, err := NewBoltStorage(tempfile(), &bots.Chat{})
+	storage, err := NewBoltDbStorage(tempfile(), &bots.Chat{})
 	if err != nil {
 		t.Fatal(err)
 	}

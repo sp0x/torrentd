@@ -52,21 +52,21 @@ func ensurePathExists(dbPath string) {
 	_ = os.MkdirAll(dirPath, os.ModePerm)
 }
 
-// NewBoltStorage - opens a BoltDB storage file
-func NewBoltStorage(dbPath string, recordTypePtr interface{}) (*Storage, error) {
+// NewBoltDbStorage - opens a BoltDB storage file
+func NewBoltDbStorage(dbPath string, recordTypePtr interface{}) (*Storage, error) {
 	if dbPath == "" {
-		dbPath = DefaultBoltPath()
+		return nil, errors.New("dbPath is required")
 	}
 	if reflect.TypeOf(recordTypePtr).Kind() != reflect.Ptr {
 		return nil, errors.New("recordTypePtr must be a pointer type")
 	}
 	ensurePathExists(dbPath)
-	dbx, err := GetBoltDB(dbPath)
+	dbInstance, err := GetBoltDB(dbPath)
 	if err != nil {
 		return nil, err
 	}
 	bolts := &Storage{
-		Database:   dbx,
+		Database:   dbInstance,
 		marshaler:  serializers.NewDynamicMarshaler(recordTypePtr, json.Serializer),
 		recordType: reflect.Indirect(reflect.ValueOf(recordTypePtr)).Type(),
 		metadata:   &Metadata{},
@@ -80,15 +80,15 @@ func NewBoltStorage(dbPath string, recordTypePtr interface{}) (*Storage, error) 
 }
 
 func GetBoltDB(file string) (*bolt.DB, error) {
-	dbx, err := bolt.Open(file, 0600, nil)
+	dbInstance, err := bolt.Open(file, 0600, nil)
 	if err != nil {
 		return nil, err
 	}
-	err = setupCategories(dbx)
+	err = setupCategories(dbInstance)
 	if err != nil {
 		return nil, err
 	}
-	return dbx, nil
+	return dbInstance, nil
 }
 
 func setupCategories(db *bolt.DB) error {
@@ -341,7 +341,7 @@ func (b *Storage) ForEach(callback func(record search.Record)) {
 	})
 }
 
-func DefaultBoltPath() string {
+func GetDefaultDatabasePath() string {
 	cwd, _ := os.Getwd()
 	return path.Join(cwd, "db", "bolt.db")
 }

@@ -14,7 +14,7 @@ import (
 
 func TestKeyedStorage_Add(t *testing.T) {
 	g := NewWithT(t)
-	bolts, _ := bolt.NewBoltStorage(tempfile(), &search.ScrapeResultItem{})
+	bolts, _ := bolt.NewBoltDbStorage(tempfile(), &search.ScrapeResultItem{})
 	// We'll use `a` as a primary key
 	storage := NewBuilder().
 		WithPK(indexing.NewKey("a")).
@@ -135,7 +135,7 @@ func TestGetIndexValueFromItem(t *testing.T) {
 
 func TestKeyedStorage_NewWithKey(t *testing.T) {
 	g := NewWithT(t)
-	bolts, _ := bolt.NewBoltStorage(tempfile(), &search.ScrapeResultItem{})
+	bolts, _ := bolt.NewBoltDbStorage(tempfile(), &search.ScrapeResultItem{})
 	storage := NewBuilder().
 		WithPK(indexing.NewKey("a")).
 		BackedBy(bolts).
