@@ -48,7 +48,7 @@ fix: bin/golangci-lint ## Fix lint violations
 build-multi-arch:
 	gox -os="${OS}" -arch="${ARCH}" -output="$(NAME).{{.OS}}.{{.Arch}}" -ldflags "-s -w -X main.Rev=`git rev-parse --short HEAD`" -verbose ./...
 
-assets:
+assets: install-deps
 	@echo "Embedding assets as code"
 	bindata -o indexer/definitions/assets.go ./definitions/...
 

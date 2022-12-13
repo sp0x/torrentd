@@ -53,7 +53,7 @@ Currently supported storage backings: boltdb, firebase, sqlite`)
 func watchIndex(c *cobra.Command, _ []string) {
 	facade := indexer.NewFacadeFromConfiguration(&appConfig)
 	if facade == nil {
-		log.Error("Couldn't initialize torrent facade.")
+		log.Error("Couldn't initialize.")
 		return
 	}
 	// Init the server

@@ -9,8 +9,8 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "rutracker",
-	Short: "Gathers torrents from rutracker and serves them through a RSS server.",
+	Use:   "torrentd",
+	Short: "Bittorrent discovery and RSS server.",
 }
 var configFile = ""
 
