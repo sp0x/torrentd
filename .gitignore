@@ -11,4 +11,4 @@ ignored
 dumps
 bin
 *.exe
-./torrentd
+torrentd
