@@ -12,7 +12,6 @@ import (
 	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/indexer/status"
-	"github.com/sp0x/torrentd/server"
 )
 
 func init() {
@@ -33,9 +32,6 @@ Currently supported storage backings: boltdb, firebase, sqlite`)
 	firebaseCredentials := ""
 	cmdFlags.StringVarP(&firebaseCredentials, "firebase_project", "", "", "The project id for firebase")
 	cmdFlags.StringVarP(&firebaseProject, "firebase_credentials_file", "", "", "The service credentials for firebase")
-	viper.SetDefault("port", 5000)
-	_ = viper.BindEnv("port")
-	_ = viper.BindEnv("api_key")
 	// Storage config
 	_ = viper.BindPFlag("storage", cmdFlags.Lookup("storage"))
 	_ = viper.BindEnv("storage")
@@ -56,14 +52,6 @@ func watchIndex(c *cobra.Command, _ []string) {
 		log.Error("Couldn't initialize.")
 		return
 	}
-	// Init the server
-	go func() {
-		rserver := server.NewServer(&appConfig)
-		err := rserver.Listen(facade)
-		if err != nil {
-			fmt.Print(err)
-		}
-	}()
 
 	// Start watching the torrent tracker.
 	status.SetupPubsub(appConfig.GetString("firebase_project"))
