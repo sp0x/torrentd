@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 
 	"github.com/sp0x/torrentd/indexer"
@@ -17,6 +20,10 @@ func init() {
 }
 
 func fetchTorrents(_ *cobra.Command, _ []string) {
-	facade := indexer.NewFacadeFromConfiguration(&appConfig)
+	facade, err := indexer.NewFacadeFromConfiguration(&appConfig)
+	if err != nil {
+		fmt.Print(err)
+		os.Exit(1)
+	}
 	_ = torrent.GetNewScrapeItems(facade, nil)
 }

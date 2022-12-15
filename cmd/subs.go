@@ -22,8 +22,9 @@ func init() {
 }
 
 func findSubtitles(_ *cobra.Command, args []string) {
-	helper := indexer.NewFacadeFromConfiguration(&appConfig)
-	if helper == nil {
+	helper, err := indexer.NewFacadeFromConfiguration(&appConfig)
+	if err != nil {
+		fmt.Printf("Couldn't initialize: %s", err)
 		os.Exit(1)
 	}
 	searchQuery := strings.Join(args, " ")

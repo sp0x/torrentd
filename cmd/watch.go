@@ -47,9 +47,9 @@ Currently supported storage backings: boltdb, firebase, sqlite`)
 }
 
 func watchIndex(c *cobra.Command, _ []string) {
-	facade := indexer.NewFacadeFromConfiguration(&appConfig)
-	if facade == nil {
-		log.Error("Couldn't initialize.")
+	facade, err := indexer.NewFacadeFromConfiguration(&appConfig)
+	if err != nil {
+		fmt.Printf("Couldn't initialize: %s", err)
 		return
 	}
 

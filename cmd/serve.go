@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/sp0x/torrentd/indexer"
 	"github.com/sp0x/torrentd/server"
 	"github.com/spf13/cobra"
@@ -34,14 +34,14 @@ Currently supported storage backings: boltdb, firebase, sqlite`)
 }
 
 func serve(c *cobra.Command, _ []string) {
-	facade := indexer.NewFacadeFromConfiguration(&appConfig)
-	if facade == nil {
-		log.Error("Couldn't initialize.")
-		return
+	facade, err := indexer.NewFacadeFromConfiguration(&appConfig)
+	if err != nil {
+		fmt.Printf("Couldn't initialize: %s", err)
+		os.Exit(1)
 	}
 	// Init the server
 	rserver := server.NewServer(&appConfig)
-	err := rserver.Listen(facade)
+	err = rserver.Listen(facade)
 	if err != nil {
 		fmt.Print(err)
 	}

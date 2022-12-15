@@ -1,7 +1,9 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
+	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 
 	"github.com/sp0x/torrentd/indexer"
@@ -21,10 +23,10 @@ func init() {
 }
 
 func resolveTorrents(_ *cobra.Command, _ []string) {
-	facade := indexer.NewFacadeFromConfiguration(&appConfig)
-	if facade == nil {
-		log.Error("Couldn't initialize facade.")
-		return
+	facade, err := indexer.NewFacadeFromConfiguration(&appConfig)
+	if err != nil {
+		fmt.Printf("Couldn't initialize facade: %s", err)
+		os.Exit(1)
 	}
 	indexes := facade.Indexes
 	torrent.ResolveTorrents(indexes, &appConfig)

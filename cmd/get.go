@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"text/tabwriter"
 
@@ -56,10 +57,10 @@ Currently supported storage backings: boltdb, firebase, sqlite`)
 
 func getCommand(c *cobra.Command, _ []string) {
 	status.SetupPubsub(appConfig.GetString("firebase_project"))
-	facade := indexer.NewFacadeFromConfiguration(&appConfig)
-	if facade == nil {
-		log.Error("Couldn't initialize index facade.")
-		return
+	facade, err := indexer.NewFacadeFromConfiguration(&appConfig)
+	if err != nil {
+		fmt.Printf("Couldn't initialize index facade: %s", err)
+		os.Exit(1)
 	}
 
 	tabWr := new(tabwriter.Writer)

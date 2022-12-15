@@ -3,7 +3,6 @@ package indexer
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"sync"
 
@@ -51,23 +50,22 @@ type workerJob struct {
 }
 
 // NewFacadeFromConfiguration Creates a new facade using the configuration
-func NewFacadeFromConfiguration(cfg config.Config) *Facade {
+func NewFacadeFromConfiguration(cfg config.Config) (*Facade, error) {
 	facade := NewEmptyFacade(cfg)
 	indexName := cfg.GetString("index")
 	if indexName == "" {
-		fmt.Print(noIndexError)
-		os.Exit(1)
+		return nil, errors.New(noIndexError)
 	}
 	log.WithFields(log.Fields{"name": indexName}).
 		Debug("Creating new facade from configuration")
 	indexes, err := facade.IndexScope.Lookup(cfg, indexName)
 	if err != nil {
 		log.WithFields(log.Fields{"name": indexName}).
-			Error("Could not find Indexes.")
-		return nil
+			Error("Could not find indexes.")
+		return nil, err
 	}
 	facade.Indexes = indexes
-	return facade
+	return facade, nil
 }
 
 // NewEmptyFacade creates a new indexer facade with its own scope and config.

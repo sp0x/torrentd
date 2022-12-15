@@ -23,7 +23,7 @@ func init() {
 	flags.BoolVarP(&verbose, "verbose", "v", false, "Show more logs.")
 	flags.BoolVarP(&dumpInputData, "dump", "", false, "Dump input data.")
 	flags.StringVar(&configFile, "config", "", "The configuration file to use. By default it is ~/.torrentd/.tracker-rss.yaml")
-	flags.StringVarP(&index, "index", "x", "", "The index to use. If you need to use multiple you can separate them with a comma.")
+	flags.StringVarP(&index, "index", "x", "all", "The index to use. If you need to use multiple you can separate them with a comma.")
 	_ = viper.BindPFlag("verbose", flags.Lookup("verbose"))
 	_ = viper.BindEnv("verbose")
 

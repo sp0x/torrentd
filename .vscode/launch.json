@@ -9,7 +9,8 @@
             "program": "./cmd",
             "envFile": "${workspaceFolder}/.env",
             // Index name must match the way it's defined in the definition loaders({index}.y(a)ml)
-            "args": ["watch", "-x", "zamunda", "--config", "../ignored/watch.yaml", "-i", "100000"]
+            // "args": ["watch", "-x", "zamunda", "--config", "../ignored/watch.yaml", "-i", "100000"]
+            "args": ["serve", "--config", "../ignored/serve.yaml"]
         }
     ]
 }

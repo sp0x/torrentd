@@ -1,6 +1,7 @@
 # General
 
 CURRENT_OS = $(shell uname | tr A-Z a-z)
+EXECUTABLE_EXTENSION = 
 WORKDIR = $(PWD)
 
 # Go parameters
@@ -19,12 +20,17 @@ OS=linux darwin windows
 
 GOLANGCI_VERSION = 1.33.0
 
+ifeq ($(suffix $(SHELL)),.exe)
+    # Windows system
+	EXECUTABLE_EXTENSION := .exe
+endif
+
 ifneq ($(origin CI), undefined)
 	WORKDIR := $(GOPATH)/src/github.com/$(AUTHOR)/$(NAME)
 endif
 
 build:
-	go build -o $(NAME) ./cmd
+	go build -o $(NAME)$(EXECUTABLE_EXTENSION) ./cmd
 
 bin/golangci-lint: bin/golangci-lint-${GOLANGCI_VERSION}
 	@ln -sf golangci-lint-${GOLANGCI_VERSION} bin/golangci-lint
