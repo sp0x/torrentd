@@ -16,10 +16,11 @@ var appConfig config.ViperConfig
 func initConfig() {
 	// We load the default config file
 	homeDir, _ := homedir.Dir()
+	defaultConfigPath := ""
 	if configFile != "" {
 		viper.SetConfigFile(configFile)
 	} else {
-		defaultConfigPath := path.Join(homeDir, ".torrentd")
+		defaultConfigPath = path.Join(homeDir, ".torrentd")
 		_ = os.MkdirAll(defaultConfigPath, os.ModePerm)
 		viper.AddConfigPath(defaultConfigPath)
 		viper.SetConfigType("yaml")
@@ -29,6 +30,9 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			config.SetDefaults(&appConfig)
+			log.WithFields(log.Fields{
+				"path": defaultConfigPath,
+			}).Info("no config file found, creating one using defaults")
 			err = viper.SafeWriteConfig()
 			if err != nil {
 				log.Warningf("error while writing default config file: %v\n", err)
