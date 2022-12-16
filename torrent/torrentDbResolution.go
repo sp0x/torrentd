@@ -12,8 +12,8 @@ import (
 )
 
 // Gets torrent information from a given tracker and updates the torrent db
-func ResolveTorrents(index indexer.IndexCollection, config config.Config) []search.ResultItemBase {
-	store := storage.NewBuilder().
+func ResolveTorrents(index indexer.IndexCollection, cfg config.Config) []search.ResultItemBase {
+	store := storage.NewBuilder(cfg).
 		WithRecord(&search.ScrapeResultItem{}).
 		Build()
 	defer store.Close()
@@ -29,7 +29,7 @@ func ResolveTorrents(index indexer.IndexCollection, config config.Config) []sear
 		if item.Announce != "" {
 			continue
 		}
-		index, err := indexScope.Lookup(config, item.Site)
+		index, err := indexScope.Lookup(cfg, item.Site)
 		if err != nil {
 			log.WithFields(log.Fields{"err": err, "site": item.Site}).
 				Warningf("Error while looking up indexer.")

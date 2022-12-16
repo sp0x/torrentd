@@ -1,12 +1,15 @@
 package indexer
 
 import (
+	config "github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer/search"
 	"github.com/sp0x/torrentd/indexer/status/models"
 	"github.com/sp0x/torrentd/storage"
 )
 
-type StandardReportGenerator struct{}
+type StandardReportGenerator struct {
+	config config.Config
+}
 
 //go:generate mockgen -source reportGenerator.go -destination=reportGeneratorMocks.go -package=indexer
 type ReportGenerator interface {
@@ -14,8 +17,14 @@ type ReportGenerator interface {
 	GetIndexesStatus(s *Facade) []models.IndexStatus
 }
 
+func NewStandardStatusReportGenerator(conf config.Config) ReportGenerator {
+	return &StandardReportGenerator{
+		config: conf,
+	}
+}
+
 func (st *StandardReportGenerator) GetLatestItems() []models.LatestResult {
-	store := storage.NewBuilder().
+	store := storage.NewBuilder(st.config).
 		WithRecord(&search.TorrentResultItem{}).
 		Build()
 	latest := store.GetLatest(20)
@@ -34,7 +43,7 @@ func (st *StandardReportGenerator) GetLatestItems() []models.LatestResult {
 }
 
 func (st *StandardReportGenerator) GetIndexesStatus(indexFacade *Facade) []models.IndexStatus {
-	store := storage.NewBuilder().
+	store := storage.NewBuilder(st.config).
 		WithRecord(&search.ScrapeResultItem{}).
 		Build()
 	storageStats := store.GetStats(false)

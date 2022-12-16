@@ -25,7 +25,7 @@ func init() {
 }
 
 func getInfo(_ *cobra.Command, _ []string) {
-	store := storage.NewBuilder().
+	store := storage.NewBuilder(&appConfig).
 		WithRecord(&search.ScrapeResultItem{}).
 		Build()
 	defer store.Close()

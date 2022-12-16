@@ -44,7 +44,7 @@ func NewTelegram(token string, cfg config.Config, provider TelegramProvider) (*T
 		storageType = "boltdb"
 		// panic("no storage type configured")
 	}
-	telegram.storage = storage.NewBuilder().
+	telegram.storage = storage.NewBuilder(cfg).
 		WithNamespace("__chats_telegram").
 		WithPK(indexing.NewKey("id")).
 		WithBacking(storageType).

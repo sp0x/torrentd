@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
+	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/storage/bolt"
 	"github.com/sp0x/torrentd/storage/firebase"
 	"github.com/sp0x/torrentd/storage/indexing"
@@ -14,9 +15,9 @@ import (
 
 var storageBackingMap = make(map[string]func(builder *Builder) ItemStorageBacking)
 
-func NewBuilder() *Builder {
+func NewBuilder(cfg config.Config) *Builder {
 	b := &Builder{}
-	return b.WithDefaultBacking()
+	return b.WithDefaultBacking(cfg)
 }
 
 // Builder for ItemStorage
@@ -48,8 +49,11 @@ func (b *Builder) BackedBy(backing ItemStorageBacking) *Builder {
 }
 
 // WithDefaultBacking sets the storage backing to `boltdb`
-func (b *Builder) WithDefaultBacking() *Builder {
+func (b *Builder) WithDefaultBacking(cfg config.Config) *Builder {
 	b.backingType = "boltdb"
+	if cfg != nil {
+		b.endpoint = cfg.GetString("storageendpoint")
+	}
 	return b
 }
 

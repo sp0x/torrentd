@@ -180,7 +180,7 @@ func getIndexDatabase(name string, searchEntityBlock *entityBlock, conf config.C
 		panic("no database endpoint configured")
 	}
 	if searchEntityBlock != nil {
-		itemStorage = storage.NewBuilder().
+		itemStorage = storage.NewBuilder(conf).
 			WithNamespace(name).
 			WithEndpoint(dbEndpoint).
 			WithPK(searchEntityBlock.GetKey()).
@@ -188,7 +188,7 @@ func getIndexDatabase(name string, searchEntityBlock *entityBlock, conf config.C
 			WithRecord(&search.ScrapeResultItem{}).
 			Build()
 	} else {
-		itemStorage = storage.NewBuilder().
+		itemStorage = storage.NewBuilder(conf).
 			WithNamespace(name).
 			WithEndpoint(dbEndpoint).
 			WithBacking(storageType).

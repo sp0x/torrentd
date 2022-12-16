@@ -54,7 +54,7 @@ func NewServer(conf config.Config) *Server {
 		APIKey:     conf.GetBytes("api_key"),
 	}
 	s.indexerFacade = indexer.NewEmptyFacade(conf)
-	s.status = &indexer.StandardReportGenerator{}
+	s.status = indexer.NewStandardStatusReportGenerator(conf)
 	return s
 }
 
