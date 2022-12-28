@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 
+	// swagger embed files
 	"github.com/sp0x/torrentd/config"
 	"github.com/sp0x/torrentd/indexer"
 )
@@ -70,7 +71,12 @@ func (s *Server) Listen(tracker *indexer.Facade) error {
 	s.setupRoutes(r)
 	log.Info("Starting server...")
 	key := s.sharedKey()
-	log.Infof("API Key: %s", key)
+	if len(key) > 0 {
+		log.Infof("API Key: %s", key)
+	} else {
+		log.Infof("Running without API Key")
+	}
+
 	err := r.Run(fmt.Sprintf(":%d", s.Port))
 	return err
 }

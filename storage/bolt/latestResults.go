@@ -68,16 +68,17 @@ func (b *Storage) GetLatest(count int) []search.ResultItemBase {
 		if err != nil {
 			return err
 		}
-		itemsFetched := 0
+
 		for _, value := cursor.First(); value != nil && cursor.CanContinue(value); _, value = cursor.Next() {
 			newItem := reflect.New(b.recordType).Interface().(search.ResultItemBase)
 			if err := b.marshaler.UnmarshalAt(value, &newItem); err != nil {
 				log.Warning("Couldn't deserialize item from bolt storage.")
 				break
 			}
+
 			output = append(output, newItem)
-			itemsFetched++
-			if itemsFetched == count {
+
+			if len(output) == count {
 				break
 			}
 		}

@@ -16,9 +16,20 @@ type statusResponse struct {
 	Indexes []models.IndexStatus  `json:"indexes"`
 }
 
+// Status godoc
+// @Summary      Show an account
+// @Description  get status of the server
+// @Tags         status
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  model.Account
+// @Failure      400  {object}  httputil.HTTPError
+// @Failure      404  {object}  httputil.HTTPError
+// @Failure      500  {object}  httputil.HTTPError
+// @Router       /status [get]
 func (s *Server) Status(c *gin.Context) {
 	var statusObj statusResponse
-	// If we don't have it in the cache
+
 	if !statusCache.Contains("status") {
 		latestResultItems := s.status.GetLatestItems()
 		statusObj = statusResponse{

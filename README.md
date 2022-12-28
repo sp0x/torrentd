@@ -25,17 +25,22 @@ You can store your scraping data with the following databases:
  - Firebase
 
 ## Querying
+
 You can query using the `--query` flag.
 The query value can be:
-- Text  
+
+- Text
 - Range
+
 An example range is: `$phone:rng(0000001, 0000010)`.
 This would use the values in the range of 0000001 to 0000010 for the field `phone`
 The current range value will be stored in the search instance, so each request increments the `phone` value.
 
 ## Configuration
-Configuration will be loaded from `~/.torrentd/torrentd.yml`.   
+
+Configuration will be loaded from `~/.torrentd/torrentd.yml`.
 Here's a brief overview of what you can configure:
+
 ```yaml
 # The key for accessing the API.
 api_key: hsreth45hgertdf

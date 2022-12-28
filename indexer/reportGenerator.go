@@ -24,11 +24,11 @@ func NewStandardStatusReportGenerator(conf config.Config) ReportGenerator {
 }
 
 func (st *StandardReportGenerator) GetLatestItems() []models.LatestResult {
-	store := storage.NewBuilder(st.config).
+	strg := storage.NewBuilder(st.config).
 		WithRecord(&search.TorrentResultItem{}).
 		Build()
-	latest := store.GetLatest(20)
-	store.Close()
+	latest := strg.GetLatest(20)
+	strg.Close()
 	latestResultItems := make([]models.LatestResult, len(latest))
 	for _, late := range latest {
 		torrentItem := late.(*search.TorrentResultItem)

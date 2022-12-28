@@ -304,11 +304,14 @@ func (r *Runner) Search(query *search.Query, srch *workerJob) ([]search.ResultIt
 	}
 
 	results := r.processScrapedItems(scrapeItems, rowContext)
-
+	searchString := ""
+	if srch != nil {
+		searchString = srch.String()
+	}
 	r.logger.
 		WithFields(log.Fields{
 			"Indexes": r.definition.Site,
-			"search":  srch.String(),
+			"search":  searchString,
 			"q":       query.Keywords(),
 			"time":    time.Since(startedOn),
 		}).

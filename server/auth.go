@@ -30,9 +30,6 @@ func (s *Server) sharedKey() []byte {
 }
 
 func (s *Server) checkAPIKey(inputKey string) bool {
-	if inputKey == "" {
-		return false
-	}
 	k := s.sharedKey()
 	keyToMatch := string(k)
 	if inputKey == keyToMatch {
