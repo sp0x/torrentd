@@ -33,6 +33,13 @@ Currently supported storage backings: boltdb, firebase, sqlite`)
 	rootCmd.AddCommand(cmdServe)
 }
 
+// @title Torrentd API
+// @description Torrentd is a torrent RSS feed generator.
+// @version 1.0.0
+// @BasePath /
+// @license MIT
+// @host localhost:5000
+// @schemes http
 func serve(c *cobra.Command, _ []string) {
 	facade, err := indexer.NewFacadeFromConfiguration(&appConfig)
 	if err != nil {

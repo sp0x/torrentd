@@ -34,5 +34,6 @@ func (s *Server) setupRoutes(r *gin.Engine) {
 	r.HEAD("/d/:token/:filename", func(c *gin.Context) { s.downloadHandler(c) })
 	r.GET("/d/:token/:filename", func(c *gin.Context) { s.downloadHandler(c) })
 
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+	url := ginSwagger.URL("/swagger/doc.json") // The url pointing to API definition
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler, url))
 }

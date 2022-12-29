@@ -15,17 +15,97 @@ const docTemplate = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {}
+    "paths": {
+        "/status": {
+            "get": {
+                "description": "get status of the server",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "status"
+                ],
+                "summary": "Show an account",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.statusResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.IndexStatus": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "index": {
+                    "type": "string"
+                },
+                "is_aggregate": {
+                    "type": "boolean"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.LatestResult": {
+            "type": "object",
+            "properties": {
+                "desc": {
+                    "type": "string"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "site": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.statusResponse": {
+            "type": "object",
+            "properties": {
+                "indexes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.IndexStatus"
+                    }
+                },
+                "latest": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.LatestResult"
+                    }
+                }
+            }
+        }
+    }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
-	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Version:          "1.0.0",
+	Host:             "localhost:5000",
+	BasePath:         "/",
+	Schemes:          []string{"http"},
+	Title:            "Torrentd API",
+	Description:      "Torrentd is a torrent RSS feed generator.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

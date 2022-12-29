@@ -20,12 +20,9 @@ type statusResponse struct {
 // @Summary      Show an account
 // @Description  get status of the server
 // @Tags         status
-// @Accept       json
+// @Accept       */*
 // @Produce      json
-// @Success      200  {object}  model.Account
-// @Failure      400  {object}  httputil.HTTPError
-// @Failure      404  {object}  httputil.HTTPError
-// @Failure      500  {object}  httputil.HTTPError
+// @Success      200  {object}  statusResponse
 // @Router       /status [get]
 func (s *Server) Status(c *gin.Context) {
 	var statusObj statusResponse
@@ -40,6 +37,7 @@ func (s *Server) Status(c *gin.Context) {
 		cached, _ := statusCache.Get("status")
 		statusObj = cached.(statusResponse)
 	}
+
 	statusObj.Indexes = s.status.GetIndexesStatus(s.indexerFacade)
 	c.JSON(200, statusObj)
 }

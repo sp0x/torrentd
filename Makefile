@@ -54,12 +54,16 @@ fix: bin/golangci-lint ## Fix lint violations
 build-multi-arch:
 	gox -os="${OS}" -arch="${ARCH}" -output="$(NAME).{{.OS}}.{{.Arch}}" -ldflags "-s -w -X main.Rev=`git rev-parse --short HEAD`" -verbose ./...
 
-assets: install-deps
+swagger: install-deps
+	swag init --dir ./,./cmd,./server -g ./cmd/serve.go
+
+assets: install-deps swagger
 	@echo "Embedding assets as code"
 	bindata -o indexer/definitions/assets.go ./definitions/...
 
 install-deps:
 	@echo "Installing go utils"
+	go install github.com/swaggo/swag/cmd/swag@latest
 	go get github.com/kataras/bindata/cmd/bindata
 
 install:

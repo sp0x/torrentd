@@ -1,7 +1,95 @@
 {
+    "schemes": [
+        "http"
+    ],
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "Torrentd is a torrent RSS feed generator.",
+        "title": "Torrentd API",
+        "contact": {},
+        "version": "1.0.0"
     },
-    "paths": {}
+    "host": "localhost:5000",
+    "basePath": "/",
+    "paths": {
+        "/status": {
+            "get": {
+                "description": "get status of the server",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "status"
+                ],
+                "summary": "Show an account",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.statusResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.IndexStatus": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "index": {
+                    "type": "string"
+                },
+                "is_aggregate": {
+                    "type": "boolean"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.LatestResult": {
+            "type": "object",
+            "properties": {
+                "desc": {
+                    "type": "string"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "site": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.statusResponse": {
+            "type": "object",
+            "properties": {
+                "indexes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.IndexStatus"
+                    }
+                },
+                "latest": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.LatestResult"
+                    }
+                }
+            }
+        }
+    }
 }

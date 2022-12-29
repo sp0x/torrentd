@@ -1,4 +1,62 @@
+basePath: /
+definitions:
+  models.IndexStatus:
+    properties:
+      errors:
+        items:
+          type: string
+        type: array
+      index:
+        type: string
+      is_aggregate:
+        type: boolean
+      size:
+        type: integer
+    type: object
+  models.LatestResult:
+    properties:
+      desc:
+        type: string
+      link:
+        type: string
+      name:
+        type: string
+      site:
+        type: string
+    type: object
+  server.statusResponse:
+    properties:
+      indexes:
+        items:
+          $ref: '#/definitions/models.IndexStatus'
+        type: array
+      latest:
+        items:
+          $ref: '#/definitions/models.LatestResult'
+        type: array
+    type: object
+host: localhost:5000
 info:
   contact: {}
-paths: {}
+  description: Torrentd is a torrent RSS feed generator.
+  title: Torrentd API
+  version: 1.0.0
+paths:
+  /status:
+    get:
+      consumes:
+      - '*/*'
+      description: get status of the server
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.statusResponse'
+      summary: Show an account
+      tags:
+      - status
+schemes:
+- http
 swagger: "2.0"

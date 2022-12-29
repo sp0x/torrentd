@@ -49,6 +49,7 @@ require (
 	github.com/swaggo/swag v1.8.9 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	github.com/ugorji/go/codec v1.2.8 // indirect
+	github.com/urfave/cli/v2 v2.23.7 // indirect
 	go.zoe.im/surferua v0.0.3
 	golang.org/x/crypto v0.4.0 // indirect
 	golang.org/x/net v0.4.0
