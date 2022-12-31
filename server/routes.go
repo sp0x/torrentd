@@ -23,8 +23,12 @@ func (s *Server) setupRoutes(r *gin.Engine) {
 	r.GET("/health", s.HealthCheck)
 
 	// Torznab
-	r.GET("torznab/:indexer", s.torznabHandler)
-	r.GET("torznab/:indexer/api", s.torznabHandler)
+	torznab := r.Group("torznab")
+	{
+		torznab.GET("/caps/:indexes", s.torznabIndexCapabilities)
+		torznab.GET("/:indexes", s.torznabHandler)
+		torznab.GET("/:indexes/api", s.torznabHandler)
+	}
 	// Aggregated indexers info
 	r.GET("t/all/status", s.aggregatesStatus)
 

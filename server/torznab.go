@@ -36,30 +36,73 @@ func (s *Server) aggregatesStatus(c *gin.Context) {
 
 var searchCache, _ = cache.NewTTL(100, 1*time.Hour)
 
-// Handle queries
-func (s *Server) torznabHandler(c *gin.Context) {
-	_ = c.Params
-	indexerID := indexer.ResolveIndexID(s.indexerFacade.IndexScope, c.Param("searchIndexes"))
-	t := c.Query("t")
+// torznabIndexCapabilities godoc
+// @Summary      Torznab capabilities
+// @Description  Get the index(es) capabilities in torznab format
+// @Tags         torznab
+// @Accept       */*
+// @param        indexes path string false "Index name(s) to get the capabilities for"
+// @Router       /torznab/caps/{indexes} [get]
+// @Produce      xml
+// @Success      200  {object}  torznab.Capabilities
+// @Failure 	 404  {object}  torznab.err
+func (s *Server) torznabIndexCapabilities(c *gin.Context) {
+	indexerID := indexer.ResolveIndexID(s.indexerFacade.IndexScope, c.Param("indexes"))
 	searchIndexes, err := s.indexerFacade.IndexScope.Lookup(s.config, indexerID)
 	if err != nil {
 		torznab.Error(c, err.Error(), torznab.ErrIncorrectParameter)
 		return
 	}
+
+	searchIndex := searchIndexes[0]
+
+	searchIndex.Capabilities().ServeHTTP(c.Writer, c.Request)
+}
+
+// torznabHandler godoc
+// @Summary      Torznab handler
+// @Description  Query indexes in torznab format
+// @Tags         torznab
+// @Accept       */*
+// @param        indexes path string false "Index name(s) to search through"
+// @param        t query string false "Type of search. Can be caps, search, tvsearch, tv-search, movie, movie-search, moviesearch. Defaults to caps, returning the capabilities."
+// @param 	  	 q query string false "Search query"
+// @param 	  	 cat query string false "Category"
+// @param 	  	 format query string false "The output format to use"
+// @Produce      xml,json
+// @Success      200  {object}  torznab.ResultFeed
+// @Failure 	 404 {type} string "404 page not found"
+// @Router       /torznab/{indexes} [get]
+func (s *Server) torznabHandler(c *gin.Context) {
+	_ = c.Params
+
+	t := c.Query("t")
+	if t == "" {
+		// Redirect to capabilities
+		http.Redirect(c.Writer, c.Request, "/torznab/caps/"+c.Param("indexes"), http.StatusTemporaryRedirect)
+		return
+	} else if t == "caps" {
+		s.torznabIndexCapabilities(c)
+		return
+	}
+
+	indexerID := indexer.ResolveIndexID(s.indexerFacade.IndexScope, c.Param("indexes"))
+	searchIndexes, err := s.indexerFacade.IndexScope.Lookup(s.config, indexerID)
+	if err != nil {
+		torznab.Error(c, err.Error(), torznab.ErrIncorrectParameter)
+		return
+	}
+
 	searchIndex := searchIndexes[0]
 
 	if t == "caps" {
 		searchIndex.Capabilities().ServeHTTP(c.Writer, c.Request)
 		return
 	}
+
 	apiKey := c.Query("apikey")
 	if !s.checkAPIKey(apiKey) {
 		torznab.Error(c, "Invalid apikey parameter", torznab.ErrInsufficientPrivs)
-		return
-	}
-
-	if t == "" {
-		http.Redirect(c.Writer, c.Request, c.Request.URL.Path+"?t=caps", http.StatusTemporaryRedirect)
 		return
 	}
 

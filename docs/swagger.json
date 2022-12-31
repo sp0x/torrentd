@@ -24,7 +24,7 @@
                 "tags": [
                     "status"
                 ],
-                "summary": "Show an account",
+                "summary": "Status of the server",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -34,9 +34,125 @@
                     }
                 }
             }
+        },
+        "/torznab/caps/{indexes}": {
+            "get": {
+                "description": "Get the index(es) capabilities in torznab format",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "text/xml"
+                ],
+                "tags": [
+                    "torznab"
+                ],
+                "summary": "Torznab capabilities",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Index name(s) to get the capabilities for",
+                        "name": "indexes",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/torznab.Capabilities"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/torznab.err"
+                        }
+                    }
+                }
+            }
+        },
+        "/torznab/{indexes}": {
+            "get": {
+                "description": "Query indexes in torznab format",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "text/xml",
+                    "application/json"
+                ],
+                "tags": [
+                    "torznab"
+                ],
+                "summary": "Torznab handler",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Index name(s) to search through",
+                        "name": "indexes",
+                        "in": "path"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Type of search. Can be caps, search, tvsearch, tv-search, movie, movie-search, moviesearch. Defaults to caps, returning the capabilities.",
+                        "name": "t",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Category",
+                        "name": "cat",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "The output format to use",
+                        "name": "format",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/torznab.ResultFeed"
+                        }
+                    },
+                    "404": {
+                        "description": "404 page not found",
+                        "schema": {
+                            "type": "type"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "categories.Categories": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/categories.Category"
+            }
+        },
+        "categories.Category": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "models.IndexStatus": {
             "type": "object",
             "properties": {
@@ -74,6 +190,23 @@
                 }
             }
         },
+        "search.Capability": {
+            "type": "object",
+            "properties": {
+                "available": {
+                    "type": "boolean"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "supportedParams": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "server.statusResponse": {
             "type": "object",
             "properties": {
@@ -88,6 +221,66 @@
                     "items": {
                         "$ref": "#/definitions/models.LatestResult"
                     }
+                }
+            }
+        },
+        "torznab.Capabilities": {
+            "type": "object",
+            "properties": {
+                "categories": {
+                    "$ref": "#/definitions/categories.Categories"
+                },
+                "searchModes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/search.Capability"
+                    }
+                }
+            }
+        },
+        "torznab.Info": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "torznab.ResultFeed": {
+            "type": "object",
+            "properties": {
+                "info": {
+                    "$ref": "#/definitions/torznab.Info"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {}
+                }
+            }
+        },
+        "torznab.err": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
                 }
             }
         }

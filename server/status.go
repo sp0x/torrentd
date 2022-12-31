@@ -17,7 +17,7 @@ type statusResponse struct {
 }
 
 // Status godoc
-// @Summary      Show an account
+// @Summary      Status of the server
 // @Description  get status of the server
 // @Tags         status
 // @Accept       */*
