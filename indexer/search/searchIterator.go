@@ -16,13 +16,14 @@ type RangeField []string
 
 type SearchStateIterator struct {
 	// Stores the state of stateful search fields
-	FieldState   map[string]*RangeFieldState
-	ID           string
-	StartingPage uint
-	CurrentPage  uint
-	StopOnStale  bool
-	reachedStale bool
-	PageCount    uint
+	FieldState      map[string]*RangeFieldState
+	ID              string
+	StartingPage    uint
+	CurrentPage     uint
+	StopOnStale     bool
+	PageCount       uint
+	discoveredItems uint
+	reachedStale    bool
 }
 
 type RunOptions struct {
@@ -32,7 +33,6 @@ type RunOptions struct {
 
 type AggregatedSearch struct {
 	SearchIterators map[interface{}]*SearchStateIterator
-	results         []ResultItemBase
 }
 
 func NewIterator(query *Query) *SearchStateIterator {
@@ -45,6 +45,10 @@ func NewIterator(query *Query) *SearchStateIterator {
 	s.StopOnStale = query.StopOnStale
 	s.setFieldStateFromQuery(query)
 	return s
+}
+
+func (s SearchStateIterator) GetItemsDiscoveredCount() uint {
+	return s.discoveredItems
 }
 
 func (s SearchStateIterator) String() string {
@@ -115,7 +119,8 @@ func (s SearchStateIterator) GetFieldStateOrDefault(name string, args func() *Ra
 	return value, nil
 }
 
-func (s *SearchStateIterator) ScanForStaleResults(r []ResultItemBase) {
+func (s *SearchStateIterator) UpdateIteratorState(r []ResultItemBase) {
+	s.discoveredItems += uint(len(r))
 	if !s.StopOnStale {
 		return
 	}

@@ -15,22 +15,22 @@ import (
 type Query struct {
 	Type                                         string
 	QueryString, Series, Ep, Season, Movie, Year string
-	Limit, Offset                                int
+	Limit, Offset                                uint
 	Extended                                     bool
 	Categories                                   []int
 	APIKey                                       string
 
 	// identifier types
-	TVDBID       string
-	TVRageID     string
-	IMDBID       string
-	TVMazeID     string
-	TraktID      string
-	Fields       map[string]interface{}
+	TVDBID               string
+	TVRageID             string
+	IMDBID               string
+	TVMazeID             string
+	TraktID              string
+	Fields               map[string]interface{}
 	StopOnStale          bool
 	NumberOfPagesToFetch uint
 	//StartingPage uint
-	Page         uint
+	Page uint
 }
 
 func NewQuery() *Query {
@@ -120,9 +120,17 @@ func queryUsesPatterns(query string) bool {
 	return false
 }
 
-// ParseQuery takes the query string parameters for a torznab query and parses them
-func ParseQuery(v url.Values) (*Query, error) {
-	query := &Query{}
+func getDefaultQuery() *Query {
+	q := &Query{}
+	q.Fields = make(map[string]interface{})
+	q.Limit = 20
+	return q
+}
+
+// NewQueryFromUrl takes the query string parameters for a torznab query and parses them.
+// It returns a Query object that can be used to query the indexers.
+func NewQueryFromUrl(v url.Values) (*Query, error) {
+	query := getDefaultQuery()
 
 	for k, vals := range v {
 		switch k {
@@ -166,7 +174,7 @@ func ParseQuery(v url.Values) (*Query, error) {
 				return query, errors.New("multiple apikey parameters not allowed")
 			}
 			query.APIKey = vals[0]
-
+		case "l":
 		case "limit":
 			if len(vals) > 1 {
 				return query, errors.New("multiple limit parameters not allowed")
@@ -175,7 +183,7 @@ func ParseQuery(v url.Values) (*Query, error) {
 			if err != nil {
 				return query, err
 			}
-			query.Limit = limit
+			query.Limit = uint(limit)
 
 		case "offset":
 			if len(vals) > 1 {
@@ -185,7 +193,7 @@ func ParseQuery(v url.Values) (*Query, error) {
 			if err != nil {
 				return query, err
 			}
-			query.Offset = offset
+			query.Offset = uint(offset)
 
 		case "extended":
 			if len(vals) > 1 {
@@ -358,11 +366,11 @@ func (query *Query) Encode() string {
 	}
 
 	if query.Offset != 0 {
-		v.Set("offset", strconv.Itoa(query.Offset))
+		v.Set("offset", strconv.Itoa(int(query.Offset)))
 	}
 
 	if query.Limit != 0 {
-		v.Set("limit", strconv.Itoa(query.Limit))
+		v.Set("limit", strconv.Itoa(int(query.Limit)))
 	}
 
 	if query.Extended {
@@ -415,6 +423,6 @@ func (query *Query) UniqueKey() interface{} {
 	return encoded
 }
 
-func (query *Query) HasEnoughResults(numberOfResults int) bool {
+func (query *Query) HasEnoughResults(numberOfResults uint) bool {
 	return query.Limit > 0 && numberOfResults >= query.Limit
 }

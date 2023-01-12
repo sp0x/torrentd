@@ -325,7 +325,7 @@ func (r *Runner) Search(query *search.Query, srch *workerJob) ([]search.ResultIt
 func (r *Runner) processScrapedItems(scrapeItems source.RawScrapeItems, rowContext *scrapeContext) []search.ResultItemBase {
 	var results []search.ResultItemBase
 	for i := 0; i < scrapeItems.Length(); i++ {
-		if rowContext.query.HasEnoughResults(len(results)) {
+		if rowContext.query.HasEnoughResults(uint(len(results))) {
 			break
 		}
 		// Search the result from the row

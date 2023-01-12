@@ -165,9 +165,28 @@ func (f *Facade) feedWorkerPool(workerPool *indexWorkerPool) {
 				doneIterators[iterator] = true
 				f.logger.Debugf("Completed iterator %p for index %v", iterator, indexForIterator.GetDefinition().Name)
 			}
+
+			if queryIsComplete(workerPool.query, workerPool.iterators) {
+				doneIterators[iterator] = true
+				f.logger.Debugf("Query complete on iterator %p for index %v",
+					iterator,
+					indexForIterator.GetDefinition().Name)
+				break
+			}
 		}
 	}
 	close(workerPool.workChannel)
+}
+
+func queryIsComplete(query *search.Query, iterators map[Indexer]*search.SearchStateIterator) bool {
+	totalItemsDiscovered := uint(0)
+	for _, iterator := range iterators {
+		totalItemsDiscovered += iterator.GetItemsDiscoveredCount()
+		if query.HasEnoughResults(totalItemsDiscovered) {
+			return true
+		}
+	}
+	return false
 }
 
 func createWorkerJob(iterator *search.SearchStateIterator, index Indexer, fields map[string]interface{}, page uint) *workerJob {
@@ -232,7 +251,7 @@ func (f *Facade) runSearchWorker(
 			saveDiscoveredItems(searchResults, resultStorage)
 		}
 
-		workState.Iterator.ScanForStaleResults(searchResults)
+		workState.Iterator.UpdateIteratorState(searchResults)
 
 		if searchResults != nil {
 			resultsChannel <- searchResults
@@ -269,6 +288,7 @@ func (f Facade) createWorkerPool(indexes []Indexer, resultStorage storage.ItemSt
 	workerPool.resultsChannel = make(chan []search.ResultItemBase, workerCount)
 	workerPool.storage = resultStorage
 	workerPool.iterators = make(map[Indexer]*search.SearchStateIterator)
+	workerPool.query = query
 
 	for w := 0; w < workerCount; w++ {
 		workerPool.completionWaitGroup.Add(1)

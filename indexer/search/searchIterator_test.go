@@ -82,7 +82,7 @@ func Test_Given_StaleResultsAndQueryConfiguredSo_Then_IsComplete_Should_BeTrue(t
 			isNew: false,
 		},
 	}
-	iter.ScanForStaleResults(results)
+	iter.UpdateIteratorState(results)
 
 	complete := iter.IsComplete()
 	g.Expect(complete).To(gomega.Equal(true))

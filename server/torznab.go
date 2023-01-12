@@ -69,6 +69,18 @@ func (s *Server) torznabIndexCapabilities(c *gin.Context) {
 // @param 	  	 q query string false "Search query"
 // @param 	  	 cat query string false "Category"
 // @param 	  	 format query string false "The output format to use"
+// @param 	  	 imdbid query string false "IMDB ID"
+// @param 	  	 tmdbid query string false "TMDB ID"
+// @param 	  	 rid query string false "TVDB ID"
+// @param 	  	 season query string false "Season number"
+// @param 	  	 ep query string false "Episode number"
+// @param 	  	 limit query string false "Limit the number of results, defaults to 20"
+// @param 	  	 offset query string false "Offset the results"
+// @param 	  	 minage query string false "Minimum age of the torrent"
+// @param 	  	 maxage query string false "Maximum age of the torrent"
+// @param 	  	 minsize query string false "Minimum size of the torrent"
+// @param 	  	 maxsize query string false "Maximum size of the torrent"
+// @param 	  	 apikey query string true
 // @Produce      xml,json
 // @Success      200  {object}  torznab.ResultFeed
 // @Failure 	 404 {type} string "404 page not found"
@@ -94,21 +106,14 @@ func (s *Server) torznabHandler(c *gin.Context) {
 	}
 
 	searchIndex := searchIndexes[0]
-
-	if t == "caps" {
-		searchIndex.Capabilities().ServeHTTP(c.Writer, c.Request)
-		return
-	}
-
-	apiKey := c.Query("apikey")
-	if !s.checkAPIKey(apiKey) {
+	if !s.checkAPIKey(c.Query("apikey")) {
 		torznab.Error(c, "Invalid apikey parameter", torznab.ErrInsufficientPrivs)
 		return
 	}
 
 	switch t {
 	case "search", "tvsearch", "tv-search", "movie", "movie-search", "moviesearch":
-		query, err := search.ParseQuery(c.Request.URL.Query())
+		query, err := search.NewQueryFromUrl(c.Request.URL.Query())
 		if err != nil {
 			torznab.Error(c, "Invalid query", torznab.ErrInsufficientPrivs)
 			return

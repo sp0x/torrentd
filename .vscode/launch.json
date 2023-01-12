@@ -10,7 +10,7 @@
             "envFile": "${workspaceFolder}/.env",
             // Index name must match the way it's defined in the definition loaders({index}.y(a)ml)
             // "args": ["watch", "-x", "all", "--config", "../ignored/watch.yaml", "-i", "100000"]
-            "args": ["serve"]
+            "args": ["serve", "-v"]
         }
     ]
 }
