@@ -267,11 +267,10 @@ func (r *Runner) HealthCheck() error {
 //	return key
 //}
 
-// Search for a given torrent
-func (r *Runner) Search(query *search.Query, srch *workerJob) ([]search.ResultItemBase, error) {
+// Search searches the index for the given query.
+func (r *Runner) Search(query *search.Query, job *workerJob) ([]search.ResultItemBase, error) {
 	var err error
 	errType := status.LoginError
-	// Collect errors on exit
 	defer func() { r.noteError(errType, err) }()
 
 	session, err := r.sessions.acquire()
@@ -280,20 +279,20 @@ func (r *Runner) Search(query *search.Query, srch *workerJob) ([]search.ResultIt
 	}
 
 	categories := GetLocalCategoriesMatchingQuery(query, &r.definition.Capabilities)
-	reqOpts, err := r.createRequest(query, categories, srch, session)
+	requestOptions, err := r.createRequest(query, categories, job, session)
 	if err != nil {
 		errType = status.TargetError
 		r.logger.WithError(err).Warn(err)
 		return nil, err
 	}
 	startedOn := time.Now()
-	// Search the content
-	fetchResult, err := r.contentFetcher.Fetch(reqOpts)
+
+	fetchResult, err := r.contentFetcher.Fetch(requestOptions)
 	if err != nil {
 		errType = status.ContentError
 		return nil, err
 	}
-	scrapeItems, err := r.extractScrapeItems(fetchResult, srch)
+	scrapeItems, err := r.extractScrapeItems(fetchResult, job)
 	if scrapeItems == nil || err != nil {
 		errType = status.ContentError
 		return nil, fmt.Errorf("result items could not be enumerated.%v", err)
@@ -305,8 +304,8 @@ func (r *Runner) Search(query *search.Query, srch *workerJob) ([]search.ResultIt
 
 	results := r.processScrapedItems(scrapeItems, rowContext)
 	searchString := ""
-	if srch != nil {
-		searchString = srch.String()
+	if job != nil {
+		searchString = job.String()
 	}
 	r.logger.
 		WithFields(log.Fields{

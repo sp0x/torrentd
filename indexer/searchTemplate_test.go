@@ -20,7 +20,7 @@ func Test_IsComplete_Given_RangeFieldIsUsed_Then_IsComplete_ShouldBeTrue_IfRange
 
 	for i := 1; i < 11; i++ {
 		fields, page := iter.Next()
-		data.Search = createWorkerJob(nil, nil, fields, page)
+		data.Search = newWorkerJob(nil, nil, fields, page)
 		val, _ := data.GetSearchFieldValue("rangeField")
 		g.Expect(val).To(gomega.Equal(fmt.Sprintf("%03d", i)))
 	}
@@ -38,7 +38,7 @@ func Test_ApplyField_Given_RangeField_Should_ReturnCorrectValues(t *testing.T) {
 
 	for i := 1; i < 11; i++ {
 		fields, page := iter.Next()
-		data.Search = createWorkerJob(nil, nil, fields, page)
+		data.Search = newWorkerJob(nil, nil, fields, page)
 		val, _ := data.GetSearchFieldValue("rangeField")
 		g.Expect(val).To(gomega.Equal(fmt.Sprintf("%03d", i)))
 	}

@@ -95,7 +95,7 @@ func Test_Should_NotBeAbleToSearch_WithoutURLs(t *testing.T) {
 	urlResolveMock.Return(nil, errors.New("err")).Times(1)
 
 	fields, page := iter.Next()
-	_, err := index.Search(search.NewQuery(), createWorkerJob(nil, index, fields, page))
+	_, err := index.Search(search.NewQuery(), newWorkerJob(nil, index, fields, page))
 
 	g.Expect(err).ToNot(gomega.BeNil())
 }
@@ -114,7 +114,7 @@ func Test_Given_UrlResolverCanNotResolveUrls_Search_Should_ErrorOut(t *testing.T
 	index.definition.Links = []string{}
 
 	fields, page := iter.Next()
-	_, err := index.Search(search.NewQuery(), createWorkerJob(nil, index, fields, page))
+	_, err := index.Search(search.NewQuery(), newWorkerJob(nil, index, fields, page))
 
 	g.Expect(err).ToNot(gomega.BeNil())
 }
@@ -138,7 +138,7 @@ func TestRunner_Search(t *testing.T) {
 	iter := search.NewIterator(search.NewQuery())
 	fields, page := iter.Next()
 
-	results, err := index.Search(search.NewQuery(), createWorkerJob(iter, index, fields, page))
+	results, err := index.Search(search.NewQuery(), newWorkerJob(iter, index, fields, page))
 	g.Expect(err).To(gomega.BeNil())
 	g.Expect(results).ToNot(gomega.BeNil())
 	g.Expect(len(results) > 0).To(gomega.BeTrue())
@@ -187,7 +187,7 @@ func Test_ShouldUseUniqueIndexes(t *testing.T) {
 
 	iter := search.NewIterator(search.NewQuery())
 	fields, page := iter.Next()
-	results, err := index.Search(search.NewQuery(), createWorkerJob(nil, index, fields, page))
+	results, err := index.Search(search.NewQuery(), newWorkerJob(nil, index, fields, page))
 
 	g.Expect(err).To(gomega.BeNil())
 	g.Expect(results).ToNot(gomega.BeNil())
@@ -222,7 +222,7 @@ func TestRunner_testUrlWorks_ShouldWorkWithOptimisticCaching(t *testing.T) {
 
 func getSearchTemplateDataForNextPage(iter *search.SearchStateIterator, query *search.Query) *SearchTemplateData {
 	fields, page := iter.Next()
-	searchTemplateData := newSearchTemplateData(query, createWorkerJob(nil, nil, fields, page), nil)
+	searchTemplateData := newSearchTemplateData(query, newWorkerJob(nil, nil, fields, page), nil)
 
 	return searchTemplateData
 }
