@@ -31,7 +31,6 @@ func newWorkerJob(iterator *search.SearchStateIterator, index Indexer, fields ma
 
 // feedWorkerPool Iterate over the index search iterators and add the data to the work channel
 func (f *Facade) feedWorkerPool(workerPool *indexWorkerPool) {
-
 	for !workerPool.isComplete() {
 		for indexForIterator, iterator := range workerPool.iterators {
 			if iterator.IsComplete() {
@@ -39,7 +38,9 @@ func (f *Facade) feedWorkerPool(workerPool *indexWorkerPool) {
 			}
 
 			fields, page := iterator.Next()
-			workerPool.workChannel <- newWorkerJob(iterator, indexForIterator, fields, page)
+			nextJob := newWorkerJob(iterator, indexForIterator, fields, page)
+			f.logger.Debugf("Adding job %v to work channel", nextJob)
+			workerPool.workChannel <- nextJob
 			if iterator.IsComplete() {
 				f.logger.Debugf("Completed iterator %p for index %v", iterator, indexForIterator.GetDefinition().Name)
 			}
@@ -53,6 +54,7 @@ func (p *indexWorkerPool) isComplete() bool {
 		return true
 	}
 	totalItemsDiscovered := uint(0)
+	copletedAllIterators := true
 
 	for _, iterator := range p.iterators {
 		totalItemsDiscovered += iterator.GetItemsDiscoveredCount()
@@ -60,11 +62,12 @@ func (p *indexWorkerPool) isComplete() bool {
 			return true
 		}
 
-		if !iterator.IsComplete() {
-			return false
+		if copletedAllIterators && !iterator.IsComplete() {
+			copletedAllIterators = false
 		}
 	}
-	return true
+
+	return copletedAllIterators
 }
 
 //region Workers
