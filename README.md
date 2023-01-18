@@ -104,3 +104,8 @@ By default, the server caches the following data:
 - Search results (LRU with Timeout)
 - Last errors for each loaded index (LRU with 2 days TTL)
 
+
+## API
+
+You can find the swagger endpoint at `{hostname:port}/swagger/index.html`.  
+To re-generate the swagger docs just run `make swagger`.

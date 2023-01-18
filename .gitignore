@@ -12,3 +12,4 @@ dumps
 bin
 *.exe
 torrentd
+__debug_bin

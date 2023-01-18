@@ -145,6 +145,55 @@ paths:
         in: query
         name: format
         type: string
+      - description: IMDB ID
+        in: query
+        name: imdbid
+        type: string
+      - description: TMDB ID
+        in: query
+        name: tmdbid
+        type: string
+      - description: TVDB ID
+        in: query
+        name: rid
+        type: string
+      - description: Season number
+        in: query
+        name: season
+        type: string
+      - description: Episode number
+        in: query
+        name: ep
+        type: string
+      - description: Limit the number of results, defaults to 20
+        in: query
+        name: limit
+        type: string
+      - description: Offset the results
+        in: query
+        name: offset
+        type: string
+      - description: Minimum age of the torrent
+        in: query
+        name: minage
+        type: string
+      - description: Maximum age of the torrent
+        in: query
+        name: maxage
+        type: string
+      - description: Minimum size of the torrent
+        in: query
+        name: minsize
+        type: string
+      - description: Maximum size of the torrent
+        in: query
+        name: maxsize
+        type: string
+      - description: API key
+        in: query
+        name: apikey
+        required: true
+        type: string
       produces:
       - text/xml
       - application/json

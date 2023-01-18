@@ -39,14 +39,6 @@ type GenericSearchOptions struct {
 	StopOnStaleResults   bool
 }
 
-type workerJob struct {
-	Fields   map[string]interface{}
-	Page     uint
-	id       string
-	Index    Indexer
-	Iterator *search.SearchStateIterator
-}
-
 // NewFacadeFromConfiguration Creates a new facade using the configuration
 func NewFacadeFromConfiguration(cfg config.Config) (*Facade, error) {
 	facade := NewEmptyFacade(cfg)

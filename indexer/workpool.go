@@ -19,34 +19,46 @@ type indexWorkerPool struct {
 	resultsChannel      chan []search.ResultItemBase
 }
 
-func newWorkerJob(iterator *search.SearchStateIterator, index Indexer, fields map[string]interface{}, page uint) *workerJob {
+type workerJob struct {
+	Fields   map[string]interface{}
+	Page     uint
+	id       string
+	Index    Indexer
+	Iterator *search.SearchStateIterator
+	Pool     *indexWorkerPool
+}
+
+func newWorkerJob(pool *indexWorkerPool,
+	iterator *search.SearchStateIterator,
+	index Indexer, fields map[string]interface{}, page uint) *workerJob {
 	return &workerJob{
 		Iterator: iterator,
 		Fields:   fields,
 		Page:     page,
 		id:       "",
 		Index:    index,
+		Pool:     pool,
 	}
 }
 
 // feedWorkerPool Iterate over the index search iterators and add the data to the work channel
-func (f *Facade) feedWorkerPool(workerPool *indexWorkerPool) {
-	for !workerPool.isComplete() {
-		for indexForIterator, iterator := range workerPool.iterators {
-			if iterator.IsComplete() {
+func (f *Facade) feedWorkerPool(pool *indexWorkerPool) {
+	for !pool.isComplete() {
+		for indexForIterator, iterator := range pool.iterators {
+			if iterator.IsComplete() || pool.isComplete() {
 				continue
 			}
 
 			fields, page := iterator.Next()
-			nextJob := newWorkerJob(iterator, indexForIterator, fields, page)
+			nextJob := newWorkerJob(pool, iterator, indexForIterator, fields, page)
 			f.logger.Debugf("Adding job %v to work channel", nextJob)
-			workerPool.workChannel <- nextJob
+			pool.workChannel <- nextJob
 			if iterator.IsComplete() {
 				f.logger.Debugf("Completed iterator %p for index %v", iterator, indexForIterator.GetDefinition().Name)
 			}
 		}
 	}
-	close(workerPool.workChannel)
+	close(pool.workChannel)
 }
 
 func (p *indexWorkerPool) isComplete() bool {
@@ -75,13 +87,17 @@ func (p *indexWorkerPool) isComplete() bool {
 func (f *Facade) runWorker(
 	id int,
 	query *search.Query,
+	pool *indexWorkerPool,
 	wg *sync.WaitGroup,
 	resultStorage storage.ItemStorage,
 	workChannel <-chan *workerJob,
 	resultsChannel chan<- []search.ResultItemBase) {
 
 	for workJob := range workChannel {
-		log.Debugf("Gor work job: %v", workJob)
+		if pool.isComplete() || workJob.Iterator.IsComplete() {
+			break
+		}
+		log.Debugf("Got work job: %v", workJob)
 		searchResults, err := workJob.Index.Search(query, workJob)
 		if err != nil {
 			log.WithFields(log.Fields{}).Errorf("Couldn't persist item: %s\n", err)
@@ -125,9 +141,9 @@ func (f Facade) createWorkerPool(indexes []Indexer, resultStorage storage.ItemSt
 	workerPool.iterators = make(map[Indexer]*search.SearchStateIterator)
 	workerPool.query = query
 
-	for w := 0; w < workerCount; w++ {
+	for workerNumber := 0; workerNumber < workerCount; workerNumber++ {
 		workerPool.completionWaitGroup.Add(1)
-		go f.runWorker(w, query, &workerPool.completionWaitGroup, resultStorage, workerPool.workChannel, workerPool.resultsChannel)
+		go f.runWorker(workerNumber, query, workerPool, &workerPool.completionWaitGroup, resultStorage, workerPool.workChannel, workerPool.resultsChannel)
 	}
 
 	for _, index := range indexes {

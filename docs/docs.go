@@ -120,6 +120,79 @@ const docTemplate = `{
                         "description": "The output format to use",
                         "name": "format",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "IMDB ID",
+                        "name": "imdbid",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "TMDB ID",
+                        "name": "tmdbid",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "TVDB ID",
+                        "name": "rid",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Season number",
+                        "name": "season",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Episode number",
+                        "name": "ep",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Limit the number of results, defaults to 20",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Offset the results",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Minimum age of the torrent",
+                        "name": "minage",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Maximum age of the torrent",
+                        "name": "maxage",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Minimum size of the torrent",
+                        "name": "minsize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Maximum size of the torrent",
+                        "name": "maxsize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "API key",
+                        "name": "apikey",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
