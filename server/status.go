@@ -9,7 +9,8 @@ import (
 	"github.com/sp0x/torrentd/indexer/status/models"
 )
 
-var statusCache, _ = cache.NewTTL(10, 3*time.Minute)
+var cacheTTL = 3 * time.Minute
+var statusCache, _ = cache.NewTTL(10, cacheTTL)
 
 type statusResponse struct {
 	Latest  []models.LatestResult `json:"latest"`

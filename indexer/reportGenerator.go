@@ -51,9 +51,10 @@ func (st *StandardReportGenerator) GetIndexesStatus(indexFacade *Facade) []model
 
 	indexCount := len(indexFacade.IndexScope.Indexes())
 	statuses := make([]models.IndexStatus, indexCount)
-
+	statusIndex := 0
 	for indexKey, indexes := range indexFacade.IndexScope.Indexes() {
 		if indexes == nil {
+			statusIndex += 1
 			continue
 		}
 		isAggregate := len(indexes) > 1
@@ -68,7 +69,8 @@ func (st *StandardReportGenerator) GetIndexesStatus(indexFacade *Facade) []model
 				indexStats.Size = nsp.RecordCount
 			}
 		}
-		statuses = append(statuses, indexStats)
+		statuses[statusIndex] = indexStats
+		statusIndex += 1
 	}
 	return statuses
 }
