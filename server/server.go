@@ -17,7 +17,6 @@ import (
 	"github.com/sp0x/torrentd/indexer"
 )
 
-//
 type Server struct {
 	indexerFacade *indexer.Facade
 	tabWriter     *tabwriter.Writer
@@ -77,7 +76,7 @@ func (s *Server) Listen(tracker *indexer.Facade) error {
 		log.Infof("Running without API Key")
 	}
 
-	err := r.Run(fmt.Sprintf(":%d", s.Port))
+	err := r.Run(fmt.Sprintf("%s:%d", s.Hostname, s.Port))
 	return err
 }
 

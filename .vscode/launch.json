@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "serve",
+            "name": "torrentd: server",
             "type": "go",
             "request": "launch",
             "mode": "auto",
@@ -10,7 +10,12 @@
             "envFile": "${workspaceFolder}/.env",
             // Index name must match the way it's defined in the definition loaders({index}.y(a)ml)
             // "args": ["watch", "-x", "all", "--config", "../ignored/watch.yaml", "-i", "100000"]
-            "args": ["serve", "-v"]
+            "args": ["serve", "-v"],
+            "serverReadyAction": {
+                "pattern": "Listening and serving HTTP on (.*)",
+                "action": "openExternally",
+                "uriFormat": "http://%s/swagger/index.html"
+            }
         }
     ]
 }

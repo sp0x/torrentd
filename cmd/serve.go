@@ -18,6 +18,7 @@ func init() {
 	}
 	storage := ""
 	port := 5000
+	hostname := "localhost"
 	cmdFlags := cmdServe.Flags()
 	cmdFlags.StringVarP(&storage, "storage", "o", "boltdb", `The storage backing to use.
 Currently supported storage backings: boltdb, firebase, sqlite`)
@@ -25,6 +26,11 @@ Currently supported storage backings: boltdb, firebase, sqlite`)
 	viper.SetDefault("port", 5000)
 	_ = viper.BindEnv("port")
 	_ = viper.BindPFlag("port", cmdFlags.Lookup("port"))
+
+	cmdFlags.StringVarP(&hostname, "hostname", "", "localhost", "The hostname to listen on.")
+	viper.SetDefault("hostname", "localhost")
+	_ = viper.BindEnv("hostname")
+	_ = viper.BindPFlag("hostname", cmdFlags.Lookup("hostname"))
 
 	_ = viper.BindEnv("api_key")
 	// Storage config
