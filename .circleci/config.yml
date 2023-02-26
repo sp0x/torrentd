@@ -11,19 +11,14 @@ jobs:
       # specify the version
       - image: cimg/go:1.20.1
     environment:
-
-    working_directory: /go/src/github.com/sp0x/torrentd
     steps:
       - checkout
       - attach_workspace:
           at: ./artifacts
       - run:
           name: "Install gomock"
-
           command: |
             GO111MODULE=on go get github.com/golang/mock/mockgen@latest
-
-
       - run:
           name: "Install dependencies"
           command: |
