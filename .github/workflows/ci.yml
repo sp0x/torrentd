@@ -35,9 +35,9 @@ jobs:
           fi
           make install-deps
 
-      - name: Lint
-        run: make lint
-
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        
       - name: Test
         run: make test
 
