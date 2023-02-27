@@ -17,14 +17,11 @@ jobs:
       - run:
           name: "Install gomock"
           command: |
-            GO111MODULE=on go get github.com/golang/mock/mockgen@latest
+            GO111MODULE=on go get github.com/golang/mock/mockgen@latest      
       - run:
-          name: "Install dependencies"
+          name: "install build dependencies"
           command: |
-            go install github.com/mitchellh/gox@latest && \
-            go get github.com/konsorten/go-windows-terminal-sequences && \
-            go get github.com/inconshreveable/mousetrap
-      # specify any bash command here prefixed with `run: `
+            make install-deps
       - run: go get -v -t -d ./...
       - run: make test-coverage
       - run:

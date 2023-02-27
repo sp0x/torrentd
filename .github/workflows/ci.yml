@@ -33,9 +33,7 @@ jobs:
               curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
               dep ensure
           fi
-          go get github.com/mitchellh/gox
-          go get github.com/konsorten/go-windows-terminal-sequences
-          go get github.com/inconshreveable/mousetrap
+          make install-deps
 
       - name: Lint
         run: make lint

@@ -61,11 +61,14 @@ assets: install-deps swagger
 	@echo "Embedding assets as code"
 	bindata -o indexer/definitions/assets.go ./definitions/...
 
+
+# go get github.com/konsorten/go-windows-terminal-sequences
+# go get github.com/inconshreveable/mousetrap
 install-deps:
 	@echo "Installing go utils"
 	go install github.com/swaggo/swag/cmd/swag@latest
 	go get github.com/kataras/bindata/cmd/bindata
-	go install github.com/mitchellh/gox@latestadd
+	go install github.com/mitchellh/gox@latest
 
 install:
 	go build -i -o $(GOPATH)/bin/$(NAME) ./cmd
