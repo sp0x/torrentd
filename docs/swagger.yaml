@@ -192,7 +192,6 @@ paths:
       - description: API key
         in: query
         name: apikey
-        required: true
         type: string
       produces:
       - text/xml

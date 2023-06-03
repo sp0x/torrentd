@@ -80,7 +80,7 @@ func (s *Server) torznabIndexCapabilities(c *gin.Context) {
 // @param 	  	 maxage query string false "Maximum age of the torrent"
 // @param 	  	 minsize query string false "Minimum size of the torrent"
 // @param 	  	 maxsize query string false "Maximum size of the torrent"
-// @param 	  	 apikey query string true "API key"
+// @param 	  	 apikey query string false "API key"
 // @Produce      xml,json
 // @Success      200  {object}  torznab.ResultFeed
 // @Failure 	 404 {type} string "404 page not found"

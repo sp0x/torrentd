@@ -187,8 +187,7 @@
                         "type": "string",
                         "description": "API key",
                         "name": "apikey",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     }
                 ],
                 "responses": {

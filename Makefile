@@ -67,7 +67,7 @@ assets: install-deps swagger
 install-deps:
 	@echo "Installing go utils"
 	go install github.com/swaggo/swag/cmd/swag@latest
-	go get github.com/kataras/bindata/cmd/bindata
+	go install github.com/kataras/bindata/cmd/bindata
 	go install github.com/mitchellh/gox@latest
 
 install:
