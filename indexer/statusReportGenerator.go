@@ -30,14 +30,14 @@ func (st *StandardReportGenerator) GetLatestItems() []models.LatestResult {
 	latest := strg.GetLatest(20)
 	strg.Close()
 	latestResultItems := make([]models.LatestResult, len(latest))
-	for _, late := range latest {
+	for i, late := range latest {
 		torrentItem := late.(*search.TorrentResultItem)
-		latestResultItems = append(latestResultItems, models.LatestResult{
+		latestResultItems[i] = models.LatestResult{
 			Name:        torrentItem.Title,
 			Description: torrentItem.Description,
 			Site:        torrentItem.Site,
 			Link:        torrentItem.SourceLink,
-		})
+		}
 	}
 	return latestResultItems
 }
