@@ -1,0 +1,91 @@
+---
+name: boliga.dk
+site: boliga.dk
+description: "Danish real estate site"
+encoding: utf-8
+type: private
+language: da-DK
+# Milliseconds between requests
+ratelimit: 1000
+scheme: realestate
+
+settings:
+  - label: Cookie
+    name: cookie
+    type: text
+
+links:
+  - https://www.boliga.dk
+
+schemas:
+  house:
+    # An schema that matches the house type
+    - match: "{{ .meta.type }} = house"
+      fields:
+        title: "{{ .shortTitle }}"
+        details: "{{ .link }}"
+        category: "{{ .category }}"
+        download: "{{ .download }}"
+        magnet: "{{ .magnet }}"
+
+search:
+  method: get
+  pagesize: 50
+  path: /resultat
+  followredirect: true
+  schemaType: house
+  inputs:
+    street: "{{ if .Query.Keywords }}{{ .Query.Keywords }}{{else}}{{end}}"
+    page: "{{ .Query.Page }}"
+    sort: "{{ .Config.sort }}"
+    
+
+  rows:
+    selector: "app-housing-list-item"
+
+  fields:
+    link:
+      selector: a.house-list-item
+      attribute: href
+    category:
+      selector: .property-1
+    title:
+      selector: .listing-information-desktop>div:nth-child(1)>div:nth-child(1)::text
+    address:
+      selector: .listing-information-desktop>div:nth-child(1)>div:nth-child(1)>.secondary-value
+    ownershipTax:
+      selector: app-house-details .detail:nth-of-type(6)
+      filters:
+        - name: replace
+          args: ["Ejerudgift: ", ""]
+    landArea:
+      selector: app-house-details .detail:nth-of-type(5)
+    buildYear:
+      selector: app-house-details .detail:nth-of-type(4)
+      filters:
+        - name: replace
+          args: ["Opført: ", ""]
+    energyGrade:
+      selector: app-house-details .detail:nth-of-type(3)
+      filters:
+        - name: replace
+          args: ["Energimærke: ", ""]
+    size:
+      selector: app-house-details .detail:nth-of-type(2)
+    roomCount:
+      selector: app-house-details .detail:nth-of-type(1)
+      filters:
+        - name: replace
+          args: ["Værelser: ", ""]
+    banner:
+      selector: img[alt='estate']
+      attribute: src
+      filters:
+        - name: regexp
+          args: src=\\'([^\s\\]+)
+    price:
+      selector: .listing-information-desktop>div:nth-child(1)>div:nth-child(2)>.d-flex
+    pricePerSquareMeter:
+      selector: .listing-information-desktop>div:nth-child(1)>div:nth-child(2)>.secondary-value
+
+
