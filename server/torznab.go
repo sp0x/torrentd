@@ -64,7 +64,7 @@ func (s *Server) torznabIndexCapabilities(c *gin.Context) {
 // @Description  Query indexes in torznab format
 // @Tags         torznab
 // @Accept       */*
-// @param        indexes path string false "Index name(s) to search through"
+// @param        indexes path string false "Index name(s) to search through" default(all)
 // @param        t query string false "Type of search. Can be caps, search, tvsearch, tv-search, movie, movie-search, moviesearch. Defaults to caps, returning the capabilities."
 // @param 	  	 q query string false "Search query"
 // @param 	  	 cat query string false "Category"

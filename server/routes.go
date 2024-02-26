@@ -25,6 +25,7 @@ func (s *Server) setupRoutes(r *gin.Engine) {
 	// Torznab
 	torznab := r.Group("torznab")
 	{
+		torznab.GET("/", s.torznabHandler)
 		torznab.GET("/caps/:indexes", s.torznabIndexCapabilities)
 		torznab.GET("/:indexes", s.torznabHandler)
 		torznab.GET("/:indexes/api", s.torznabHandler)

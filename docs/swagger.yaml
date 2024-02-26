@@ -124,7 +124,8 @@ paths:
       - '*/*'
       description: Query indexes in torznab format
       parameters:
-      - description: Index name(s) to search through
+      - default: all
+        description: Index name(s) to search through
         in: path
         name: indexes
         type: string

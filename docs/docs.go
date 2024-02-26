@@ -93,6 +93,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "default": "all",
                         "description": "Index name(s) to search through",
                         "name": "indexes",
                         "in": "path"
